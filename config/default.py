@@ -35,6 +35,8 @@ FIXTURES_PATH = None
 # Minutes of inactivity before session cookie is destroyed
 INACTIVE_SESSION_LIFETIME = 20
 
+INDEX_HTML = 'dist/static/index.html'
+
 # Logging
 LOGGING_FORMAT = '[%(asctime)s] - %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
 LOGGING_LOCATION = 'damien.log'
