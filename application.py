@@ -44,7 +44,7 @@ Usage mode B:
 # an app restart will result in configurations being lost. We work around this with an explicit load from the shell
 # environment, sourcing from the Elastic Beanstalk-provided /opt/python/current/env file if available.
 if __name__.startswith('_mod_wsgi'):
-    command = ['bash', '-c', '{ source /opt/python/current/env || true; } && env']
+    command = ['bash', '-c', ' env']
     shell_environment = subprocess.Popen(command, stdout=subprocess.PIPE)
     for line in shell_environment.stdout:
         key, _, value = line.decode('utf-8').rstrip().partition('=')
