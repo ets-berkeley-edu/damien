@@ -19,6 +19,18 @@ pip3 install -r requirements.txt [--upgrade]
 npm install
 ```
 
+### Create Postgres user and databases
+
+```
+createuser damien --no-createdb --no-superuser --no-createrole --pwprompt
+createdb bugenhagen --owner=damien
+createdb bugenhagen_test --owner=damien
+
+# Load schema
+export FLASK_APP=application.py
+flask initdb
+```
+
 ### Create local configurations
 
 If you plan to use any resources outside localhost, put your configurations in a separately encrypted area:

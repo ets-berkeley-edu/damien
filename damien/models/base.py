@@ -23,36 +23,13 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from flask import current_app as app
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime
 
-__version__ = '0.1'
-
-db = SQLAlchemy()
+from damien import db
 
 
-def std_commit(allow_test_environment=False, session=None):
-    """Commit failures in SQLAlchemy must be explicitly handled.
+class Base(db.Model):
+    __abstract__ = True
 
-    This function follows the suggested default, which is to roll back and close the active session, letting the pooled
-    connection start a new transaction cleanly. WARNING: Session closure will invalidate any in-memory DB entities. Rows
-    will have to be reloaded from the DB to be read or updated.
-    """
-    # Give a hoot, don't pollute.
-    if session is None:
-        session = db.session
-    if app.config['TESTING'] and not allow_test_environment:
-        # When running tests, session flush generates id and timestamps that would otherwise show up during a commit.
-        session.flush()
-        return
-    successful_commit = False
-    try:
-        session.commit()
-        successful_commit = True
-    except SQLAlchemyError:
-        session.rollback()
-        raise
-    finally:
-        if not successful_commit:
-            session.close()
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)

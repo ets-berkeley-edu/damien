@@ -46,6 +46,12 @@ LOGGING_PROPAGATION_LEVEL = logging.INFO
 # Used to encrypt session cookie.
 SECRET_KEY = 'secret'
 
+# Save DB changes at the end of a request.
+SQLALCHEMY_COMMIT_ON_TEARDOWN = True
+
+# Override in local configs.
+SQLALCHEMY_DATABASE_URI = 'postgresql://damien:damien@localhost:5432/bugenhagen'
+
 # A common configuration; one request thread, one background worker thread.
 THREADS_PER_PAGE = 2
 

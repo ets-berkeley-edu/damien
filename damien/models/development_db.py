@@ -23,36 +23,25 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from damien import db, std_commit
 from flask import current_app as app
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import SQLAlchemyError
-
-__version__ = '0.1'
-
-db = SQLAlchemy()
+from sqlalchemy.sql import text
 
 
-def std_commit(allow_test_environment=False, session=None):
-    """Commit failures in SQLAlchemy must be explicitly handled.
+def clear():
+    with open(app.config['BASE_DIR'] + '/scripts/db/drop_schema.sql', 'r') as ddlfile:
+        db.session().execute(text(ddlfile.read()))
+        std_commit()
 
-    This function follows the suggested default, which is to roll back and close the active session, letting the pooled
-    connection start a new transaction cleanly. WARNING: Session closure will invalidate any in-memory DB entities. Rows
-    will have to be reloaded from the DB to be read or updated.
-    """
-    # Give a hoot, don't pollute.
-    if session is None:
-        session = db.session
-    if app.config['TESTING'] and not allow_test_environment:
-        # When running tests, session flush generates id and timestamps that would otherwise show up during a commit.
-        session.flush()
-        return
-    successful_commit = False
-    try:
-        session.commit()
-        successful_commit = True
-    except SQLAlchemyError:
-        session.rollback()
-        raise
-    finally:
-        if not successful_commit:
-            session.close()
+
+def load():
+    _load_schemas()
+    # _create_users()
+    return db
+
+
+def _load_schemas():
+    """Create DB schema from SQL file."""
+    with open(app.config['BASE_DIR'] + '/scripts/db/schema.sql', 'r') as ddlfile:
+        db.session().execute(text(ddlfile.read()))
+        std_commit()

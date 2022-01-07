@@ -1,6 +1,9 @@
 Flask==2.0.1
+Flask-SQLAlchemy==2.5.1
 ldap3==2.9.1
+psycopg2-binary==2.8.6
 simplejson==3.17.5
+SQLAlchemy==1.4.27
 Werkzeug==2.0.1
 
 # For testing

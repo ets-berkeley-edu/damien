@@ -23,8 +23,13 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import os
+
+
 INDEX_HTML = 'tests/static/test-index.html'
 
 LOGGING_LOCATION = 'STDOUT'
+
+SQLALCHEMY_DATABASE_URI = f"postgresql://damien:damien@localhost:{os.getenv('PGPORT', '5432')}/bugenhagen_test"
 
 TESTING = True

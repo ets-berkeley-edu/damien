@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from damien import db
 from damien.configs import load_configs
 from damien.logger import initialize_logger
 from damien.routes import register_routes
@@ -34,6 +35,7 @@ def create_app():
     app = Flask(__name__.split('.')[0])
     load_configs(app)
     initialize_logger(app)
+    db.init_app(app)
 
     with app.app_context():
         register_routes(app)
