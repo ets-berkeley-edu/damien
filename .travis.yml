@@ -23,8 +23,8 @@ install:
   - pip3 install tox
 
 script:
-  - psql -c 'create database damien_test'
-  - psql damien_test -c 'create extension pg_trgm'
-  - psql damien_test -c "create role damien superuser login password 'damien'; alter schema public owner to damien"
+  - psql -c 'create database bugenhagen_test'
+  - psql bugenhagen_test -c 'create extension pg_trgm'
+  - psql bugenhagen_test -c "create role damien superuser login password 'damien'; alter schema public owner to damien"
   - pip3 install -r requirements.txt
   - tox --parallel || travis_terminate 1

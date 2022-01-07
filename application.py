@@ -53,10 +53,10 @@ if __name__.startswith('_mod_wsgi'):
 application = create_app()
 
 
-# @application.cli.command()
-# def initdb():
-#     from damien.models import development_db
-#     development_db.load()
+@application.cli.command()
+def initdb():
+    from damien.models import development_db
+    development_db.load()
 
 
 host = application.config['HOST']
