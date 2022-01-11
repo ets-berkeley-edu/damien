@@ -23,14 +23,15 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-import os
+from damien.externals import data_loch
 
-DATA_LOCH_RDS_URI = f"postgresql://damien:damien@localhost:{os.getenv('PGPORT', '5432')}/data_loch_test"
 
-INDEX_HTML = 'tests/static/test-index.html'
+class TestDataLoch:
+    """Read-only RDS data loch."""
 
-LOGGING_LOCATION = 'STDOUT'
-
-SQLALCHEMY_DATABASE_URI = f"postgresql://damien:damien@localhost:{os.getenv('PGPORT', '5432')}/bugenhagen_test"
-
-TESTING = True
+    def test_connection(self):
+        """Can go dive in the loch."""
+        response = data_loch.fetch('SELECT 666 AS beast')
+        assert len(response) == 1
+        assert len(response[0]) == 1
+        assert response[0]['beast'] == 666

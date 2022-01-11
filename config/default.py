@@ -32,6 +32,9 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CAS_SERVER = 'https://auth-test.berkeley.edu/cas/'
 CAS_LOGOUT_URL = 'https://auth-test.berkeley.edu/cas/logout'
 
+# The Data Loch provides read-only Postgres access.
+DATA_LOCH_RDS_URI = 'postgresql://nessie:secret@secret-rds-url.com:5432/nessie'
+
 DEVELOPER_AUTH_ENABLED = False
 DEVELOPER_AUTH_PASSWORD = 'a secret'
 
