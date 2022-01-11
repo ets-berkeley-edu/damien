@@ -23,43 +23,40 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien import db, std_commit
+from damien.api.errors import ResourceNotFoundError
+from damien.lib.http import tolerant_jsonify
+from damien.merged.user_session import UserSession
 from damien.models.user import User
-from flask import current_app as app
-from sqlalchemy.sql import text
+from flask import current_app as app, request
+from flask_login import current_user, login_required, login_user, logout_user
 
 
-_test_users = [
-    {
-        'csid': '100100100',
-        'uid': '100',
-        'first_name': 'Father',
-        'last_name': 'Brennan',
-        'email': 'fatherbrennan@berkeley.edu',
-    },
-]
+@app.route('/api/auth/dev_auth_login', methods=['POST'])
+def dev_auth_login():
+    params = request.get_json() or {}
+    if app.config['DEVELOPER_AUTH_ENABLED']:
+        password = params.get('password')
+        if password != app.config['DEVELOPER_AUTH_PASSWORD']:
+            return tolerant_jsonify({'message': 'Invalid credentials'}, 401)
+        uid = params.get('uid')
+        return _login_user(uid)
+    else:
+        raise ResourceNotFoundError('Unknown path')
 
 
-def clear():
-    with open(app.config['BASE_DIR'] + '/scripts/db/drop_schema.sql', 'r') as ddlfile:
-        db.session().execute(text(ddlfile.read()))
-        std_commit()
+@app.route('/api/auth/logout', methods=['POST'])
+@login_required
+def logout():
+    response = tolerant_jsonify(current_user.to_api_json())
+    logout_user()
+    return response
 
 
-def load():
-    _load_schemas()
-    _create_users()
-    return db
-
-
-def _create_users():
-    for test_user in _test_users:
-        db.session.add(User(**test_user))
-    std_commit(allow_test_environment=True)
-
-
-def _load_schemas():
-    """Create DB schema from SQL file."""
-    with open(app.config['BASE_DIR'] + '/scripts/db/schema.sql', 'r') as ddlfile:
-        db.session().execute(text(ddlfile.read()))
-        std_commit()
+def _login_user(uid):
+    user = User.find_by_uid(uid)
+    user_id = user and user.id
+    authenticated = login_user(UserSession(user_id)) and current_user.is_authenticated
+    if authenticated:
+        return tolerant_jsonify(current_user.to_api_json())
+    else:
+        return tolerant_jsonify({'message': f'User {user_id} failed to authenticate.'}, 403)

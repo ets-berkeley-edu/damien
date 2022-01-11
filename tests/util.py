@@ -23,43 +23,15 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien import db, std_commit
-from damien.models.user import User
-from flask import current_app as app
-from sqlalchemy.sql import text
+from contextlib import contextmanager
 
 
-_test_users = [
-    {
-        'csid': '100100100',
-        'uid': '100',
-        'first_name': 'Father',
-        'last_name': 'Brennan',
-        'email': 'fatherbrennan@berkeley.edu',
-    },
-]
-
-
-def clear():
-    with open(app.config['BASE_DIR'] + '/scripts/db/drop_schema.sql', 'r') as ddlfile:
-        db.session().execute(text(ddlfile.read()))
-        std_commit()
-
-
-def load():
-    _load_schemas()
-    _create_users()
-    return db
-
-
-def _create_users():
-    for test_user in _test_users:
-        db.session.add(User(**test_user))
-    std_commit(allow_test_environment=True)
-
-
-def _load_schemas():
-    """Create DB schema from SQL file."""
-    with open(app.config['BASE_DIR'] + '/scripts/db/schema.sql', 'r') as ddlfile:
-        db.session().execute(text(ddlfile.read()))
-        std_commit()
+@contextmanager
+def override_config(app, key, value):
+    """Temporarily override an app config value."""
+    old_value = app.config[key]
+    app.config[key] = value
+    try:
+        yield
+    finally:
+        app.config[key] = old_value
