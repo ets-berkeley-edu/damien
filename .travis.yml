@@ -24,7 +24,9 @@ install:
 
 script:
   - psql -c 'create database bugenhagen_test'
+  - psql -c 'create database data_loch_test'
   - psql bugenhagen_test -c 'create extension pg_trgm'
   - psql bugenhagen_test -c "create role damien superuser login password 'damien'; alter schema public owner to damien"
+  - psql data_loch_test -c "alter schema public owner to damien"
   - pip3 install -r requirements.txt
   - tox --parallel || travis_terminate 1

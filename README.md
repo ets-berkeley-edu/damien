@@ -25,6 +25,7 @@ npm install
 createuser damien --no-createdb --no-superuser --no-createrole --pwprompt
 createdb bugenhagen --owner=damien
 createdb bugenhagen_test --owner=damien
+createdb data_loch_test --owner=damien
 
 # Load schema
 export FLASK_APP=application.py
