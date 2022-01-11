@@ -25,15 +25,32 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import datetime
 
-from flask import make_response, redirect, request, session
+from damien.merged.user_session import UserSession
+from flask import jsonify, make_response, redirect, request, session
+from flask_login import LoginManager
 
 
 def register_routes(app):
+    def _user_loader(user_id=None):
+        return UserSession(user_id)
+
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.user_loader(_user_loader)
+    login_manager.anonymous_user = _user_loader
 
     # Register API routes.
+    import damien.api.auth_controller
     import damien.api.config_controller
 
+    # Register error handlers.
+    import damien.api.error_handlers
+
     index_html = open(app.config['INDEX_HTML']).read()
+
+    @app.login_manager.unauthorized_handler
+    def unauthorized_handler():
+        return jsonify(success=False, data={'login_required': True}, message='Unauthorized'), 401
 
     # Unmatched API routes return a 404.
     @app.route('/api/<path:path>')

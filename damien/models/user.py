@@ -24,6 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from damien import db, std_commit
+from damien.lib.util import isoformat
 from damien.models.base import Base
 
 
@@ -101,3 +102,29 @@ class User(Base):
         db.session.add(user)
         std_commit()
         return user
+
+    @classmethod
+    def find_by_id(cls, db_id):
+        query = cls.query.filter_by(id=db_id, deleted_at=None)
+        return query.first()
+
+    @classmethod
+    def find_by_uid(cls, uid):
+        query = cls.query.filter_by(uid=uid, deleted_at=None)
+        return query.first()
+
+    def to_api_json(self):
+        return {
+            'id': self.id,
+            'csid': self.csid,
+            'uid': self.uid,
+            'firstName': self.first_name,
+            'lastName': self.last_name,
+            'email': self.email,
+            'isAdmin': self.is_admin,
+            'canReceiveCommunications': self.can_receive_communications,
+            'canViewResponseRates': self.can_view_response_rates,
+            'createdAt': isoformat(self.created_at),
+            'updatedAt': isoformat(self.updated_at),
+            'deletedAt': isoformat(self.deleted_at),
+        }

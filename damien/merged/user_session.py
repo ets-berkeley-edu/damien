@@ -23,43 +23,35 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien import db, std_commit
 from damien.models.user import User
-from flask import current_app as app
-from sqlalchemy.sql import text
+from flask_login import UserMixin
 
 
-_test_users = [
-    {
-        'csid': '100100100',
-        'uid': '100',
-        'first_name': 'Father',
-        'last_name': 'Brennan',
-        'email': 'fatherbrennan@berkeley.edu',
-    },
-]
+class UserSession(UserMixin):
 
+    def __init__(self, user_id):
+        self.user = User.find_by_id(user_id) if user_id else None
 
-def clear():
-    with open(app.config['BASE_DIR'] + '/scripts/db/drop_schema.sql', 'r') as ddlfile:
-        db.session().execute(text(ddlfile.read()))
-        std_commit()
+    def get_id(self):
+        return self.user and self.user.id
 
+    @property
+    def is_active(self):
+        return self.is_authenticated
 
-def load():
-    _load_schemas()
-    _create_users()
-    return db
+    @property
+    def is_anonymous(self):
+        return not self.is_authenticated
 
+    @property
+    def is_authenticated(self):
+        return self.user is not None
 
-def _create_users():
-    for test_user in _test_users:
-        db.session.add(User(**test_user))
-    std_commit(allow_test_environment=True)
+    def logout(self):
+        self.user = None
 
-
-def _load_schemas():
-    """Create DB schema from SQL file."""
-    with open(app.config['BASE_DIR'] + '/scripts/db/schema.sql', 'r') as ddlfile:
-        db.session().execute(text(ddlfile.read()))
-        std_commit()
+    def to_api_json(self):
+        return {
+            **(self.user.to_api_json() if self.user else {}),
+            'isAuthenticated': self.is_authenticated,
+        }
