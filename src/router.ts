@@ -1,13 +1,15 @@
 import _ from 'lodash'
-import app from '@/main'
 import auth from './auth'
 import Error from '@/views/Error.vue'
 import Home from '@/views/Home.vue'
-import Login from '@/layouts/Login.vue'
-import {createRouter, createWebHistory} from 'vue-router'
+import Login from '@/views/Login.vue'
+import Router from 'vue-router'
+import Vue from 'vue'
 
-const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+Vue.use(Router)
+
+const router = new Router({
+  mode: 'history',
   routes: [
     {
       path: '/',
@@ -17,7 +19,7 @@ const router = createRouter({
       path: '/login',
       component: Login,
       beforeEnter: (to: any, from: any, next: any) => {
-        if (_.get(app.config.globalProperties.$currentUser, 'isAuthenticated')) {
+        if (_.get(Vue.prototype.$currentUser, 'isAuthenticated')) {
           next('/home')
         } else {
           next()
@@ -38,6 +40,15 @@ const router = createRouter({
       component: Error
     }
   ]
+})
+
+router.beforeEach((to: any, from: any, next: any) => {
+  const redirect = _.trim(to.query.redirect)
+  if (Vue.prototype.$currentUser.isAuthenticated && redirect) {
+    next(redirect)
+  } else {
+    next()
+  }
 })
 
 router.afterEach((to: any) => {

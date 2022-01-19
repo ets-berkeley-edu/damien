@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import app from '@/main'
+import Vue from 'vue'
 
 const $_goToLogin = (to: any, next: any) => {
   next({
@@ -13,7 +13,7 @@ const $_goToLogin = (to: any, next: any) => {
 
 export default {
   requiresAuthenticated: (to: any, from: any, next: any) => {
-    if (_.get(app.config.globalProperties.$currentUser, 'isAuthenticated')) {
+    if (_.get(Vue.prototype.$currentUser, 'isAuthenticated')) {
       next()
     } else {
       $_goToLogin(to, next)
