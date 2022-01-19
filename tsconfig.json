@@ -6,14 +6,16 @@
     "importHelpers": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": false,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
     "sourceMap": true,
     "removeComments": true,
     "baseUrl": ".",
     "types": [
-      "node",
       "webpack-env"
     ],
     "paths": {
@@ -26,13 +28,14 @@
       "dom",
       "dom.iterable",
       "scripthost"
-    ],
-    "typeRoots": [
-      "./node_modules/@types",
     ]
   },
   "include": [
-    "src/**/*"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
   ],
   "exclude": [
     "node_modules"

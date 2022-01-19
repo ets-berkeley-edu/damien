@@ -5,7 +5,6 @@
         <input
           id="dev-auth-uid"
           v-model="uid"
-          class="form-input"
           placeholder="UID"
           type="text"
           aria-required="true"
@@ -18,7 +17,6 @@
           id="dev-auth-password"
           v-model="password"
           :aria-invalid="!!password"
-          class="form-input"
           placeholder="Password"
           type="password"
           aria-required="true"
@@ -28,14 +26,13 @@
         >
       </div>
       <div class="ml-1">
-        <button
+        <v-btn
           id="dev-auth-submit"
-          class="btn-dev-auth btn-primary-color-override"
-          variant="primary"
-          type="submit"
+          color="secondary"
+          @click="logIn"
         >
           DevAuth!
-        </button>
+        </v-btn>
       </div>
     </div>
   </form>
@@ -82,20 +79,9 @@ export default {
 </script>
 
 <style scoped>
-button {
-  background-color: #3b80bf;
-}
-.btn-dev-auth {
-  height: 26px;
-  padding: 0 !important;
-  width: 80px;
-}
 .dev-auth {
   justify-content: center;
   padding-top: 10px;
   white-space: nowrap;
-}
-.form-input {
-  padding-right: 5px;
 }
 </style>

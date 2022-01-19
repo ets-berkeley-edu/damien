@@ -10,7 +10,6 @@ module.exports = {
     'plugin:vue/vue3-strongly-recommended'
   ],
   parserOptions: {
-    parser: '@typescript-eslint/parser',
     ecmaVersion: 2020
   },
   rules: {
@@ -43,12 +42,10 @@ module.exports = {
     'vue/match-component-file-name': 2,
     'vue/max-attributes-per-line': ['error', {
       singleline: 3,
-      multiline: {
-        max: 1,
-        allowFirstLine: false
-      }
+      multiline: 1
     }],
     'vue/multiline-html-element-content-newline': 2,
+    'vue/multi-word-component-names': 0,
     'vue/no-boolean-default': 2,
     'vue/no-mutating-props': 2,
     'vue/no-restricted-syntax': 2,
