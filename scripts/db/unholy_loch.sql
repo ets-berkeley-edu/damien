@@ -46,7 +46,7 @@ CREATE TABLE unholy_loch.sis_sections (
     catalog_id VARCHAR(80),
     instruction_format VARCHAR(80),
     section_num VARCHAR(80),
-    course_title VARCHAR(MAX),
+    course_title VARCHAR,
     is_primary BOOLEAN NOT NULL,
     instructor_uid VARCHAR(80),
     instructor_role_code VARCHAR(80),
@@ -58,7 +58,6 @@ CREATE TABLE unholy_loch.sis_sections (
     meeting_end_date DATE,
     enrollment_count INTEGER,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
@@ -69,9 +68,8 @@ CREATE TABLE unholy_loch.sis_instructors (
     sis_id VARCHAR(80) NOT NULL,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
-    email_address VARCHAR(255) NOT NULL,
+    email_address VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 

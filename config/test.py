@@ -25,8 +25,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import os
 
-DATA_LOCH_RDS_URI = f"postgresql://damien:damien@localhost:{os.getenv('PGPORT', '5432')}/data_loch_test"
-
 INDEX_HTML = 'tests/static/test-index.html'
 
 LOGGING_LOCATION = 'STDOUT'
