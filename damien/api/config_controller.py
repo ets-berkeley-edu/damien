@@ -31,6 +31,7 @@ from flask import current_app as app
 def app_config():
     return tolerant_jsonify({
         'damienEnv': app.config['DAMIEN_ENV'],
+        'devAuthEnabled': app.config['DEVELOPER_AUTH_ENABLED'],
         'ebEnvironment': app.config['EB_ENVIRONMENT'] if 'EB_ENVIRONMENT' in app.config else None,
         'timezone': app.config['TIMEZONE'],
     })
