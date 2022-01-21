@@ -28,4 +28,6 @@ DEBUG = True
 
 INDEX_HTML = 'public/index.html'
 
+SCHEDULE_LOCH_REFRESH = None
+
 VUE_LOCALHOST_BASE_URL = 'http://localhost:8080'

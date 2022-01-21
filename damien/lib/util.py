@@ -24,13 +24,33 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from datetime import datetime
+import re
 
 from dateutil.tz import tzutc
+from flask import current_app as app
 import pytz
 
 
 def isoformat(value):
     return value and value.astimezone(tzutc()).isoformat()
+
+
+def resolve_sql_template_string(template_string, **kwargs):
+    """Our DDL template files are simple enough to use standard Python string formatting."""
+    template_data = {
+        'dblink_nessie_rds': app.config['DBLINK_NESSIE_RDS'],
+    }
+    # Kwargs may be passed in to modify default template data.
+    template_data.update(kwargs)
+    return template_string.format(**template_data)
+
+
+def resolve_sql_template(sql_filename, **kwargs):
+    with open(app.config['BASE_DIR'] + f'/damien/sql_templates/{sql_filename}', encoding='utf-8') as file:
+        template_string = file.read()
+    # Let's leave the preprended copyright and license text out of this.
+    template_string = re.sub(r'^/\*.*?\*/\s*', '', template_string, flags=re.DOTALL)
+    return resolve_sql_template_string(template_string, **kwargs)
 
 
 def to_int(s):

@@ -29,6 +29,8 @@ INDEX_HTML = 'tests/static/test-index.html'
 
 LOGGING_LOCATION = 'STDOUT'
 
+SCHEDULE_LOCH_REFRESH = None
+
 SQLALCHEMY_DATABASE_URI = f"postgresql://damien:damien@localhost:{os.getenv('PGPORT', '5432')}/bugenhagen_test"
 
 TESTING = True

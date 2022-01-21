@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien import db
 from damien.configs import load_configs
+from damien.jobs.refresh_unholy_loch import initialize_refresh_schedule
 from damien.logger import initialize_logger
 from damien.routes import register_routes
 from flask import Flask
@@ -39,5 +40,6 @@ def create_app():
 
     with app.app_context():
         register_routes(app)
+        initialize_refresh_schedule(app)
 
     return app
