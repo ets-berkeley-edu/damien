@@ -23,6 +23,10 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from tests.util import override_config
+
+authorized_uid = '100'
+
 
 class TestConfigController:
     """Config API."""
@@ -31,7 +35,20 @@ class TestConfigController:
         """Returns a well-formed response to anonymous user."""
         response = client.get('/api/config')
         assert response.status_code == 200
-        assert 'damienEnv' in response.json
         data = response.json
+        assert data['damienEnv'] == 'test'
+        assert data['devAuthEnabled'] is False
         assert data['ebEnvironment'] is None
         assert data['timezone'] == 'America/Los_Angeles'
+
+    def test_authorized_user(self, app, client, fake_auth):
+        """Returns a well-formed response to authorized user."""
+        with override_config(app, 'DEVELOPER_AUTH_ENABLED', True):
+            fake_auth.login(authorized_uid)
+            response = client.get('/api/config')
+            assert response.status_code == 200
+            data = response.json
+            assert data['damienEnv'] == 'test'
+            assert data['devAuthEnabled'] is True
+            assert data['ebEnvironment'] is None
+            assert data['timezone'] == 'America/Los_Angeles'
