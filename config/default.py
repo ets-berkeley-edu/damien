@@ -32,6 +32,11 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CAS_SERVER = 'https://auth-test.berkeley.edu/cas/'
 CAS_LOGOUT_URL = 'https://auth-test.berkeley.edu/cas/logout'
 
+CURRENT_TERM_ID = '2222'
+
+# Override in local configs.
+DBLINK_NESSIE_RDS = 'Nessie database name'
+
 DEVELOPER_AUTH_ENABLED = False
 DEVELOPER_AUTH_PASSWORD = 'a secret'
 
@@ -48,6 +53,9 @@ LOGGING_FORMAT = '[%(asctime)s] - %(levelname)s: %(message)s [in %(pathname)s:%(
 LOGGING_LOCATION = 'damien.log'
 LOGGING_LEVEL = logging.DEBUG
 LOGGING_PROPAGATION_LEVEL = logging.INFO
+
+# Override in local configs.
+SCHEDULE_LOCH_REFRESH = {'hour': 0, 'minute': 0}
 
 # Used to encrypt session cookie.
 SECRET_KEY = 'secret'
