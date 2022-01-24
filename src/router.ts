@@ -1,8 +1,10 @@
 import _ from 'lodash'
 import auth from './auth'
+import BaseView from '@/views/BaseView.vue'
 import Error from '@/views/Error.vue'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
+import NotFound from '@/views/NotFound.vue'
 import Router from 'vue-router'
 import Vue from 'vue'
 
@@ -30,14 +32,40 @@ const router = new Router({
       }
     },
     {
-      path: '/home',
-      component: Home,
+      path: '/',
+      component: BaseView,
       beforeEnter: auth.requiresAuthenticated,
-      name: 'home'
+      children: [
+        {
+          path: '/home',
+          component: Home,
+          name: 'home'
+        }
+      ]
     },
     {
-      path: '/error',
-      component: Error
+      path: '/',
+      component: BaseView,
+      children: [
+        {
+          path: '/404',
+          component: NotFound,
+          meta: {
+            title: 'Page not found'
+          }
+        },
+        {
+          path: '/error',
+          component: Error,
+          meta: {
+            title: 'Error'
+          }
+        },
+        {
+          path: '*',
+          redirect: '/404'
+        }
+      ]
     }
   ]
 })

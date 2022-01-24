@@ -1,9 +1,9 @@
 <template>
-  <h1>Error</h1>
+  <h1>Not Found</h1>
 </template>
 
 <script>
 export default {
-  name: 'Error'
+  name: 'NotFound'
 }
 </script>
