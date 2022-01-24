@@ -1,5 +1,5 @@
 """
-Copyright ©2021. The Regents of the University of California (Regents). All Rights Reserved.
+Copyright ©2022. The Regents of the University of California (Regents). All Rights Reserved.
 
 Permission to use, copy, modify, and distribute this software and its documentation
 for educational, research, and not-for-profit purposes, without fee and without a
@@ -23,39 +23,28 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.models.user import User
-from flask_login import UserMixin
+
+non_admin_uid = '100'
+admin_uid = '200'
 
 
-class UserSession(UserMixin):
+def _api_refresh_loch(client, expected_status_code=200):
+    response = client.get('/api/job/refresh_unholy_loch')
+    assert response.status_code == expected_status_code
+    return response.json
 
-    def __init__(self, user_id):
-        self.user = User.find_by_id(user_id) if user_id else None
 
-    def get_id(self):
-        return self.user and self.user.id
+class TestJobRefresh:
 
-    @property
-    def is_active(self):
-        return self.is_authenticated
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_refresh_loch(client, expected_status_code=401)
 
-    @property
-    def is_anonymous(self):
-        return not self.is_authenticated
+    def test_unauthorized(self, client, fake_auth):
+        """Denies unauthorized user."""
+        fake_auth.login(non_admin_uid)
+        _api_refresh_loch(client, expected_status_code=403)
 
-    @property
-    def is_admin(self):
-        return self.user.is_admin
-
-    @property
-    def is_authenticated(self):
-        return self.user is not None
-
-    def logout(self):
-        self.user = None
-
-    def to_api_json(self):
-        return {
-            **(self.user.to_api_json() if self.user else {}),
-            'isAuthenticated': self.is_authenticated,
-        }
+    def test_authorized(self, client, fake_auth):
+        fake_auth.login(admin_uid)
+        _api_refresh_loch(client)

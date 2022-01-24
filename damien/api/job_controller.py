@@ -1,5 +1,5 @@
 """
-Copyright ©2021. The Regents of the University of California (Regents). All Rights Reserved.
+Copyright ©2022. The Regents of the University of California (Regents). All Rights Reserved.
 
 Permission to use, copy, modify, and distribute this software and its documentation
 for educational, research, and not-for-profit purposes, without fee and without a
@@ -23,39 +23,19 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.models.user import User
-from flask_login import UserMixin
+from damien.api.errors import ForbiddenRequestError, InternalServerError
+from damien.jobs.refresh_unholy_loch import refresh_from_api
+from damien.lib.http import tolerant_jsonify
+from flask import current_app as app
+from flask_login import current_user, login_required
 
 
-class UserSession(UserMixin):
-
-    def __init__(self, user_id):
-        self.user = User.find_by_id(user_id) if user_id else None
-
-    def get_id(self):
-        return self.user and self.user.id
-
-    @property
-    def is_active(self):
-        return self.is_authenticated
-
-    @property
-    def is_anonymous(self):
-        return not self.is_authenticated
-
-    @property
-    def is_admin(self):
-        return self.user.is_admin
-
-    @property
-    def is_authenticated(self):
-        return self.user is not None
-
-    def logout(self):
-        self.user = None
-
-    def to_api_json(self):
-        return {
-            **(self.user.to_api_json() if self.user else {}),
-            'isAuthenticated': self.is_authenticated,
-        }
+@app.route('/api/job/refresh_unholy_loch')
+@login_required
+def refresh_unholy_loch():
+    if not current_user.is_admin:
+        raise ForbiddenRequestError('Admin required.')
+    if refresh_from_api():
+        return tolerant_jsonify({'status': 'started'})
+    else:
+        raise InternalServerError('Refresh job failed.')
