@@ -11,3 +11,11 @@ export function devAuthLogIn(uid: string, password: string) {
           return error
         })
 }
+
+export function getCasLoginURL() {
+  return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/auth/cas_login_url`)
+}
+
+export function getCasLogoutUrl() {
+  return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/auth/logout`)
+}
