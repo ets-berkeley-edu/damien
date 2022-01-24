@@ -37,6 +37,14 @@ _test_users = [
         'last_name': 'Brennan',
         'email': 'fatherbrennan@berkeley.edu',
     },
+    {
+        'csid': '200200200',
+        'uid': '200',
+        'first_name': 'Father',
+        'last_name': 'Spiletto',
+        'email': 'fatherspiletto@berkeley.edu',
+        'is_admin': True,
+    },
 ]
 
 
@@ -44,6 +52,8 @@ def clear():
     with open(app.config['BASE_DIR'] + '/scripts/db/drop_schema.sql', 'r') as ddlfile:
         db.session().execute(text(ddlfile.read()))
         std_commit()
+    db.session().execute(text('DROP SCHEMA IF EXISTS unholy_loch CASCADE'))
+    std_commit()
 
 
 def load():
@@ -60,6 +70,7 @@ def _create_users():
 
 def _load_schemas():
     """Create DB schema from SQL file."""
-    with open(app.config['BASE_DIR'] + '/scripts/db/schema.sql', 'r') as ddlfile:
-        db.session().execute(text(ddlfile.read()))
-        std_commit()
+    for schema in ['schema', 'unholy_loch']:
+        with open(app.config['BASE_DIR'] + f'/scripts/db/{schema}.sql', 'r') as ddlfile:
+            db.session().execute(text(ddlfile.read()))
+            std_commit()
