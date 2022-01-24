@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import os
 from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -50,10 +51,14 @@ def refresh_from_api():
 
 def _refresh_unholy_loch(app):
     with app.app_context():
-        app.logger.info('About to start background thread.')
-        thread = Thread(target=_bg_refresh_unholy_loch, args=[app], daemon=True)
-        thread.start()
-        return True
+        if os.environ.get('DAMIEN_ENV') in ['test', 'testext']:
+            app.logger.info('Test run in progress; will not muddy the waters by actually kicking off a background thread.')
+            return True
+        else:
+            app.logger.info('About to start background thread.')
+            thread = Thread(target=_bg_refresh_unholy_loch, args=[app], daemon=True)
+            thread.start()
+            return True
 
 
 def _bg_refresh_unholy_loch(app):
