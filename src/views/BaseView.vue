@@ -15,19 +15,20 @@
           v-for="(item, index) in navItems"
           :id="`sidebar-link-${item.title}`"
           :key="index"
+          class="primary-light--text"
           link
           @click="toRoute(item.path)"
         >
           <v-list-item-icon>
-            <v-icon>{{ item.icon }}</v-icon>
+            <component :is="item.icon" />
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>{{ item.title }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item @click="$vuetify.theme.dark = !$vuetify.theme.dark">
+        <v-list-item class="primary-light--text" @click="$vuetify.theme.dark = !$vuetify.theme.dark">
           <v-list-item-icon>
-            <v-icon>mdi-lightbulb-outline</v-icon>
+            <DarkModeIcon />
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>{{ $vuetify.theme.dark ? 'Light' : 'Dark' }} mode</v-list-item-title>
@@ -82,20 +83,30 @@
 
 <script>
   import Context from '@/mixins/Context'
+  import DarkModeIcon from '../assets/lightbulb-outline.svg'
+  import ErrorIcon from '../assets/exclamation-circle-solid.svg'
   import Footer from '@/components/util/Footer'
+  import GroupIcon from '../assets/account-group.svg'
+  import ListIcon from '../assets/playlist-edit.svg'
   import Spinner from '@/components/util/Spinner'
+  import StatusIcon from '../assets/list-status.svg'
   import Util from '@/mixins/Util'
   import {getCasLogoutUrl} from '@/api/auth'
   export default {
     name: 'BaseView',
-    components: {Footer, Spinner},
+    components: {DarkModeIcon, ErrorIcon, Footer, GroupIcon, ListIcon, Spinner, StatusIcon},
     mixins: [Context, Util],
     data: () => ({
       navItems: undefined,
     }),
     created() {
       this.prefersColorScheme()
-      this.navItems = [{ title: 'Home', icon: 'mdi-home', path: '/home' }]
+      this.navItems = [
+        { title: 'Status Board', icon: StatusIcon, path: '/status' },
+        { title: 'Course Errors Board', icon: ErrorIcon, path: '/errors' },
+        { title: 'Group Management', icon: GroupIcon, path: '/groups' },
+        { title: 'List Management', icon: ListIcon, path: '/lists' }
+      ]
     },
     methods: {
       logOut() {
@@ -115,3 +126,9 @@
     }
   }
 </script>
+
+<style>
+svg {
+  fill: currentColor;
+}
+</style>
