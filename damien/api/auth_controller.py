@@ -44,12 +44,15 @@ def dev_auth_login():
         raise ResourceNotFoundError('Unknown path')
 
 
-@app.route('/api/auth/logout', methods=['POST'])
+@app.route('/api/auth/logout')
 @login_required
 def logout():
-    response = tolerant_jsonify(current_user.to_api_json())
     logout_user()
-    return response
+    redirect_url = app.config['VUE_LOCALHOST_BASE_URL'] or request.url_root
+    return tolerant_jsonify({
+        'logoutUrl': redirect_url,
+        **current_user.to_api_json(),
+    })
 
 
 def _login_user(uid):

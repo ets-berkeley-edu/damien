@@ -91,4 +91,4 @@ class TestDevAuth:
                 },
             )
             assert api_json['uid'] == authorized_uid
-            assert client.post('/api/auth/logout').status_code == 200
+            assert client.get('/api/auth/logout').status_code == 200
