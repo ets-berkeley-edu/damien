@@ -70,7 +70,7 @@ def _create_users():
 
 def _load_schemas():
     """Create DB schema from SQL file."""
-    for schema in ['schema', 'unholy_loch']:
+    for schema in ['schema', 'unholy_loch', 'populate_departments']:
         with open(app.config['BASE_DIR'] + f'/scripts/db/{schema}.sql', 'r') as ddlfile:
             db.session().execute(text(ddlfile.read()))
             std_commit()

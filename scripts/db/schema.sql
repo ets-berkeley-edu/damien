@@ -1,5 +1,5 @@
 /**
- * Copyright ©2021. The Regents of the University of California (Regents). All Rights Reserved.
+ * Copyright ©2022. The Regents of the University of California (Regents). All Rights Reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its documentation
  * for educational, research, and not-for-profit purposes, without fee and without a
@@ -37,6 +37,55 @@ SET default_with_oids = false;
 
 --
 
+CREATE TABLE department_catalog_listings (
+    id integer NOT NULL,
+    department_id integer NOT NULL,
+    subject_area VARCHAR(255) NOT NULL,
+    catalog_id VARCHAR(255),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL  
+);
+
+CREATE SEQUENCE department_catalog_listings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE department_catalog_listings_id_seq OWNED BY department_catalog_listings.id;
+ALTER TABLE ONLY department_catalog_listings ALTER COLUMN id SET DEFAULT nextval('department_catalog_listings_id_seq'::regclass);
+
+ALTER TABLE ONLY department_catalog_listings
+    ADD CONSTRAINT department_catalog_listings_pkey PRIMARY KEY (id);
+
+CREATE INDEX department_catalog_listings_department_id_idx ON department_catalog_listings USING btree (department_id);
+CREATE INDEX department_catalog_listings_subject_area_idx ON department_catalog_listings USING btree (subject_area);
+
+--
+
+CREATE TABLE departments (
+    id integer NOT NULL,
+    dept_name character varying(255) NOT NULL,
+    is_enrolled boolean NOT NULL DEFAULT FALSE,
+    note text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL    
+);
+
+CREATE SEQUENCE departments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE departments_id_seq OWNED BY departments.id;
+ALTER TABLE ONLY departments ALTER COLUMN id SET DEFAULT nextval('departments_id_seq'::regclass);
+
+ALTER TABLE ONLY departments
+    ADD CONSTRAINT departments_pkey PRIMARY KEY (id);
+
+--
+
 CREATE TABLE users (
     id integer NOT NULL,
     csid character varying(255) NOT NULL,
@@ -65,3 +114,6 @@ ALTER TABLE ONLY users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
 
 --
+
+ALTER TABLE ONLY department_catalog_listings
+    ADD CONSTRAINT department_catalog_listings_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);

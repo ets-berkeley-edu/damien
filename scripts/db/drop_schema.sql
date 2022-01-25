@@ -1,5 +1,5 @@
 /**
- * Copyright ©2021. The Regents of the University of California (Regents). All Rights Reserved.
+ * Copyright ©2022. The Regents of the University of California (Regents). All Rights Reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its documentation
  * for educational, research, and not-for-profit purposes, without fee and without a
@@ -34,10 +34,26 @@ SET row_security = off;
 
 --
 
+ALTER TABLE IF EXISTS ONLY public.department_catalog_listings DROP CONSTRAINT IF EXISTS department_catalog_listings_department_id_fkey;
+
+--
+
+ALTER TABLE IF EXISTS ONLY public.department_catalog_listings DROP CONSTRAINT IF EXISTS department_catalog_listings_pkey;
+ALTER TABLE IF EXISTS public.department_catalog_listings ALTER COLUMN id DROP DEFAULT;
+
+ALTER TABLE IF EXISTS ONLY public.departments DROP CONSTRAINT IF EXISTS departments_pkey;
+ALTER TABLE IF EXISTS public.departments ALTER COLUMN id DROP DEFAULT;
+
 ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_pkey;
 ALTER TABLE IF EXISTS public.users ALTER COLUMN id DROP DEFAULT;
 
 --
+
+DROP SEQUENCE IF EXISTS public.department_catalog_listings_id_seq;
+DROP TABLE IF EXISTS public.department_catalog_listings;
+
+DROP SEQUENCE IF EXISTS public.departments_id_seq;
+DROP TABLE IF EXISTS public.departments;
 
 DROP SEQUENCE IF EXISTS public.users_id_seq;
 DROP TABLE IF EXISTS public.users;
