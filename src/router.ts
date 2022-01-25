@@ -48,6 +48,34 @@ const router = new Router({
       component: BaseView,
       children: [
         {
+          path: '/status',
+          component: NotFound,
+          meta: {
+            title: 'Status Board'
+          }
+        },
+        {
+          path: '/errors',
+          component: NotFound,
+          meta: {
+            title: 'Course Errors Board'
+          }
+        },
+        {
+          path: '/groups',
+          component: NotFound,
+          meta: {
+            title: 'Group Management'
+          }
+        },
+        {
+          path: '/lists',
+          component: NotFound,
+          meta: {
+            title: 'List Management'
+          }
+        },
+        {
           path: '/404',
           component: NotFound,
           meta: {
