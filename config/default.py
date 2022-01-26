@@ -30,7 +30,6 @@ import os
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 CAS_SERVER = 'https://auth-test.berkeley.edu/cas/'
-CAS_LOGOUT_URL = 'https://auth-test.berkeley.edu/cas/logout'
 
 CURRENT_TERM_ID = '2222'
 
@@ -65,6 +64,8 @@ SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
 # Override in local configs.
 SQLALCHEMY_DATABASE_URI = 'postgresql://damien:damien@localhost:5432/bugenhagen'
+
+SUPPORT_EMAIL = 'TODO'
 
 # A common configuration; one request thread, one background worker thread.
 THREADS_PER_PAGE = 2

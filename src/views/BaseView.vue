@@ -111,7 +111,7 @@
     methods: {
       logOut() {
         this.alertScreenReader('Logging out')
-        getCasLogoutUrl().then(data => window.location.href = data.logoutUrl)
+        getCasLogoutUrl().then(data => window.location.href = data.casLogoutUrl)
       },
       prefersColorScheme() {
         const mq = window.matchMedia('(prefers-color-scheme: dark)')

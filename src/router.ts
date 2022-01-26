@@ -22,7 +22,7 @@ const router = new Router({
       component: Login,
       beforeEnter: (to: any, from: any, next: any) => {
         if (_.get(Vue.prototype.$currentUser, 'isAuthenticated')) {
-          next('/home')
+          next('/')
         } else {
           next()
         }

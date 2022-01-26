@@ -10,6 +10,7 @@ requests==2.27.1
 simplejson==3.17.5
 SQLAlchemy==1.4.27
 Werkzeug==2.0.1
+https://github.com/python-cas/python-cas/archive/master.zip
 
 # For testing
 

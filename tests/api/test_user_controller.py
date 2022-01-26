@@ -36,10 +36,11 @@ def _api_my_profile(client, expected_status_code=200):
 class TestMyProfile:
 
     def test_anonymous(self, client):
-        """Denies anonymous user."""
-        _api_my_profile(client, expected_status_code=401)
+        """Returns a well-formed response to anonymous user."""
+        _api_my_profile(client)
 
     def test_authenticated(self, client, fake_auth):
+        """Returns authenticated user profile."""
         fake_auth.login(authorized_uid)
         api_json = _api_my_profile(client)
         assert api_json['uid'] == authorized_uid

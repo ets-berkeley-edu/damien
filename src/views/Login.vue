@@ -20,6 +20,7 @@
               block
               color="accent"
               large
+              @click="logIn"
             >
               Sign In
               <v-icon class="pl-2">mdi-arrow-right-circle-outline</v-icon>
@@ -34,6 +35,7 @@
 
 <script>
 import DevAuth from '@/components/admin/DevAuth'
+import {getCasLoginURL} from '@/api/auth'
 
 export default {
   name: 'Login',
@@ -48,9 +50,9 @@ export default {
     this.reportError(this.$route.query.error)
   },
   methods: {
-    // logIn() {
-    //   getCasLoginURL().then(data => window.location.href = data.casLoginUrl)
-    // },
+    logIn() {
+      getCasLoginURL().then(data => window.location.href = data.casLoginUrl)
+    },
     onHidden() {
       this.error = null
       this.showError = false

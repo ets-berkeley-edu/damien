@@ -18,20 +18,13 @@ axios.interceptors.response.use(
   response => response.headers['content-type'] === 'application/json' ? response.data : response,
   error => {
     const errorStatus = _.get(error, 'response.status')
-    const requestUrl = _.get(error, 'config.url', '')
     if (_.includes([401, 403], errorStatus)) {
-      if (requestUrl.endsWith('/api/user/my_profile') || requestUrl.endsWith('/api/config')) {
-        Vue.prototype.$currentUser = {}
+      // Refresh user in case his/her session expired.
+      return axios.get(`${apiBaseUrl}/api/user/my_profile`).then(data => {
+        Vue.prototype.$currentUser = data
         utils.axiosErrorHandler(error)
-        return Promise.resolve(error)
-      } else {
-        // Refresh user in case his/her session expired.
-        return axios.get(`${apiBaseUrl}/api/user/my_profile`).then(data => {
-          Vue.prototype.$currentUser = data
-          utils.axiosErrorHandler(error)
-          return Promise.reject(error)
-        })
-      }
+        return Promise.reject(error)
+      })
     } else {
       utils.axiosErrorHandler(error)
       return Promise.reject(error)

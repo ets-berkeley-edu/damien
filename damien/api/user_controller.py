@@ -25,10 +25,9 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien.lib.http import tolerant_jsonify
 from flask import current_app as app
-from flask_login import current_user, login_required
+from flask_login import current_user
 
 
 @app.route('/api/user/my_profile')
-@login_required
 def my_profile():
     return tolerant_jsonify(current_user.to_api_json())
