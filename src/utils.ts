@@ -18,14 +18,13 @@ export default {
           }
         })
       }
-      else {
-        router.push({
-          path: '/',
-          query: {
-            m: 'Your session has expired'
-          }
-        })
-      }
+    } else {
+      router.push({
+        path: '/login',
+        query: {
+          m: 'Your session has expired'
+        }
+      })
     }
   },
   putFocusNextTick: (id, cssSelector) => {

@@ -25,6 +25,8 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import json
 
+import cas
+import mock
 from tests.util import override_config
 
 authorized_uid = '100'
@@ -92,3 +94,26 @@ class TestDevAuth:
             )
             assert api_json['uid'] == authorized_uid
             assert client.get('/api/auth/logout').status_code == 200
+
+
+class TestCasAuth:
+    """CAS login URL generation and redirects."""
+
+    def test_cas_login_url(self, client):
+        """Returns berkeley.edu URL of CAS login page."""
+        response = client.get('/api/auth/cas_login_url')
+        assert response.status_code == 200
+        assert 'berkeley.edu/cas/login' in response.json.get('casLoginUrl')
+
+    def test_cas_callback_with_invalid_ticket(self, client):
+        """Fails if CAS can not verify the ticket."""
+        response = client.get('/cas/callback?ticket=is_invalid')
+        assert response.status_code == 302
+        assert 'error' in response.location
+
+    @mock.patch.object(cas.CASClientV3, 'verify_ticket', autospec=True)
+    def test_cas_callback_with_valid_ticket(self, mock_verify_ticket, client):
+        """Given a valid ticket, logs user in."""
+        mock_verify_ticket.return_value = (authorized_uid, {}, 'is_valid')
+        response = client.get('/cas/callback?ticket=is_valid')
+        assert response.status_code == 302
