@@ -5,6 +5,7 @@ import Error from '@/views/Error.vue'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
 import NotFound from '@/views/NotFound.vue'
+import StatusBoard from '@/views/StatusBoard.vue'
 import Router from 'vue-router'
 import Vue from 'vue'
 
@@ -49,7 +50,8 @@ const router = new Router({
       children: [
         {
           path: '/status',
-          component: NotFound,
+          component: StatusBoard,
+          beforeEnter: auth.requiresAdmin,
           meta: {
             title: 'Status Board'
           }

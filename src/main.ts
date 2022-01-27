@@ -10,7 +10,9 @@ import vuetify from './plugins/vuetify'
 const apiBaseUrl = process.env.VUE_APP_API_BASE_URL
 
 Vue.prototype.$_ = _
+Vue.prototype.$loading = () => store.dispatch('context/loadingStart')
 Vue.prototype.$putFocusNextTick = utils.putFocusNextTick
+Vue.prototype.$ready = label => store.dispatch('context/loadingComplete', label)
 
 // Axios
 axios.defaults.withCredentials = true

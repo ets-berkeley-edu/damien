@@ -12,6 +12,17 @@ const $_goToLogin = (to: any, next: any) => {
 }
 
 export default {
+  requiresAdmin: (to: any, from: any, next: any) => {
+    if (_.get(Vue.prototype.$currentUser, 'isAuthenticated')) {
+      if (_.get(Vue.prototype.$currentUser, 'isAdmin')) {
+        next()
+      } else {
+        next({path: '/404'})
+      }
+    } else {
+      $_goToLogin(to, next)
+    }
+  },
   requiresAuthenticated: (to: any, from: any, next: any) => {
     if (_.get(Vue.prototype.$currentUser, 'isAuthenticated')) {
       next()
