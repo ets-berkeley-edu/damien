@@ -35,14 +35,22 @@ SET row_security = off;
 --
 
 ALTER TABLE IF EXISTS ONLY public.department_catalog_listings DROP CONSTRAINT IF EXISTS department_catalog_listings_department_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluations_department_form_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluations_evaluation_type_fkey;
 
 --
 
 ALTER TABLE IF EXISTS ONLY public.department_catalog_listings DROP CONSTRAINT IF EXISTS department_catalog_listings_pkey;
 ALTER TABLE IF EXISTS public.department_catalog_listings ALTER COLUMN id DROP DEFAULT;
 
+ALTER TABLE IF EXISTS ONLY public.department_forms DROP CONSTRAINT IF EXISTS department_forms_pkey;
+ALTER TABLE IF EXISTS public.department_forms ALTER COLUMN id DROP DEFAULT;
+
 ALTER TABLE IF EXISTS ONLY public.departments DROP CONSTRAINT IF EXISTS departments_pkey;
 ALTER TABLE IF EXISTS public.departments ALTER COLUMN id DROP DEFAULT;
+
+ALTER TABLE IF EXISTS ONLY public.evaluation_types DROP CONSTRAINT IF EXISTS evaluation_types_pkey;
+ALTER TABLE IF EXISTS public.evaluation_types ALTER COLUMN id DROP DEFAULT;
 
 ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_pkey;
 ALTER TABLE IF EXISTS public.users ALTER COLUMN id DROP DEFAULT;
@@ -52,8 +60,20 @@ ALTER TABLE IF EXISTS public.users ALTER COLUMN id DROP DEFAULT;
 DROP SEQUENCE IF EXISTS public.department_catalog_listings_id_seq;
 DROP TABLE IF EXISTS public.department_catalog_listings;
 
+DROP SEQUENCE IF EXISTS public.department_forms_id_seq;
+DROP TABLE IF EXISTS public.department_forms;
+
 DROP SEQUENCE IF EXISTS public.departments_id_seq;
 DROP TABLE IF EXISTS public.departments;
 
+DROP SEQUENCE IF EXISTS public.evaluation_types_id_seq;
+DROP TABLE IF EXISTS public.evaluation_types;
+
+DROP TABLE IF EXISTS public.evaluations;
+
 DROP SEQUENCE IF EXISTS public.users_id_seq;
 DROP TABLE IF EXISTS public.users;
+
+--
+
+DROP TYPE IF EXISTS public.evaluation_status;
