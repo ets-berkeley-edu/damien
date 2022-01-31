@@ -67,7 +67,8 @@ CREATE TABLE department_forms (
     id integer NOT NULL,
     name VARCHAR(255) NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    deleted_at timestamp with time zone
 );
 
 CREATE SEQUENCE department_forms_id_seq
@@ -81,6 +82,8 @@ ALTER TABLE ONLY department_forms ALTER COLUMN id SET DEFAULT nextval('departmen
 
 ALTER TABLE ONLY department_forms
     ADD CONSTRAINT department_forms_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY department_forms
+    ADD CONSTRAINT department_forms_name_unique UNIQUE (name);
 
 --
 
@@ -111,7 +114,8 @@ CREATE TABLE evaluation_types (
     id integer NOT NULL,
     name VARCHAR(255) NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    deleted_at timestamp with time zone
 );
 
 CREATE SEQUENCE evaluation_types_id_seq
@@ -125,6 +129,8 @@ ALTER TABLE ONLY evaluation_types ALTER COLUMN id SET DEFAULT nextval('evaluatio
 
 ALTER TABLE ONLY evaluation_types
     ADD CONSTRAINT evaluation_types_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY evaluation_types
+    ADD CONSTRAINT evaluation_types_name_unique UNIQUE (name);
 
 --
 
@@ -144,6 +150,9 @@ CREATE TABLE evaluations (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_by character varying(255)
 );
+
+ALTER TABLE ONLY evaluations
+    ADD CONSTRAINT evaluations_pkey PRIMARY KEY (term_id, course_number, instructor_uid);
 
 --
 
