@@ -63,13 +63,34 @@ CREATE INDEX department_catalog_listings_subject_area_idx ON department_catalog_
 
 --
 
+CREATE TABLE department_forms (
+    id integer NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE SEQUENCE department_forms_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE department_forms_id_seq OWNED BY department_forms.id;
+ALTER TABLE ONLY department_forms ALTER COLUMN id SET DEFAULT nextval('department_forms_id_seq'::regclass);
+
+ALTER TABLE ONLY department_forms
+    ADD CONSTRAINT department_forms_pkey PRIMARY KEY (id);
+
+--
+
 CREATE TABLE departments (
     id integer NOT NULL,
     dept_name character varying(255) NOT NULL,
     is_enrolled boolean NOT NULL DEFAULT FALSE,
     note text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL    
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE SEQUENCE departments_id_seq
@@ -83,6 +104,46 @@ ALTER TABLE ONLY departments ALTER COLUMN id SET DEFAULT nextval('departments_id
 
 ALTER TABLE ONLY departments
     ADD CONSTRAINT departments_pkey PRIMARY KEY (id);
+
+--
+
+CREATE TABLE evaluation_types (
+    id integer NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE SEQUENCE evaluation_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE evaluation_types_id_seq OWNED BY evaluation_types.id;
+ALTER TABLE ONLY evaluation_types ALTER COLUMN id SET DEFAULT nextval('evaluation_types_id_seq'::regclass);
+
+ALTER TABLE ONLY evaluation_types
+    ADD CONSTRAINT evaluation_types_pkey PRIMARY KEY (id);
+
+--
+
+CREATE TYPE evaluation_status AS ENUM ('marked', 'confirmed', 'deleted');
+
+CREATE TABLE evaluations (
+    term_id VARCHAR(4) NOT NULL,
+    course_number VARCHAR(5) NOT NULL,
+    instructor_uid VARCHAR(80),
+    status evaluation_status,
+    department_form_id INTEGER,
+    evaluation_type_id INTEGER,
+    start_date DATE,
+    end_date DATE,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_by character varying(255),
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_by character varying(255)
+);
 
 --
 
@@ -117,3 +178,7 @@ ALTER TABLE ONLY users
 
 ALTER TABLE ONLY department_catalog_listings
     ADD CONSTRAINT department_catalog_listings_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
+ALTER TABLE ONLY evaluations
+    ADD CONSTRAINT evaluations_department_form_id_fkey FOREIGN KEY (department_form_id) REFERENCES department_forms(id);
+ALTER TABLE ONLY evaluations
+    ADD CONSTRAINT evaluations_evaluation_type_fkey FOREIGN KEY (evaluation_type_id) REFERENCES evaluation_types(id);
