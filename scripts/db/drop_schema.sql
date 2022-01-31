@@ -35,6 +35,8 @@ SET row_security = off;
 --
 
 ALTER TABLE IF EXISTS ONLY public.department_catalog_listings DROP CONSTRAINT IF EXISTS department_catalog_listings_department_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.department_forms DROP CONSTRAINT IF EXISTS department_forms_name_unique;
+ALTER TABLE IF EXISTS ONLY public.evaluation_types DROP CONSTRAINT IF EXISTS evaluation_types_name_unique;
 ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluations_department_form_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluations_evaluation_type_fkey;
 
@@ -51,6 +53,8 @@ ALTER TABLE IF EXISTS public.departments ALTER COLUMN id DROP DEFAULT;
 
 ALTER TABLE IF EXISTS ONLY public.evaluation_types DROP CONSTRAINT IF EXISTS evaluation_types_pkey;
 ALTER TABLE IF EXISTS public.evaluation_types ALTER COLUMN id DROP DEFAULT;
+
+ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluations_pkey;
 
 ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_pkey;
 ALTER TABLE IF EXISTS public.users ALTER COLUMN id DROP DEFAULT;
