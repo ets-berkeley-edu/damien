@@ -26,6 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from damien import db, std_commit
 from damien.lib.util import isoformat
 from damien.models.base import Base
+from damien.models.department_member import DepartmentMember
 
 
 class User(Base):
@@ -41,6 +42,12 @@ class User(Base):
     can_receive_communications = db.Column(db.Boolean, default=None)
     can_view_response_rates = db.Column(db.Boolean, default=None)
     deleted_at = db.Column(db.DateTime)
+
+    department_memberships = db.relationship(
+        DepartmentMember.__name__,
+        back_populates='user',
+        lazy='joined',
+    )
 
     def __init__(
         self,

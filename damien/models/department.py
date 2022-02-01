@@ -37,6 +37,10 @@ class Department(Base):
     is_enrolled = db.Column(db.Boolean, nullable=False, default=False)
     note = db.Column(db.Text, default=None)
 
+    members = db.relationship(
+        'DepartmentMember',
+        back_populates='department',
+    )
     catalog_listings = db.relationship(
         DepartmentCatalogListing.__name__,
         back_populates='department',
