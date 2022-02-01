@@ -87,6 +87,18 @@ ALTER TABLE ONLY department_forms
 
 --
 
+CREATE TABLE department_members (
+    department_id integer NOT NULL,
+    user_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL    
+);
+
+ALTER TABLE ONLY department_members
+    ADD CONSTRAINT department_members_pkey PRIMARY KEY (department_id, user_id);
+
+--
+
 CREATE TABLE departments (
     id integer NOT NULL,
     dept_name character varying(255) NOT NULL,
@@ -187,6 +199,12 @@ ALTER TABLE ONLY users
 
 ALTER TABLE ONLY department_catalog_listings
     ADD CONSTRAINT department_catalog_listings_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
+
+ALTER TABLE ONLY department_members
+    ADD CONSTRAINT department_members_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
+ALTER TABLE ONLY department_members
+    ADD CONSTRAINT department_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
+
 ALTER TABLE ONLY evaluations
     ADD CONSTRAINT evaluations_department_form_id_fkey FOREIGN KEY (department_form_id) REFERENCES department_forms(id);
 ALTER TABLE ONLY evaluations

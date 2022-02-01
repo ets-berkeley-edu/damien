@@ -40,6 +40,9 @@ ALTER TABLE IF EXISTS ONLY public.evaluation_types DROP CONSTRAINT IF EXISTS eva
 ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluations_department_form_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluations_evaluation_type_fkey;
 
+ALTER TABLE IF EXISTS ONLY public.department_members DROP CONSTRAINT IF EXISTS department_members_department_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.department_members DROP CONSTRAINT IF EXISTS department_members_user_id_fkey;
+
 --
 
 ALTER TABLE IF EXISTS ONLY public.department_catalog_listings DROP CONSTRAINT IF EXISTS department_catalog_listings_pkey;
@@ -47,6 +50,8 @@ ALTER TABLE IF EXISTS public.department_catalog_listings ALTER COLUMN id DROP DE
 
 ALTER TABLE IF EXISTS ONLY public.department_forms DROP CONSTRAINT IF EXISTS department_forms_pkey;
 ALTER TABLE IF EXISTS public.department_forms ALTER COLUMN id DROP DEFAULT;
+
+ALTER TABLE IF EXISTS ONLY public.department_members DROP CONSTRAINT IF EXISTS department_members_pkey;
 
 ALTER TABLE IF EXISTS ONLY public.departments DROP CONSTRAINT IF EXISTS departments_pkey;
 ALTER TABLE IF EXISTS public.departments ALTER COLUMN id DROP DEFAULT;
@@ -66,6 +71,8 @@ DROP TABLE IF EXISTS public.department_catalog_listings;
 
 DROP SEQUENCE IF EXISTS public.department_forms_id_seq;
 DROP TABLE IF EXISTS public.department_forms;
+
+DROP TABLE IF EXISTS public.department_members;
 
 DROP SEQUENCE IF EXISTS public.departments_id_seq;
 DROP TABLE IF EXISTS public.departments;
