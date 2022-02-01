@@ -27,6 +27,8 @@ from damien import db, std_commit
 from damien.lib.util import isoformat
 from damien.models.base import Base
 from damien.models.department_catalog_listing import DepartmentCatalogListing
+from flask import current_app as app
+from sqlalchemy.sql import text
 
 
 class Department(Base):
@@ -91,19 +93,46 @@ class Department(Base):
         query = cls.query.filter_by(is_enrolled=True)
         return query.all()
 
-    def to_api_json(self):
-        catalog_listing_json = {}
+    def catalog_listings_map(self):
+        listings_map = {}
         for listing in self.catalog_listings:
-            if listing.subject_area not in catalog_listing_json:
-                catalog_listing_json[listing.subject_area] = []
-            catalog_listing_json[listing.subject_area].append(listing.catalog_id or '*')
+            if listing.subject_area not in listings_map:
+                listings_map[listing.subject_area] = []
+            listings_map[listing.subject_area].append(listing.catalog_id or '*')
+        return listings_map
 
+    def get_loch_courses(self, term_id):
+        conditions = []
+        for subject_area, catalog_ids in self.catalog_listings_map().items():
+            subconditions = []
+            if len(subject_area):
+                subconditions.append(f"s.subject_area = '{subject_area}'")
+            if '*' in catalog_ids:
+                exclusions = DepartmentCatalogListing.catalog_ids_to_exclude(self.id, subject_area)
+                if len(exclusions):
+                    subconditions.append(f"s.catalog_id NOT SIMILAR TO '({'|'.join(exclusions)})'")
+            elif len(catalog_ids) == 1:
+                subconditions.append(f"s.catalog_id SIMILAR TO '{catalog_ids[0]}'")
+            else:
+                subconditions.append(f"s.catalog_id SIMILAR TO '({'|'.join(catalog_ids)})'")
+            conditions.append(f"({' AND '.join(subconditions)})")
+        query = f"""SELECT *
+                FROM unholy_loch.sis_sections s
+                JOIN unholy_loch.sis_instructors i
+                ON s.instructor_uid = i.ldap_uid
+                WHERE s.term_id = :term_id AND ({' OR '.join(conditions)})
+            """
+        results = db.session().execute(text(query), {'term_id': term_id}).all()
+        app.logger.info(f'Unholy loch query for {self.dept_name} courses returned {len(results)} reuslts: {query}')
+        return results
+
+    def to_api_json(self):
         return {
             'id': self.id,
             'deptName': self.dept_name,
             'isEnrolled': self.is_enrolled,
             'note': self.note,
-            'catalogListings': catalog_listing_json,
+            'catalogListings': self.catalog_listings_map(),
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
         }
