@@ -36,7 +36,6 @@ tmp/
 .pytest_cache/
 
 # Environments
-.env
 .venv
 env/
 venv/
