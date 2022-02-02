@@ -27,15 +27,15 @@ from selenium.webdriver.common.by import By
 
 class LoginPage(Page):
 
-    SIGN_IN_BUTTON = (By.ID, 'todo')
-    USERNAME_INPUT = (By.ID, 'todo')
-    PASSWORD_INPUT = (By.ID, 'todo')
-    DEV_AUTH_LOGIN_BUTTON = (By.ID, 'todo')
+    SIGN_IN_BUTTON = (By.ID, 'log-in')
+    USERNAME_INPUT = (By.ID, 'dev-auth-uid')
+    PASSWORD_INPUT = (By.ID, 'dev-auth-password')
+    DEV_AUTH_LOGIN_BUTTON = (By.ID, 'btn-dev-auth-login')
 
     def load_page(self):
         app.logger.info('Loading the Damien login page')
         self.driver.get(app.config['BASE_URL'])
-        self.wait_for_title('Some Title')
+        self.wait_for_title('Welcome | Course Evaluations')
 
     def click_sign_in(self):
         self.wait_for_page_and_click(LoginPage.SIGN_IN_BUTTON)
