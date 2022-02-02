@@ -69,3 +69,8 @@ class DepartmentCatalogListing(Base):
         db.session.add(department_catalog_listing)
         std_commit()
         return department_catalog_listing
+
+    @classmethod
+    def catalog_ids_to_exclude(cls, department_id, subject_area):
+        results = cls.query.filter(cls.subject_area.in_([subject_area, '']), cls.department_id != department_id).all()
+        return [r.catalog_id for r in results]
