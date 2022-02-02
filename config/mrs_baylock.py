@@ -31,7 +31,8 @@ ADMIN_UID = '123456'
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 BASE_URL = 'https://manage-dev.course-evaluations.berkeley.edu'
 
-BROWSER = 'firefox'
+BROWSER = 'chrome'
+BROWSER_HEADLESS = False
 
 CLICK_SLEEP = 0.5
 

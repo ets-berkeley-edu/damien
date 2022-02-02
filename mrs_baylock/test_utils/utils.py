@@ -30,6 +30,10 @@ def get_browser():
     return app.config['BROWSER']
 
 
+def browser_is_headless():
+    return app.config['BROWSER_HEADLESS']
+
+
 def get_click_sleep():
     return app.config['CLICK_SLEEP']
 

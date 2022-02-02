@@ -22,6 +22,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import os
 
 from damien.factory import create_app
+from mrs_baylock.pages.calnet_page import CalNetPage
 from mrs_baylock.pages.login_page import LoginPage
 from mrs_baylock.test_utils.webdriver_utils import WebDriverManager
 import pytest
@@ -41,6 +42,7 @@ def page_objects(request):
 
     # Define page objects
     login_page = LoginPage(driver)
+    calnet_page = CalNetPage(driver)
 
     session = request.node
     try:
@@ -48,6 +50,7 @@ def page_objects(request):
             cls = item.getparent(pytest.Class)
             setattr(cls.obj, 'driver', driver)
             setattr(cls.obj, 'login_page', login_page)
+            setattr(cls.obj, 'calnet_page', calnet_page)
         yield
     finally:
         WebDriverManager.quit_browser(driver)
