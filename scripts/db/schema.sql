@@ -170,7 +170,7 @@ ALTER TABLE ONLY evaluations
 
 CREATE TABLE users (
     id integer NOT NULL,
-    csid character varying(255) NOT NULL,
+    csid character varying(255),
     uid character varying(255) NOT NULL,
     first_name character varying(255) NOT NULL,
     last_name character varying(255) NOT NULL,
