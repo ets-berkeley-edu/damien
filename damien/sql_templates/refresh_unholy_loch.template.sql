@@ -108,14 +108,13 @@ TRUNCATE unholy_loch.sis_instructors;
 INSERT INTO unholy_loch.sis_instructors
   (ldap_uid, sis_id, first_name, last_name, email_address, created_at)
   (SELECT * FROM dblink('{dblink_nessie_rds}',$NESSIE$
-    SELECT
+    SELECT DISTINCT
         ba.ldap_uid, ba.sid AS sis_id, ba.first_name, ba.last_name, ba.email_address,
         now() AS created_at
     FROM sis_data.basic_attributes ba
     JOIN sis_data.sis_sections s
       ON s.sis_term_id='{term_id}'
       AND s.instructor_uid = ba.ldap_uid
-      AND ba.sid IS NOT NULL
     $NESSIE$)
     AS nessie_sis_instructors (
       ldap_uid VARCHAR(80),
@@ -165,6 +164,19 @@ INSERT INTO unholy_loch.sis_enrollments
     ldap_uid VARCHAR(80)
   )
 );
+
+WITH ec AS (
+  SELECT s.term_id, s.course_number, COUNT(DISTINCT e.ldap_uid) as enrollment_count
+  FROM unholy_loch.sis_sections s
+  LEFT JOIN unholy_loch.sis_enrollments e
+  ON s.term_id = e.term_id
+  AND s.course_number = e.course_number
+  GROUP BY s.term_id, s.course_number
+)
+UPDATE unholy_loch.sis_sections s
+SET enrollment_count = ec.enrollment_count
+FROM ec
+WHERE s.term_id = ec.term_id AND s.course_number = ec.course_number;
 
 --
 

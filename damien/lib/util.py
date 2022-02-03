@@ -31,6 +31,10 @@ from flask import current_app as app
 import pytz
 
 
+def get(_dict, key, default_value=None):
+    return _dict[key] if key in _dict else default_value
+
+
 def isoformat(value):
     return value and value.astimezone(tzutc()).isoformat()
 
@@ -51,6 +55,10 @@ def resolve_sql_template(sql_filename, **kwargs):
     # Let's leave the preprended copyright and license text out of this.
     template_string = re.sub(r'^/\*.*?\*/\s*', '', template_string, flags=re.DOTALL)
     return resolve_sql_template_string(template_string, **kwargs)
+
+
+def safe_strftime(date, date_format):
+    return datetime.strftime(date, date_format) if date else None
 
 
 def to_int(s):
