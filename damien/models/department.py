@@ -23,12 +23,18 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from itertools import groupby
+
 from damien import db, std_commit
+from damien.lib.queries import get_loch_instructors, get_loch_sections
 from damien.lib.util import isoformat
+from damien.merged.section import Section
 from damien.models.base import Base
 from damien.models.department_catalog_listing import DepartmentCatalogListing
+from damien.models.department_form import DepartmentForm
+from damien.models.evaluation import Evaluation
+from damien.models.evaluation_type import EvaluationType
 from flask import current_app as app
-from sqlalchemy.sql import text
 
 
 class Department(Base):
@@ -105,33 +111,62 @@ class Department(Base):
             listings_map[listing.subject_area].append(listing.catalog_id or '*')
         return listings_map
 
-    def get_loch_courses(self, term_id):
+    def get_department_sections(self, term_id):
         conditions = []
         for subject_area, catalog_ids in self.catalog_listings_map().items():
             subconditions = []
             if len(subject_area):
-                subconditions.append(f"s.subject_area = '{subject_area}'")
+                subconditions.append(f"subject_area = '{subject_area}'")
             if '*' in catalog_ids:
                 exclusions = DepartmentCatalogListing.catalog_ids_to_exclude(self.id, subject_area)
                 if len(exclusions):
-                    subconditions.append(f"s.catalog_id NOT SIMILAR TO '({'|'.join(exclusions)})'")
+                    subconditions.append(f"catalog_id NOT SIMILAR TO '({'|'.join(exclusions)})'")
             elif len(catalog_ids) == 1:
-                subconditions.append(f"s.catalog_id SIMILAR TO '{catalog_ids[0]}'")
+                subconditions.append(f"catalog_id SIMILAR TO '{catalog_ids[0]}'")
             else:
-                subconditions.append(f"s.catalog_id SIMILAR TO '({'|'.join(catalog_ids)})'")
+                subconditions.append(f"catalog_id SIMILAR TO '({'|'.join(catalog_ids)})'")
             conditions.append(f"({' AND '.join(subconditions)})")
-        query = f"""SELECT *
-                FROM unholy_loch.sis_sections s
-                JOIN unholy_loch.sis_instructors i
-                ON s.instructor_uid = i.ldap_uid
-                WHERE s.term_id = :term_id AND ({' OR '.join(conditions)})
-            """
-        results = db.session().execute(text(query), {'term_id': term_id}).all()
-        app.logger.info(f'Unholy loch query for {self.dept_name} courses returned {len(results)} reuslts: {query}')
-        return results
+        return get_loch_sections(term_id, conditions)
 
-    def to_api_json(self):
-        return {
+    def get_visible_sections(self, term_id=None):
+        sections = []
+        term_id = term_id or app.config['CURRENT_TERM_ID']
+
+        loch_sections = self.get_department_sections(term_id)
+        sections_by_number = {k: list(v) for k, v in groupby(loch_sections, key=lambda r: r['course_number'])}
+        evaluations = Evaluation.fetch_by_course_numbers(term_id, sections_by_number.keys())
+
+        instructor_uids = set(s['instructor_uid'] for s in loch_sections if s['instructor_uid'])
+        instructor_uids.update(e.instructor_uid for e in evaluations if e.instructor_uid)
+        instructors = {}
+        for row in get_loch_instructors(list(instructor_uids)):
+            instructors[row['ldap_uid']] = {
+                'uid': row['ldap_uid'],
+                'sisId': row['sis_id'],
+                'firstName': row['first_name'],
+                'lastName': row['last_name'],
+                'emailAddress': row['email_address'],
+            }
+
+        all_dept_forms = {df.name: df for df in DepartmentForm.query.all()}
+        all_eval_types = {et.name: et for et in EvaluationType.query.all()}
+
+        for course_number, loch_rows in sections_by_number.items():
+            section_evaluations = evaluations.get(course_number, [])
+            loch_rows_visible = next((True for r in loch_rows if Section.is_visible_by_default(r)), False)
+            evaluations_visible = next((True for e in section_evaluations if e.is_visible()), False)
+            if loch_rows_visible or evaluations_visible:
+                sections.append(Section(
+                    loch_rows,
+                    section_evaluations,
+                    instructors=instructors,
+                    dept_form_cache=all_dept_forms,
+                    evaluation_type_cache=all_eval_types,
+                ))
+        return sections
+
+    def to_api_json(self, include_sections=False, term_id=None):
+        feed = {
             'id': self.id,
             'deptName': self.dept_name,
             'isEnrolled': self.is_enrolled,
@@ -140,3 +175,6 @@ class Department(Base):
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
         }
+        if include_sections:
+            feed['sections'] = [s.to_api_json() for s in self.get_visible_sections(term_id)]
+        return feed

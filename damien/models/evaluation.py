@@ -130,3 +130,65 @@ class Evaluation(Base):
         db.session.add(evaluation)
         std_commit()
         return evaluation
+
+    @classmethod
+    def merge_transient(
+        cls,
+        uid,
+        loch_rows,
+        saved_evaluation=None,
+        dept_form_cache=None,
+        evaluation_type_cache=None,
+    ):
+        transient_evaluation = cls(
+            term_id=loch_rows[0].term_id,
+            course_number=loch_rows[0].course_number,
+            instructor_uid=uid,
+        )
+
+        if saved_evaluation and saved_evaluation.status:
+            transient_evaluation.status = saved_evaluation.status
+
+        all_dept_forms = dept_form_cache or {df.name: df for df in DepartmentForm.query.all()}
+        all_eval_types = evaluation_type_cache or {et.name: et for et in EvaluationType.query.all()}
+
+        transient_evaluation.set_department_form(loch_rows, saved_evaluation, all_dept_forms)
+        transient_evaluation.set_evaluation_type(loch_rows, saved_evaluation, all_eval_types)
+        transient_evaluation.set_start_date(loch_rows, saved_evaluation)
+        transient_evaluation.set_end_date(loch_rows, saved_evaluation)
+
+        return transient_evaluation
+
+    @classmethod
+    def fetch_by_course_numbers(cls, term_id, course_numbers):
+        results = cls.query.filter(cls.term_id == term_id, cls.course_number.in_(course_numbers)).all()
+        return {r.course_number: r for r in results}
+
+    def is_visible(self):
+        return self.status != 'deleted'
+
+    def set_department_form(self, loch_rows, saved_evaluation, all_dept_forms):
+        if saved_evaluation and saved_evaluation.department_form_id:
+            self.department_form_id = saved_evaluation.department_form_id
+        else:
+            # TODO set department form for non-cross-listed courses
+            self.department_form_id = None
+
+    def set_evaluation_type(self, loch_rows, saved_evaluation, all_eval_types):
+        if saved_evaluation and saved_evaluation.evaluation_type_id:
+            self.evaluation_type_id = saved_evaluation.evaluation_type_id
+        else:
+            # TODO Leave blank if department_form above is set to LAW or SPANISH, otherwise set based on instructor affiliation.
+            self.evaluation_type_id = None
+
+    def set_start_date(self, loch_rows, saved_evaluation):
+        if saved_evaluation and saved_evaluation.start_date:
+            self.start_date = saved_evaluation.start_date
+        else:
+            self.start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
+
+    def set_end_date(self, loch_rows, saved_evaluation):
+        if saved_evaluation and saved_evaluation.end_date:
+            self.end_date = saved_evaluation.end_date
+        else:
+            self.end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)

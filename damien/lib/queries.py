@@ -23,29 +23,33 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.api.errors import ForbiddenRequestError, ResourceNotFoundError
-from damien.lib.http import tolerant_jsonify
-from damien.lib.util import get as get_param
-from damien.models.department import Department
-from flask import current_app as app, request
-from flask_login import current_user, login_required
+from damien import db
+from flask import current_app as app
+from sqlalchemy.sql import text
 
 
-@app.route('/api/departments/enrolled')
-@login_required
-def enrolled_departments():
-    if not current_user.is_admin:
-        raise ForbiddenRequestError('Admin required.')
-    enrolled_depts = Department.all_enrolled()
-    return tolerant_jsonify([d.to_api_json() for d in enrolled_depts])
+def get_loch_instructors(uids):
+    query = """SELECT distinct *
+            FROM unholy_loch.sis_instructors i
+            WHERE ldap_uid = ANY(:uids)
+        """
+    results = db.session().execute(
+        text(query),
+        {'uids': uids},
+    ).all()
+    app.logger.info(f'Unholy loch instructor query returned {len(results)} results for {len(uids)} uids')
+    return results
 
 
-@app.route('/api/department/<department_id>')
-@login_required
-def get_department(department_id):
-    department = Department.find_by_id(int(department_id))
-    if not department:
-        raise ResourceNotFoundError(f'Department {department_id} not found.')
-    term_id = get_param(request.args, 'term_id', app.config['CURRENT_TERM_ID'])
-    feed = department.to_api_json(include_sections=True, term_id=term_id)
-    return tolerant_jsonify(feed)
+def get_loch_sections(term_id, conditions):
+    query = f"""SELECT *
+            FROM unholy_loch.sis_sections
+            WHERE term_id = :term_id AND ({' OR '.join(conditions)})
+            ORDER BY course_number, instructor_uid
+        """
+    results = db.session().execute(
+        text(query),
+        {'term_id': term_id},
+    ).all()
+    app.logger.info(f'Unholy loch course query returned {len(results)} results: {query}')
+    return results
