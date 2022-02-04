@@ -106,6 +106,7 @@ class Section:
                 'evaluationType': eval_type_feed,
                 'startDate': safe_strftime(evaluation.start_date, '%Y-%m-%d'),
                 'endDate': safe_strftime(evaluation.end_date, '%Y-%m-%d'),
+                'lastUpdated': safe_strftime(evaluation.last_updated, '%Y-%m-%d'),
             })
         return {
             'termId': self.term_id,

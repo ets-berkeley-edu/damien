@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import auth from './auth'
 import BaseView from '@/views/BaseView.vue'
+import Department from '@/views/Department.vue'
 import Error from '@/views/Error.vue'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
@@ -38,29 +39,10 @@ const router = new Router({
       beforeEnter: auth.requiresAuthenticated,
       children: [
         {
-          path: '/home',
-          component: Home,
-          name: 'home'
-        }
-      ]
-    },
-    {
-      path: '/',
-      component: BaseView,
-      children: [
-        {
-          path: '/status',
-          component: StatusBoard,
-          beforeEnter: auth.requiresAdmin,
+          path: '/department/:departmentId',
+          component: Department,
           meta: {
-            title: 'Status Board'
-          }
-        },
-        {
-          path: '/errors',
-          component: NotFound,
-          meta: {
-            title: 'Course Errors Board'
+            title: 'Department'
           }
         },
         {
@@ -71,12 +53,31 @@ const router = new Router({
           }
         },
         {
+          path: '/home',
+          component: Home,
+          name: 'home'
+        },
+        {
           path: '/lists',
           component: NotFound,
           meta: {
             title: 'List Management'
           }
         },
+        {
+          path: '/status',
+          component: StatusBoard,
+          beforeEnter: auth.requiresAdmin,
+          meta: {
+            title: 'Status Board'
+          }
+        },
+      ]
+    },
+    {
+      path: '/',
+      component: BaseView,
+      children: [
         {
           path: '/404',
           component: NotFound,
@@ -89,6 +90,13 @@ const router = new Router({
           component: Error,
           meta: {
             title: 'Error'
+          }
+        },
+        {
+          path: '/errors',
+          component: NotFound,
+          meta: {
+            title: 'Course Errors Board'
           }
         },
         {

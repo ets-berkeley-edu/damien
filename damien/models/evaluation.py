@@ -148,6 +148,8 @@ class Evaluation(Base):
 
         if saved_evaluation and saved_evaluation.status:
             transient_evaluation.status = saved_evaluation.status
+        else:
+            transient_evaluation.status = None
 
         all_dept_forms = dept_form_cache or {df.name: df for df in DepartmentForm.query.all()}
         all_eval_types = evaluation_type_cache or {et.name: et for et in EvaluationType.query.all()}
@@ -156,6 +158,7 @@ class Evaluation(Base):
         transient_evaluation.set_evaluation_type(loch_rows, saved_evaluation, all_eval_types)
         transient_evaluation.set_start_date(loch_rows, saved_evaluation)
         transient_evaluation.set_end_date(loch_rows, saved_evaluation)
+        transient_evaluation.set_last_updated(loch_rows, saved_evaluation)
 
         return transient_evaluation
 
@@ -192,3 +195,9 @@ class Evaluation(Base):
             self.end_date = saved_evaluation.end_date
         else:
             self.end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)
+
+    def set_last_updated(self, loch_rows, saved_evaluation):
+        updates = [r['created_at'] for r in loch_rows]
+        if saved_evaluation:
+            updates.append(saved_evaluation.updated_at)
+        self.last_updated = max(updates)
