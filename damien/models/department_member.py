@@ -24,7 +24,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from damien import db, std_commit
-from damien.lib.util import isoformat
 from damien.models.base import Base
 from damien.models.department import Department
 
@@ -68,9 +67,7 @@ class DepartmentMember(Base):
 
     def to_api_json(self):
         return {
-            'id': self.id,
-            'departmentId': self.department_id,
             'userId': self.user_id,
-            'createdAt': isoformat(self.created_at),
-            'updatedAt': isoformat(self.updated_at),
+            'departmentId': self.department_id,
+            **self.user.to_api_json(),
         }

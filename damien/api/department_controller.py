@@ -47,5 +47,9 @@ def get_department(department_id):
     if not department:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
     term_id = get_param(request.args, 'term_id', app.config['CURRENT_TERM_ID'])
-    feed = department.to_api_json(include_sections=True, term_id=term_id)
+    feed = department.to_api_json(
+        include_contacts=current_user.is_admin,
+        include_sections=True,
+        term_id=term_id,
+    )
     return tolerant_jsonify(feed)

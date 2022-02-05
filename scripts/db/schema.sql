@@ -192,8 +192,8 @@ CREATE SEQUENCE users_id_seq
 ALTER SEQUENCE users_id_seq OWNED BY users.id;
 ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
 
-ALTER TABLE ONLY users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY users ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY users ADD CONSTRAINT users_uid_unique_key UNIQUE (uid);
 
 --
 

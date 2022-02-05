@@ -23,6 +23,8 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import re
+
 from damien import db, std_commit
 from damien.models.user import User
 from flask import current_app as app
@@ -30,13 +32,6 @@ from sqlalchemy.sql import text
 
 
 _test_users = [
-    {
-        'csid': '100100100',
-        'uid': '100',
-        'first_name': 'Father',
-        'last_name': 'Brennan',
-        'email': 'fatherbrennan@berkeley.edu',
-    },
     {
         'csid': '200200200',
         'uid': '200',
@@ -72,5 +67,7 @@ def _load_schemas():
     """Create DB schema from SQL file."""
     for schema in ['schema', 'unholy_loch', 'populate_departments', 'populate_department_contacts']:
         with open(app.config['BASE_DIR'] + f'/scripts/db/{schema}.sql', 'r') as ddlfile:
-            db.session().execute(text(ddlfile.read()))
+            # Let's leave the preprended copyright and license text out of this.
+            sql = re.sub(r'^/\*.*?\*/\s*', '', ddlfile.read(), flags=re.DOTALL)
+            db.session().execute(text(sql))
             std_commit()

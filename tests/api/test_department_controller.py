@@ -23,6 +23,8 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from damien.models.department import Department
+
 
 non_admin_uid = '100'
 admin_uid = '200'
@@ -34,7 +36,7 @@ def _api_enrolled_departments(client, expected_status_code=200):
     return response.json
 
 
-class TestDepartmentController:
+class TestEnrolledDepartments:
 
     def test_anonymous(self, client):
         """Denies anonymous user."""
@@ -69,3 +71,41 @@ class TestDepartmentController:
             'HISTORY': ['138T', '180T', '182AT'],
             'UGIS': ['82', '187', '188', '189', '303'],
         }
+
+
+def _api_get_department(client, expected_status_code=200):
+    dept = Department.find_by_name('Philosophy')
+    response = client.get(f'/api/department/{dept.id}')
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestGetDepartment:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_get_department(client, expected_status_code=401)
+
+    def test_authorized(self, client, fake_auth):
+        """Returns a contactless response to non-admin user."""
+        fake_auth.login(non_admin_uid)
+        department = _api_get_department(client)
+        assert department['catalogListings'] == {'PHILOS': ['*']}
+        assert department['deptName'] == 'Philosophy'
+        assert department['isEnrolled'] is True
+        assert department['note'] is None
+        assert 'contacts' not in department
+
+    def test_admin_authorized(self, client, fake_auth):
+        """Returns response including dept contacts to admin user."""
+        fake_auth.login(admin_uid)
+        department = _api_get_department(client)
+        assert department['catalogListings'] == {'PHILOS': ['*']}
+        assert department['contacts'][0]['csid'] == '100100100'
+        assert department['contacts'][0]['uid'] == '100'
+        assert department['contacts'][0]['firstName'] == 'Father'
+        assert department['contacts'][0]['lastName'] == 'Brennan'
+        assert department['contacts'][0]['email'] == 'fatherbrennan@berkeley.edu'
+        assert department['deptName'] == 'Philosophy'
+        assert department['isEnrolled'] is True
+        assert department['note'] is None
