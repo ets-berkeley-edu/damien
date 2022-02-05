@@ -165,7 +165,7 @@ class Department(Base):
                 ))
         return sections
 
-    def to_api_json(self, include_sections=False, term_id=None):
+    def to_api_json(self, include_contacts=False, include_sections=False, term_id=None):
         feed = {
             'id': self.id,
             'deptName': self.dept_name,
@@ -175,6 +175,8 @@ class Department(Base):
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
         }
+        if include_contacts:
+            feed['contacts'] = [user.to_api_json() for user in self.members]
         if include_sections:
             feed['sections'] = [s.to_api_json() for s in self.get_visible_sections(term_id)]
         return feed

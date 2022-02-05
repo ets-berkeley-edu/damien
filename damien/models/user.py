@@ -33,8 +33,8 @@ class User(Base):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
-    csid = db.Column(db.String(255), nullable=False)
-    uid = db.Column(db.String(255), nullable=False)
+    csid = db.Column(db.String(255))
+    uid = db.Column(db.String(255), nullable=False, unique=True)
     first_name = db.Column(db.String(255), nullable=False)
     last_name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False)
