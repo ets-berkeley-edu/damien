@@ -65,9 +65,9 @@ CREATE TABLE unholy_loch.sis_sections (
 
 CREATE TABLE unholy_loch.sis_instructors (
     ldap_uid VARCHAR(80) NOT NULL,
-    sis_id VARCHAR(80) NOT NULL,
-    first_name VARCHAR(255) NOT NULL,
-    last_name VARCHAR(255) NOT NULL,
+    sis_id VARCHAR(80),
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
     email_address VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     deleted_at TIMESTAMP WITH TIME ZONE

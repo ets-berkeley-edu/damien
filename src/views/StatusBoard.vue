@@ -5,7 +5,7 @@
     </div>
     <v-card outlined class="elevation-1">
       <v-data-table
-        id="courses-data-table"
+        id="department-table"
         disable-pagination
         :headers="headers"
         hide-default-footer
@@ -16,7 +16,9 @@
             <template v-for="(department, index) in items">
               <tr :key="department.name">
                 <td :id="`department-name-${index}`">
-                  {{ department.deptName }} ({{ $_.keys(department.catalogListings).join(', ') }})
+                  <router-link :to="`/department/${department.id}`">
+                    {{ department.deptName }} ({{ $_.keys(department.catalogListings).join(', ') }})
+                  </router-link>
                 </td>
               </tr>
             </template>

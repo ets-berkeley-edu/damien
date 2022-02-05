@@ -30,6 +30,7 @@ from flask import current_app as app
 @app.route('/api/config')
 def app_config():
     return tolerant_jsonify({
+        'currentTermId': app.config['CURRENT_TERM_ID'],
         'damienEnv': app.config['DAMIEN_ENV'],
         'devAuthEnabled': app.config['DEVELOPER_AUTH_ENABLED'],
         'ebEnvironment': app.config['EB_ENVIRONMENT'] if 'EB_ENVIRONMENT' in app.config else None,
