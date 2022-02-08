@@ -26,6 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from damien import db, std_commit
 from damien.lib.util import utc_now
 from damien.models.base import Base
+from damien.models.department_catalog_listing import DepartmentCatalogListing
 
 
 class DepartmentForm(Base):
@@ -34,6 +35,12 @@ class DepartmentForm(Base):
     id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
     name = db.Column(db.String(255), nullable=False)
     deleted_at = db.Column(db.DateTime)
+
+    catalog_listings = db.relationship(
+        DepartmentCatalogListing.__name__,
+        back_populates='default_form',
+        lazy='dynamic',
+    )
 
     def __init__(
         self,

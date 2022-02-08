@@ -34,24 +34,29 @@ class DepartmentCatalogListing(Base):
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)
     subject_area = db.Column(db.String(255), nullable=False)
     catalog_id = db.Column(db.String(255))
+    default_form_id = db.Column(db.Integer, db.ForeignKey('department_forms.id'), nullable=False)
 
     department = db.relationship('Department', back_populates='catalog_listings')
+    default_form = db.relationship('DepartmentForm', back_populates='catalog_listings')
 
     def __init__(
         self,
         department_id,
         subject_area,
         catalog_id,
+        default_form_id,
     ):
         self.department_id = department_id
         self.subject_area = subject_area
         self.catalog_id = catalog_id
+        self.default_form_id = default_form_id
 
     def __repr__(self):
         return f"""<DepartmentCatalogListing id={self.id},
                     department_id={self.department_id},
                     subject_area={self.subject_area},
-                    catalog_id={self.catalog_id}>
+                    catalog_id={self.catalog_id}>,
+                    default_form_id={self.default_form_id}>
                 """
 
     @classmethod
@@ -60,11 +65,13 @@ class DepartmentCatalogListing(Base):
             department_id,
             subject_area,
             catalog_id,
+            default_form_id,
     ):
         department_catalog_listing = cls(
             department_id=department_id,
             subject_area=subject_area,
             catalog_id=catalog_id,
+            default_form_id=default_form_id,
         )
         db.session.add(department_catalog_listing)
         std_commit()
