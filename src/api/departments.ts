@@ -1,7 +1,8 @@
 import axios from 'axios'
 import Vue from 'vue'
 
-export function getDepartment(departmentId) {
+export function getDepartment(departmentId, termId) {
+  console.log(`TODO: termId ${termId}`)
   return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}`)
 }
 

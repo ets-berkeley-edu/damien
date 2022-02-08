@@ -1,8 +1,9 @@
 <template>
-  <div>
+  <div v-if="!loading">
     <div class="pb-2">
       <h1>{{ department.deptName }} ({{ $_.keys(department.catalogListings).join(', ') }}) - {{ this.$config.currentTermId }}</h1>
     </div>
+    <DepartmentContacts />
     <v-card outlined class="elevation-1">
       <EvaluationTable :sections="sections" />
     </v-card>
@@ -10,21 +11,23 @@
 </template>
 
 <script>
+import Context from '@/mixins/Context.vue'
+import DepartmentContacts from '@/components/admin/DepartmentContacts'
+import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
-import {getDepartment} from '@/api/departments'
 
 export default {
   name: 'Department',
-  components: {EvaluationTable},
+  components: {DepartmentContacts, EvaluationTable},
+  mixins: [Context, DepartmentEditSession],
   data: () => ({
     department: {},
-    departmentId: null,
-    sections: [],
+    sections: []
   }),
   created() {
     this.$loading()
-    this.departmentId = this.$_.get(this.$route, 'params.departmentId')
-    getDepartment(this.departmentId, this.$config.currentTermId).then(data => {
+    const departmentId = this.$_.get(this.$route, 'params.departmentId')
+    this.init(departmentId, this.$config.currentTermId).then(data => {
       this.department = data
       this.sections = data.sections
       this.$ready()
