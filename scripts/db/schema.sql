@@ -42,6 +42,7 @@ CREATE TABLE department_catalog_listings (
     department_id integer NOT NULL,
     subject_area VARCHAR(255) NOT NULL,
     catalog_id VARCHAR(255),
+    default_form_id integer,    
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL  
 );
@@ -199,6 +200,8 @@ ALTER TABLE ONLY users ADD CONSTRAINT users_uid_unique_key UNIQUE (uid);
 
 ALTER TABLE ONLY department_catalog_listings
     ADD CONSTRAINT department_catalog_listings_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
+ALTER TABLE ONLY department_catalog_listings
+    ADD CONSTRAINT department_catalog_listings_default_form_id_fkey FOREIGN KEY (default_form_id) REFERENCES department_forms(id);
 
 ALTER TABLE ONLY department_members
     ADD CONSTRAINT department_members_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
