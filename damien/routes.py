@@ -43,6 +43,8 @@ def register_routes(app):
     import damien.api.auth_controller
     import damien.api.config_controller
     import damien.api.department_controller
+    import damien.api.department_form_controller
+    import damien.api.evaluation_type_controller
     import damien.api.job_controller
     import damien.api.user_controller
 

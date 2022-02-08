@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from damien import db, std_commit
-from damien.lib.util import utc_now
+from damien.lib.util import isoformat, utc_now
 from damien.models.base import Base
 
 
@@ -71,3 +71,11 @@ class EvaluationType(Base):
             return evaluation_type
         else:
             return None
+
+    def to_api_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'createdAt': isoformat(self.created_at),
+            'updatedAt': isoformat(self.updated_at),
+        }
