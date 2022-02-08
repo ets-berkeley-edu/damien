@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!loading" class="body">
+  <div v-if="!loading">
     <v-card outlined>
       <h1>Damien Welcomes You.</h1>
       <div>
