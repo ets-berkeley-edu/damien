@@ -32,6 +32,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CAS_SERVER = 'https://auth-test.berkeley.edu/cas/'
 
 CURRENT_TERM_ID = '2222'
+EARLIEST_TERM_ID = '2218'
 
 # Override in local configs.
 DBLINK_NESSIE_RDS = 'Nessie database name'

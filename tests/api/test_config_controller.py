@@ -52,3 +52,13 @@ class TestConfigController:
             assert data['devAuthEnabled'] is True
             assert data['ebEnvironment'] is None
             assert data['timezone'] == 'America/Los_Angeles'
+
+    def test_available_terms(self, app, client, fake_auth):
+        fake_auth.login(authorized_uid)
+        response = client.get('/api/config')
+        assert response.status_code == 200
+        data = response.json
+        assert data['currentTermId'] == '2222'
+        assert len(data['availableTerms']) == 2
+        assert data['availableTerms'][0] == {'id': '2218', 'name': 'Fall 2021'}
+        assert data['availableTerms'][1] == {'id': '2222', 'name': 'Spring 2022'}

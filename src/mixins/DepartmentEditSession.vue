@@ -7,7 +7,8 @@ export default {
     ...mapGetters('departmentEditSession', [
       'contacts',
       'departmentId',
-      'note'
+      'note',
+      'termId'
     ])
   },
   methods: {

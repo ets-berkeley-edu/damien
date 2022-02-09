@@ -23,22 +23,31 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.lib.berkeley import available_term_ids, term_name_for_sis_id
-from damien.lib.http import tolerant_jsonify
 from flask import current_app as app
 
 
-@app.route('/api/config')
-def app_config():
-    def _term_feed(term_id):
-        return {'id': term_id, 'name': term_name_for_sis_id(term_id)}
-    return tolerant_jsonify({
-        'availableTerms': [_term_feed(term_id) for term_id in available_term_ids()],
-        'currentTermId': app.config['CURRENT_TERM_ID'],
-        'damienEnv': app.config['DAMIEN_ENV'],
-        'devAuthEnabled': app.config['DEVELOPER_AUTH_ENABLED'],
-        'ebEnvironment': app.config['EB_ENVIRONMENT'] if 'EB_ENVIRONMENT' in app.config else None,
-        'emailSupport': app.config['SUPPORT_EMAIL'],
-        'isVueAppDebugMode': app.config['DEVELOPER_AUTH_ENABLED'],
-        'timezone': app.config['TIMEZONE'],
-    })
+def available_term_ids():
+    return term_ids_range(app.config['EARLIEST_TERM_ID'], app.config['CURRENT_TERM_ID'])
+
+
+def term_ids_range(earliest_term_id, latest_term_id):
+    """Return SIS ID of each term in the range, from oldest to newest."""
+    term_id = int(earliest_term_id)
+    ids = []
+    while term_id <= int(latest_term_id):
+        ids.append(str(term_id))
+        term_id += 4 if (term_id % 10 == 8) else 3
+    return ids
+
+
+def term_name_for_sis_id(sis_id=None):
+    if sis_id:
+        sis_id = str(sis_id)
+        season_codes = {
+            '0': 'Winter',
+            '2': 'Spring',
+            '5': 'Summer',
+            '8': 'Fall',
+        }
+        year = f'19{sis_id[1:3]}' if sis_id.startswith('1') else f'20{sis_id[1:3]}'
+        return f'{season_codes[sis_id[3:4]]} {year}'

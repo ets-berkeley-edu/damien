@@ -23,7 +23,8 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.api.errors import ForbiddenRequestError, ResourceNotFoundError
+from damien.api.errors import BadRequestError, ForbiddenRequestError, ResourceNotFoundError
+from damien.lib.berkeley import available_term_ids
 from damien.lib.http import tolerant_jsonify
 from damien.lib.util import get as get_param
 from damien.models.department import Department
@@ -47,6 +48,8 @@ def get_department(department_id):
     if not department:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
     term_id = get_param(request.args, 'term_id', app.config['CURRENT_TERM_ID'])
+    if term_id not in available_term_ids():
+        raise BadRequestError('Invalid term id.')
     feed = department.to_api_json(
         include_contacts=current_user.is_admin,
         include_sections=True,
