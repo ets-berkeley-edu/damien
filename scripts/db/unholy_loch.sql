@@ -69,6 +69,7 @@ CREATE TABLE unholy_loch.sis_instructors (
     first_name VARCHAR(255),
     last_name VARCHAR(255),
     email_address VARCHAR(255),
+    affiliations TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     deleted_at TIMESTAMP WITH TIME ZONE
 );

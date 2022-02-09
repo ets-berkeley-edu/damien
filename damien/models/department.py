@@ -31,7 +31,6 @@ from damien.lib.util import isoformat
 from damien.merged.section import Section
 from damien.models.base import Base
 from damien.models.department_catalog_listing import DepartmentCatalogListing
-from damien.models.department_form import DepartmentForm
 from damien.models.evaluation import Evaluation
 from damien.models.evaluation_type import EvaluationType
 from flask import current_app as app
@@ -146,9 +145,9 @@ class Department(Base):
                 'firstName': row['first_name'],
                 'lastName': row['last_name'],
                 'emailAddress': row['email_address'],
+                'affiliations': row['affiliations'],
             }
 
-        all_dept_forms = {df.name: df for df in DepartmentForm.query.all()}
         all_eval_types = {et.name: et for et in EvaluationType.query.all()}
 
         for course_number, loch_rows in sections_by_number.items():
@@ -160,7 +159,7 @@ class Department(Base):
                     loch_rows,
                     section_evaluations,
                     instructors=instructors,
-                    dept_form_cache=all_dept_forms,
+                    catalog_listings=self.catalog_listings,
                     evaluation_type_cache=all_eval_types,
                 ))
         return sections

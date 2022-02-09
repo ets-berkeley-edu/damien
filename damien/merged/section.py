@@ -24,6 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from itertools import groupby
+import re
 
 from damien.lib.util import safe_strftime
 from damien.models.evaluation import Evaluation
@@ -36,7 +37,7 @@ class Section:
         loch_rows,
         evaluations,
         instructors,
-        dept_form_cache=None,
+        catalog_listings=None,
         evaluation_type_cache=None,
     ):
         self.term_id = loch_rows[0].term_id
@@ -58,6 +59,12 @@ class Section:
 
         instructor_uids = set(loch_rows_by_instructor_uid.keys())
         instructor_uids.update(evaluations_by_instructor_uid.keys())
+
+        default_form = None
+        for c in catalog_listings:
+            if c.subject_area in (self.subject_area, '') and (c.catalog_id is None or re.match(c.catalog_id, self.catalog_id)):
+                default_form = c.default_form
+                break
 
         for uid in instructor_uids:
             # Skip rows without an instructor if we have an instructor elsewhere.
@@ -81,7 +88,8 @@ class Section:
                     uid,
                     loch_rows_for_uid,
                     evaluation_for_uid,
-                    dept_form_cache=dept_form_cache,
+                    self.instructors.get(uid),
+                    default_form=default_form,
                     evaluation_type_cache=evaluation_type_cache,
                 ),
             )

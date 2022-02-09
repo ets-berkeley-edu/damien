@@ -24,22 +24,36 @@
               <td :id="`section-courseNumber-${sectionIndex}`">
                 {{ section.courseNumber }}
               </td>
-              <td :id="`section-courseName-${sectionIndex}`">
-                {{ section.subjectArea }} {{ section.catalogId }} {{ section.instructionFormat }} {{ section.sectionNumber }} {{ section.courseTitle }}
+              <td>
+                <div :id="`section-courseName-${sectionIndex}`">
+                  {{ section.subjectArea }} {{ section.catalogId }} {{ section.instructionFormat }} {{ section.sectionNumber }}
+                </div>
+                <div :id="`section-courseName-${sectionIndex}`">
+                  {{ section.courseTitle }}
+                </div>
               </td>
               <td :id="`section-instructors-${sectionIndex}`">
                 <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-instructor-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  {{ evaluation.instructor.firstName }} {{ evaluation.instructor.lastName }} ({{ evaluation.instructor.uid }}) {{ evaluation.instructor.emailAddress }}
+                  <span v-if="evaluation.instructor">
+                    {{ evaluation.instructor.firstName }}
+                    {{ evaluation.instructor.lastName }}
+                    ({{ evaluation.instructor.uid }})
+                    {{ evaluation.instructor.emailAddress }}
+                  </span>
                 </div>
               </td>
               <td :id="`section-departmentForm-${sectionIndex}`">
                 <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-departmentForm-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  {{ evaluation.departmentForm }}
+                  <span v-if="evaluation.departmentForm">
+                    {{ evaluation.departmentForm.name }}
+                  </span>
                 </div>
               </td>
               <td :id="`section-evaluationType-${sectionIndex}`">
                 <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-evaluationType-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  {{ evaluation.evaluationType }}
+                  <span v-if="evaluation.evaluationType">
+                    {{ evaluation.evaluationType.name }}
+                  </span>
                 </div>
               </td>
               <td :id="`section-startDate-${sectionIndex}`">

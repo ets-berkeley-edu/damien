@@ -137,7 +137,8 @@ class Evaluation(Base):
         uid,
         loch_rows,
         saved_evaluation=None,
-        dept_form_cache=None,
+        instructor=None,
+        default_form=None,
         evaluation_type_cache=None,
     ):
         transient_evaluation = cls(
@@ -151,11 +152,10 @@ class Evaluation(Base):
         else:
             transient_evaluation.status = None
 
-        all_dept_forms = dept_form_cache or {df.name: df for df in DepartmentForm.query.all()}
         all_eval_types = evaluation_type_cache or {et.name: et for et in EvaluationType.query.all()}
 
-        transient_evaluation.set_department_form(loch_rows, saved_evaluation, all_dept_forms)
-        transient_evaluation.set_evaluation_type(loch_rows, saved_evaluation, all_eval_types)
+        transient_evaluation.set_department_form(saved_evaluation, default_form)
+        transient_evaluation.set_evaluation_type(saved_evaluation, instructor, all_eval_types)
         transient_evaluation.set_start_date(loch_rows, saved_evaluation)
         transient_evaluation.set_end_date(loch_rows, saved_evaluation)
         transient_evaluation.set_last_updated(loch_rows, saved_evaluation)
@@ -170,19 +170,24 @@ class Evaluation(Base):
     def is_visible(self):
         return self.status != 'deleted'
 
-    def set_department_form(self, loch_rows, saved_evaluation, all_dept_forms):
-        if saved_evaluation and saved_evaluation.department_form_id:
-            self.department_form_id = saved_evaluation.department_form_id
-        else:
-            # TODO set department form for non-cross-listed courses
-            self.department_form_id = None
+    def set_department_form(self, saved_evaluation, default_form):
+        if saved_evaluation and saved_evaluation.department_form:
+            self.department_form = saved_evaluation.department_form
+        elif default_form:
+            # TODO Do not set if cross-listed
+            self.department_form = default_form
 
-    def set_evaluation_type(self, loch_rows, saved_evaluation, all_eval_types):
-        if saved_evaluation and saved_evaluation.evaluation_type_id:
-            self.evaluation_type_id = saved_evaluation.evaluation_type_id
+    def set_evaluation_type(self, saved_evaluation, instructor, all_eval_types):
+        if saved_evaluation and saved_evaluation.evaluation_type:
+            self.evaluation_type = saved_evaluation.evaluation_type
         else:
             # TODO Leave blank if department_form above is set to LAW or SPANISH, otherwise set based on instructor affiliation.
-            self.evaluation_type_id = None
+            if self.department_form and self.department_form.name in ('LAW', 'SPANISH'):
+                return
+            elif instructor and 'STUDENT-TYPE' in instructor['affiliations']:
+                self.evaluation_type = all_eval_types.get('G')
+            elif instructor and 'ACADEMIC' in instructor['affiliations']:
+                self.evaluation_type = all_eval_types.get('F')
 
     def set_start_date(self, loch_rows, saved_evaluation):
         if saved_evaluation and saved_evaluation.start_date:
