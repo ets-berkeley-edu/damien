@@ -15,7 +15,7 @@
           v-for="(item, index) in navItems"
           :id="`sidebar-link-${item.title}`"
           :key="index"
-          class="primary-light--text"
+          class="primary-contrast--text"
           link
           @click="toRoute(item.path)"
         >
@@ -26,7 +26,7 @@
             <v-list-item-title>{{ item.title }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item class="primary-light--text" @click="$vuetify.theme.dark = !$vuetify.theme.dark">
+        <v-list-item class="primary-contrast--text" @click="$vuetify.theme.dark = !$vuetify.theme.dark">
           <v-list-item-icon>
             <DarkModeIcon />
           </v-list-item-icon>
@@ -73,9 +73,9 @@
         </v-list>
       </v-menu>
     </v-app-bar>
-    <v-main id="content" class="ma-3">
+    <v-main id="content" class="body ma-3">
       <Spinner v-if="loading" />
-      <router-view :key="stripAnchorRef($route.fullPath)"></router-view>
+      <router-view :key="stripAnchorRef($route.fullPath)" class="px-4"></router-view>
     </v-main>
     <Footer />
   </v-app>
@@ -128,6 +128,17 @@
 </script>
 
 <style>
+.sr-only {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+a {
+  text-decoration: none !important;
+}
 svg {
   fill: currentColor;
 }
