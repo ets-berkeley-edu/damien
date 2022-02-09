@@ -106,10 +106,10 @@ DROP TABLE tmp_sis_sections;
 TRUNCATE unholy_loch.sis_instructors;
 
 INSERT INTO unholy_loch.sis_instructors
-  (ldap_uid, sis_id, first_name, last_name, email_address, created_at)
+  (ldap_uid, sis_id, first_name, last_name, email_address, affiliations, created_at)
   (SELECT * FROM dblink('{dblink_nessie_rds}',$NESSIE$
     SELECT DISTINCT
-        ba.ldap_uid, ba.sid AS sis_id, ba.first_name, ba.last_name, ba.email_address,
+        ba.ldap_uid, ba.sid AS sis_id, ba.first_name, ba.last_name, ba.email_address, ba.affiliations,
         now() AS created_at
     FROM sis_data.basic_attributes ba
     JOIN sis_data.sis_sections s
@@ -122,6 +122,7 @@ INSERT INTO unholy_loch.sis_instructors
       first_name VARCHAR(255),
       last_name VARCHAR(255),
       email_address VARCHAR(255),
+      affiliations TEXT,
       created_at TIMESTAMP WITH TIME ZONE
     )
   );
@@ -134,8 +135,8 @@ WHERE i.ldap_uid = t.ldap_uid;
 
 -- Restore deleted instructors, with deleted_at set to now().
 INSERT INTO unholy_loch.sis_instructors
-  (ldap_uid, sis_id, first_name, last_name, email_address, created_at, deleted_at)
-  (SELECT ldap_uid, sis_id, first_name, last_name, email_address,
+  (ldap_uid, sis_id, first_name, last_name, email_address, affiliations, created_at, deleted_at)
+  (SELECT ldap_uid, sis_id, first_name, last_name, email_address, affiliations,
       created_at, COALESCE(deleted_at, now()) AS deleted_at
     FROM tmp_sis_instructors
     WHERE ldap_uid NOT IN
