@@ -1,6 +1,6 @@
 <template>
-  <div class="pb-4">
-    <h2>Department Contacts</h2>
+  <div>
+    <h2 class="pb-1">Department Contacts</h2>
     <v-card
       v-for="(contact, index) in items"
       :id="`department-contact-${index}`"
