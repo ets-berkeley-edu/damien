@@ -12,12 +12,14 @@ const $_refresh = (commit, departmentId) => {
 
 const state = {
   contacts: [],
-  departmentId: undefined
+  departmentId: undefined,
+  note: undefined
 }
 
 const getters = {
   contacts: (state: any): any[] => state.contacts,
-  departmentId: (state: any): number => state.departmentId
+  departmentId: (state: any): number => state.departmentId,
+  note: (state: any): string => state.note
 }
 
 const actions = {
@@ -29,6 +31,7 @@ const mutations = {
     if (department) {
       state.contacts = department.contacts
       state.departmentId = department.id
+      state.note = department.note
     }
   }
 }

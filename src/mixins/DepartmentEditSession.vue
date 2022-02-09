@@ -6,7 +6,8 @@ export default {
   computed: {
     ...mapGetters('departmentEditSession', [
       'contacts',
-      'departmentId'
+      'departmentId',
+      'note'
     ])
   },
   methods: {
