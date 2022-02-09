@@ -23,6 +23,8 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import json
+
 from damien.models.department import Department
 
 
@@ -108,4 +110,43 @@ class TestGetDepartment:
         assert department['contacts'][0]['email'] == 'fatherbrennan@berkeley.edu'
         assert department['deptName'] == 'Philosophy'
         assert department['isEnrolled'] is True
+        assert department['note'] is None
+
+
+def _api_update_department(client, params={}, expected_status_code=200):
+    dept = Department.find_by_name('Philosophy')
+    response = client.post(
+        f'/api/department/{dept.id}',
+        data=json.dumps(params),
+        content_type='application/json',
+    )
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestUpdateDepartment:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_update_department(client, expected_status_code=401)
+
+    def test_unauthorized(self, client, fake_auth):
+        """Denies unauthorized user."""
+        fake_auth.login(non_admin_uid)
+        _api_update_department(client, expected_status_code=403)
+
+    def test_authorized(self, client, fake_auth):
+        fake_auth.login(admin_uid)
+        department = Department.find_by_name('Philosophy')
+        assert department.note is None
+
+        note = """It is the greatest mystery of all because no human being will ever solve it.
+            It is the highest suspense because no man can bear it.
+            It is the greatest fear because it is the ancient fear of the unknown.
+            It is a warning foretold for thousands of years. It is our final warning.
+            It is The Omen."""
+        department = _api_update_department(client, {'note': note})
+        assert department['note'] == note
+
+        department = _api_update_department(client)
         assert department['note'] is None

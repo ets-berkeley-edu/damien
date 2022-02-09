@@ -102,6 +102,14 @@ class Department(Base):
         query = cls.query.filter_by(is_enrolled=True)
         return query.all()
 
+    @classmethod
+    def update(cls, department_id, note=None):
+        department = cls.query.filter_by(id=department_id).first()
+        department.note = note.strip() if note else None
+        db.session.add(department)
+        std_commit()
+        return department
+
     def catalog_listings_map(self):
         listings_map = {}
         for listing in self.catalog_listings:

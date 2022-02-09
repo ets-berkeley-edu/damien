@@ -53,3 +53,18 @@ def get_department(department_id):
         term_id=term_id,
     )
     return tolerant_jsonify(feed)
+
+
+@app.route('/api/department/<department_id>', methods=['POST'])
+@login_required
+def update(department_id):
+    if not current_user.is_admin:
+        raise ForbiddenRequestError('Admin required.')
+    department = Department.find_by_id(department_id)
+    if department:
+        params = request.get_json()
+        note = get_param(params, 'note')
+        department = Department.update(department_id, note=note)
+        return tolerant_jsonify(department.to_api_json())
+    else:
+        raise ResourceNotFoundError(f'Department {department_id} not found.')
