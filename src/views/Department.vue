@@ -67,9 +67,9 @@ export default {
       this.$loading()
       const departmentId = this.$_.get(this.$route, 'params.departmentId')
       const termId = this.selectedTermId
-      this.init({departmentId, termId}).then(data => {
-        this.department = data
-        this.sections = data.sections
+      this.init({departmentId, termId}).then(department => {
+        this.department = department
+        this.sections = department.sections
         this.selectedTerm = this.$_.find(this.availableTerms, {'id': termId})
         this.$ready()
       })

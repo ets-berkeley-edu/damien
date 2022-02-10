@@ -7,13 +7,15 @@ export default {
     ...mapGetters('departmentEditSession', [
       'contacts',
       'departmentId',
+      'disableControls',
       'note',
       'termId'
     ])
   },
   methods: {
     ...mapActions('departmentEditSession', [
-      'init'
+      'init',
+      'update'
     ])
   }
 }

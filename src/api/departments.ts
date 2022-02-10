@@ -8,3 +8,7 @@ export function getDepartment(departmentId, termId) {
 export function getDepartmentsEnrolled() {
   return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/departments/enrolled`)
 }
+
+export function updateDepartment(departmentId: number, note: string) {
+  return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}`, {note}).then(response => response.data, () => null)
+}
