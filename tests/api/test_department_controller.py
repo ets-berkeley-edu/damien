@@ -75,9 +75,12 @@ class TestEnrolledDepartments:
         }
 
 
-def _api_get_department(client, expected_status_code=200):
+def _api_get_department(client, term_id=None, expected_status_code=200):
     dept = Department.find_by_name('Philosophy')
-    response = client.get(f'/api/department/{dept.id}')
+    if term_id:
+        response = client.get(f'/api/department/{dept.id}?term_id={term_id}')
+    else:
+        response = client.get(f'/api/department/{dept.id}')
     assert response.status_code == expected_status_code
     return response.json
 
@@ -111,6 +114,17 @@ class TestGetDepartment:
         assert department['deptName'] == 'Philosophy'
         assert department['isEnrolled'] is True
         assert department['note'] is None
+
+    def test_bad_term(self, client, fake_auth):
+        """Rejects invalid term id."""
+        fake_auth.login(admin_uid)
+        _api_get_department(client, term_id='1666', expected_status_code=400)
+
+    def test_good_term(self, client, fake_auth):
+        """Accepts valid term ids."""
+        fake_auth.login(admin_uid)
+        _api_get_department(client, term_id='2218')
+        _api_get_department(client, term_id='2222')
 
 
 def _api_update_department(client, params={}, expected_status_code=200):

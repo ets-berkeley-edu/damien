@@ -1,11 +1,15 @@
 import _ from 'lodash'
 import App from './App.vue'
 import axios from 'axios'
+import moment from 'moment-timezone'
 import router from './router'
 import store from './store'
 import utils from './utils'
 import Vue from 'vue'
+import VueMoment from 'vue-moment'
 import vuetify from './plugins/vuetify'
+
+Vue.use(VueMoment, {moment})
 
 const apiBaseUrl = process.env.VUE_APP_API_BASE_URL
 

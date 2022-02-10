@@ -11,6 +11,14 @@
         <tbody>
           <template v-for="(section, sectionIndex) in items">
             <tr :key="section.courseNumber">
+              <td :id="`section-checkbox-${sectionIndex}`">
+                <div v-for="(evaluation, evaluationIndex) in section.evaluations" :key="evaluationIndex">
+                  <v-simple-checkbox
+                    :id="`section-checkbox-${sectionIndex}-${evaluationIndex}`"
+                    :ripple="false"
+                  ></v-simple-checkbox>
+                </div>
+              </td>
               <td :id="`section-status-${sectionIndex}`">
                 <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-status-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
                   {{ evaluation.status }}
@@ -18,7 +26,7 @@
               </td>
               <td :id="`section-lastUpdated-${sectionIndex}`">
                 <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-lastUpdated-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  {{ evaluation.lastUpdated }}
+                  {{ evaluation.lastUpdated | moment('MM/DD/YYYY') }}
                 </div>
               </td>
               <td :id="`section-courseNumber-${sectionIndex}`">
@@ -58,12 +66,12 @@
               </td>
               <td :id="`section-startDate-${sectionIndex}`">
                 <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-startDate-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  {{ evaluation.startDate }}
+                  {{ evaluation.startDate | moment('MM/DD/YYYY') }}
                 </div>
               </td>
               <td :id="`section-endDate-${sectionIndex}`">
                 <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-endDate-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  {{ evaluation.endDate }}
+                  {{ evaluation.endDate | moment('MM/DD/YYYY') }}
                 </div>
               </td>
             </tr>
@@ -85,6 +93,7 @@ export default {
   },
   data: () => ({
     headers: [
+      {text: 'Select'},
       {text: 'Status', value: 'status'},
       {text: 'Last Updated', value: 'lastUpdated'},
       {text: 'Course Number', value: 'courseNumber'},
