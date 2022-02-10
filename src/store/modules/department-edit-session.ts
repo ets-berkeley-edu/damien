@@ -1,10 +1,10 @@
-import {getDepartment} from '@/api/departments'
+import {getDepartment, updateDepartment} from '@/api/departments'
 
-const $_refresh = (commit, departmentId, termId) => {
+const $_refresh = (commit, {departmentId, termId}) => {
   return new Promise<void>(resolve => {
-    getDepartment(departmentId, termId).then((dept: any) => {
-      commit('reset', dept, termId)
-      return resolve(dept)
+    getDepartment(departmentId, termId).then((department: any) => {
+      commit('reset', {department, termId})
+      return resolve(department)
     })
   })
 }
@@ -12,18 +12,34 @@ const $_refresh = (commit, departmentId, termId) => {
 const state = {
   contacts: [],
   departmentId: undefined,
-  note: undefined
+  disableControls: false,
+  note: undefined,
+  termId: undefined
 }
 
 const getters = {
   contacts: (state: any): any[] => state.contacts,
   departmentId: (state: any): number => state.departmentId,
+  disableControls: (state: any): boolean => state.disableControls,
   note: (state: any): string => state.note,
   termId: (state: any): string => state.termId
 }
 
 const actions = {
-  init: ({commit}, {departmentId, termId}) => new Promise<void>(resolve => $_refresh(commit, departmentId, termId).then(dept => resolve(dept)))
+  init: ({commit}, {departmentId: departmentId, termId: termId}) => {
+    return new Promise<void>(resolve => {
+      $_refresh(commit, {departmentId, termId}).then(department => resolve(department))
+    })
+  },
+  note: (state: any): string => state.note,
+  update: ({commit, state}, note: string) => {
+    commit('setDisableControls', true)
+    return new Promise<void>(resolve => {
+      updateDepartment(state.departmentId, note).then(() => {
+        $_refresh(commit, {departmentId: state.departmentId, termId: state.termId}).then(dept => resolve(dept))
+      })
+    })
+  }
 }
 
 const mutations = {
@@ -34,7 +50,9 @@ const mutations = {
       state.note = department.note
     }
     state.termId = termId
-  }
+    state.disableControls = false
+  },
+  setDisableControls: (state: any, disable: boolean) => state.disableControls = disable
 }
 
 export default {
