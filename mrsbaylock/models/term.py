@@ -23,25 +23,15 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-import logging
-import os
+from datetime import datetime
 
-ADMIN_UID = '123456'
+from flask import current_app as app
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-BASE_URL = 'https://manage-dev.course-evaluations.berkeley.edu'
 
-BROWSER = 'chrome'
-BROWSER_HEADLESS = False
+class Term(object):
 
-CLICK_SLEEP = 0.5
-
-INDEX_HTML = f'{BASE_DIR}/tests/static/test-index.html'
-
-LOGGING_LEVEL = logging.INFO
-
-TESTING = True
-
-TIMEOUT_SHORT = 10
-TIMEOUT_MEDIUM = 90
-TIMEOUT_LONG = 360
+    def __init__(self):
+        self.id = app.config['CURRENT_TERM_ID']
+        self.name = app.config['CURRENT_TERM_NAME']
+        self.start_date = datetime.strptime(app.config['CURRENT_TERM_BEGIN'], '%Y-%m-%d')
+        self.end_date = datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d')
