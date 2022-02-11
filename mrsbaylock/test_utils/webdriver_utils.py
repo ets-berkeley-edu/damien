@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from flask import current_app as app
-from mrs_baylock.test_utils import utils
+from mrsbaylock.test_utils import utils
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as Coptions
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities

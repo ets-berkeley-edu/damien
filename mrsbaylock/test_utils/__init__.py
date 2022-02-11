@@ -23,36 +23,4 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from flask import current_app as app
-
-
-def get_browser():
-    return app.config['BROWSER']
-
-
-def browser_is_headless():
-    return app.config['BROWSER_HEADLESS']
-
-
-def get_click_sleep():
-    return app.config['CLICK_SLEEP']
-
-
-def get_short_timeout():
-    return app.config['TIMEOUT_SHORT']
-
-
-def get_medium_timeout():
-    return app.config['TIMEOUT_MEDIUM']
-
-
-def get_long_timeout():
-    return app.config['TIMEOUT_LONG']
-
-
-def get_admin_uid():
-    return app.config['ADMIN_UID']
-
-
-def default_download_dir():
-    return f'{app.config["BASE_DIR"]}/mrs_baylock/downloads'
+# Test Utils
