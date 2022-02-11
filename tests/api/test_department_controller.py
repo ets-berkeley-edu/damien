@@ -25,7 +25,9 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import json
 
+from damien import std_commit
 from damien.models.department import Department
+from damien.models.user import User
 
 
 non_admin_uid = '100'
@@ -164,3 +166,85 @@ class TestUpdateDepartment:
 
         department = _api_update_department(client)
         assert department['note'] is None
+
+
+def _api_update_contact(client, dept_id=None, params={}, expected_status_code=200):
+    if dept_id is None:
+        dept = Department.find_by_name('Philosophy')
+        dept_id = dept.id
+    response = client.post(
+        f'/api/department/{dept_id}/contact',
+        data=json.dumps(params),
+        content_type='application/json',
+    )
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestUpdateDepartmentContact:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_update_contact(client, expected_status_code=401)
+
+    def test_unauthorized(self, client, fake_auth):
+        """Denies unauthorized user."""
+        fake_auth.login(non_admin_uid)
+        _api_update_contact(client, expected_status_code=403)
+
+    def test_unknown_dept(self, client, fake_auth):
+        fake_auth.login(admin_uid)
+        _api_update_contact(client, dept_id=0, expected_status_code=404)
+
+    def test_unknown_user(self, client, fake_auth):
+        fake_auth.login(admin_uid)
+        department = Department.find_by_name('Philosophy')
+        original_count = len(department.members)
+        params = {
+            'email': 'spooky@boo.edu',
+            'firstName': 'Spooky',
+            'lastName': 'Ghost',
+            'uid': 0,
+            'userId': 0,
+        }
+        _api_update_contact(client, params=params, expected_status_code=404)
+
+        department = Department.find_by_name('Philosophy')
+        assert len(department.members) == original_count
+
+    def test_authorized(self, client, fake_auth, app):
+        fake_auth.login(admin_uid)
+        department = Department.find_by_name('Philosophy')
+        original_count = len(department.members)
+        User.create(
+            csid='126000',
+            uid='4200',
+            email='am@berkeley.edu',
+            first_name='Ansel',
+            last_name='Manchester',
+        )
+        std_commit(allow_test_environment=True)
+        user = User.find_by_uid('4200')
+        params = {
+            'canViewResponseRates': True,
+            'csid': user.csid,
+            'email': 'ansel@angelfire.net',
+            'firstName': user.first_name,
+            'lastName': user.last_name,
+            'uid': user.uid,
+            'userId': user.id,
+        }
+
+        contact = _api_update_contact(client, dept_id=department.id, params=params)
+
+        assert contact['departmentId'] == str(department.id)
+        assert contact['userId'] == user.id
+        assert contact['canViewResponseRates'] is True
+        assert contact['uid'] == user.uid
+        assert contact['email'] == params['email']
+        assert contact['firstName'] == user.first_name
+        assert contact['lastName'] == user.last_name
+        assert contact['csid'] == user.csid
+
+        department = Department.find_by_name('Philosophy')
+        assert len(department.members) == original_count + 1
