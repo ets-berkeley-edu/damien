@@ -28,6 +28,8 @@ from damien.lib.berkeley import available_term_ids
 from damien.lib.http import tolerant_jsonify
 from damien.lib.util import get as get_param
 from damien.models.department import Department
+from damien.models.department_member import DepartmentMember
+from damien.models.user import User
 from flask import current_app as app, request
 from flask_login import current_user, login_required
 
@@ -69,5 +71,36 @@ def update(department_id):
         note = get_param(params, 'note')
         department = Department.update(department_id, note=note)
         return tolerant_jsonify(department.to_api_json())
+    else:
+        raise ResourceNotFoundError(f'Department {department_id} not found.')
+
+
+@app.route('/api/department/<department_id>/contact', methods=['POST'])
+@login_required
+def update_contact(department_id):
+    if not current_user.is_admin:
+        raise ForbiddenRequestError('Admin required.')
+    department = Department.find_by_id(department_id)
+    if department:
+        params = request.get_json()
+        user_id = get_param(params, 'userId')
+        if User.find_by_id(user_id):
+            can_receive_communications = get_param(params, 'canReceiveCommunications')
+            can_view_response_rates = get_param(params, 'canViewResponseRates')
+            email = get_param(params, 'email')
+            first_name = get_param(params, 'firstName')
+            last_name = get_param(params, 'lastName')
+            department_member = DepartmentMember.upsert(
+                can_receive_communications=can_receive_communications,
+                can_view_response_rates=can_view_response_rates,
+                department_id=department_id,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                user_id=user_id,
+            )
+            return tolerant_jsonify(department_member.to_api_json())
+        else:
+            raise ResourceNotFoundError(f'User {user_id} not found.')
     else:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
