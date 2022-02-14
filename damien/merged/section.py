@@ -102,12 +102,23 @@ class Section:
             and loch_row.instruction_format not in {'CLC', 'GRP', 'IND', 'SUP', 'VOL'}
         )
 
-    def to_api_json(self):
-        evaluation_feed = []
-        for evaluation in self.merged_evaluations:
+    def get_evaluation_feed(self):
+        section_feed = {
+            'termId': self.term_id,
+            'courseNumber': self.course_number,
+            'subjectArea': self.subject_area,
+            'catalogId': self.catalog_id,
+            'instructionFormat': self.instruction_format,
+            'sectionNumber': self.section_num,
+            'courseTitle': self.course_title,
+        }
+
+        def _evaluation_feed(evaluation):
             dept_form_feed = evaluation.department_form.to_api_json() if evaluation.department_form else None
             eval_type_feed = evaluation.evaluation_type.to_api_json() if evaluation.evaluation_type else None
-            evaluation_feed.append({
+            feed = section_feed.copy()
+            feed.update({
+                'id': evaluation.id,
                 'status': evaluation.status,
                 'instructor': self.instructors.get(evaluation.instructor_uid),
                 'departmentForm': dept_form_feed,
@@ -116,13 +127,6 @@ class Section:
                 'endDate': safe_strftime(evaluation.end_date, '%Y-%m-%d'),
                 'lastUpdated': safe_strftime(evaluation.last_updated, '%Y-%m-%d'),
             })
-        return {
-            'termId': self.term_id,
-            'courseNumber': self.course_number,
-            'subjectArea': self.subject_area,
-            'catalogId': self.catalog_id,
-            'instructionFormat': self.instruction_format,
-            'sectionNumber': self.section_num,
-            'courseTitle': self.course_title,
-            'evaluations': evaluation_feed,
-        }
+            return feed
+
+        return [_evaluation_feed(e) for e in self.merged_evaluations]

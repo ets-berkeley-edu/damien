@@ -42,6 +42,7 @@ evaluation_status_enum = ENUM(
 class Evaluation(Base):
     __tablename__ = 'evaluations'
 
+    id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
     term_id = db.Column(db.String(4), nullable=False, primary_key=True)
     course_number = db.Column(db.String(5), nullable=False, primary_key=True)
     instructor_uid = db.Column(db.String(80), primary_key=True)
@@ -87,7 +88,8 @@ class Evaluation(Base):
         self.updated_by = updated_by
 
     def __repr__(self):
-        return f"""<Evaluation term_id={self.term_id},
+        return f"""<Evaluation id={self.id},
+                    term_id={self.term_id},
                     course_number={self.course_number},
                     instructor_uid={self.instructor_uid},
                     status={self.status},

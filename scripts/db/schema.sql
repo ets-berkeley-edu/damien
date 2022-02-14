@@ -150,6 +150,7 @@ ALTER TABLE ONLY evaluation_types
 CREATE TYPE evaluation_status AS ENUM ('marked', 'confirmed', 'deleted');
 
 CREATE TABLE evaluations (
+    id integer NOT NULL,
     term_id VARCHAR(4) NOT NULL,
     course_number VARCHAR(5) NOT NULL,
     instructor_uid VARCHAR(80),
@@ -164,8 +165,21 @@ CREATE TABLE evaluations (
     updated_by character varying(255)
 );
 
+CREATE SEQUENCE evaluations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE evaluations_id_seq OWNED BY evaluations.id;
+ALTER TABLE ONLY evaluations ALTER COLUMN id SET DEFAULT nextval('evaluations_id_seq'::regclass);
+
 ALTER TABLE ONLY evaluations
-    ADD CONSTRAINT evaluations_pkey PRIMARY KEY (term_id, course_number, instructor_uid);
+    ADD CONSTRAINT evaluations_pkey PRIMARY KEY (id);
+
+CREATE INDEX evaluations_term_id_idx ON evaluations USING btree (term_id);
+CREATE INDEX evaluations_course_number_idx ON evaluations USING btree (course_number);
+CREATE INDEX evaluations_instructor_uid_idx ON evaluations USING btree (instructor_uid);
 
 --
 
