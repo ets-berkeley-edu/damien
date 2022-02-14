@@ -68,23 +68,24 @@ ALTER TABLE IF EXISTS public.users ALTER COLUMN id DROP DEFAULT;
 --
 
 DROP SEQUENCE IF EXISTS public.department_catalog_listings_id_seq;
-DROP TABLE IF EXISTS public.department_catalog_listings;
+DROP TABLE IF EXISTS public.department_catalog_listings CASCADE;
 
 DROP SEQUENCE IF EXISTS public.department_forms_id_seq;
-DROP TABLE IF EXISTS public.department_forms;
+DROP TABLE IF EXISTS public.department_forms CASCADE;
 
-DROP TABLE IF EXISTS public.department_members;
+DROP TABLE IF EXISTS public.department_members CASCADE;
 
 DROP SEQUENCE IF EXISTS public.departments_id_seq;
-DROP TABLE IF EXISTS public.departments;
+DROP TABLE IF EXISTS public.departments CASCADE;
 
 DROP SEQUENCE IF EXISTS public.evaluation_types_id_seq;
-DROP TABLE IF EXISTS public.evaluation_types;
+DROP TABLE IF EXISTS public.evaluation_types CASCADE;
 
-DROP TABLE IF EXISTS public.evaluations;
+DROP SEQUENCE IF EXISTS public.evaluations_id_seq CASCADE;
+DROP TABLE IF EXISTS public.evaluations CASCADE;
 
 DROP SEQUENCE IF EXISTS public.users_id_seq;
-DROP TABLE IF EXISTS public.users;
+DROP TABLE IF EXISTS public.users CASCADE;
 
 --
 

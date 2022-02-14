@@ -34,7 +34,7 @@
       </v-row>
     </v-container>
     <v-card outlined class="elevation-1">
-      <EvaluationTable :sections="sections" />
+      <EvaluationTable :evaluations="evaluations" />
     </v-card>
   </div>
 </template>
@@ -53,7 +53,7 @@ export default {
   data: () => ({
     availableTerms: undefined,
     department: {},
-    sections: [],
+    evaluations: [],
     selectedTerm: undefined,
     selectedTermId: undefined
   }),
@@ -69,9 +69,15 @@ export default {
       const termId = this.selectedTermId
       this.init({departmentId, termId}).then(department => {
         this.department = department
-        this.sections = department.sections
+        this.setEvaluations(department.evaluations)
         this.selectedTerm = this.$_.find(this.availableTerms, {'id': termId})
         this.$ready()
+      })
+    },
+    setEvaluations(evaluations) {
+      this.evaluations = evaluations
+      this.$_.each(this.evaluations, e => {
+        e.key = this.$_.compact([e.courseNumber, this.$_.get(e, 'instructor.uid'), e.id]).join('-')
       })
     }
   }

@@ -5,74 +5,63 @@
       disable-pagination
       :headers="headers"
       hide-default-footer
-      :items="sections"
+      :items="evaluations"
     >
       <template #body="{items}">
         <tbody>
-          <template v-for="(section, sectionIndex) in items">
-            <tr :key="section.courseNumber">
-              <td :id="`section-checkbox-${sectionIndex}`">
-                <div v-for="(evaluation, evaluationIndex) in section.evaluations" :key="evaluationIndex">
-                  <v-simple-checkbox
-                    :id="`section-checkbox-${sectionIndex}-${evaluationIndex}`"
-                    :ripple="false"
-                  ></v-simple-checkbox>
-                </div>
+          <template v-for="(evaluation, evaluationId) in items">
+            <tr :key="evaluation.key">
+              <td>
+                <v-simple-checkbox
+                  :id="`evaluation-${evaluationId}-checkbox`"
+                  :ripple="false"
+                ></v-simple-checkbox>
               </td>
-              <td :id="`section-status-${sectionIndex}`">
-                <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-status-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  {{ evaluation.status }}
-                </div>
+              <td :id="`evaluation-${evaluationId}-status`">
+                {{ evaluation.status }}
               </td>
-              <td :id="`section-lastUpdated-${sectionIndex}`">
-                <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-lastUpdated-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  {{ evaluation.lastUpdated | moment('MM/DD/YYYY') }}
-                </div>
+              <td :id="`evaluation-${evaluationId}-lastUpdated`">
+                {{ evaluation.lastUpdated | moment('MM/DD/YYYY') }}
               </td>
-              <td :id="`section-courseNumber-${sectionIndex}`">
-                {{ section.courseNumber }}
+              <td :id="`evaluation-${evaluationId}-courseNumber`">
+                {{ evaluation.courseNumber }}
               </td>
               <td>
-                <div :id="`section-courseName-${sectionIndex}`">
-                  {{ section.subjectArea }} {{ section.catalogId }} {{ section.instructionFormat }} {{ section.sectionNumber }}
+                <div :id="`evaluation-${evaluationId}-courseName`">
+                  {{ evaluation.subjectArea }} 
+                  {{ evaluation.catalogId }}
+                  {{ evaluation.instructionFormat }}
+                  {{ evaluation.sectionNumber }}
                 </div>
-                <div :id="`section-courseName-${sectionIndex}`">
-                  {{ section.courseTitle }}
-                </div>
-              </td>
-              <td :id="`section-instructors-${sectionIndex}`">
-                <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-instructor-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  <span v-if="evaluation.instructor">
-                    {{ evaluation.instructor.firstName }}
-                    {{ evaluation.instructor.lastName }}
-                    ({{ evaluation.instructor.uid }})
-                    {{ evaluation.instructor.emailAddress }}
-                  </span>
+                <div :id="`evaluation-${evaluationId}-courseTitle`">
+                  {{ evaluation.courseTitle }}
                 </div>
               </td>
-              <td :id="`section-departmentForm-${sectionIndex}`">
-                <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-departmentForm-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  <span v-if="evaluation.departmentForm">
-                    {{ evaluation.departmentForm.name }}
-                  </span>
+              <td :id="`evaluation-${evaluationId}-instructor`">
+                <div v-if="evaluation.instructor">
+                  {{ evaluation.instructor.firstName }}
+                  {{ evaluation.instructor.lastName }}
+                  ({{ evaluation.instructor.uid }})
+                </div>
+                <div v-if="evaluation.instructor">
+                  {{ evaluation.instructor.emailAddress }}
                 </div>
               </td>
-              <td :id="`section-evaluationType-${sectionIndex}`">
-                <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-evaluationType-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  <span v-if="evaluation.evaluationType">
-                    {{ evaluation.evaluationType.name }}
-                  </span>
-                </div>
+              <td :id="`evaluation-${evaluationId}-departmentForm`">
+                <span v-if="evaluation.departmentForm">
+                  {{ evaluation.departmentForm.name }}
+                </span>
               </td>
-              <td :id="`section-startDate-${sectionIndex}`">
-                <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-startDate-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  {{ evaluation.startDate | moment('MM/DD/YYYY') }}
-                </div>
+              <td :id="`evaluation-${evaluationId}-evaluationType`">
+                <span v-if="evaluation.evaluationType">
+                  {{ evaluation.evaluationType.name }}
+                </span>
               </td>
-              <td :id="`section-endDate-${sectionIndex}`">
-                <div v-for="(evaluation, evaluationIndex) in section.evaluations" :id="`section-endDate-${sectionIndex}-${evaluationIndex}`" :key="evaluationIndex">
-                  {{ evaluation.endDate | moment('MM/DD/YYYY') }}
-                </div>
+              <td :id="`evaluation-${evaluationId}-startDate`">
+                {{ evaluation.startDate | moment('MM/DD/YYYY') }}
+              </td>
+              <td :id="`evaluation-${evaluationId}-endDate`">
+                {{ evaluation.endDate | moment('MM/DD/YYYY') }}
               </td>
             </tr>
           </template>
@@ -86,7 +75,7 @@
 export default {
   name: 'EvaluationTable',
   props: {
-    sections: {
+    evaluations: {
       required: true,
       type: Array
     }
@@ -98,7 +87,7 @@ export default {
       {text: 'Last Updated', value: 'lastUpdated'},
       {text: 'Course Number', value: 'courseNumber'},
       {text: 'Course Name', value: 'courseName'},
-      {text: 'Instructor(s)', value: 'instructorUid'},
+      {text: 'Instructor', value: 'instructorUid'},
       {text: 'Department Form', value: 'departmentForm'},
       {text: 'Evaluation Type', value: 'evaluationType'},
       {text: 'Course Start Date', value: 'startDate'},
