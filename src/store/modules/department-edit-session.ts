@@ -1,4 +1,4 @@
-import {getDepartment, updateDepartment} from '@/api/departments'
+import {getDepartment, updateContact, updateDepartment} from '@/api/departments'
 
 const $_refresh = (commit, {departmentId, termId}) => {
   return new Promise<void>(resolve => {
@@ -31,11 +31,18 @@ const actions = {
       $_refresh(commit, {departmentId, termId}).then(department => resolve(department))
     })
   },
-  note: (state: any): string => state.note,
   update: ({commit, state}, note: string) => {
     commit('setDisableControls', true)
     return new Promise<void>(resolve => {
       updateDepartment(state.departmentId, note).then(() => {
+        $_refresh(commit, {departmentId: state.departmentId, termId: state.termId}).then(dept => resolve(dept))
+      })
+    })
+  },
+  updateContact: ({commit, state}, contact: any) => {
+    commit('setDisableControls', true)
+    return new Promise<void>(resolve => {
+      updateContact(state.departmentId, contact).then(() => {
         $_refresh(commit, {departmentId: state.departmentId, termId: state.termId}).then(dept => resolve(dept))
       })
     })

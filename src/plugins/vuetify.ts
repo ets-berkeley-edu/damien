@@ -13,7 +13,7 @@ export default new Vuetify({
       light: {
         accent: '#F04A00',
         anchor: '#F04A00',
-        body: '#FFF',
+        background: '#FFF',
         error: '#FF1744',
         muted: '#9E9E9E',
         primary: '#125074',
@@ -26,7 +26,7 @@ export default new Vuetify({
       dark: {
         accent: '#F04A00',
         anchor: '#F04A00',
-        body: '#0d202c',
+        background: '#0d202c',
         error: '#FF1744',
         muted: '#BDBDBD',
         primary: '#104361',

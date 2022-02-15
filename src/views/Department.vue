@@ -29,7 +29,32 @@
     </v-row>
     <v-container v-if="$currentUser.isAdmin" class="mx-0 px-0 pb-6">
       <v-row justify="start">
-        <v-col cols="12" md="4"><DepartmentContacts /></v-col>
+        <v-col cols="12" md="4">
+          <h2 class="pb-1">Department Contacts</h2>
+          <DepartmentContact
+            v-for="(contact, index) in contacts"
+            :key="contact.id"
+            :contact="contact"
+            :index="index"
+          />
+          <v-btn
+            v-if="!isAddingContact"
+            id="add-dept-contact-btn"
+            class="text-capitalize pl-2 mt-1"
+            color="secondary"
+            text
+            @click="() => isAddingContact = true"
+          >
+            <v-icon>mdi-plus-thick</v-icon>
+            Add Contact
+          </v-btn>
+          <EditDepartmentContact
+            v-if="isAddingContact"
+            :id="`add-department-contact`"
+            :after-save="afterSaveContact"
+            :on-cancel="onCancelAddContact"
+          />
+        </v-col>
         <v-col cols="12" md="8"><DepartmentNote /></v-col>
       </v-row>
     </v-container>
@@ -41,19 +66,21 @@
 
 <script>
 import Context from '@/mixins/Context.vue'
-import DepartmentContacts from '@/components/admin/DepartmentContacts'
+import DepartmentContact from '@/components/admin/DepartmentContact'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import DepartmentNote from '@/components/admin/DepartmentNote'
+import EditDepartmentContact from '@/components/admin/EditDepartmentContact'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
 
 export default {
   name: 'Department',
-  components: {DepartmentContacts, DepartmentNote, EvaluationTable},
+  components: {DepartmentContact, DepartmentNote, EditDepartmentContact, EvaluationTable},
   mixins: [Context, DepartmentEditSession],
   data: () => ({
     availableTerms: undefined,
     department: {},
     evaluations: [],
+    isAddingContact: false,
     selectedTerm: undefined,
     selectedTermId: undefined
   }),
@@ -63,6 +90,16 @@ export default {
     this.refresh()
   },
   methods: {
+    afterSaveContact() {
+      this.isAddingContact = false
+      this.alertScreenReader('Contact saved.')
+      this.$putFocusNextTick('add-dept-contact-btn')
+    },
+    onCancelAddContact() {
+      this.isAddingContact = false
+      this.alertScreenReader('Canceled. Nothing saved.')
+      this.$putFocusNextTick('add-dept-contact-btn')
+    },
     refresh() {
       this.$loading()
       const departmentId = this.$_.get(this.$route, 'params.departmentId')
