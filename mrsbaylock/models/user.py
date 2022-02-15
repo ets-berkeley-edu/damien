@@ -23,11 +23,17 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from mrsbaylock.models.department import Department
+
 
 class User(object):
 
     def __init__(self, data):
         self.data = data
+
+    @property
+    def user_id(self):
+        return self.data['id']
 
     @property
     def uid(self):
@@ -64,3 +70,7 @@ class User(object):
     @property
     def views_response_rates(self):
         return self.data['views_response_rates']
+
+    @property
+    def dept(self):
+        return [Department(i) for i in self.data['departments']]

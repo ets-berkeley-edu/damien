@@ -43,6 +43,17 @@ class DamienPages(Page):
     MENU_BUTTON = (By.ID, 'btn-main-menu')
     LOG_OUT_LINK = (By.ID, 'menu-item-log-out')
 
+    TERM_SELECT = (By.ID, 'select-term')
+
+    @staticmethod
+    def menu_option_locator(option_str):
+        return By.XPATH, f'//div[@role="option"][contains(., "{option_str}")]'
+
+    def select_term(self, term):
+        app.logger.info(f'Selecting term {term.name}')
+        self.wait_for_element_and_click(DamienPages.TERM_SELECT)
+        self.wait_for_element_and_click(self.menu_option_locator(term.name))
+
     def wait_for_admin_login(self):
         Wait(self.driver, utils.get_medium_timeout()).until(ec.presence_of_element_located(DamienPages.STATUS_LINK))
 
@@ -63,3 +74,7 @@ class DamienPages(Page):
         if self.is_present(DamienPages.LOG_OUT_LINK):
             self.open_menu()
             self.wait_for_element_and_click(DamienPages.LOG_OUT_LINK)
+
+    def click_status_board(self):
+        app.logger.info('Clicking link to the Status Board')
+        self.wait_for_element_and_click(DamienPages.STATUS_LINK)

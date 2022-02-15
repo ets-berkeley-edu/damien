@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien import db, std_commit
 from flask import current_app as app
+from mrsbaylock.models.department import Department
 from mrsbaylock.models.user import User
 from sqlalchemy import text
 
@@ -125,3 +126,69 @@ def restore_user(user):
     app.logger.info(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
+
+
+def get_dept_users(dept):
+    sql = f"""
+        SELECT users.id,
+               users.uid,
+               users.csid,
+               users.first_name,
+               users.last_name,
+               users.email,
+               users.can_receive_communications,
+               users.can_view_response_rates
+          FROM users
+          JOIN department_members ON department_members.user_id = users.id
+          JOIN departments ON departments.id = department_members.department_id
+         WHERE departments.id = '{dept.dept_id}';
+    """
+    app.logger.info(sql)
+    users = []
+    result = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    for row in result:
+        user_data = {
+            'id': row['id'],
+            'uid': row['uid'],
+            'csid': row['csid'],
+            'first_name': row['first_name'],
+            'last_name': row['last_name'],
+            'email': row['email'],
+            'receives_comms': row['can_receive_communications'],
+            'views_response_rates': row['can_view_response_rates'],
+        }
+        user = User(user_data)
+        users.append(user)
+    return users
+
+
+def get_dept(name):
+    sql = f"""
+        SELECT id,
+               is_enrolled,
+               note
+          FROM departments
+         WHERE dept_name = '{name}';
+    """
+    app.logger.info(sql)
+    result = db.session.execute(text(sql)).first()
+    std_commit(allow_test_environment=True)
+    app.logger.info(result)
+    dept_data = {
+        'id': result['id'],
+        'name': name,
+        'participating': result['is_enrolled'],
+        'note': result['note'],
+    }
+    dept = Department(dept_data)
+    dept.users = get_dept_users(dept)
+    return dept
+
+
+def delete_dept_note(dept):
+    sql = f'UPDATE departments SET note = NULL WHERE id = {dept.dept_id};'
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    dept.note = None
