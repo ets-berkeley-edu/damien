@@ -21,3 +21,7 @@ export default {
   mixins: [Context]
 }
 </script>
+
+<style>
+  @import './assets/styles/damien-global.css';
+</style>

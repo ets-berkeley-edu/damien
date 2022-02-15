@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app :style="{background: this.$vuetify.theme.dark ? this.$vuetify.theme.themes.dark.background : this.$vuetify.theme.themes.light.background}">
     <v-navigation-drawer
       app
       permanent
@@ -73,7 +73,7 @@
         </v-list>
       </v-menu>
     </v-app-bar>
-    <v-main id="content" class="body ma-3">
+    <v-main id="content" class="ma-3">
       <Spinner v-if="loading" />
       <router-view :key="stripAnchorRef($route.fullPath)" class="px-4"></router-view>
     </v-main>
@@ -126,20 +126,3 @@
     }
   }
 </script>
-
-<style>
-.sr-only {
-  position: absolute;
-  left: -10000px;
-  top: auto;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-}
-a {
-  text-decoration: none !important;
-}
-svg {
-  fill: currentColor;
-}
-</style>

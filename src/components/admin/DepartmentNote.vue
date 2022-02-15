@@ -5,7 +5,7 @@
       <div
         v-if="item && !isEditing"
         id="dept-note"
-        class="pt-3"
+        class="text-condensed pt-3"
       >
         {{ item }}
       </div>
@@ -19,31 +19,46 @@
       hide-details="auto"
       solo
     ></v-textarea>
-    <div v-if="!isEditing" class="pt-3">
+    <v-toolbar
+      v-if="!isEditing"
+      id="dept-note-actions"
+      flat
+      height="unset"
+      tag="div"
+    >
       <v-btn
         id="edit-dept-note-btn"
-        class="text-capitalize mr-2"
+        class="text-capitalize pa-0"
         color="secondary"
         :disabled="disableControls"
         dark
+        height="unset"
+        min-width="unset"
         text
         @click="isEditing = true"
       >
         Edit
       </v-btn>
-      <span v-if="item">|
-        <v-btn
-          id="delete-dept-note-btn"
-          class="text-capitalize ml-1"
-          color="secondary"
-          :disabled="disableControls"
-          text
-          @click="onDelete"
-        >
-          Delete
-        </v-btn>
-      </span>
-    </div>
+      <v-divider
+        v-if="item"
+        class="separator mx-2"
+        role="presentation"
+        vertical
+      ></v-divider>
+      <v-btn
+        v-if="item"
+        id="delete-dept-note-btn"
+        class="text-capitalize pa-0"
+        color="secondary"
+        :disabled="disableControls"
+        height="unset"
+        min-width="unset"
+        text
+        @click="onDelete"
+      >
+        Delete
+      </v-btn>
+    </v-toolbar>
     <div v-if="isEditing" class="pt-3">
       <v-btn
         id="save-dept-note-btn"
@@ -69,11 +84,12 @@
 </template>
 
 <script>
+import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 
 export default {
   name: 'DepartmentNote',
-  mixins: [DepartmentEditSession],
+  mixins: [Context, DepartmentEditSession],
   data: () => ({
     isEditing: false,
     item: undefined
@@ -83,13 +99,20 @@ export default {
   },
   methods: {
     onCancel() {
+      this.alertScreenReader('Canceled. Nothing saved.')
+      this.$putFocusNextTick('edit-dept-note-btn')
       this.reset()
     },
     onDelete() {
+      // TODO: add confirmation step
       this.update().then(this.reset)
     },
     onSave() {
-      this.update(this.item).then(this.reset)
+      this.update(this.item).then(() => {
+        this.alertScreenReader('Note saved.')
+        this.$putFocusNextTick('edit-dept-note-btn')
+        this.reset()
+      })
     },
     reset() {
       this.isEditing = false
