@@ -106,15 +106,9 @@ export default {
       const termId = this.selectedTermId
       this.init({departmentId, termId}).then(department => {
         this.department = department
-        this.setEvaluations(department.evaluations)
+        this.evaluations = department.evaluations
         this.selectedTerm = this.$_.find(this.availableTerms, {'id': termId})
         this.$ready()
-      })
-    },
-    setEvaluations(evaluations) {
-      this.evaluations = evaluations
-      this.$_.each(this.evaluations, e => {
-        e.key = this.$_.compact([e.courseNumber, this.$_.get(e, 'instructor.uid'), e.id]).join('-')
       })
     }
   }

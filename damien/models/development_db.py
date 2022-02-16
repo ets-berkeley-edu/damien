@@ -65,7 +65,7 @@ def _create_users():
 
 def _load_schemas():
     """Create DB schema from SQL file."""
-    for schema in ['schema', 'unholy_loch', 'populate_departments', 'populate_department_contacts']:
+    for schema in ['schema', 'unholy_loch', 'populate_departments', 'populate_department_contacts', 'populate_unholy_loch']:
         with open(app.config['BASE_DIR'] + f'/scripts/db/{schema}.sql', 'r') as ddlfile:
             # Let's leave the preprended copyright and license text out of this.
             sql = re.sub(r'^/\*.*?\*/\s*', '', ddlfile.read(), flags=re.DOTALL)

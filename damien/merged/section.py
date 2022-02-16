@@ -26,7 +26,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from itertools import groupby
 import re
 
-from damien.lib.util import safe_strftime
 from damien.models.evaluation import Evaluation
 
 
@@ -102,8 +101,8 @@ class Section:
             and loch_row.instruction_format not in {'CLC', 'GRP', 'IND', 'SUP', 'VOL'}
         )
 
-    def get_evaluation_feed(self):
-        section_feed = {
+    def to_api_json(self):
+        return {
             'termId': self.term_id,
             'courseNumber': self.course_number,
             'subjectArea': self.subject_area,
@@ -113,20 +112,5 @@ class Section:
             'courseTitle': self.course_title,
         }
 
-        def _evaluation_feed(evaluation):
-            dept_form_feed = evaluation.department_form.to_api_json() if evaluation.department_form else None
-            eval_type_feed = evaluation.evaluation_type.to_api_json() if evaluation.evaluation_type else None
-            feed = section_feed.copy()
-            feed.update({
-                'id': evaluation.id,
-                'status': evaluation.status,
-                'instructor': self.instructors.get(evaluation.instructor_uid),
-                'departmentForm': dept_form_feed,
-                'evaluationType': eval_type_feed,
-                'startDate': safe_strftime(evaluation.start_date, '%Y-%m-%d'),
-                'endDate': safe_strftime(evaluation.end_date, '%Y-%m-%d'),
-                'lastUpdated': safe_strftime(evaluation.last_updated, '%Y-%m-%d'),
-            })
-            return feed
-
-        return [_evaluation_feed(e) for e in self.merged_evaluations]
+    def get_evaluation_feed(self, evaluation_ids=None):
+        return [e.to_api_json(section=self) for e in self.merged_evaluations if not evaluation_ids or e.get_id() in evaluation_ids]
