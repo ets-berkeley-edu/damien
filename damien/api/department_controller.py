@@ -30,6 +30,7 @@ from damien.lib.http import tolerant_jsonify
 from damien.lib.util import get as get_param
 from damien.models.department import Department
 from damien.models.department_member import DepartmentMember
+from damien.models.evaluation import Evaluation
 from damien.models.user import User
 from flask import current_app as app, request
 from flask_login import current_user, login_required
@@ -99,3 +100,33 @@ def update_contact(department_id):
             raise ResourceNotFoundError(f'User {user_id} not found.')
     else:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
+
+
+@app.route('/api/department/<department_id>/evaluations', methods=['POST'])
+@login_required
+def update_evaluations(department_id):
+    department = Department.find_by_id(department_id)
+    if not department:
+        raise ResourceNotFoundError(f'Department {department_id} not found.')
+    params = request.get_json() or {}
+    action = params.get('action')
+    evaluation_ids = params.get('evaluationIds')
+    if not evaluation_ids:
+        raise BadRequestError('No evaluation ids supplied.')
+    updated_ids = []
+    if action == 'confirm':
+        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, status='confirmed')
+    elif action == 'delete':
+        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, status='deleted')
+    elif action == 'duplicate':
+        updated_ids = Evaluation.duplicate_bulk(evaluation_ids=evaluation_ids)
+    elif action == 'mark':
+        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, status='marked')
+    elif action == 'remove':
+        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, status=None)
+    else:
+        raise BadRequestError('Invalid update action.')
+    if not updated_ids:
+        raise BadRequestError('Evaluation ids could not be updated.')
+    response = department.evaluations_feed(app.config['CURRENT_TERM_ID'], updated_ids)
+    return tolerant_jsonify(response)

@@ -10,7 +10,7 @@
       <template #body="{items}">
         <tbody>
           <template v-for="(evaluation, evaluationId) in items">
-            <tr :key="evaluation.key">
+            <tr :key="evaluation.id">
               <td>
                 <v-simple-checkbox
                   :id="`evaluation-${evaluationId}-checkbox`"

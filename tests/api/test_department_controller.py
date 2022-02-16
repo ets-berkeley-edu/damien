@@ -77,7 +77,14 @@ class TestEnrolledDepartments:
         }
 
 
-def _api_get_department(client, term_id=None, expected_status_code=200):
+def _api_get_melc(client, expected_status_code=200):
+    dept = Department.find_by_name('Middle Eastern Languages and Cultures')
+    response = client.get(f'/api/department/{dept.id}')
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+def _api_get_philosophy(client, term_id=None, expected_status_code=200):
     dept = Department.find_by_name('Philosophy')
     if term_id:
         response = client.get(f'/api/department/{dept.id}?term_id={term_id}')
@@ -91,12 +98,12 @@ class TestGetDepartment:
 
     def test_anonymous(self, client):
         """Denies anonymous user."""
-        _api_get_department(client, expected_status_code=401)
+        _api_get_philosophy(client, expected_status_code=401)
 
     def test_authorized(self, client, fake_auth):
         """Returns a contactless response to non-admin user."""
         fake_auth.login(non_admin_uid)
-        department = _api_get_department(client)
+        department = _api_get_philosophy(client)
         assert department['catalogListings'] == {'PHILOS': ['*']}
         assert department['deptName'] == 'Philosophy'
         assert department['isEnrolled'] is True
@@ -106,7 +113,7 @@ class TestGetDepartment:
     def test_admin_authorized(self, client, fake_auth):
         """Returns response including dept contacts to admin user."""
         fake_auth.login(admin_uid)
-        department = _api_get_department(client)
+        department = _api_get_philosophy(client)
         assert department['catalogListings'] == {'PHILOS': ['*']}
         assert department['contacts'][0]['csid'] == '100100100'
         assert department['contacts'][0]['uid'] == '100'
@@ -120,13 +127,39 @@ class TestGetDepartment:
     def test_bad_term(self, client, fake_auth):
         """Rejects invalid term id."""
         fake_auth.login(admin_uid)
-        _api_get_department(client, term_id='1666', expected_status_code=400)
+        _api_get_philosophy(client, term_id='1666', expected_status_code=400)
 
     def test_good_term(self, client, fake_auth):
         """Accepts valid term ids."""
         fake_auth.login(admin_uid)
-        _api_get_department(client, term_id='2218')
-        _api_get_department(client, term_id='2222')
+        _api_get_philosophy(client, term_id='2218')
+        _api_get_philosophy(client, term_id='2222')
+
+    def test_default_evaluations(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        department = _api_get_melc(client)
+        assert len(department['evaluations']) == 54
+        for e in department['evaluations']:
+            assert e['subjectArea'] in ('MELC', 'CUNEIF')
+        elementary_sumerian = next(e for e in department['evaluations'] if e['subjectArea'] == 'CUNEIF' and e['catalogId'] == '102B')
+        print(elementary_sumerian)
+        assert elementary_sumerian['termId'] == '2222'
+        assert elementary_sumerian['courseNumber'] == '30659'
+        assert elementary_sumerian['instructionFormat'] == 'LEC'
+        assert elementary_sumerian['sectionNumber'] == '001'
+        assert elementary_sumerian['courseTitle'] == 'Elementary Sumerian'
+        assert elementary_sumerian['status'] is None
+        assert elementary_sumerian['departmentForm']['name'] == 'CUNEIF'
+        assert elementary_sumerian['evaluationType']['name'] == 'F'
+        assert elementary_sumerian['instructor'] == {
+            'uid': '637739',
+            'sisId': '360000',
+            'firstName': 'Ishtar',
+            'lastName': 'Uruk',
+            'emailAddress': 'ishtar@berkeley.edu',
+            'affiliations': 'EMPLOYEE-TYPE-ACADEMIC',
+        }
+        assert elementary_sumerian['id'] == '_2222_30659_637739'
 
 
 def _api_update_department(client, params={}, expected_status_code=200):
@@ -248,3 +281,65 @@ class TestUpdateDepartmentContact:
 
         department = Department.find_by_name('Philosophy')
         assert len(department.members) == original_count + 1
+
+
+def _api_update_evaluation(client, dept_id=None, params={}, expected_status_code=200):
+    if dept_id is None:
+        dept = Department.find_by_name('Middle Eastern Languages and Cultures')
+        dept_id = dept.id
+    response = client.post(
+        f'/api/department/{dept_id}/evaluations',
+        data=json.dumps(params),
+        content_type='application/json',
+    )
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestUpdateEvaluationStatus:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_update_evaluation(client, expected_status_code=401)
+
+    def test_unknown_dept(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, dept_id=0, expected_status_code=404)
+
+    def test_no_action(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={'evaluationIds': ['_2222_30659_637739']}, expected_status_code=400)
+
+    def test_bad_action(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={'evaluationIds': ['_2222_30659_637739'], 'action': 'xxxxx'}, expected_status_code=400)
+
+    def test_no_evaluation_ids(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={'action': 'confirm'}, expected_status_code=400)
+
+    def test_bad_evaluation_ids(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={'evaluationIds': ['xxxx'], 'action': 'confirm'}, expected_status_code=400)
+
+    def test_confirm(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        response = _api_update_evaluation(client, params={'evaluationIds': ['_2222_30659_637739'], 'action': 'confirm'})
+        assert len(response) == 1
+        assert response[0]['termId'] == '2222'
+        assert response[0]['courseNumber'] == '30659'
+        assert response[0]['courseTitle'] == 'Elementary Sumerian'
+        assert response[0]['instructor']['uid'] == '637739'
+        assert response[0]['status'] == 'confirmed'
+        assert response[0]['id'] == int(response[0]['id'])
+
+    def test_mark(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        response = _api_update_evaluation(client, params={'evaluationIds': ['_2222_30659_637739'], 'action': 'mark'})
+        assert len(response) == 1
+        assert response[0]['termId'] == '2222'
+        assert response[0]['courseNumber'] == '30659'
+        assert response[0]['courseTitle'] == 'Elementary Sumerian'
+        assert response[0]['instructor']['uid'] == '637739'
+        assert response[0]['status'] == 'marked'
+        assert response[0]['id'] == int(response[0]['id'])

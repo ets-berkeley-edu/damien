@@ -144,7 +144,8 @@ class Department(Base):
         evaluations = Evaluation.fetch_by_course_numbers(term_id, sections_by_number.keys())
 
         instructor_uids = set(s['instructor_uid'] for s in loch_sections if s['instructor_uid'])
-        instructor_uids.update(e.instructor_uid for e in evaluations if e.instructor_uid)
+        for v in evaluations.values():
+            instructor_uids.update(e.instructor_uid for e in v if e.instructor_uid)
         instructors = {}
         for row in get_loch_instructors(list(instructor_uids)):
             instructors[row['ldap_uid']] = {
@@ -172,6 +173,12 @@ class Department(Base):
                 ))
         return sections
 
+    def evaluations_feed(self, term_id=None, evaluation_ids=None):
+        feed = []
+        for s in self.get_visible_sections(term_id):
+            feed.extend(s.get_evaluation_feed(evaluation_ids=evaluation_ids))
+        return feed
+
     def to_api_json(self, include_contacts=False, include_evaluations=False, term_id=None):
         feed = {
             'id': self.id,
@@ -185,7 +192,5 @@ class Department(Base):
         if include_contacts:
             feed['contacts'] = [user.to_api_json() for user in self.members]
         if include_evaluations:
-            feed['evaluations'] = []
-            for s in self.get_visible_sections(term_id):
-                feed['evaluations'].extend(s.get_evaluation_feed())
+            feed['evaluations'] = self.evaluations_feed(term_id)
         return feed
