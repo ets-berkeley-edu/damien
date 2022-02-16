@@ -23,13 +23,15 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from mrsbaylock.models.user import User
-
 
 class Department(object):
 
     def __init__(self, data):
         self.data = data
+
+    @property
+    def dept_id(self):
+        return self.data['id']
 
     @property
     def name(self):
@@ -43,6 +45,14 @@ class Department(object):
     def note(self):
         return self.data['note']
 
+    @note.setter
+    def note(self, value):
+        self.data['note'] = value
+
     @property
-    def admins(self):
-        return [User(i) for i in self.data['admins']]
+    def users(self):
+        return self.data['users']
+
+    @users.setter
+    def users(self, value):
+        self.data['users'] = value

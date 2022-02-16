@@ -23,10 +23,12 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from datetime import datetime
 import os
 
 from damien.factory import create_app
 from mrsbaylock.pages.calnet_page import CalNetPage
+from mrsbaylock.pages.dept_details_admin_page import DeptDetailsAdminPage
 from mrsbaylock.pages.login_page import LoginPage
 from mrsbaylock.pages.status_board_admin_page import StatusBoardAdminPage
 from mrsbaylock.test_utils.webdriver_utils import WebDriverManager
@@ -44,9 +46,11 @@ ctx.push()
 @pytest.fixture(scope='session')
 def page_objects(request):
     driver = WebDriverManager.launch_browser()
+    test_id = datetime.strftime(datetime.now(), '%s')
 
     # Define page objects
     calnet_page = CalNetPage(driver)
+    dept_details_admin_page = DeptDetailsAdminPage(driver)
     login_page = LoginPage(driver)
     status_board_admin_page = StatusBoardAdminPage(driver)
 
@@ -55,7 +59,9 @@ def page_objects(request):
         for item in session.items:
             cls = item.getparent(pytest.Class)
             setattr(cls.obj, 'driver', driver)
+            setattr(cls.obj, 'test_id', test_id)
             setattr(cls.obj, 'calnet_page', calnet_page)
+            setattr(cls.obj, 'dept_details_admin_page', dept_details_admin_page)
             setattr(cls.obj, 'login_page', login_page)
             setattr(cls.obj, 'status_board_admin_page', status_board_admin_page)
         yield

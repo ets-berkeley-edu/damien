@@ -41,6 +41,11 @@ class Page(object):
         self.driver = driver
 
     PAGE_HEADING = (By.XPATH, '//h1')
+    FOOTER = (By.ID, 'footer')
+
+    def hide_damien_footer(self):
+        if self.is_present(Page.FOOTER) and self.element(Page.FOOTER).is_displayed():
+            self.driver.execute_script('document.getElementById("footer").style.display="none";')
 
     def element(self, locator):
         strategy = locator[0]
@@ -95,6 +100,7 @@ class Page(object):
                     time.sleep(1)
 
     def wait_for_element(self, locator, timeout):
+        app.logger.info(f'Waiting for element at {locator}')
         if utils.get_browser() == 'chrome':
             for entry in self.driver.get_log('browser'):
                 if app.config['BASE_URL'] in entry:
@@ -128,6 +134,7 @@ class Page(object):
     def click_element(self, locator, addl_pause=None):
         sleep_default = app.config['CLICK_SLEEP']
         time.sleep(addl_pause or sleep_default)
+        self.hide_damien_footer()
         Wait(driver=self.driver, timeout=utils.get_short_timeout()).until(
             method=ec.element_to_be_clickable(locator),
             message=f'Failed to click_element: {str(locator)}',

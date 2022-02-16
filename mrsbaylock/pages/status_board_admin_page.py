@@ -23,10 +23,19 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
 from selenium.webdriver.common.by import By
 
 
 class StatusBoardAdminPage(DamienPages):
 
-    EVAL_STATUS_DASH_HEADING = {By.XPATH, '//h1[contains(text(), "Evaluation Status Dashboard")]'}
+    EVAL_STATUS_DASH_HEADING = (By.XPATH, '//h1[contains(text(), "Evaluation Status Dashboard")]')
+
+    @staticmethod
+    def dept_link_loc(dept):
+        return By.XPATH, f'//a[contains(@href, "/department/{dept.dept_id}")]'
+
+    def click_dept_link(self, dept):
+        app.logger.info(f'Clicking the link for {dept.name}')
+        self.wait_for_element_and_click(self.dept_link_loc(dept))

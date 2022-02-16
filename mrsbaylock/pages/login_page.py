@@ -49,5 +49,5 @@ class LoginPage(Page):
             uid = utils.get_admin_uid()
         app.logger.info(f'Logging in to Damien as UID {uid}')
         self.wait_for_element_and_type(LoginPage.USERNAME_INPUT, uid)
-        self.wait_for_element_and_type(LoginPage.PASSWORD_INPUT, app.config['DEV_AUTH_PASSWORD'])
+        self.wait_for_element_and_type(LoginPage.PASSWORD_INPUT, app.config['DEVELOPER_AUTH_PASSWORD'])
         self.wait_for_element_and_click(LoginPage.DEV_AUTH_LOGIN_BUTTON)
