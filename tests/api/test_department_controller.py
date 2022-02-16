@@ -49,7 +49,7 @@ class TestEnrolledDepartments:
     def test_unauthorized(self, client, fake_auth):
         """Denies unauthorized user."""
         fake_auth.login(non_admin_uid)
-        _api_enrolled_departments(client, expected_status_code=403)
+        _api_enrolled_departments(client, expected_status_code=401)
 
     def test_authorized(self, client, fake_auth):
         fake_auth.login(admin_uid)
@@ -149,7 +149,7 @@ class TestUpdateDepartment:
     def test_unauthorized(self, client, fake_auth):
         """Denies unauthorized user."""
         fake_auth.login(non_admin_uid)
-        _api_update_department(client, expected_status_code=403)
+        _api_update_department(client, expected_status_code=401)
 
     def test_authorized(self, client, fake_auth):
         fake_auth.login(admin_uid)
@@ -190,7 +190,7 @@ class TestUpdateDepartmentContact:
     def test_unauthorized(self, client, fake_auth):
         """Denies unauthorized user."""
         fake_auth.login(non_admin_uid)
-        _api_update_contact(client, expected_status_code=403)
+        _api_update_contact(client, expected_status_code=401)
 
     def test_unknown_dept(self, client, fake_auth):
         fake_auth.login(admin_uid)

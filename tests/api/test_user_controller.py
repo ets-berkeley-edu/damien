@@ -23,8 +23,11 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import json
 
-authorized_uid = '100'
+
+admin_uid = '200'
+non_admin_uid = '100'
 
 
 def _api_my_profile(client, expected_status_code=200):
@@ -41,6 +44,35 @@ class TestMyProfile:
 
     def test_authenticated(self, client, fake_auth):
         """Returns authenticated user profile."""
-        fake_auth.login(authorized_uid)
+        fake_auth.login(non_admin_uid)
         api_json = _api_my_profile(client)
-        assert api_json['uid'] == authorized_uid
+        assert api_json['uid'] == non_admin_uid
+
+
+def _api_search(client, snippet='123', expected_status_code=200):
+    response = client.post(
+        '/api/user/search',
+        data=json.dumps({'snippet': snippet}),
+        content_type='application/json',
+    )
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestSearch:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_search(client, expected_status_code=401)
+
+    def test_unauthorized(self, client, fake_auth):
+        """Denies unauthorized user."""
+        fake_auth.login(non_admin_uid)
+        _api_search(client, expected_status_code=401)
+
+    def test_authenticated(self, client, fake_auth):
+        """Returns authenticated user profile."""
+        fake_auth.login(admin_uid)
+        results = _api_search(client, snippet='500')
+        assert '400400500' in [r['csid'] for r in results]
+        assert '500' in [r['uid'] for r in results]

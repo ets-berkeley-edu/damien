@@ -22,24 +22,18 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
 ENHANCEMENTS, OR MODIFICATIONS.
 """
+from functools import wraps
 
-from damien.api.util import admin_required
-from damien.lib.http import tolerant_jsonify
-from damien.lib.util import get as get_param
-from damien.models.user import User
 from flask import current_app as app, request
 from flask_login import current_user
 
 
-@app.route('/api/user/my_profile')
-def my_profile():
-    return tolerant_jsonify(current_user.to_api_json())
-
-
-@app.route('/api/user/search', methods=['POST'])
-@admin_required
-def search():
-    params = request.get_json()
-    snippet = get_param(params, 'snippet').strip()
-    users = User.search(snippet)
-    return tolerant_jsonify([u.to_api_json() for u in users])
+def admin_required(func):
+    @wraps(func)
+    def _admin_required(*args, **kw):
+        if current_user.is_authenticated and current_user.is_admin:
+            return func(*args, **kw)
+        else:
+            app.logger.warning(f'Unauthorized request to {request.path}')
+            return app.login_manager.unauthorized()
+    return _admin_required
