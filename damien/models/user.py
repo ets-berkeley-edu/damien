@@ -27,6 +27,7 @@ from damien import db, std_commit
 from damien.lib.util import isoformat
 from damien.models.base import Base
 from damien.models.department_member import DepartmentMember
+from sqlalchemy import or_
 
 
 class User(Base):
@@ -119,6 +120,13 @@ class User(Base):
     def find_by_uid(cls, uid):
         query = cls.query.filter_by(uid=uid, deleted_at=None)
         return query.first()
+
+    @classmethod
+    def search(cls, snippet):
+        like_csid_snippet = cls.csid.like(f'%{snippet}%')
+        like_uid_snippet = cls.uid.like(f'%{snippet}%')
+        criteria = or_(like_csid_snippet, like_uid_snippet)
+        return cls.query.filter(criteria).all()
 
     def to_api_json(self):
         return {

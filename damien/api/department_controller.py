@@ -23,7 +23,8 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.api.errors import BadRequestError, ForbiddenRequestError, ResourceNotFoundError
+from damien.api.errors import BadRequestError, ResourceNotFoundError
+from damien.api.util import admin_required
 from damien.lib.berkeley import available_term_ids
 from damien.lib.http import tolerant_jsonify
 from damien.lib.util import get as get_param
@@ -35,10 +36,8 @@ from flask_login import current_user, login_required
 
 
 @app.route('/api/departments/enrolled')
-@login_required
+@admin_required
 def enrolled_departments():
-    if not current_user.is_admin:
-        raise ForbiddenRequestError('Admin required.')
     enrolled_depts = Department.all_enrolled()
     return tolerant_jsonify([d.to_api_json() for d in enrolled_depts])
 
@@ -61,10 +60,8 @@ def get_department(department_id):
 
 
 @app.route('/api/department/<department_id>', methods=['POST'])
-@login_required
+@admin_required
 def update(department_id):
-    if not current_user.is_admin:
-        raise ForbiddenRequestError('Admin required.')
     department = Department.find_by_id(department_id)
     if department:
         params = request.get_json()
@@ -76,10 +73,8 @@ def update(department_id):
 
 
 @app.route('/api/department/<department_id>/contact', methods=['POST'])
-@login_required
+@admin_required
 def update_contact(department_id):
-    if not current_user.is_admin:
-        raise ForbiddenRequestError('Admin required.')
     department = Department.find_by_id(department_id)
     if department:
         params = request.get_json()
