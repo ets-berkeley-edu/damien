@@ -10,15 +10,22 @@
       <template #body="{items}">
         <tbody>
           <template v-for="(evaluation, evaluationId) in items">
-            <tr :key="evaluation.id">
+            <tr :key="evaluation.id" :class="{'row-confirmed': evaluation.status === 'confirmed', 'row-review': evaluation.status === 'review'}">
               <td>
-                <v-simple-checkbox
+                <v-checkbox
                   :id="`evaluation-${evaluationId}-checkbox`"
+                  v-model="evaluation.isSelected"
                   :ripple="false"
-                ></v-simple-checkbox>
+                ></v-checkbox>
               </td>
               <td :id="`evaluation-${evaluationId}-status`">
-                {{ evaluation.status }}
+                <div
+                  v-if="evaluation.status"
+                  class="pill"
+                  :class="{'pill-confirmed': evaluation.status === 'confirmed', 'pill-review': evaluation.status === 'review'}"
+                >
+                  {{ evaluation.status }}
+                </div>
               </td>
               <td :id="`evaluation-${evaluationId}-lastUpdated`">
                 {{ evaluation.lastUpdated | moment('MM/DD/YYYY') }}
@@ -96,3 +103,30 @@ export default {
   })
 }
 </script>
+
+<style scoped>
+.pill {
+  border: 1px solid #999;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin: 0;
+  padding: 3px 10px;
+  text-align: center;
+  text-transform: uppercase;
+}
+.pill-confirmed {
+  background-color: #666;
+}
+.pill-review {
+  background-color: #595;
+}
+.row-confirmed td {
+  background-color: #eee;
+  color: #666;
+}
+.row-review td {
+  background-color: #efe;  
+}
+</style>

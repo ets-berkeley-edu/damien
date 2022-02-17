@@ -16,3 +16,9 @@ export function updateContact(departmentId: number, contact: any) {
 export function updateDepartment(departmentId: number, note: string) {
   return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}`, {note}).then(response => response.data, () => null)
 }
+
+export function updateEvaluations(departmentId: number, action: string, evaluationIds: any[]) {
+  return axios
+    .post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/evaluations`, {action, evaluationIds})
+    .then(response => response.data, () => null)
+}
