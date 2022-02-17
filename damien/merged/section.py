@@ -50,48 +50,49 @@ class Section:
         self.instructors = instructors
         self.merged_evaluations = []
 
-        # Multiple loch rows for a single section-instructor pairing are possible.
-        loch_rows_by_instructor_uid = {k: list(v) for k, v in groupby(loch_rows, key=lambda r: r['instructor_uid'])}
-
-        # Database constraints ensure only one saved evaluation per section-instructor pairing.
-        evaluations_by_instructor_uid = {e.instructor_uid: e for e in evaluations}
-
-        instructor_uids = set(loch_rows_by_instructor_uid.keys())
-        instructor_uids.update(evaluations_by_instructor_uid.keys())
-
         default_form = None
         for c in catalog_listings:
             if c.subject_area in (self.subject_area, '') and (c.catalog_id is None or re.match(c.catalog_id, self.catalog_id)):
                 default_form = c.default_form
                 break
 
-        for uid in instructor_uids:
-            # Skip rows without an instructor if we have an instructor elsewhere.
-            if not uid and len(instructor_uids) > 1:
-                continue
+        # Multiple loch rows for a single section-instructor pairing are possible.
+        loch_rows_by_instructor_uid = {k: list(v) for k, v in groupby(loch_rows, key=lambda r: r['instructor_uid'])}
+        evaluation_uids = set()
 
+        # Create one API feed element per visible saved evaluation, merging in data from SIS as needed.
+        for evaluation in evaluations:
+            evaluation_uids.add(evaluation.instructor_uid)
+            if not evaluation.is_visible():
+                continue
             # When merging evaluation data for a specific instructor, we prefer in order: 1) loch rows for that specific
             # instructor; 2) loch rows with no instructor; 3) any loch rows available.
-            loch_rows_for_uid = loch_rows_by_instructor_uid.get(uid) or loch_rows_by_instructor_uid.get(None) or loch_rows
+            loch_rows_for_uid = loch_rows_by_instructor_uid.get(evaluation.instructor_uid) or loch_rows_by_instructor_uid.get(None) or loch_rows
+            self.merged_evaluations.append(Evaluation.merge_transient(
+                evaluation.instructor_uid,
+                loch_rows_for_uid,
+                evaluation,
+                self.instructors.get(evaluation.instructor_uid),
+                default_form=default_form,
+                evaluation_type_cache=evaluation_type_cache,
+            ))
 
-            # If we have no saved evaluation data for this section-instructor pairing, check for saved evaluation data with no
-            # instructor.
-            evaluation_for_uid = evaluations_by_instructor_uid.get(uid) or evaluations_by_instructor_uid.get(None)
-
-            # Omit evaluations explicitly marked deleted.
-            if evaluation_for_uid and not evaluation_for_uid.is_visible():
+        # Supplement with SIS-only rows.
+        for instructor_uid, loch_rows_for_uid in loch_rows_by_instructor_uid.items():
+            # Ignore instructor UIDs already handled under saved evaluations.
+            if instructor_uid in evaluation_uids:
                 continue
-
-            self.merged_evaluations.append(
-                Evaluation.merge_transient(
-                    uid,
-                    loch_rows_for_uid,
-                    evaluation_for_uid,
-                    self.instructors.get(uid),
-                    default_form=default_form,
-                    evaluation_type_cache=evaluation_type_cache,
-                ),
-            )
+            # Ignore rows without an instructor unless we have no saved evaluations.
+            if instructor_uid is None and len(evaluations):
+                continue
+            self.merged_evaluations.append(Evaluation.merge_transient(
+                instructor_uid,
+                loch_rows_for_uid,
+                None,
+                self.instructors.get(instructor_uid),
+                default_form=default_form,
+                evaluation_type_cache=evaluation_type_cache,
+            ))
 
     @classmethod
     def is_visible_by_default(cls, loch_row):

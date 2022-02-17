@@ -142,7 +142,6 @@ class TestGetDepartment:
         for e in department['evaluations']:
             assert e['subjectArea'] in ('MELC', 'CUNEIF')
         elementary_sumerian = next(e for e in department['evaluations'] if e['subjectArea'] == 'CUNEIF' and e['catalogId'] == '102B')
-        print(elementary_sumerian)
         assert elementary_sumerian['termId'] == '2222'
         assert elementary_sumerian['courseNumber'] == '30659'
         assert elementary_sumerian['instructionFormat'] == 'LEC'
@@ -345,6 +344,22 @@ class TestUpdateEvaluationStatus:
         assert response[0]['status'] == 'review'
         assert response[0]['id'] == int(response[0]['id'])
         assert response[0]['transientId'] == '_2222_30659_637739'
+
+
+class TestDuplicateEvaluation:
+
+    def test_duplicate(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        response = _api_update_evaluation(client, params={'evaluationIds': ['_2222_30659_637739'], 'action': 'duplicate'})
+        assert len(response) == 2
+        assert response[0]['id'] != response[1]['id']
+        for r in response:
+            assert r['termId'] == '2222'
+            assert r['courseNumber'] == '30659'
+            assert r['courseTitle'] == 'Elementary Sumerian'
+            assert r['instructor']['uid'] == '637739'
+            assert r['transientId'] == '_2222_30659_637739'
+            assert r['id'] == int(r['id'])
 
 
 class TestEditEvaluation:
