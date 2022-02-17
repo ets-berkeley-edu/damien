@@ -58,6 +58,25 @@
         <v-col cols="12" md="8"><DepartmentNote /></v-col>
       </v-row>
     </v-container>
+    <v-row v-if="selectedEvaluationIds.length">
+      <v-col cols="12" md="4">
+        <v-select
+          id="select-term"
+          v-model="selectedCourseAction"
+          item-text="text"
+          item-value="value"
+          :items="courseActions"
+          label="Course Actions"
+          solo
+        >
+        </v-select>
+      </v-col>
+      <v-col cols="12" md="4">
+        <v-btn @click="applyCourseAction">
+          Apply
+        </v-btn>
+      </v-col>
+    </v-row>
     <v-card outlined class="elevation-1">
       <EvaluationTable :evaluations="evaluations" />
     </v-card>
@@ -65,6 +84,7 @@
 </template>
 
 <script>
+import {updateEvaluations} from '@/api/departments'
 import Context from '@/mixins/Context.vue'
 import DepartmentContact from '@/components/admin/DepartmentContact'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
@@ -78,12 +98,27 @@ export default {
   mixins: [Context, DepartmentEditSession],
   data: () => ({
     availableTerms: undefined,
+    courseActions: [
+      {'text': 'Mark for review', 'value': 'mark'},
+      {'text': 'Mark as confirmed', 'value': 'confirm'}
+    ],
     department: {},
     evaluations: [],
     isAddingContact: false,
+    selectedCourseAction: undefined,
     selectedTerm: undefined,
     selectedTermId: undefined
   }),
+  computed: {
+    selectedEvaluationIds() {
+      return this.$_.reduce(this.evaluations, (ids, e) => {
+        if (e.isSelected) {
+          ids.push(e.id)
+        }
+        return ids
+      }, [])
+    }
+  },
   created() {
     this.availableTerms = this.$config.availableTerms
     this.selectedTermId = this.$config.currentTermId
@@ -94,6 +129,9 @@ export default {
       this.isAddingContact = false
       this.alertScreenReader('Contact saved.')
       this.$putFocusNextTick('add-dept-contact-btn')
+    },
+    applyCourseAction() {
+      updateEvaluations(this.department.id, this.selectedCourseAction, this.selectedEvaluationIds).then(this.refresh)
     },
     onCancelAddContact() {
       this.isAddingContact = false
@@ -107,6 +145,7 @@ export default {
       this.init({departmentId, termId}).then(department => {
         this.department = department
         this.evaluations = department.evaluations
+        this.$_.each(this.evaluations, e => e.isSelected = false)
         this.selectedTerm = this.$_.find(this.availableTerms, {'id': termId})
         this.$ready()
       })

@@ -332,6 +332,7 @@ class TestUpdateEvaluationStatus:
         assert response[0]['instructor']['uid'] == '637739'
         assert response[0]['status'] == 'confirmed'
         assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['transientId'] == '_2222_30659_637739'
 
     def test_mark(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
@@ -341,5 +342,6 @@ class TestUpdateEvaluationStatus:
         assert response[0]['courseNumber'] == '30659'
         assert response[0]['courseTitle'] == 'Elementary Sumerian'
         assert response[0]['instructor']['uid'] == '637739'
-        assert response[0]['status'] == 'marked'
+        assert response[0]['status'] == 'review'
         assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['transientId'] == '_2222_30659_637739'

@@ -246,20 +246,27 @@ class Evaluation(Base):
             updates.append(saved_evaluation.updated_at)
         self.last_updated = max(updates)
 
+    # Fallback id string for Evaluation instances that are created for the department/section API but not saved to the database.
+    def transient_id(self):
+        return f'_{self.term_id}_{self.course_number}_{self.instructor_uid}'
+
     def get_id(self):
-        if self.id:
-            return self.id
-        else:
-            # Fallback id string for Evaluation instances that are created for the department/section API but not saved to the database.
-            return f'_{self.term_id}_{self.course_number}_{self.instructor_uid}'
+        return self.id or self.transient_id()
 
     def to_api_json(self, section):
         dept_form_feed = self.department_form.to_api_json() if self.department_form else None
         eval_type_feed = self.evaluation_type.to_api_json() if self.evaluation_type else None
+
+        if self.status == 'marked':
+            feed_status = 'review'
+        else:
+            feed_status = self.status
+
         feed = section.to_api_json()
         feed.update({
             'id': self.get_id(),
-            'status': self.status,
+            'transientId': self.transient_id(),
+            'status': feed_status,
             'instructor': section.instructors.get(self.instructor_uid),
             'departmentForm': dept_form_feed,
             'evaluationType': eval_type_feed,
