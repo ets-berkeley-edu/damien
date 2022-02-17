@@ -161,11 +161,11 @@ class Department(Base):
 
         for course_number, loch_rows in sections_by_number.items():
             section_evaluations = evaluations.get(course_number, [])
-            loch_rows_visible = next((True for r in loch_rows if Section.is_visible_by_default(r)), False)
-            evaluations_visible = next((True for e in section_evaluations if e.is_visible()), False)
-            if loch_rows_visible or evaluations_visible:
+            visible_loch_rows = [r for r in loch_rows if Section.is_visible_by_default(r)]
+            visible_evaluations = [e for e in section_evaluations if e.is_visible()]
+            if len(visible_loch_rows) or len(visible_evaluations):
                 sections.append(Section(
-                    loch_rows,
+                    visible_loch_rows,
                     section_evaluations,
                     instructors=instructors,
                     catalog_listings=self.catalog_listings,
