@@ -186,7 +186,7 @@ class Evaluation(Base):
         pass
 
     @classmethod
-    def update_bulk(cls, evaluation_ids, status):
+    def update_bulk(cls, evaluation_ids, fields):
         evaluations = []
         for evaluation_id in evaluation_ids:
             evaluation = None
@@ -200,7 +200,16 @@ class Evaluation(Base):
                     evaluation = None
             if not evaluation:
                 continue
-            evaluation.status = status
+            if 'departmentForm' in fields:
+                evaluation.department_form = fields['departmentForm']
+            if 'endDate' in fields:
+                evaluation.end_date = fields['endDate']
+            if 'evaluationType' in fields:
+                evaluation.evaluation_type = fields['evaluationType']
+            if 'startDate' in fields:
+                evaluation.start_date = fields['startDate']
+            if 'status' in fields:
+                evaluation.status = fields['status']
             db.session.add(evaluation)
             evaluations.append(evaluation)
         std_commit()

@@ -23,14 +23,18 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from datetime import date
+
 from damien.api.errors import BadRequestError, ResourceNotFoundError
 from damien.api.util import admin_required
 from damien.lib.berkeley import available_term_ids
 from damien.lib.http import tolerant_jsonify
 from damien.lib.util import get as get_param
 from damien.models.department import Department
+from damien.models.department_form import DepartmentForm
 from damien.models.department_member import DepartmentMember
 from damien.models.evaluation import Evaluation
+from damien.models.evaluation_type import EvaluationType
 from damien.models.user import User
 from flask import current_app as app, request
 from flask_login import current_user, login_required
@@ -115,18 +119,53 @@ def update_evaluations(department_id):
         raise BadRequestError('No evaluation ids supplied.')
     updated_ids = []
     if action == 'confirm':
-        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, status='confirmed')
+        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': 'confirmed'})
     elif action == 'delete':
-        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, status='deleted')
+        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': 'deleted'})
     elif action == 'duplicate':
         updated_ids = Evaluation.duplicate_bulk(evaluation_ids=evaluation_ids)
+    elif action == 'edit':
+        fields = params.get('fields')
+        validated_fields = _validate_evaluation_fields(fields)
+        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields=validated_fields)
     elif action == 'mark':
-        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, status='marked')
+        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': 'marked'})
     elif action == 'remove':
-        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, status=None)
+        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': None})
     else:
         raise BadRequestError('Invalid update action.')
     if not updated_ids:
         raise BadRequestError('Evaluation ids could not be updated.')
     response = department.evaluations_feed(app.config['CURRENT_TERM_ID'], updated_ids)
     return tolerant_jsonify(response)
+
+
+def _validate_evaluation_fields(fields):  # noqa C901
+    validated_fields = {}
+    if not fields or not type(fields) is dict:
+        raise BadRequestError('No fields supplied for evaluation edit.')
+    for k, v in fields.items():
+        if k == 'departmentFormId':
+            try:
+                department_form = DepartmentForm.find_by_id(int(v))
+            except ValueError:
+                department_form = None
+            if not department_form:
+                raise BadRequestError(f'Invalid department form id {v}.')
+            validated_fields['departmentForm'] = department_form
+        elif k == 'evaluationTypeId':
+            try:
+                evaluation_type = EvaluationType.find_by_id(int(v))
+            except ValueError:
+                evaluation_type = None
+            if not evaluation_type:
+                raise BadRequestError(f'Invalid evaluation type id {v}.')
+            validated_fields['evaluationType'] = evaluation_type
+        elif k in {'startDate', 'endDate'}:
+            try:
+                validated_fields[k] = date.fromisoformat(v)
+            except ValueError:
+                raise BadRequestError(f'Invalid date format {v}.')
+        else:
+            raise BadRequestError(f"Evaluation field '{k}' not recognized.")
+    return validated_fields
