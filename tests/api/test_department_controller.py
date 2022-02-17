@@ -138,7 +138,7 @@ class TestGetDepartment:
     def test_default_evaluations(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         department = _api_get_melc(client)
-        assert len(department['evaluations']) == 54
+        assert len(department['evaluations']) == 39
         for e in department['evaluations']:
             assert e['subjectArea'] in ('MELC', 'CUNEIF')
         elementary_sumerian = next(e for e in department['evaluations'] if e['subjectArea'] == 'CUNEIF' and e['catalogId'] == '102B')
