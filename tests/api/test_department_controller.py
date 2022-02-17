@@ -345,3 +345,90 @@ class TestUpdateEvaluationStatus:
         assert response[0]['status'] == 'review'
         assert response[0]['id'] == int(response[0]['id'])
         assert response[0]['transientId'] == '_2222_30659_637739'
+
+
+class TestEditEvaluation:
+
+    def test_no_fields(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={'evaluationIds': ['_2222_30659_637739'], 'action': 'edit'}, expected_status_code=400)
+
+    def test_bad_fields(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'action': 'edit',
+            'fields': {'ill': 'communication'},
+        }, expected_status_code=400)
+
+    def test_bad_dept_form(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'fields': {'departmentFormId': 'zyzzyva'},
+        }, expected_status_code=400)
+
+    def test_nonexistent_dept_form(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'fields': {'departmentFormId': 99999},
+        }, expected_status_code=400)
+
+    def test_edit_department_form(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        response = _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'action': 'edit',
+            'fields': {'departmentFormId': '13'},
+        })
+        assert len(response) == 1
+        assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['transientId'] == '_2222_30659_637739'
+        assert response[0]['departmentForm']['id'] == 13
+
+    def test_bad_eval_type(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'fields': {'evaluationTypeId': 'zyzzyva'},
+        }, expected_status_code=400)
+
+    def test_nonexistent_eval_type(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'fields': {'evaluationTypeId': 99999},
+        }, expected_status_code=400)
+
+    def test_edit_evaluation_type(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        response = _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'action': 'edit',
+            'fields': {'evaluationTypeId': '3'},
+        })
+        assert len(response) == 1
+        assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['transientId'] == '_2222_30659_637739'
+        assert response[0]['evaluationType']['id'] == 3
+
+    def test_bad_date(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'fields': {'startDate': 'ill', 'endDate': 'communication'},
+        }, expected_status_code=400)
+
+    def test_edit_dates(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        response = _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'action': 'edit',
+            'fields': {'startDate': '2022-02-14', 'endDate': '2022-05-01'},
+        })
+        assert len(response) == 1
+        assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['transientId'] == '_2222_30659_637739'
+        assert response[0]['startDate'] == '2022-02-14'
+        assert response[0]['endDate'] == '2022-05-01'
