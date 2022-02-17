@@ -27,11 +27,66 @@ import json
 
 from damien import std_commit
 from damien.models.department import Department
+from damien.models.department_member import DepartmentMember
 from damien.models.user import User
 
 
 non_admin_uid = '100'
 admin_uid = '200'
+
+
+def _api_delete_contact(client, dept_id=None, user_id=None, expected_status_code=200):
+    if not dept_id:
+        dept = Department.find_by_name('Philosophy')
+        dept_id = dept.id
+    if not user_id:
+        user_id = dept.members[0].user_id
+    response = client.delete(f'/api/department/{dept_id}/contact/{user_id}')
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestDeleteDepartmentContact:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_delete_contact(client, expected_status_code=401)
+
+    def test_unauthorized(self, client, fake_auth):
+        """Denies unauthorized user."""
+        fake_auth.login(non_admin_uid)
+        _api_delete_contact(client, expected_status_code=401)
+
+    def test_authorized(self, client, fake_auth, app):
+        department = Department.find_by_name('Philosophy')
+        user = User.create(
+            csid='14400',
+            uid='40',
+            email='dt@b.e',
+            first_name='Dake',
+            last_name='Traphagen',
+        )
+        DepartmentMember.create(department.id, user.id)
+        std_commit(allow_test_environment=True)
+        original_count = len(department.members)
+
+        fake_auth.login(admin_uid)
+        response = _api_delete_contact(client, user_id=user.id)
+        assert response['message']
+
+        std_commit(allow_test_environment=True)
+        department = Department.find_by_name('Philosophy')
+        assert len(department.members) == original_count - 1
+
+    def test_invalid_dept_id(self, client, fake_auth):
+        """Fails silently when department does not exist."""
+        fake_auth.login(admin_uid)
+        _api_delete_contact(client, dept_id=0)
+
+    def test_invalid_user_id(self, client, fake_auth):
+        """Fails silently when user does not exist."""
+        fake_auth.login(admin_uid)
+        _api_delete_contact(client, user_id=0)
 
 
 def _api_enrolled_departments(client, expected_status_code=200):
