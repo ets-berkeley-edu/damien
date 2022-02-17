@@ -1,5 +1,11 @@
 <template>
   <v-form class="pa-3">
+    <div v-if="!contact">
+      <label for="input-person-lookup-autocomplete" class="form-label">
+        Person Lookup
+      </label>
+      <PersonLookup class="my-1" :on-select-result="onSelectSearchResult" />
+    </div>
     <label :for="`input-first-name-${contactId}`" class="form-label">
       First Name
     </label>
@@ -103,10 +109,12 @@
 
 <script>
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
+import PersonLookup from '@/components/admin/PersonLookup'
 
 export default {
   name: 'EditDepartmentContact',
   mixins: [DepartmentEditSession],
+  components: {PersonLookup},
   props: {
     afterSave: {
       required: true,
@@ -127,7 +135,8 @@ export default {
     email: undefined,
     firstName: undefined,
     lastName: undefined,
-    permissions: undefined
+    permissions: undefined,
+    userId: undefined
   }),
   computed: {
     contactId() {
@@ -135,15 +144,7 @@ export default {
     }
   },
   created() {
-    if (this.contact) {
-      this.canReceiveCommunications = this.contact.canReceiveCommunications
-      this.canViewResponseRates = this.contact.canViewResponseRates
-      this.email = this.contact.email
-      this.firstName = this.contact.firstName
-      this.lastName = this.contact.lastName
-      this.permissions = this.contact.canViewResponseRates ? 'reports and response rates' : 'reports only'
-    }
-    this.$putFocusNextTick(`input-first-name-${this.contactId}`)
+    this.populateForm(this.contact)
   },
   methods: {
     onSave() {
@@ -153,8 +154,26 @@ export default {
         'email': this.email,
         'firstName': this.firstName,
         'lastName': this.lastName,
-        'userId': this.$_.get(this.contact, 'userId')
+        'userId': this.userId
       }).then(this.afterSave)
+    },
+    onSelectSearchResult(user) {
+      this.populateForm(user)
+    },
+    populateForm(contact) {
+      if (contact) {
+        this.canReceiveCommunications = contact.canReceiveCommunications
+        this.canViewResponseRates = contact.canViewResponseRates
+        this.email = contact.email
+        this.firstName = contact.firstName
+        this.lastName = contact.lastName
+        this.permissions = contact.canViewResponseRates ? 'reports and response rates' : 'reports only'
+        this.userId = contact.id
+
+        this.$putFocusNextTick(`input-first-name-${this.contactId}`)
+      } else {
+        this.$putFocusNextTick('input-person-lookup-autocomplete')
+      }
     }
   }
 }
