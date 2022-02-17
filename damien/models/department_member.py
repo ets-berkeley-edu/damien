@@ -89,6 +89,11 @@ class DepartmentMember(Base):
         std_commit()
         return department_member
 
+    @classmethod
+    def delete(cls, department_id, user_id):
+        db.session.delete(cls.query.filter_by(department_id=department_id, user_id=user_id).first())
+        std_commit()
+
     def to_api_json(self):
         return {
             'userId': self.user_id,

@@ -36,6 +36,13 @@ from flask import current_app as app, request
 from flask_login import current_user, login_required
 
 
+@app.route('/api/department/<department_id>/contact/<user_id>', methods=['DELETE'])
+@admin_required
+def delete_contact(department_id, user_id):
+    DepartmentMember.delete(department_id, user_id)
+    return tolerant_jsonify({'message': f'Department contact <dept_id={department_id}, user_id={user_id}> has been deleted'}), 200
+
+
 @app.route('/api/departments/enrolled')
 @admin_required
 def enrolled_departments():
