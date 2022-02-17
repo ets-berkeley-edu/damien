@@ -30,6 +30,7 @@ from damien.lib.util import safe_strftime
 from damien.models.base import Base
 from damien.models.department_form import DepartmentForm
 from damien.models.evaluation_type import EvaluationType
+from flask_login import current_user
 from sqlalchemy.dialects.postgresql import ENUM
 
 
@@ -117,8 +118,6 @@ class Evaluation(Base):
             evaluation_type_id=None,
             start_date=None,
             end_date=None,
-            created_by=None,
-            updated_by=None,
     ):
         evaluation = cls(
             term_id=term_id,
@@ -129,8 +128,8 @@ class Evaluation(Base):
             evaluation_type_id=evaluation_type_id,
             start_date=start_date,
             end_date=end_date,
-            created_by=created_by,
-            updated_by=updated_by,
+            created_by=current_user.get_uid(),
+            updated_by=current_user.get_uid(),
         )
         db.session.add(evaluation)
         std_commit()
@@ -181,23 +180,41 @@ class Evaluation(Base):
         return query.first()
 
     @classmethod
+    def from_id(cls, evaluation_id):
+        evaluation = None
+        parsed = _parse_transient_id(evaluation_id)
+        if parsed:
+            evaluation = cls(**parsed)
+        else:
+            try:
+                evaluation = cls.find_by_id(int(evaluation_id))
+            except ValueError:
+                evaluation = None
+        return evaluation
+
+    @classmethod
     def duplicate_bulk(cls, evaluation_ids):
-        # TODO
-        pass
+        evaluations = []
+        for evaluation_id in evaluation_ids:
+            evaluation = cls.from_id(evaluation_id)
+            if not evaluation:
+                continue
+
+            duplicate = evaluation.duplicate()
+            duplicate.created_by = current_user.get_uid()
+            duplicate.updated_by = current_user.get_uid()
+
+            db.session.add(evaluation)
+            db.session.add(duplicate)
+            evaluations.extend([evaluation, duplicate])
+        std_commit()
+        return [e.id for e in evaluations]
 
     @classmethod
     def update_bulk(cls, evaluation_ids, fields):
         evaluations = []
         for evaluation_id in evaluation_ids:
-            evaluation = None
-            parsed = _parse_transient_id(evaluation_id)
-            if parsed:
-                evaluation = cls(**parsed)
-            else:
-                try:
-                    evaluation = cls.find_by_id(int(evaluation_id))
-                except ValueError:
-                    evaluation = None
+            evaluation = cls.from_id(evaluation_id)
             if not evaluation:
                 continue
             if 'departmentForm' in fields:
@@ -210,13 +227,31 @@ class Evaluation(Base):
                 evaluation.start_date = fields['startDate']
             if 'status' in fields:
                 evaluation.status = fields['status']
+
+            evaluation.updated_by = current_user.get_uid()
+
             db.session.add(evaluation)
             evaluations.append(evaluation)
         std_commit()
-        return [evaluation.id for e in evaluations]
+        return [e.id for e in evaluations]
+
+    def is_transient(self):
+        return self.id is None
 
     def is_visible(self):
         return self.status != 'deleted'
+
+    def duplicate(self):
+        return self.__class__(
+            term_id=self.term_id,
+            course_number=self.course_number,
+            instructor_uid=self.instructor_uid,
+            status=self.status,
+            department_form_id=self.department_form_id,
+            evaluation_type_id=self.evaluation_type_id,
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
 
     def set_department_form(self, saved_evaluation, default_form):
         if saved_evaluation and saved_evaluation.department_form:

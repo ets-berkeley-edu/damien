@@ -35,6 +35,9 @@ class UserSession(UserMixin):
     def get_id(self):
         return self.user and self.user.id
 
+    def get_uid(self):
+        return self.user and self.user.uid
+
     @property
     def is_active(self):
         return self.is_authenticated
