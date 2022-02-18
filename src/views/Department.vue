@@ -78,7 +78,7 @@
       </v-col>
     </v-row>
     <v-card outlined class="elevation-1">
-      <EvaluationTable :evaluations="evaluations" />
+      <EvaluationTable :evaluations="evaluations" :update-evaluation="updateEvaluation" />
     </v-card>
   </div>
 </template>
@@ -100,7 +100,8 @@ export default {
     availableTerms: undefined,
     courseActions: [
       {'text': 'Mark for review', 'value': 'mark'},
-      {'text': 'Mark as confirmed', 'value': 'confirm'}
+      {'text': 'Mark as confirmed', 'value': 'confirm'},
+      {'text': 'Duplicate', 'value': 'duplicate'}
     ],
     department: {},
     evaluations: [],
@@ -149,6 +150,9 @@ export default {
         this.selectedTerm = this.$_.find(this.availableTerms, {'id': termId})
         this.$ready(department.deptName)
       })
+    },
+    updateEvaluation(evaluationId, fields) {
+      updateEvaluations(this.department.id, 'edit', [evaluationId], fields).then(this.refresh)
     }
   }
 }
