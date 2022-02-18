@@ -32,5 +32,5 @@ from flask_login import login_required
 @app.route('/api/evaluation_types')
 @login_required
 def get_evaluation_types():
-    evaluation_types = EvaluationType.query.filter_by(deleted_at=None).all()
+    evaluation_types = EvaluationType.query.filter_by(deleted_at=None).order_by(EvaluationType.name).all()
     return tolerant_jsonify([e.to_api_json() for e in evaluation_types])

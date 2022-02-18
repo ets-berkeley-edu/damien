@@ -17,8 +17,8 @@ export function updateDepartment(departmentId: number, note: string) {
   return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}`, {note}).then(response => response.data, () => null)
 }
 
-export function updateEvaluations(departmentId: number, action: string, evaluationIds: any[]) {
+export function updateEvaluations(departmentId: number, action: string, evaluationIds: any[], fields?: Object) {
   return axios
-    .post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/evaluations`, {action, evaluationIds})
+    .post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/evaluations`, {action, evaluationIds, fields})
     .then(response => response.data, () => null)
 }

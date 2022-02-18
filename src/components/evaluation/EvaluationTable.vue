@@ -10,67 +10,127 @@
       <template #body="{items}">
         <tbody>
           <template v-for="(evaluation, evaluationId) in items">
-            <tr :key="evaluation.id" :class="{'row-confirmed': evaluation.status === 'confirmed', 'row-review': evaluation.status === 'review'}">
-              <td>
-                <v-checkbox
-                  :id="`evaluation-${evaluationId}-checkbox`"
-                  v-model="evaluation.isSelected"
-                  :ripple="false"
-                ></v-checkbox>
-              </td>
-              <td :id="`evaluation-${evaluationId}-status`">
-                <div
-                  v-if="evaluation.status"
-                  class="pill"
-                  :class="{'pill-confirmed': evaluation.status === 'confirmed', 'pill-review': evaluation.status === 'review'}"
-                >
-                  {{ evaluation.status }}
-                </div>
-              </td>
-              <td :id="`evaluation-${evaluationId}-lastUpdated`">
-                {{ evaluation.lastUpdated | moment('MM/DD/YYYY') }}
-              </td>
-              <td :id="`evaluation-${evaluationId}-courseNumber`">
-                {{ evaluation.courseNumber }}
-              </td>
-              <td>
-                <div :id="`evaluation-${evaluationId}-courseName`">
-                  {{ evaluation.subjectArea }} 
-                  {{ evaluation.catalogId }}
-                  {{ evaluation.instructionFormat }}
-                  {{ evaluation.sectionNumber }}
-                </div>
-                <div :id="`evaluation-${evaluationId}-courseTitle`">
-                  {{ evaluation.courseTitle }}
-                </div>
-              </td>
-              <td :id="`evaluation-${evaluationId}-instructor`">
-                <div v-if="evaluation.instructor">
-                  {{ evaluation.instructor.firstName }}
-                  {{ evaluation.instructor.lastName }}
-                  ({{ evaluation.instructor.uid }})
-                </div>
-                <div v-if="evaluation.instructor">
-                  {{ evaluation.instructor.emailAddress }}
-                </div>
-              </td>
-              <td :id="`evaluation-${evaluationId}-departmentForm`">
-                <span v-if="evaluation.departmentForm">
-                  {{ evaluation.departmentForm.name }}
-                </span>
-              </td>
-              <td :id="`evaluation-${evaluationId}-evaluationType`">
-                <span v-if="evaluation.evaluationType">
-                  {{ evaluation.evaluationType.name }}
-                </span>
-              </td>
-              <td :id="`evaluation-${evaluationId}-startDate`">
-                {{ evaluation.startDate | moment('MM/DD/YYYY') }}
-              </td>
-              <td :id="`evaluation-${evaluationId}-endDate`">
-                {{ evaluation.endDate | moment('MM/DD/YYYY') }}
-              </td>
-            </tr>
+            <v-hover v-slot="{ hover }" :key="evaluation.id">
+              <tr 
+                class="evaluation-row"
+                :class="evaluationClass(evaluation)"
+              >
+                <td>
+                  <v-checkbox
+                    :id="`evaluation-${evaluationId}-checkbox`"
+                    v-model="evaluation.isSelected"
+                    :disabled="editRowId === evaluation.id"
+                    :ripple="false"
+                  ></v-checkbox>
+                </td>
+                <td :id="`evaluation-${evaluationId}-status`">
+                  <div
+                    v-if="(!hover || isEditing(evaluation)) && evaluation.status"
+                    class="pill"
+                    :class="{'pill-confirmed': evaluation.status === 'confirmed', 'pill-review': evaluation.status === 'review'}"
+                  >
+                    {{ evaluation.status }}
+                  </div>
+                  <v-btn
+                    v-if="hover && !isEditing(evaluation)"
+                    block
+                    text
+                    @click="editEvaluation(evaluation)"
+                  >
+                    Edit
+                  </v-btn>
+                </td>
+                <td :id="`evaluation-${evaluationId}-lastUpdated`">
+                  {{ evaluation.lastUpdated | moment('MM/DD/YYYY') }}
+                </td>
+                <td :id="`evaluation-${evaluationId}-courseNumber`">
+                  {{ evaluation.courseNumber }}
+                </td>
+                <td>
+                  <div :id="`evaluation-${evaluationId}-courseName`">
+                    {{ evaluation.subjectArea }} 
+                    {{ evaluation.catalogId }}
+                    {{ evaluation.instructionFormat }}
+                    {{ evaluation.sectionNumber }}
+                  </div>
+                  <div :id="`evaluation-${evaluationId}-courseTitle`">
+                    {{ evaluation.courseTitle }}
+                  </div>
+                </td>
+                <td :id="`evaluation-${evaluationId}-instructor`">
+                  <div v-if="evaluation.instructor">
+                    {{ evaluation.instructor.firstName }}
+                    {{ evaluation.instructor.lastName }}
+                    ({{ evaluation.instructor.uid }})
+                  </div>
+                  <div v-if="evaluation.instructor">
+                    {{ evaluation.instructor.emailAddress }}
+                  </div>
+                </td>
+                <td :id="`evaluation-${evaluationId}-departmentForm`">
+                  <span v-if="evaluation.departmentForm && !isEditing(evaluation)">
+                    {{ evaluation.departmentForm.name }}
+                  </span>
+                  <v-select
+                    v-if="isEditing(evaluation)"
+                    id="select-department-form"
+                    v-model="selectedDepartmentForm"
+                    item-text="name"
+                    item-value="id"
+                    :items="departmentForms"
+                    hide-details="auto"
+                    label="Select..."
+                    solo
+                  />
+                </td>
+                <td :id="`evaluation-${evaluationId}-evaluationType`">
+                  <span v-if="evaluation.evaluationType && !isEditing(evaluation)">
+                    {{ evaluation.evaluationType.name }}
+                  </span>
+                  <v-select
+                    v-if="isEditing(evaluation)"
+                    id="select-evaluation-type"
+                    v-model="selectedEvaluationType"
+                    item-text="name"
+                    item-value="id"
+                    :items="evaluationTypes"
+                    hide-details="auto"
+                    label="Select..."
+                    solo
+                  />
+                </td>
+                <td :id="`evaluation-${evaluationId}-startDate`">
+                  <span v-if="!isEditing(evaluation)">
+                    {{ evaluation.startDate | moment('MM/DD/YYYY') }}
+                  </span>
+                  <v-text-field
+                    v-if="isEditing(evaluation)"
+                    v-model="selectedStartDate"
+                    type="date"
+                    hide-details="auto"
+                    solo
+                  />
+                </td>
+                <td :id="`evaluation-${evaluationId}-endDate`">
+                  <span v-if="!isEditing(evaluation)">
+                    {{ evaluation.endDate | moment('MM/DD/YYYY') }}
+                  </span>
+                  <v-text-field
+                    v-if="isEditing(evaluation)"
+                    v-model="selectedEndDate"
+                    type="date"
+                    hide-details="auto"
+                    solo
+                  />
+                </td>
+                <td>
+                  <div v-if="isEditing(evaluation)" class="d-flex align-center">
+                    <v-btn class="ma-1" color="primary" @click="saveEvaluation(evaluation)">Save</v-btn>
+                    <v-btn class="ma-1" @click="cancelEdit">Cancel</v-btn>
+                  </div>
+                </td>
+              </tr>
+            </v-hover>
           </template>
         </tbody>
       </template>
@@ -79,15 +139,25 @@
 </template>
 
 <script>
+import {getDepartmentForms} from '@/api/departmentForms'
+import {getEvaluationTypes} from '@/api/evaluationTypes'
+
 export default {
   name: 'EvaluationTable',
   props: {
     evaluations: {
       required: true,
       type: Array
+    },
+    updateEvaluation: {
+      required: true,
+      type: Function
     }
   },
   data: () => ({
+    departmentForms: [],
+    editRowId: null,
+    evaluationTypes: [],
     headers: [
       {text: 'Select'},
       {text: 'Status', value: 'status'},
@@ -99,8 +169,51 @@ export default {
       {text: 'Evaluation Type', value: 'evaluationType'},
       {text: 'Course Start Date', value: 'startDate'},
       {text: 'Course End Date', value: 'endDate'}
-    ]
-  })
+    ],
+    selectedDepartmentForm: null,
+    selectedEndDate: null,
+    selectedEvaluationType: null,
+    selectedStartDate: null
+  }),
+  methods: {
+    cancelEdit() {
+      this.editRowId = null
+      this.selectedDepartmentForm = null
+      this.selectedEndDate = null
+      this.selectedEvaluationType = null
+      this.selectedStartDate = null
+    },
+    editEvaluation(evaluation) {
+      this.editRowId = evaluation.id
+      this.selectedDepartmentForm = evaluation.departmentForm.id
+      this.selectedEndDate = evaluation.endDate
+      this.selectedEvaluationType = evaluation.evaluationType.id
+      this.selectedStartDate = evaluation.startDate
+    },
+    evaluationClass(evaluation) {
+      return {
+        'evaluation-row-confirmed': evaluation.id !== this.editRowId && evaluation.status === 'confirmed',
+        'evaluation-row-editing': evaluation.id === this.editRowId,
+        'evaluation-row-review': evaluation.id !== this.editRowId && evaluation.status === 'review'
+      }
+    },
+    isEditing(evaluation) {
+      return this.editRowId === evaluation.id
+    },
+    saveEvaluation(evaluation) {
+      const fields = {
+        'departmentFormId': this.selectedDepartmentForm,
+        'endDate': this.selectedEndDate,
+        'evaluationTypeId': this.selectedEvaluationType,
+        'startDate': this.selectedStartDate,
+      }
+      this.updateEvaluation(evaluation.id, fields)
+    }
+  },
+  created() {
+    getDepartmentForms().then(data => this.departmentForms = data)
+    getEvaluationTypes().then(data => this.evaluationTypes = data)
+  },
 }
 </script>
 
@@ -122,11 +235,19 @@ export default {
 .pill-review {
   background-color: #595;
 }
-.row-confirmed td {
+.evaluation-row:hover {
+  background-color: #def !important;
+  color: #069 !important;
+}
+.evaluation-row-confirmed {
   background-color: #eee;
   color: #666;
 }
-.row-review td {
+.evaluation-row-editing, .evaluation-row-editing:hover {
+  background-color: #369 !important;
+  color: #fff !important;
+}
+.evaluation-row-review {
   background-color: #efe;  
 }
 </style>

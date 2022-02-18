@@ -32,5 +32,5 @@ from flask_login import login_required
 @app.route('/api/department_forms')
 @login_required
 def get_department_forms():
-    department_forms = DepartmentForm.query.filter_by(deleted_at=None).all()
+    department_forms = DepartmentForm.query.filter_by(deleted_at=None).order_by(DepartmentForm.name).all()
     return tolerant_jsonify([d.to_api_json() for d in department_forms])
