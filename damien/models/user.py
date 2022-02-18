@@ -40,7 +40,6 @@ class User(Base):
     last_name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=None)
-    can_receive_communications = db.Column(db.Boolean, default=None)
     can_view_response_rates = db.Column(db.Boolean, default=None)
     deleted_at = db.Column(db.DateTime)
 
@@ -58,7 +57,6 @@ class User(Base):
         last_name,
         email,
         is_admin=False,
-        can_receive_communications=False,
         can_view_response_rates=False,
     ):
         self.csid = csid
@@ -67,7 +65,6 @@ class User(Base):
         self.last_name = last_name
         self.email = email
         self.is_admin = is_admin
-        self.can_receive_communications = can_receive_communications
         self.can_view_response_rates = can_view_response_rates
 
     def __repr__(self):
@@ -78,7 +75,6 @@ class User(Base):
                     last_name={self.last_name},
                     email={self.email},
                     is_admin={self.is_admin},
-                    can_receive_communications={self.can_receive_communications},
                     can_view_response_rates={self.can_view_response_rates},
                     created_at={self.created_at},
                     updated_at={self.updated_at},
@@ -94,7 +90,6 @@ class User(Base):
             last_name,
             email,
             is_admin=False,
-            can_receive_communications=False,
             can_view_response_rates=False,
     ):
         user = cls(
@@ -104,7 +99,6 @@ class User(Base):
             last_name=last_name,
             email=email,
             is_admin=is_admin,
-            can_receive_communications=can_receive_communications,
             can_view_response_rates=can_view_response_rates,
         )
         db.session.add(user)
@@ -137,7 +131,6 @@ class User(Base):
             'lastName': self.last_name,
             'email': self.email,
             'isAdmin': self.is_admin,
-            'canReceiveCommunications': self.can_receive_communications,
             'canViewResponseRates': self.can_view_response_rates,
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
