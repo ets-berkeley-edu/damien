@@ -12,6 +12,7 @@ import vuetify from './plugins/vuetify'
 Vue.use(VueMoment, {moment})
 
 const apiBaseUrl = process.env.VUE_APP_API_BASE_URL
+const isDebugMode = _.trim(process.env.VUE_APP_DEBUG).toLowerCase() === 'true'
 
 Vue.prototype.$_ = _
 Vue.prototype.$loading = () => store.dispatch('context/loadingStart')
@@ -56,6 +57,7 @@ axios.get(`${apiBaseUrl}/api/user/my_profile`).then(data => {
   axios.get(`${apiBaseUrl}/api/config`).then(data => {
     Vue.prototype.$config = data
     Vue.prototype.$config.apiBaseUrl = apiBaseUrl
+    Vue.prototype.$config.isVueAppDebugMode = isDebugMode
 
     new Vue({
       router,

@@ -6,7 +6,7 @@
     :outlined="isEditing"
   >
     <div v-if="!isEditing" class="text-condensed">
-      <strong>{{ contact.firstName }} {{ contact.lastName }}</strong>
+      <strong>{{ fullName }}</strong>
       <div>{{ contact.email }}</div>
       <div :id="`dept-contact-${contact.id}-notifications`" class="font-italic">
         <v-icon
@@ -59,10 +59,17 @@
           height="unset"
           min-width="unset"
           text
-          @click="onDelete"
+          @click="() => isConfirming = true"
         >
           Delete
         </v-btn>
+        <ConfirmDialog
+          :model="isConfirming"
+          :cancel-action="() => isConfirming = false"
+          :perform-action="onDelete"
+          :text="`Are you sure you want to remove ${fullName}?`"
+          :title="'Delete contact?'"
+        />
       </v-toolbar>
     </div>
     <EditDepartmentContact
@@ -76,13 +83,14 @@
 </template>
 
 <script>
+import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import EditDepartmentContact from '@/components/admin/EditDepartmentContact'
 
 export default {
   name: 'DepartmentContact',
-  components: {EditDepartmentContact},
+  components: {ConfirmDialog, EditDepartmentContact},
   mixins: [Context, DepartmentEditSession],
   props: {
     contact: {
@@ -95,12 +103,18 @@ export default {
     }
   },
   data: () => ({
+    isConfirming: false,
     isEditing: false
   }),
+  computed: {
+    fullName() {
+      return `${this.contact.firstName} ${this.contact.lastName}`
+    }
+  },
   methods: {
     afterSave() {
       this.isEditing = false
-      this.alertScreenReader(`Updated department contact ${this.contact.firstName} ${this.contact.lastName}.`)
+      this.alertScreenReader(`Updated contact ${this.contact.fullName}.`)
       this.$putFocusNextTick(`edit-dept-contact-${this.contact.id}-btn`)
     },
     onCancelEdit() {
@@ -109,7 +123,12 @@ export default {
       this.$putFocusNextTick(`edit-dept-contact-${this.contact.id}-btn`)
     },
     onDelete() {
-      console.log('TODO: delete contact')
+      const nameOfDeleted = this.fullName
+      this.deleteContact(this.contact.userId).then(() => {
+        this.isConfirming = false
+        this.alertScreenReader(`Deleted contact ${nameOfDeleted}.`)
+        this.$putFocusNextTick('add-dept-contact-btn')
+      })
     }
   }
 }

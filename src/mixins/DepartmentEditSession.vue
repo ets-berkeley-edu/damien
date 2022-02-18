@@ -14,6 +14,7 @@ export default {
   },
   methods: {
     ...mapActions('departmentEditSession', [
+      'deleteContact',
       'init',
       'update',
       'updateContact'

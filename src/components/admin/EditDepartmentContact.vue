@@ -108,12 +108,13 @@
 </template>
 
 <script>
+import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import PersonLookup from '@/components/admin/PersonLookup'
 
 export default {
   name: 'EditDepartmentContact',
-  mixins: [DepartmentEditSession],
+  mixins: [Context, DepartmentEditSession],
   components: {PersonLookup},
   props: {
     afterSave: {
@@ -145,9 +146,11 @@ export default {
   },
   created() {
     this.populateForm(this.contact)
+    this.alertScreenReader(`${this.contact ? 'Edit' : 'Add'} department contact form is ready`)
   },
   methods: {
     onSave() {
+      this.alertScreenReader('Saving')
       this.updateContact({
         'canReceiveCommunications': this.canReceiveCommunications,
         'canViewResponseRates': this.permissions === 'reports and response rates',

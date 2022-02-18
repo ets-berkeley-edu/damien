@@ -147,7 +147,7 @@ export default {
         this.evaluations = department.evaluations
         this.$_.each(this.evaluations, e => e.isSelected = false)
         this.selectedTerm = this.$_.find(this.availableTerms, {'id': termId})
-        this.$ready()
+        this.$ready(department.deptName)
       })
     }
   }

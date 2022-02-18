@@ -1,7 +1,11 @@
 import axios from 'axios'
 import Vue from 'vue'
 
-export function getDepartment(departmentId, termId) {
+export function deleteContact(departmentId: number, userId: number) {
+  return axios.delete(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/contact/${userId}`)
+}
+
+export function getDepartment(departmentId: number, termId: string) {
   return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}?term_id=${termId}`)
 }
 

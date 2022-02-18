@@ -1,4 +1,4 @@
-import {getDepartment, updateContact, updateDepartment} from '@/api/departments'
+import {deleteContact, getDepartment, updateContact, updateDepartment} from '@/api/departments'
 
 const $_refresh = (commit, {departmentId, termId}) => {
   return new Promise<void>(resolve => {
@@ -26,6 +26,12 @@ const getters = {
 }
 
 const actions = {
+  deleteContact: ({commit, state}, userId: number) => {
+    commit('setDisableControls', true)
+    return deleteContact(state.departmentId, userId).then(() => {
+      $_refresh(commit, {departmentId: state.departmentId, termId: state.termId})
+    })
+  },
   init: ({commit}, {departmentId: departmentId, termId: termId}) => {
     return new Promise<void>(resolve => {
       $_refresh(commit, {departmentId, termId}).then(department => resolve(department))
