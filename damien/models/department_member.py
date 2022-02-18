@@ -33,6 +33,7 @@ class DepartmentMember(Base):
 
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, primary_key=True)
+    can_receive_communications = db.Column(db.Boolean, nullable=False, default=True)
 
     department = db.relationship(Department.__name__, back_populates='members', lazy='joined')
     user = db.relationship('User', back_populates='department_memberships')
@@ -41,13 +42,16 @@ class DepartmentMember(Base):
         self,
         department_id,
         user_id,
+        can_receive_communications=True,
     ):
         self.department_id = department_id
         self.user_id = user_id
+        self.can_receive_communications = can_receive_communications
 
     def __repr__(self):
         return f"""<DepartmentMember department_id={self.department_id},
                     user_id={self.user_id},
+                    can_receive_communications={self.can_receive_communications},
                     created_at={self.created_at},
                     updated_at={self.updated_at}>"""
 
@@ -56,10 +60,12 @@ class DepartmentMember(Base):
             cls,
             department_id,
             user_id,
+            can_receive_communications=True,
     ):
         department_member = cls(
             department_id=department_id,
             user_id=user_id,
+            can_receive_communications=can_receive_communications,
         )
         db.session.add(department_member)
         std_commit()
@@ -98,5 +104,6 @@ class DepartmentMember(Base):
         return {
             'userId': self.user_id,
             'departmentId': self.department_id,
+            'canReceiveCommunications': self.can_receive_communications,
             **self.user.to_api_json(),
         }

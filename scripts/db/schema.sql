@@ -91,8 +91,9 @@ ALTER TABLE ONLY department_forms
 CREATE TABLE department_members (
     department_id integer NOT NULL,
     user_id integer NOT NULL,
+    can_receive_communications boolean NOT NULL DEFAULT TRUE,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL    
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 ALTER TABLE ONLY department_members
@@ -191,7 +192,6 @@ CREATE TABLE users (
     last_name character varying(255) NOT NULL,
     email character varying(255) NOT NULL,
     is_admin boolean,
-    can_receive_communications boolean,
     can_view_response_rates boolean,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
