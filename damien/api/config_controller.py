@@ -39,6 +39,5 @@ def app_config():
         'devAuthEnabled': app.config['DEVELOPER_AUTH_ENABLED'],
         'ebEnvironment': app.config['EB_ENVIRONMENT'] if 'EB_ENVIRONMENT' in app.config else None,
         'emailSupport': app.config['SUPPORT_EMAIL'],
-        'isVueAppDebugMode': app.config['DEVELOPER_AUTH_ENABLED'],
         'timezone': app.config['TIMEZONE'],
     })

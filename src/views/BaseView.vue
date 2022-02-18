@@ -53,7 +53,17 @@
           Skip to main content
         </a>
       </div>
-      <v-spacer></v-spacer>
+      <v-spacer class="d-flex justify-center">
+        <v-chip
+          v-if="$config.isVueAppDebugMode && screenReaderAlert"
+          id="screen-reader-alert-debug"
+          class="sr-debug font-italic"
+          color="primary-contrast"
+          outlined
+        >
+          {{ screenReaderAlert }}
+        </v-chip>
+      </v-spacer>
       <v-menu offset-y rounded="lg">
         <template v-slot:activator="{ on, attrs }">
           <v-btn
@@ -126,3 +136,9 @@
     }
   }
 </script>
+
+<style scoped>
+.sr-debug {
+  width: fit-content;
+}
+</style>

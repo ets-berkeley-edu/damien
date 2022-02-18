@@ -21,13 +21,8 @@
         </v-col>
         <v-col>
           <div class="float-right">
-            <span v-if="$config.isVueAppDebugMode && screenReaderAlert">
-              {{ screenReaderAlert }}
-            </span>
-            <span v-if="!$config.isVueAppDebugMode || !screenReaderAlert">
-              <v-icon small>mdi-copyright</v-icon> {{ new Date().getFullYear() }}
-              The Regents of the University of California
-            </span>
+            <v-icon small>mdi-copyright</v-icon> {{ new Date().getFullYear() }}
+            The Regents of the University of California
           </div>
         </v-col>
       </v-row>
