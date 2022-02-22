@@ -74,8 +74,8 @@ class DepartmentMember(Base):
     @classmethod
     def upsert(
         cls,
+        blue_permissions,
         can_receive_communications,
-        can_view_response_rates,
         department_id,
         email,
         first_name,
@@ -87,8 +87,8 @@ class DepartmentMember(Base):
             department_member = cls(department_id=department_id, user_id=user_id)
             db.session.add(department_member)
             std_commit()
+        department_member.user.blue_permissions = blue_permissions
         department_member.user.can_receive_communications = can_receive_communications
-        department_member.user.can_view_response_rates = can_view_response_rates
         department_member.user.email = email
         department_member.user.first_name = first_name
         department_member.user.last_name = last_name

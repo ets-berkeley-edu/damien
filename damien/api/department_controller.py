@@ -93,13 +93,19 @@ def update_contact(department_id):
         user_id = get_param(params, 'userId')
         if User.find_by_id(user_id):
             can_receive_communications = get_param(params, 'canReceiveCommunications')
+            can_view_reports = get_param(params, 'canViewReports')
             can_view_response_rates = get_param(params, 'canViewResponseRates')
             email = get_param(params, 'email')
             first_name = get_param(params, 'firstName')
             last_name = get_param(params, 'lastName')
+            blue_permissions = None
+            if can_view_response_rates:
+                blue_permissions = 'response_rates'
+            elif can_view_reports:
+                blue_permissions = 'reports_only'
             department_member = DepartmentMember.upsert(
+                blue_permissions=blue_permissions,
                 can_receive_communications=can_receive_communications,
-                can_view_response_rates=can_view_response_rates,
                 department_id=department_id,
                 email=email,
                 first_name=first_name,

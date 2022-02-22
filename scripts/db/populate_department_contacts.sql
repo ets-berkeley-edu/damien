@@ -29,11 +29,11 @@ TRUNCATE TABLE department_members;
 DELETE FROM users WHERE NOT is_admin;
 
 WITH contacts AS (
-  INSERT INTO users (csid, uid, first_name, last_name, email, is_admin, can_view_response_rates, created_at, updated_at, deleted_at) VALUES
-  ('100100100', '100', 'Father', 'Brennan', 'fatherbrennan@berkeley.edu', FALSE, FALSE, now(), now(), NULL),
-  ('300300300', '300', 'Robert', 'Thorn', 'rt@berkeley.edu', FALSE, FALSE, now(), now(), NULL),
-  ('400400500', '400', 'Kathy', 'Thorn', 'kt@berkeley.edu', FALSE, FALSE, now(), now(), NULL),
-  (NULL, '500', 'Keith', 'Jennings', 'kj@berkeley.edu', FALSE, FALSE, now(), now(), NULL)
+  INSERT INTO users (csid, uid, first_name, last_name, email, is_admin, blue_permissions, created_at, updated_at, deleted_at) VALUES
+  ('100100100', '100', 'Father', 'Brennan', 'fatherbrennan@berkeley.edu', FALSE, NULL, now(), now(), NULL),
+  ('300300300', '300', 'Robert', 'Thorn', 'rt@berkeley.edu', FALSE, NULL, now(), now(), NULL),
+  ('400400500', '400', 'Kathy', 'Thorn', 'kt@berkeley.edu', FALSE, NULL, now(), now(), NULL),
+  (NULL, '500', 'Keith', 'Jennings', 'kj@berkeley.edu', FALSE, NULL, now(), now(), NULL)
   RETURNING id
 )
 INSERT INTO department_members (department_id, user_id, can_receive_communications, created_at, updated_at)

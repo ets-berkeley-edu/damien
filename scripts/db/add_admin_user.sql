@@ -33,14 +33,13 @@ BEGIN;
 --
 
 -- Create admin user
-INSERT INTO users (csid, uid, first_name, last_name, email, is_admin, can_view_response_rates, created_at, updated_at)
-  SELECT :'csid', :'uid', :'first_name', :'last_name', :'email', true, true, now(), now()
+INSERT INTO users (csid, uid, first_name, last_name, email, is_admin, blue_permissions, created_at, updated_at)
+  SELECT :'csid', :'uid', :'first_name', :'last_name', :'email', true, NULL, now(), now()
   WHERE NOT EXISTS (SELECT id FROM users WHERE uid = :'uid');
 
 -- If the UID represents an existing user, ensure deleted_at is null and permissions are granted.
 UPDATE users SET deleted_at = NULL WHERE uid = :'uid';
 UPDATE users SET is_admin = true WHERE uid = :'uid';
-UPDATE users SET can_view_response_rates = true WHERE uid = :'uid';
 
 -- Done
 
