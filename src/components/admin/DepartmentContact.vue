@@ -21,12 +21,15 @@
       <div :id="`dept-contact-${contact.id}-permissions`" class="font-italic">
         <v-icon
           class="pb-1"
-          :class="contact.canViewResponseRates ? 'success--text' : 'muted--text'"
+          :class="contact.canViewReports ? 'success--text' : 'muted--text'"
           small
         >
-          {{ contact.canViewResponseRates ? 'mdi-check-circle' : 'mdi-minus-circle' }}
+          {{ contact.canViewReports ? 'mdi-check-circle' : 'mdi-minus-circle' }}
         </v-icon>
-        {{ `${contact.canViewResponseRates ? 'Can' : 'Cannot'} view response rates` }}
+        <span v-if="!contact.canViewReports">Does not have access to Blue</span>
+        <span v-if="contact.canViewReports">
+          {{ `Can view reports ${contact.canViewResponseRates ? 'and response rates ' : ''}in Blue` }}
+        </span>
       </div>
       <v-toolbar
         :id="`dept-contact-${contact.id}-actions`"
@@ -114,7 +117,7 @@ export default {
   methods: {
     afterSave() {
       this.isEditing = false
-      this.alertScreenReader(`Updated contact ${this.contact.fullName}.`)
+      this.alertScreenReader(`Updated contact ${this.fullName}.`)
       this.$putFocusNextTick(`edit-dept-contact-${this.contact.id}-btn`)
     },
     onCancelEdit() {

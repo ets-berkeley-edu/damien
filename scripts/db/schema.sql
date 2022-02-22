@@ -184,6 +184,8 @@ CREATE INDEX evaluations_instructor_uid_idx ON evaluations USING btree (instruct
 
 --
 
+CREATE TYPE user_blue_permissions AS ENUM ('reports_only', 'response_rates');
+
 CREATE TABLE users (
     id integer NOT NULL,
     csid character varying(255),
@@ -192,7 +194,7 @@ CREATE TABLE users (
     last_name character varying(255) NOT NULL,
     email character varying(255) NOT NULL,
     is_admin boolean,
-    can_view_response_rates boolean,
+    blue_permissions user_blue_permissions,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     deleted_at timestamp with time zone

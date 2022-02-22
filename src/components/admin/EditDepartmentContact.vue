@@ -62,21 +62,21 @@
     >
       <v-radio
         :id="`radio-no-blue-${contactId}`"
-        value="none"
+        :value="null"
         class="mb-1"
         color="secondary"
         label="No access to Blue"
       ></v-radio>
       <v-radio
         :id="`radio-reports-only-${contactId}`"
-        value="reports only"
+        value="reports_only"
         class="mb-1"
         color="secondary"
         label="View reports"
       ></v-radio>
       <v-radio
         :id="`radio-response-rates-${contactId}`"
-        value="reports and response rates"
+        value="response_rates"
         class="mb-1"
         color="secondary"
         label="View reports and response rates"
@@ -153,7 +153,8 @@ export default {
       this.alertScreenReader('Saving')
       this.updateContact({
         'canReceiveCommunications': this.canReceiveCommunications,
-        'canViewResponseRates': this.permissions === 'reports and response rates',
+        'canViewReports': this.permissions === 'reports_only',
+        'canViewResponseRates': this.permissions === 'response_rates',
         'email': this.email,
         'firstName': this.firstName,
         'lastName': this.lastName,
@@ -166,12 +167,13 @@ export default {
     populateForm(contact) {
       if (contact) {
         this.canReceiveCommunications = contact.canReceiveCommunications
-        this.canViewResponseRates = contact.canViewResponseRates
         this.email = contact.email
         this.firstName = contact.firstName
         this.lastName = contact.lastName
-        this.permissions = contact.canViewResponseRates ? 'reports and response rates' : 'reports only'
         this.userId = contact.id
+        if (contact.canViewReports) {
+          this.permissions = contact.canViewResponseRates ? 'response_rates' : 'reports_only'
+        }
 
         this.$putFocusNextTick(`input-first-name-${this.contactId}`)
       } else {

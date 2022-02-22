@@ -28,6 +28,15 @@ from damien.lib.util import isoformat
 from damien.models.base import Base
 from damien.models.department_member import DepartmentMember
 from sqlalchemy import or_
+from sqlalchemy.dialects.postgresql import ENUM
+
+
+blue_permissions_enum = ENUM(
+    'reports_only',
+    'response_rates',
+    name='user_blue_permissions',
+    create_type=False,
+)
 
 
 class User(Base):
@@ -40,7 +49,7 @@ class User(Base):
     last_name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=None)
-    can_view_response_rates = db.Column(db.Boolean, default=None)
+    blue_permissions = db.Column(blue_permissions_enum)
     deleted_at = db.Column(db.DateTime)
 
     department_memberships = db.relationship(
@@ -57,7 +66,7 @@ class User(Base):
         last_name,
         email,
         is_admin=False,
-        can_view_response_rates=False,
+        blue_permissions=None,
     ):
         self.csid = csid
         self.uid = uid
@@ -65,7 +74,7 @@ class User(Base):
         self.last_name = last_name
         self.email = email
         self.is_admin = is_admin
-        self.can_view_response_rates = can_view_response_rates
+        self.blue_permissions = blue_permissions
 
     def __repr__(self):
         return f"""<User id={self.id},
@@ -75,7 +84,7 @@ class User(Base):
                     last_name={self.last_name},
                     email={self.email},
                     is_admin={self.is_admin},
-                    can_view_response_rates={self.can_view_response_rates},
+                    blue_permissions={self.blue_permissions},
                     created_at={self.created_at},
                     updated_at={self.updated_at},
                     deleted_at={self.deleted_at}>
@@ -90,7 +99,7 @@ class User(Base):
             last_name,
             email,
             is_admin=False,
-            can_view_response_rates=False,
+            blue_permissions=None,
     ):
         user = cls(
             csid=csid,
@@ -99,7 +108,7 @@ class User(Base):
             last_name=last_name,
             email=email,
             is_admin=is_admin,
-            can_view_response_rates=can_view_response_rates,
+            blue_permissions=blue_permissions,
         )
         db.session.add(user)
         std_commit()
@@ -131,7 +140,8 @@ class User(Base):
             'lastName': self.last_name,
             'email': self.email,
             'isAdmin': self.is_admin,
-            'canViewResponseRates': self.can_view_response_rates,
+            'canViewReports': self.blue_permissions is not None,
+            'canViewResponseRates': self.blue_permissions == 'response_rates',
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
             'deletedAt': isoformat(self.deleted_at),
