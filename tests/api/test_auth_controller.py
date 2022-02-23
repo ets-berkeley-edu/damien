@@ -26,6 +26,8 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import json
 
 import cas
+from damien import std_commit
+from damien.models.user import User
 import mock
 from tests.util import override_config
 
@@ -94,6 +96,10 @@ class TestDevAuth:
             )
             assert api_json['uid'] == authorized_uid
             assert client.get('/api/auth/logout').status_code == 200
+
+            std_commit(allow_test_environment=True)
+            user = User.find_by_uid(authorized_uid)
+            assert user.login_at
 
 
 class TestCasAuth:

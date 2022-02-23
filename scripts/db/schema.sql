@@ -197,7 +197,8 @@ CREATE TABLE users (
     blue_permissions user_blue_permissions,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    deleted_at timestamp with time zone
+    deleted_at timestamp with time zone,
+    login_at timestamp with time zone
 );
 
 CREATE SEQUENCE users_id_seq

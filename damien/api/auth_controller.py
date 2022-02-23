@@ -48,7 +48,7 @@ def cas_login():
         """)
         redirect_url = add_param_to_url('/', param)
     else:
-        login_user(UserSession(user.id))
+        _login(user)
         if _is_safe_url(request.args.get('next')):
             # Is safe URL per https://flask-login.readthedocs.io/en/latest/
             flash('Logged in successfully.')
@@ -79,7 +79,7 @@ def dev_auth_login():
             return tolerant_jsonify({'message': f'Sorry, user with UID {uid} is not registered to use BOA.'}, 403)
         else:
             app.logger.info(f'Dev-auth used to log in as UID {uid}')
-            authenticated = login_user(UserSession(user.id)) and current_user.is_authenticated
+            authenticated = _login(user) and current_user.is_authenticated
             if authenticated:
                 return tolerant_jsonify(current_user.to_api_json())
             return tolerant_jsonify({'message': f'User {user.id} failed to authenticate.'}, 403)
@@ -99,6 +99,13 @@ def logout():
     })
 
 
+def _authorized_user(uid):
+    user = User.find_by_uid(uid)
+    if user is None:
+        app.logger.error(f'UID {uid} is not an authorized user.')
+    return user
+
+
 def _cas_client(target_url=None):
     cas_server = app.config['CAS_SERVER']
     # One (possible) advantage this has over "request.base_url" is that it embeds the configured SERVER_NAME.
@@ -114,8 +121,8 @@ def _is_safe_url(target):
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
 
-def _authorized_user(uid):
-    user = User.find_by_uid(uid)
-    if user is None:
-        app.logger.error(f'UID {uid} is not an authorized user.')
-    return user
+def _login(user):
+    session = login_user(UserSession(user.id))
+    if session:
+        User.record_login(user.id)
+    return session

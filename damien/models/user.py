@@ -23,6 +23,8 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from datetime import datetime
+
 from damien import db, std_commit
 from damien.lib.util import isoformat
 from damien.models.base import Base
@@ -51,6 +53,7 @@ class User(Base):
     is_admin = db.Column(db.Boolean, default=None)
     blue_permissions = db.Column(blue_permissions_enum)
     deleted_at = db.Column(db.DateTime)
+    login_at = db.Column(db.DateTime)
 
     department_memberships = db.relationship(
         DepartmentMember.__name__,
@@ -87,7 +90,8 @@ class User(Base):
                     blue_permissions={self.blue_permissions},
                     created_at={self.created_at},
                     updated_at={self.updated_at},
-                    deleted_at={self.deleted_at}>
+                    deleted_at={self.deleted_at},
+                    login_at={self.login_at}>
                 """
 
     @classmethod
@@ -125,6 +129,12 @@ class User(Base):
         return query.first()
 
     @classmethod
+    def record_login(cls, db_id):
+        user = cls.query.filter_by(id=db_id, deleted_at=None).first()
+        user.login_at = datetime.now()
+        std_commit()
+
+    @classmethod
     def search(cls, snippet):
         like_csid_snippet = cls.csid.like(f'%{snippet}%')
         like_uid_snippet = cls.uid.like(f'%{snippet}%')
@@ -145,4 +155,5 @@ class User(Base):
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
             'deletedAt': isoformat(self.deleted_at),
+            'lastLoginAt': isoformat(self.login_at),
         }
