@@ -179,7 +179,12 @@ class Department(Base):
             feed.extend(s.get_evaluation_feed(evaluation_ids=evaluation_ids))
         return feed
 
-    def to_api_json(self, include_contacts=False, include_evaluations=False, term_id=None):
+    def to_api_json(
+        self,
+        include_contacts=False,
+        include_evaluations=False,
+        term_id=None,
+    ):
         feed = {
             'id': self.id,
             'deptName': self.dept_name,
