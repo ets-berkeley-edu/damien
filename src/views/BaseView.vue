@@ -114,7 +114,7 @@
       this.navItems = [
         { title: 'Status Board', icon: StatusIcon, path: '/status' },
         { title: 'Course Errors Board', icon: ErrorIcon, path: '/errors' },
-        { title: 'Group Management', icon: GroupIcon, path: '/groups' },
+        { title: 'Group Management', icon: GroupIcon, path: '/departments' },
         { title: 'List Management', icon: ListIcon, path: '/lists' }
       ]
     },

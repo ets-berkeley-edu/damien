@@ -5,6 +5,7 @@ import Department from '@/views/Department.vue'
 import Error from '@/views/Error.vue'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
+import TheMonastery from '@/views/TheMonastery.vue'
 import NotFound from '@/views/NotFound.vue'
 import StatusBoard from '@/views/StatusBoard.vue'
 import Router from 'vue-router'
@@ -46,8 +47,8 @@ const router = new Router({
           }
         },
         {
-          path: '/groups',
-          component: NotFound,
+          path: '/departments',
+          component: TheMonastery,
           meta: {
             title: 'Group Management'
           }

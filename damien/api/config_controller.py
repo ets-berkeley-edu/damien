@@ -37,6 +37,7 @@ def app_config():
         'currentTermId': app.config['CURRENT_TERM_ID'],
         'damienEnv': app.config['DAMIEN_ENV'],
         'devAuthEnabled': app.config['DEVELOPER_AUTH_ENABLED'],
+        'easterEggMonastery': app.config['EASTER_EGG_MONASTERY'],
         'ebEnvironment': app.config['EB_ENVIRONMENT'] if 'EB_ENVIRONMENT' in app.config else None,
         'emailSupport': app.config['SUPPORT_EMAIL'],
         'timezone': app.config['TIMEZONE'],

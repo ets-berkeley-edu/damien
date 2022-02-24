@@ -183,6 +183,7 @@ class Department(Base):
         self,
         include_contacts=False,
         include_evaluations=False,
+        include_sections=False,
         term_id=None,
     ):
         feed = {
@@ -198,4 +199,6 @@ class Department(Base):
             feed['contacts'] = [user.to_api_json() for user in self.members]
         if include_evaluations:
             feed['evaluations'] = self.evaluations_feed(term_id)
+        if include_sections:
+            feed['totalSections'] = len(self.get_visible_sections())
         return feed
