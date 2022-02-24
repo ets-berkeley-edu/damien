@@ -80,4 +80,4 @@ class DepartmentCatalogListing(Base):
     @classmethod
     def catalog_ids_to_exclude(cls, department_id, subject_area):
         results = cls.query.filter(cls.subject_area.in_([subject_area, '']), cls.department_id != department_id).all()
-        return [r.catalog_id for r in results]
+        return [r.catalog_id for r in results if r.catalog_id]

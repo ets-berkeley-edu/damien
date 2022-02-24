@@ -89,8 +89,8 @@ class TestDeleteDepartmentContact:
         _api_delete_contact(client, user_id=0)
 
 
-def _api_enrolled_departments(client, include_contacts=False, expected_status_code=200):
-    response = client.get(f'/api/departments/enrolled?contacts={include_contacts}')
+def _api_enrolled_departments(client, include_contacts=False, include_sections=False, expected_status_code=200):
+    response = client.get(f'/api/departments/enrolled?c={int(include_contacts)}&s={int(include_sections)}')
     assert response.status_code == expected_status_code
     return response.json
 
@@ -131,13 +131,13 @@ class TestEnrolledDepartments:
             'UGIS': ['82', '187', '188', '189', '303'],
         }
 
-    def test_include_contacts(self, client, fake_auth):
+    def test_include_contacts_and_sections(self, client, fake_auth):
         fake_auth.login(admin_uid)
-        departments = _api_enrolled_departments(client, include_contacts=True)
+        departments = _api_enrolled_departments(client, include_contacts=True, include_sections=True)
         assert len(departments) == 82
         for d in departments:
-            assert d['catalogListings']
             assert 'contacts' in d
+            assert 'totalSections' in d
             assert d['isEnrolled']
 
 

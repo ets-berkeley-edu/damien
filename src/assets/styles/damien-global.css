@@ -1,3 +1,6 @@
+.borderless {
+  border: none !important;
+}
 .separator {
   border-color: rgba(128, 128, 128, .75) !important;
 }

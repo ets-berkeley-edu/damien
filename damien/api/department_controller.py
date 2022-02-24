@@ -51,8 +51,9 @@ def delete_contact(department_id, user_id):
 @admin_required
 def enrolled_departments():
     enrolled_depts = Department.all_enrolled()
-    include_contacts = get_param(request.args, 'contacts')
-    return tolerant_jsonify([d.to_api_json(include_contacts=include_contacts) for d in enrolled_depts])
+    include_contacts = bool(get_param(request.args, 'c', False))
+    include_sections = bool(get_param(request.args, 's', False))
+    return tolerant_jsonify([d.to_api_json(include_contacts=include_contacts, include_sections=include_sections) for d in enrolled_depts])
 
 
 @app.route('/api/department/<department_id>')
