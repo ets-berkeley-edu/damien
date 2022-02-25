@@ -36,7 +36,7 @@
                     height="unset"
                     min-width="unset"
                     text
-                    @click="() => confirmDelete(item, 'department form')"
+                    @click="() => confirmDelete(item, 'department form', deleteDepartmentForm)"
                   >
                     Delete
                   </v-btn>
@@ -67,7 +67,7 @@
                     height="unset"
                     min-width="unset"
                     text
-                    @click="() => confirmDelete(item, 'evaluation type')"
+                    @click="() => confirmDelete(item, 'evaluation type', deleteEvaluationType)"
                   >
                     Delete
                   </v-btn>
@@ -81,7 +81,7 @@
     <ConfirmDialog
       :model="isConfirming"
       :cancel-action="cancelDelete"
-      :perform-action="onDelete"
+      :perform-action="onDelete || $_.noop"
       :text="`Are you sure you want to delete ${$_.get(itemToDelete, 'name')}?`"
       :title="`Delete ${$_.get(itemToDelete, 'description')}?`"
     />
@@ -99,14 +99,14 @@ export default {
   components: {ConfirmDialog},
   mixins: [Context],
   data: () => ({
-    deleteItem: undefined,
     departmentForms: [],
     evaluationTypes: [],
     isConfirming: false,
-    itemToDelete: undefined
+    itemToDelete: undefined,
+    onDelete: undefined
   }),
   created() {
-    Promise.all([getDepartmentForms(), getEvaluationTypes()]).then((data) => {
+    Promise.all([getDepartmentForms(), getEvaluationTypes()]).then(data => {
       this.departmentForms = data[0]
       this.evaluationTypes = data[1]
       this.$ready('List management')
@@ -117,22 +117,34 @@ export default {
       this.alertScreenReader('Canceled. Nothing deleted.')
       this.reset()
     },
-    confirmDelete(item, description) {
+    confirmDelete(item, description, onDelete) {
       this.itemToDelete = {
         ...item,
         description: description
       }
-      this.deleteItem = description === 'department form' ? deleteDepartmentForm : deleteEvaluationType
+      this.onDelete = onDelete
       this.isConfirming = true
     },
-    onDelete() {
-      this.deleteItem(this.itemToDelete.id).then(() => {
-        this.alertScreenReader(`Deleted ${this.itemToDelete.description} ${this.itemToDelete.name}.`)
+    deleteDepartmentForm() {
+      deleteDepartmentForm(this.itemToDelete.name).then(() => {
+        this.alertScreenReader(`Deleted department form ${this.itemToDelete.name}.`)
         this.reset()
+        getDepartmentForms().then(data => {
+          this.departmentForms = data
+        })
+      })
+    },
+    deleteEvaluationType() {
+      deleteEvaluationType(this.itemToDelete.name).then(() => {
+        this.alertScreenReader(`Deleted evaluation type ${this.itemToDelete.name}.`)
+        this.reset()
+        getEvaluationTypes().then(data => {
+          this.evaluationTypes = data
+        })
       })
     },
     reset() {
-      this.deleteItem = null
+      this.onDelete = null
       this.isConfirming = false
       this.itemToDelete = null
     }
