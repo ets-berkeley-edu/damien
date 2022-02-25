@@ -74,6 +74,7 @@ module.exports = {
     'vue/space-unary-ops': 2,
     'vue/v-bind-style': 2,
     'vue/v-on-function-call': 2,
-    'vue/v-on-style': 2
+    'vue/v-on-style': 2,
+    "vue/valid-v-slot": 0
   }
 }

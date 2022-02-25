@@ -4,7 +4,7 @@
       <h1>Group Management</h1>
       <v-spacer class="d-flex justify-center"></v-spacer>
       <v-banner
-        v-if="$config.easterEggMonastery"
+        v-if="$config.easterEggMonastery && $vuetify.theme.dark"
         shaped
         single-line
         class="pr-4 my-auto"
