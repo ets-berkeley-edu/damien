@@ -41,6 +41,7 @@ DEVELOPER_AUTH_ENABLED = False
 DEVELOPER_AUTH_PASSWORD = 'a secret'
 
 EASTER_EGG_MONASTERY = None
+EASTER_EGG_NANNYSROOM = None
 
 # Directory to search for mock fixtures, if running in "test" or "demo" mode.
 FIXTURES_PATH = None

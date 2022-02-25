@@ -5,9 +5,10 @@ import Department from '@/views/Department.vue'
 import Error from '@/views/Error.vue'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
-import TheMonastery from '@/views/TheMonastery.vue'
+import NannysRoom from '@/views/NannysRoom.vue'
 import NotFound from '@/views/NotFound.vue'
 import StatusBoard from '@/views/StatusBoard.vue'
+import TheMonastery from '@/views/TheMonastery.vue'
 import Router from 'vue-router'
 import Vue from 'vue'
 
@@ -60,7 +61,7 @@ const router = new Router({
         },
         {
           path: '/lists',
-          component: NotFound,
+          component: NannysRoom,
           meta: {
             title: 'List Management'
           }
