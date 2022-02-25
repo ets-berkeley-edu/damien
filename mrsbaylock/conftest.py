@@ -29,6 +29,7 @@ import os
 from damien.factory import create_app
 from mrsbaylock.pages.calnet_page import CalNetPage
 from mrsbaylock.pages.dept_details_admin_page import DeptDetailsAdminPage
+from mrsbaylock.pages.homepage import Homepage
 from mrsbaylock.pages.login_page import LoginPage
 from mrsbaylock.pages.status_board_admin_page import StatusBoardAdminPage
 from mrsbaylock.test_utils.webdriver_utils import WebDriverManager
@@ -51,6 +52,7 @@ def page_objects(request):
     # Define page objects
     calnet_page = CalNetPage(driver)
     dept_details_admin_page = DeptDetailsAdminPage(driver)
+    homepage = Homepage(driver)
     login_page = LoginPage(driver)
     status_board_admin_page = StatusBoardAdminPage(driver)
 
@@ -62,6 +64,7 @@ def page_objects(request):
             setattr(cls.obj, 'test_id', test_id)
             setattr(cls.obj, 'calnet_page', calnet_page)
             setattr(cls.obj, 'dept_details_admin_page', dept_details_admin_page)
+            setattr(cls.obj, 'homepage', homepage)
             setattr(cls.obj, 'login_page', login_page)
             setattr(cls.obj, 'status_board_admin_page', status_board_admin_page)
         yield

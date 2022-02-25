@@ -24,14 +24,14 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from flask import current_app as app
-from mrsbaylock.pages.damien_pages import DamienPages
+from mrsbaylock.pages.course_dashboards import CourseDashboards
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
-class DeptDetailsAdminPage(DamienPages):
+class DeptDetailsAdminPage(CourseDashboards):
 
     ADD_CONTACT_BUTTON = (By.ID, 'add-dept-contact-btn')
     ADD_CONTACT_FIRST_NAME = (By.ID, 'input-first-name-add-contact')

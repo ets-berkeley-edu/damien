@@ -23,23 +23,37 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import time
+
 from flask import current_app as app
-from mrsbaylock.pages.damien_pages import DamienPages
-from selenium.webdriver.common.by import By
+from mrsbaylock.models.term import Term
+from mrsbaylock.test_utils import utils
+import pytest
+
+term = Term()
+depts = utils.get_participating_depts()
 
 
-class StatusBoardAdminPage(DamienPages):
+@pytest.mark.usefixtures('page_objects')
+@pytest.mark.parametrize('dept', depts, scope='class', ids=[dept.dept_id for dept in depts])
+class TestDeptEvaluations:
 
-    EVAL_STATUS_DASH_HEADING = (By.XPATH, '//h1[contains(text(), "Evaluation Status Dashboard")]')
+    def test_status_page(self, dept):
+        self.homepage.load_page()
+        if 'Welcome' in self.homepage.title():
+            self.login_page.load_page()
+            self.login_page.dev_auth()
+        time.sleep(1)
+        self.status_board_admin_page.load_page()
+        self.status_board_admin_page.click_dept_link(dept)
 
-    @staticmethod
-    def dept_link_loc(dept):
-        return By.XPATH, f'//a[contains(@href, "/department/{dept.dept_id}")]'
-
-    def load_page(self):
-        app.logger.info('Loading the dept status page')
-        self.driver.get(f'{app.config["BASE_URL"]}/status')
-
-    def click_dept_link(self, dept):
-        app.logger.info(f'Clicking the link for {dept.name}')
-        self.wait_for_element_and_click(self.dept_link_loc(dept))
+    def test_evals(self, dept):
+        evaluations = utils.get_evaluations(term, dept)
+        expected = [f'{i.ccn}-{"" if i.uid is None else i.uid}' for i in evaluations]
+        expected = list(dict.fromkeys(expected))
+        expected.sort()
+        actual = self.dept_details_admin_page.visible_eval_identifiers()
+        actual.sort()
+        app.logger.info(f'Missing: {[x for x in expected if x not in actual]}')
+        app.logger.info(f'Unexpected: {[x for x in actual if x not in expected]}')
+        assert actual == expected
