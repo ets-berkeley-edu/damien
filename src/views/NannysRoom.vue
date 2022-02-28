@@ -17,8 +17,59 @@
         <v-col>
           <v-card elevation="2" class="mr-4">
             <v-card-title>Department Forms</v-card-title>
+            <v-btn
+              v-if="!isAddingDepartmentForm"
+              id="add-dept-form-btn"
+              class="text-capitalize pl-2 mt-1"
+              color="secondary"
+              :disabled="disableControls"
+              text
+              @click="onClickAddDepartmentForm"
+              @keyup.enter="onClickAddDepartmentForm"
+            >
+              <v-icon>mdi-plus-thick</v-icon>
+              Add new department form
+            </v-btn>
+            <v-form v-if="isAddingDepartmentForm" @submit.prevent="onSubmitAddDepartmentForm">
+              <label :for="'input-dept-form-name'" class="form-label">
+                Form name
+              </label>
+              <v-text-field
+                :id="'input-dept-form-name'"
+                v-model="newItemName"
+                class="mt-1"
+                dense
+                :disabled="isSaving"
+                outlined
+                required
+              ></v-text-field>
+              <v-btn
+                :id="'save-dept-form-btn'"
+                class="text-capitalize mr-2"
+                color="secondary"
+                :disabled="!newItemName || isSaving"
+                elevation="2"
+                @click="onSubmitAddDepartmentForm"
+                @keyup.enter="onSubmitAddDepartmentForm"
+              >
+                Save
+              </v-btn>
+              <v-btn
+                :id="'cancel-save-dept-form-btn'"
+                class="text-capitalize ml-1"
+                color="secondary"
+                :disabled="isSaving"
+                elevation="2"
+                outlined
+                text
+                @click="cancelAdd('add-dept-form-btn')"
+                @keyup.enter="cancelAdd('add-dept-form-btn')"
+              >
+                Cancel
+              </v-btn>
+            </v-form>
             <v-data-table
-              id="department-forms-table"
+              id="dept-forms-table"
               dense
               disable-pagination
               :headers="[{text: 'Form Name', value: 'name'}]"
@@ -33,10 +84,12 @@
                     :id="`delete-dept-form-${item.id}-btn`"
                     class="text-capitalize pa-0"
                     color="secondary"
+                    :disabled="disableControls"
                     height="unset"
                     min-width="unset"
                     text
-                    @click="() => confirmDelete(item, 'department form', deleteDepartmentForm)"
+                    @click="() => confirmDeleteDepartmentForm(item)"
+                    @keyup.enter="() => confirmDeleteDepartmentForm(item)"
                   >
                     Delete
                   </v-btn>
@@ -48,6 +101,57 @@
         <v-col>
           <v-card elevation="2" class="mr-4">
             <v-card-title>Evaluation Types</v-card-title>
+            <v-btn
+              v-if="!isAddingEvaluationType"
+              id="add-eval-type-btn"
+              class="text-capitalize pl-2 mt-1"
+              color="secondary"
+              :disabled="disableControls"
+              text
+              @click="onClickAddEvaluationType"
+              @keyup.enter="onClickAddDepartmentForm"
+            >
+              <v-icon>mdi-plus-thick</v-icon>
+              Add new evaluation type
+            </v-btn>
+            <v-form v-if="isAddingEvaluationType" @submit.prevent="onSubmitAddEvaluationType">
+              <label :for="'input-eval-type-name'" class="form-label">
+                Type name
+              </label>
+              <v-text-field
+                :id="'input-eval-type-name'"
+                v-model="newItemName"
+                class="mt-1"
+                dense
+                :disabled="isSaving"
+                outlined
+                required
+              ></v-text-field>
+              <v-btn
+                :id="'save-eval-type-btn'"
+                class="text-capitalize mr-2"
+                color="secondary"
+                :disabled="!newItemName || isSaving"
+                elevation="2"
+                @click="onSubmitAddEvaluationType"
+                @keyup.enter="onSubmitAddEvaluationType"
+              >
+                Save
+              </v-btn>
+              <v-btn
+                :id="'cancel-save-eval-type-btn'"
+                class="text-capitalize ml-1"
+                color="secondary"
+                :disabled="isSaving"
+                elevation="2"
+                outlined
+                text
+                @click="cancelAdd('add-eval-type-btn')"
+                @keyup.enter="cancelAdd('add-eval-type-btn')"
+              >
+                Cancel
+              </v-btn>
+            </v-form>
             <v-data-table
               id="evaluation-types-table"
               dense
@@ -64,10 +168,12 @@
                     :id="`delete-eval-type-${item.id}-btn`"
                     class="text-capitalize pa-0"
                     color="secondary"
+                    :disabled="disableControls"
                     height="unset"
                     min-width="unset"
                     text
-                    @click="() => confirmDelete(item, 'evaluation type', deleteEvaluationType)"
+                    @click="() => confirmDeleteEvaluationType(item)"
+                    @keyup.enter="() => confirmDeleteEvaluationType(item)"
                   >
                     Delete
                   </v-btn>
@@ -81,7 +187,7 @@
     <ConfirmDialog
       :model="isConfirming"
       :cancel-action="cancelDelete"
-      :perform-action="onDelete || $_.noop"
+      :perform-action="() => onDelete().then(afterDelete)"
       :text="`Are you sure you want to delete ${$_.get(itemToDelete, 'name')}?`"
       :title="`Delete ${$_.get(itemToDelete, 'description')}?`"
     />
@@ -91,62 +197,64 @@
 <script>
 import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context.vue'
-import {deleteDepartmentForm, getDepartmentForms} from '@/api/departmentForms'
-import {deleteEvaluationType, getEvaluationTypes} from '@/api/evaluationTypes'
+import ListManagementSession from '@/mixins/ListManagementSession'
 
 export default {
   name: 'NannysRoom',
   components: {ConfirmDialog},
-  mixins: [Context],
+  mixins: [Context, ListManagementSession],
   data: () => ({
-    departmentForms: [],
-    evaluationTypes: [],
-    isConfirming: false,
-    itemToDelete: undefined,
-    onDelete: undefined
+    newItemName: ''
   }),
   created() {
-    Promise.all([getDepartmentForms(), getEvaluationTypes()]).then(data => {
-      this.departmentForms = data[0]
-      this.evaluationTypes = data[1]
+    this.init().then(() => {
       this.$ready('List management')
     })
   },
   methods: {
-    cancelDelete() {
-      this.alertScreenReader('Canceled. Nothing deleted.')
+    afterDelete(deletedItem) {
+      this.alertScreenReader(`Deleted ${deletedItem.description} ${deletedItem.name}.`)
+    },
+    cancelAdd(elementId) {
+      this.newItemName = ''
       this.reset()
+      this.alertScreenReader('Canceled. Nothing saved.')
+      this.$putFocusNextTick(elementId)
     },
-    confirmDelete(item, description, onDelete) {
-      this.itemToDelete = {
-        ...item,
-        description: description
+    cancelDelete() {
+      this.$putFocusNextTick(this.itemToDelete.elementId)
+      this.reset()
+      this.alertScreenReader('Canceled. Nothing deleted.')
+    },
+    onClickAddDepartmentForm() {
+      this.setAddingDepartmentForm().then(() => {
+        this.newItemName = ''
+        this.$putFocusNextTick('input-dept-form-name')
+      })
+    },
+    onClickAddEvaluationType() {
+      this.setAddingEvaluationType().then(() => {
+        this.newItemName = ''
+        this.$putFocusNextTick('input-eval-type-name')
+      })
+    },
+    onSubmitAddDepartmentForm() {
+      if (this.newItemName) {
+        this.addDepartmentForm(this.newItemName).then(() => {
+          this.alertScreenReader(`Created department form ${this.newItemName}.`)
+          this.newItemName = ''
+          this.$putFocusNextTick('add-dept-form-btn')
+        })
       }
-      this.onDelete = onDelete
-      this.isConfirming = true
     },
-    deleteDepartmentForm() {
-      deleteDepartmentForm(this.itemToDelete.name).then(() => {
-        this.alertScreenReader(`Deleted department form ${this.itemToDelete.name}.`)
-        this.reset()
-        getDepartmentForms().then(data => {
-          this.departmentForms = data
+    onSubmitAddEvaluationType() {
+      if (this.newItemName) {
+        this.addEvaluationType(this.newItemName).then(() => {
+          this.alertScreenReader(`Created evaluation type ${this.newItemName}.`)
+          this.newItemName = ''
+          this.$putFocusNextTick('add-eval-type-btn')
         })
-      })
-    },
-    deleteEvaluationType() {
-      deleteEvaluationType(this.itemToDelete.name).then(() => {
-        this.alertScreenReader(`Deleted evaluation type ${this.itemToDelete.name}.`)
-        this.reset()
-        getEvaluationTypes().then(data => {
-          this.evaluationTypes = data
-        })
-      })
-    },
-    reset() {
-      this.onDelete = null
-      this.isConfirming = false
-      this.itemToDelete = null
+      }
     }
   }
 }
