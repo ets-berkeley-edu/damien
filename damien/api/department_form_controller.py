@@ -23,10 +23,25 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from damien.api.util import admin_required
 from damien.lib.http import tolerant_jsonify
 from damien.models.department_form import DepartmentForm
 from flask import current_app as app
 from flask_login import login_required
+
+
+@app.route('/api/department_form/<name>', methods=['POST'])
+@admin_required
+def add_department_form(name):
+    department_form = DepartmentForm.create_or_restore(name)
+    return tolerant_jsonify(department_form.to_api_json())
+
+
+@app.route('/api/department_form/<name>', methods=['DELETE'])
+@admin_required
+def delete_department_form(name):
+    DepartmentForm.delete(name)
+    return tolerant_jsonify({'message': f'Department form {name} has been deleted'}), 200
 
 
 @app.route('/api/department_forms')
