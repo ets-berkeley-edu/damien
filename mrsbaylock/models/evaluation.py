@@ -23,23 +23,52 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from flask import current_app as app
-from mrsbaylock.pages.damien_pages import DamienPages
-from selenium.webdriver.common.by import By
 
+class Evaluation(object):
 
-class StatusBoardAdminPage(DamienPages):
+    def __init__(self, data):
+        self.data = data
 
-    EVAL_STATUS_DASH_HEADING = (By.XPATH, '//h1[contains(text(), "Evaluation Status Dashboard")]')
+    @property
+    def term(self):
+        return self.data['term']
 
-    @staticmethod
-    def dept_link_loc(dept):
-        return By.XPATH, f'//a[contains(@href, "/department/{dept.dept_id}")]'
+    @property
+    def dept(self):
+        return self.data['dept']
 
-    def load_page(self):
-        app.logger.info('Loading the dept status page')
-        self.driver.get(f'{app.config["BASE_URL"]}/status')
+    @property
+    def ccn(self):
+        return self.data['ccn']
 
-    def click_dept_link(self, dept):
-        app.logger.info(f'Clicking the link for {dept.name}')
-        self.wait_for_element_and_click(self.dept_link_loc(dept))
+    @property
+    def uid(self):
+        return self.data['uid']
+
+    @property
+    def subject(self):
+        return self.data['subject']
+
+    @property
+    def catalog_id(self):
+        return self.data['catalog_id']
+
+    @property
+    def instruction_format(self):
+        return self.data['instruction_format']
+
+    @property
+    def instructor_role(self):
+        return self.data['instructor_role']
+
+    @property
+    def start_date(self):
+        return self.data['start_date']
+
+    @property
+    def end_date(self):
+        return self.data['end_date']
+
+    @property
+    def dept_form(self):
+        return self.data['dept_form']
