@@ -26,6 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from itertools import groupby
 import re
 
+from damien.lib.queries import get_loch_sections_by_ids
 from damien.models.evaluation import Evaluation
 
 
@@ -34,9 +35,9 @@ class Section:
     def __init__(
         self,
         loch_rows,
-        evaluations,
-        instructors,
-        catalog_listings=None,
+        evaluations=(),
+        instructors=None,
+        catalog_listings=(),
         evaluation_type_cache=None,
     ):
         self.term_id = loch_rows[0].term_id
@@ -47,7 +48,7 @@ class Section:
         self.section_num = loch_rows[0].section_num
         self.course_title = loch_rows[0].course_title
 
-        self.instructors = instructors
+        self.instructors = instructors or {}
         self.merged_evaluations = []
 
         default_form = None
@@ -101,6 +102,15 @@ class Section:
             and loch_row.instructor_role_code != 'ICNT'
             and loch_row.instruction_format not in {'CLC', 'GRP', 'IND', 'SUP', 'VOL'}
         )
+
+    @classmethod
+    def for_id(cls, term_id, course_number):
+        section = None
+        loch_rows = get_loch_sections_by_ids(term_id, [course_number])
+        if loch_rows:
+            section = cls(loch_rows)
+        if section:
+            return section.to_api_json()
 
     def to_api_json(self):
         return {

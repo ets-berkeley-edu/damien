@@ -53,3 +53,17 @@ def get_loch_sections(term_id, conditions):
     ).all()
     app.logger.info(f'Unholy loch course query returned {len(results)} results: {query}')
     return results
+
+
+def get_loch_sections_by_ids(term_id, course_numbers):
+    query = """SELECT *
+            FROM unholy_loch.sis_sections
+            WHERE term_id = :term_id AND course_number = ANY(:course_numbers)
+            ORDER BY course_number, instructor_uid
+        """
+    results = db.session().execute(
+        text(query),
+        {'term_id': term_id, 'course_numbers': course_numbers},
+    ).all()
+    app.logger.info(f'Unholy loch course query returned {len(results)} results: {query}')
+    return results

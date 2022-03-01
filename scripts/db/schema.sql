@@ -184,6 +184,34 @@ CREATE INDEX evaluations_instructor_uid_idx ON evaluations USING btree (instruct
 
 --
 
+CREATE TABLE supplemental_sections (
+    id integer NOT NULL,
+    term_id VARCHAR(4) NOT NULL,
+    course_number VARCHAR(5) NOT NULL,
+    department_id INTEGER NOT NULL,    
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    deleted_at timestamp with time zone
+);
+
+CREATE SEQUENCE supplemental_sections_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE supplemental_sections_id_seq OWNED BY supplemental_sections.id;
+ALTER TABLE ONLY supplemental_sections ALTER COLUMN id SET DEFAULT nextval('supplemental_sections_id_seq'::regclass);
+
+ALTER TABLE ONLY supplemental_sections
+    ADD CONSTRAINT supplemental_sections_pkey PRIMARY KEY (id);
+
+CREATE INDEX supplemental_sections_term_id_idx ON supplemental_sections USING btree (term_id);
+CREATE INDEX supplemental_sections_course_number_idx ON supplemental_sections USING btree (course_number);
+CREATE INDEX supplemental_sections_department_id_idx ON supplemental_sections USING btree (department_id);
+
+--
+
 CREATE TYPE user_blue_permissions AS ENUM ('reports_only', 'response_rates');
 
 CREATE TABLE users (
@@ -229,3 +257,6 @@ ALTER TABLE ONLY evaluations
     ADD CONSTRAINT evaluations_department_form_id_fkey FOREIGN KEY (department_form_id) REFERENCES department_forms(id);
 ALTER TABLE ONLY evaluations
     ADD CONSTRAINT evaluations_evaluation_type_fkey FOREIGN KEY (evaluation_type_id) REFERENCES evaluation_types(id);
+
+ALTER TABLE ONLY supplemental_sections
+    ADD CONSTRAINT supplemental_sections_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
