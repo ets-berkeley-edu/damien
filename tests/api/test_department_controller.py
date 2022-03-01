@@ -171,7 +171,7 @@ class TestGetDepartment:
         assert department['catalogListings'] == {'PHILOS': ['*']}
         assert department['deptName'] == 'Philosophy'
         assert department['isEnrolled'] is True
-        assert department['note'] is None
+        assert department['notes'] == {}
         assert 'contacts' not in department
 
     def test_admin_authorized(self, client, fake_auth):
@@ -186,7 +186,7 @@ class TestGetDepartment:
         assert department['contacts'][0]['email'] == 'fatherbrennan@berkeley.edu'
         assert department['deptName'] == 'Philosophy'
         assert department['isEnrolled'] is True
-        assert department['note'] is None
+        assert department['notes'] == {}
 
     def test_bad_term(self, client, fake_auth):
         """Rejects invalid term id."""
@@ -225,10 +225,10 @@ class TestGetDepartment:
         assert elementary_sumerian['id'] == '_2222_30659_637739'
 
 
-def _api_update_department(client, params={}, expected_status_code=200):
+def _api_update_department_note(client, params={}, expected_status_code=200):
     dept = Department.find_by_name('Philosophy')
     response = client.post(
-        f'/api/department/{dept.id}',
+        f'/api/department/{dept.id}/note',
         data=json.dumps(params),
         content_type='application/json',
     )
@@ -240,28 +240,28 @@ class TestUpdateDepartment:
 
     def test_anonymous(self, client):
         """Denies anonymous user."""
-        _api_update_department(client, expected_status_code=401)
+        _api_update_department_note(client, expected_status_code=401)
 
     def test_unauthorized(self, client, fake_auth):
         """Denies unauthorized user."""
         fake_auth.login(non_admin_uid)
-        _api_update_department(client, expected_status_code=401)
+        _api_update_department_note(client, expected_status_code=401)
 
     def test_authorized(self, client, fake_auth):
         fake_auth.login(admin_uid)
         department = Department.find_by_name('Philosophy')
-        assert department.note is None
+        assert department.notes == []
 
         note = """It is the greatest mystery of all because no human being will ever solve it.
             It is the highest suspense because no man can bear it.
             It is the greatest fear because it is the ancient fear of the unknown.
             It is a warning foretold for thousands of years. It is our final warning.
             It is The Omen."""
-        department = _api_update_department(client, {'note': note})
-        assert department['note'] == note
+        department_note = _api_update_department_note(client, {'note': note})
+        assert department_note['note'] == note
 
-        department = _api_update_department(client)
-        assert department['note'] is None
+        department_note = _api_update_department_note(client)
+        assert department_note['note'] is None
 
 
 def _api_update_contact(client, dept_id=None, params={}, expected_status_code=200):

@@ -44,6 +44,8 @@ ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluati
 ALTER TABLE IF EXISTS ONLY public.department_members DROP CONSTRAINT IF EXISTS department_members_department_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.department_members DROP CONSTRAINT IF EXISTS department_members_user_id_fkey;
 
+ALTER TABLE IF EXISTS ONLY public.department_notes DROP CONSTRAINT IF EXISTS department_notes_department_id_fkey;
+
 --
 
 ALTER TABLE IF EXISTS ONLY public.department_catalog_listings DROP CONSTRAINT IF EXISTS department_catalog_listings_pkey;
@@ -53,6 +55,8 @@ ALTER TABLE IF EXISTS ONLY public.department_forms DROP CONSTRAINT IF EXISTS dep
 ALTER TABLE IF EXISTS public.department_forms ALTER COLUMN id DROP DEFAULT;
 
 ALTER TABLE IF EXISTS ONLY public.department_members DROP CONSTRAINT IF EXISTS department_members_pkey;
+
+ALTER TABLE IF EXISTS ONLY public.department_notes DROP CONSTRAINT IF EXISTS department_notes_pkey;
 
 ALTER TABLE IF EXISTS ONLY public.departments DROP CONSTRAINT IF EXISTS departments_pkey;
 ALTER TABLE IF EXISTS public.departments ALTER COLUMN id DROP DEFAULT;
@@ -74,6 +78,8 @@ DROP SEQUENCE IF EXISTS public.department_forms_id_seq;
 DROP TABLE IF EXISTS public.department_forms CASCADE;
 
 DROP TABLE IF EXISTS public.department_members CASCADE;
+
+DROP TABLE IF EXISTS public.department_notes CASCADE;
 
 DROP SEQUENCE IF EXISTS public.departments_id_seq;
 DROP TABLE IF EXISTS public.departments CASCADE;

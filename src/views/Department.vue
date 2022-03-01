@@ -16,11 +16,13 @@
         <v-select
           id="select-term"
           v-model="selectedTermId"
+          :disabled="disableControls"
           item-text="name"
           item-value="id"
           :items="availableTerms"
           label="Select..."
           solo
+          @change="refresh"
         >
           <span :id="`term-option-${data.item.id}`" slot="item" slot-scope="data">{{ data.item.name }}</span>
         </v-select>
@@ -30,7 +32,7 @@
     <v-container v-if="$currentUser.isAdmin" class="mx-0 px-0 pb-6">
       <v-row justify="start">
         <v-col cols="12" md="4">
-          <h2 class="pb-1">Department Contacts</h2>
+          <h2 class="pb-1 px-2">Department Contacts</h2>
           <DepartmentContact
             v-for="(contact, index) in contacts"
             :key="contact.id"
