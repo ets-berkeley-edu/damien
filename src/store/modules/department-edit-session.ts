@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import {deleteContact, getDepartment, updateContact, updateDepartmentNote} from '@/api/departments'
+import Vue from 'vue'
 
 const $_refresh = (commit, {departmentId, termId}) => {
   return new Promise<void>(resolve => {
@@ -15,7 +16,7 @@ const state = {
   departmentId: undefined,
   disableControls: false,
   note: undefined,
-  termId: undefined
+  selectedTerm: undefined
 }
 
 const getters = {
@@ -23,14 +24,14 @@ const getters = {
   departmentId: (state: any): number => state.departmentId,
   disableControls: (state: any): boolean => state.disableControls,
   note: (state: any): string => state.note,
-  termId: (state: any): string => state.termId
+  selectedTerm: (state: any): any => state.selectedTerm
 }
 
 const actions = {
   deleteContact: ({commit, state}, userId: number) => {
     commit('setDisableControls', true)
     return deleteContact(state.departmentId, userId).then(() => {
-      $_refresh(commit, {departmentId: state.departmentId, termId: state.termId})
+      $_refresh(commit, {departmentId: state.departmentId, termId: state.selectedTerm.id})
     })
   },
   init: ({commit}, {departmentId: departmentId, termId: termId}) => {
@@ -41,8 +42,8 @@ const actions = {
   updateNote: ({commit, state}, note: string) => {
     commit('setDisableControls', true)
     return new Promise<void>(resolve => {
-      updateDepartmentNote(state.departmentId, note, state.termId).then(() => {
-        $_refresh(commit, {departmentId: state.departmentId, termId: state.termId}).then(dept => resolve(dept))
+      updateDepartmentNote(state.departmentId, note, state.selectedTerm.id).then(() => {
+        $_refresh(commit, {departmentId: state.departmentId, termId: state.selectedTerm.id}).then(dept => resolve(dept))
       })
     })
   },
@@ -50,7 +51,7 @@ const actions = {
     commit('setDisableControls', true)
     return new Promise<void>(resolve => {
       updateContact(state.departmentId, contact).then(() => {
-        $_refresh(commit, {departmentId: state.departmentId, termId: state.termId}).then(dept => resolve(dept))
+        $_refresh(commit, {departmentId: state.departmentId, termId: state.selectedTerm.id}).then(dept => resolve(dept))
       })
     })
   }
@@ -63,7 +64,7 @@ const mutations = {
       state.departmentId = department.id
       state.note = _.get(department.notes, [termId, 'note'])
     }
-    state.termId = termId
+    state.selectedTerm = _.find(Vue.prototype.$config.availableTerms, {'id': termId})
     state.disableControls = false
   },
   setDisableControls: (state: any, disable: boolean) => state.disableControls = disable

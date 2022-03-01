@@ -58,10 +58,17 @@
           height="unset"
           min-width="unset"
           text
-          @click="onDelete"
+          @click="() => isConfirming = true"
         >
           Delete
         </v-btn>
+        <ConfirmDialog
+          :model="isConfirming"
+          :cancel-action="onCancelDelete"
+          :perform-action="onDelete"
+          :text="`Are you sure you want to delete the ${$_.get(selectedTerm, 'name')} note?`"
+          :title="'Delete note?'"
+        />
       </v-toolbar>
       <div v-if="isEditing" class="pa-2">
         <v-btn
@@ -82,7 +89,7 @@
           elevation="2"
           outlined
           text
-          @click="onCancel"
+          @click="onCancelSave"
         >
           Cancel
         </v-btn>
@@ -92,13 +99,16 @@
 </template>
 
 <script>
+import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 
 export default {
   name: 'DepartmentNote',
   mixins: [Context, DepartmentEditSession],
+  components: {ConfirmDialog},
   data: () => ({
+    isConfirming: false,
     isEditing: false,
     item: undefined
   }),
@@ -106,14 +116,22 @@ export default {
     this.reset()
   },
   methods: {
-    onCancel() {
+    onCancelDelete() {
+      this.alertScreenReader('Canceled. Nothing deleted.')
+      this.$putFocusNextTick('delete-dept-note-btn')
+      this.reset()
+    },
+    onCancelSave() {
       this.alertScreenReader('Canceled. Nothing saved.')
       this.$putFocusNextTick('edit-dept-note-btn')
       this.reset()
     },
     onDelete() {
-      // TODO: add confirmation step
-      this.updateNote().then(this.reset)
+      this.updateNote().then(() => {
+        this.alertScreenReader('Note deleted.')
+        this.$putFocusNextTick('delete-dept-note-btn')
+        this.reset()
+      })
     },
     onSave() {
       this.updateNote(this.item).then(() => {
@@ -123,6 +141,7 @@ export default {
       })
     },
     reset() {
+      this.isConfirming = false
       this.isEditing = false
       this.item = this.note
     }

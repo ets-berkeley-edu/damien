@@ -2,7 +2,7 @@
   <div v-if="!loading">
     <v-row>
       <v-col cols="12" md="7" class="d-flex justify-start">
-        <h1>{{ department.deptName }} ({{ $_.keys(department.catalogListings).join(', ') }}) - {{ this.selectedTerm.name }}</h1>
+        <h1>{{ department.deptName }} ({{ $_.keys(department.catalogListings).join(', ') }}) - {{ $_.get(selectedTerm, 'name') }}</h1>
       </v-col>
       <v-col
         v-if="$currentUser.isAdmin"
@@ -109,7 +109,6 @@ export default {
     evaluations: [],
     isAddingContact: false,
     selectedCourseAction: undefined,
-    selectedTerm: undefined,
     selectedTermId: undefined
   }),
   computed: {
@@ -149,7 +148,6 @@ export default {
         this.department = department
         this.evaluations = department.evaluations
         this.$_.each(this.evaluations, e => e.isSelected = false)
-        this.selectedTerm = this.$_.find(this.availableTerms, {'id': termId})
         this.$ready(department.deptName)
       })
     },

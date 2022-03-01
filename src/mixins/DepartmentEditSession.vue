@@ -9,7 +9,7 @@ export default {
       'departmentId',
       'disableControls',
       'note',
-      'termId'
+      'selectedTerm'
     ])
   },
   methods: {
