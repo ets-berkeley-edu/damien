@@ -101,11 +101,23 @@ ALTER TABLE ONLY department_members
 
 --
 
+CREATE TABLE department_notes (
+    department_id integer NOT NULL,
+    term_id VARCHAR(4) NOT NULL,
+    note text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+ALTER TABLE ONLY department_notes
+    ADD CONSTRAINT department_notes_pkey PRIMARY KEY (department_id, term_id);
+
+--
+
 CREATE TABLE departments (
     id integer NOT NULL,
     dept_name character varying(255) NOT NULL,
     is_enrolled boolean NOT NULL DEFAULT FALSE,
-    note text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -224,6 +236,9 @@ ALTER TABLE ONLY department_members
     ADD CONSTRAINT department_members_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
 ALTER TABLE ONLY department_members
     ADD CONSTRAINT department_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
+
+ALTER TABLE ONLY department_notes
+    ADD CONSTRAINT department_notes_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
 
 ALTER TABLE ONLY evaluations
     ADD CONSTRAINT evaluations_department_form_id_fkey FOREIGN KEY (department_form_id) REFERENCES department_forms(id);

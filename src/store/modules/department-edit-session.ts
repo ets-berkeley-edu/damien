@@ -1,4 +1,5 @@
-import {deleteContact, getDepartment, updateContact, updateDepartment} from '@/api/departments'
+import _ from 'lodash'
+import {deleteContact, getDepartment, updateContact, updateDepartmentNote} from '@/api/departments'
 
 const $_refresh = (commit, {departmentId, termId}) => {
   return new Promise<void>(resolve => {
@@ -37,10 +38,10 @@ const actions = {
       $_refresh(commit, {departmentId, termId}).then(department => resolve(department))
     })
   },
-  update: ({commit, state}, note: string) => {
+  updateNote: ({commit, state}, note: string) => {
     commit('setDisableControls', true)
     return new Promise<void>(resolve => {
-      updateDepartment(state.departmentId, note).then(() => {
+      updateDepartmentNote(state.departmentId, note, state.termId).then(() => {
         $_refresh(commit, {departmentId: state.departmentId, termId: state.termId}).then(dept => resolve(dept))
       })
     })
@@ -60,7 +61,7 @@ const mutations = {
     if (department) {
       state.contacts = department.contacts
       state.departmentId = department.id
-      state.note = department.note
+      state.note = _.get(department.notes, [termId, 'note'])
     }
     state.termId = termId
     state.disableControls = false

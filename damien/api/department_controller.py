@@ -33,6 +33,7 @@ from damien.lib.util import get as get_param
 from damien.models.department import Department
 from damien.models.department_form import DepartmentForm
 from damien.models.department_member import DepartmentMember
+from damien.models.department_note import DepartmentNote
 from damien.models.evaluation import Evaluation
 from damien.models.evaluation_type import EvaluationType
 from damien.models.user import User
@@ -68,20 +69,24 @@ def get_department(department_id):
     feed = department.to_api_json(
         include_contacts=current_user.is_admin,
         include_evaluations=True,
+        include_notes=True,
         term_id=term_id,
     )
     return tolerant_jsonify(feed)
 
 
-@app.route('/api/department/<department_id>', methods=['POST'])
+@app.route('/api/department/<department_id>/note', methods=['POST'])
 @admin_required
-def update(department_id):
-    department = Department.find_by_id(department_id)
+def update_note(department_id):
+    department = Department.find_by_id(int(department_id))
     if department:
         params = request.get_json()
         note = get_param(params, 'note')
-        department = Department.update(department_id, note=note)
-        return tolerant_jsonify(department.to_api_json())
+        term_id = get_param(params, 'termId', app.config['CURRENT_TERM_ID'])
+        if term_id not in available_term_ids():
+            raise BadRequestError('Invalid term id.')
+        department_note = DepartmentNote.upsert(department_id, term_id=term_id, note=note)
+        return tolerant_jsonify(department_note.to_api_json())
     else:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
 

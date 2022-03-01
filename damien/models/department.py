@@ -42,10 +42,13 @@ class Department(Base):
     id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
     dept_name = db.Column(db.String(255), nullable=False)
     is_enrolled = db.Column(db.Boolean, nullable=False, default=False)
-    note = db.Column(db.Text, default=None)
 
     members = db.relationship(
         'DepartmentMember',
+        back_populates='department',
+    )
+    notes = db.relationship(
+        'DepartmentNote',
         back_populates='department',
     )
     catalog_listings = db.relationship(
@@ -58,17 +61,14 @@ class Department(Base):
         self,
         dept_name,
         is_enrolled=False,
-        note=None,
     ):
         self.dept_name = dept_name
         self.is_enrolled = is_enrolled
-        self.note = note
 
     def __repr__(self):
         return f"""<Department id={self.id},
                     dept_name={self.dept_name},
-                    is_enrolled={self.is_enrolled},
-                    note={self.note}>
+                    is_enrolled={self.is_enrolled}>
                 """
 
     @classmethod
@@ -76,12 +76,10 @@ class Department(Base):
             cls,
             dept_name,
             is_enrolled=False,
-            note=None,
     ):
         department = cls(
             dept_name=dept_name,
             is_enrolled=is_enrolled,
-            note=note,
         )
         db.session.add(department)
         std_commit()
@@ -101,14 +99,6 @@ class Department(Base):
     def all_enrolled(cls):
         query = cls.query.filter_by(is_enrolled=True)
         return query.all()
-
-    @classmethod
-    def update(cls, department_id, note=None):
-        department = cls.query.filter_by(id=department_id).first()
-        department.note = note.strip() if note else None
-        db.session.add(department)
-        std_commit()
-        return department
 
     def catalog_listings_map(self):
         listings_map = {}
@@ -183,6 +173,7 @@ class Department(Base):
         self,
         include_contacts=False,
         include_evaluations=False,
+        include_notes=False,
         include_sections=False,
         term_id=None,
     ):
@@ -190,7 +181,6 @@ class Department(Base):
             'id': self.id,
             'deptName': self.dept_name,
             'isEnrolled': self.is_enrolled,
-            'note': self.note,
             'catalogListings': self.catalog_listings_map(),
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
@@ -199,6 +189,8 @@ class Department(Base):
             feed['contacts'] = [user.to_api_json() for user in self.members]
         if include_evaluations:
             feed['evaluations'] = self.evaluations_feed(term_id)
+        if include_notes:
+            feed['notes'] = {note.term_id: note.to_api_json() for note in self.notes}
         if include_sections:
             feed['totalSections'] = len(self.get_visible_sections())
         return feed
