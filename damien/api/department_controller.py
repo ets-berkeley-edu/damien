@@ -24,6 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from datetime import date
+import re
 
 from damien.api.errors import BadRequestError, ResourceNotFoundError
 from damien.api.util import admin_required
@@ -36,9 +37,26 @@ from damien.models.department_member import DepartmentMember
 from damien.models.department_note import DepartmentNote
 from damien.models.evaluation import Evaluation
 from damien.models.evaluation_type import EvaluationType
+from damien.models.supplemental_section import SupplementalSection
 from damien.models.user import User
 from flask import current_app as app, request
 from flask_login import current_user, login_required
+
+
+@app.route('/api/department/<department_id>/section', methods=['POST'])
+@login_required
+def add_section(department_id):
+    department = Department.find_by_id(department_id)
+    if not department:
+        raise ResourceNotFoundError(f'Department {department_id} not found.')
+    params = request.get_json() or {}
+    course_number = params.get('courseNumber')
+    if not course_number or not re.match(r'\d{5}\Z', course_number):
+        raise BadRequestError('Missing or invalid course number.')
+    current_term_id = app.config['CURRENT_TERM_ID']
+    SupplementalSection.create_or_restore(current_term_id, course_number, department_id)
+    response = department.evaluations_feed(current_term_id)
+    return tolerant_jsonify(response)
 
 
 @app.route('/api/department/<department_id>/contact/<user_id>', methods=['DELETE'])

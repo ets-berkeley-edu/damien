@@ -513,3 +513,63 @@ class TestEditEvaluation:
         assert response[0]['transientId'] == '_2222_30659_637739'
         assert response[0]['startDate'] == '2022-02-14'
         assert response[0]['endDate'] == '2022-05-01'
+
+
+def _api_add_section(client, dept_id=None, params={}, expected_status_code=200):
+    if dept_id is None:
+        dept = Department.find_by_name('Middle Eastern Languages and Cultures')
+        dept_id = dept.id
+    response = client.post(
+        f'/api/department/{dept_id}/section',
+        data=json.dumps(params),
+        content_type='application/json',
+    )
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestAddSection:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_add_section(client, expected_status_code=401)
+
+    def test_unknown_dept(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_add_section(client, dept_id=0, expected_status_code=404)
+
+    def test_no_course_number(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_add_section(client, params={'not': 'me'}, expected_status_code=400)
+
+    def test_bad_course_number(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_add_section(client, params={'courseNumber': '8675309'}, expected_status_code=400)
+
+    def test_add_screened_out_course(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        department = _api_get_melc(client)
+        assert len(department['evaluations']) == 39
+        for e in department['evaluations']:
+            assert e['instructionFormat'] != 'IND'
+
+        _api_add_section(client, params={'courseNumber': '32940'})
+        department = _api_get_melc(client)
+        assert len(department['evaluations']) == 40
+        new_section = next(e for e in department['evaluations'] if e['courseNumber'] == '32940')
+        assert new_section['instructionFormat'] == 'IND'
+        assert new_section['courseTitle'] == 'Special Studies: Cuneiform'
+
+    def test_add_foreign_course(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        department = _api_get_melc(client)
+        assert len(department['evaluations']) == 39
+        for e in department['evaluations']:
+            assert e['subjectArea'] != 'LGBT'
+
+        _api_add_section(client, params={'courseNumber': '30481'})
+        department = _api_get_melc(client)
+        assert len(department['evaluations']) == 40
+        new_section = next(e for e in department['evaluations'] if e['courseNumber'] == '30481')
+        assert new_section['subjectArea'] == 'LGBT'
+        assert new_section['courseTitle'] == 'Alternative Sexual Identities and Communities in Contemporary American Society'

@@ -40,6 +40,7 @@ ALTER TABLE IF EXISTS ONLY public.department_forms DROP CONSTRAINT IF EXISTS dep
 ALTER TABLE IF EXISTS ONLY public.evaluation_types DROP CONSTRAINT IF EXISTS evaluation_types_name_unique;
 ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluations_department_form_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluations_evaluation_type_fkey;
+ALTER TABLE IF EXISTS ONLY public.supplemental_sections DROP CONSTRAINT IF EXISTS supplemental_sections_department_id_fkey;
 
 ALTER TABLE IF EXISTS ONLY public.department_members DROP CONSTRAINT IF EXISTS department_members_department_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.department_members DROP CONSTRAINT IF EXISTS department_members_user_id_fkey;
@@ -66,6 +67,9 @@ ALTER TABLE IF EXISTS public.evaluation_types ALTER COLUMN id DROP DEFAULT;
 
 ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluations_pkey;
 
+ALTER TABLE IF EXISTS ONLY public.supplemental_sections DROP CONSTRAINT IF EXISTS supplemental_sections_pkey;
+ALTER TABLE IF EXISTS public.supplemental_sections ALTER COLUMN id DROP DEFAULT;
+
 ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_pkey;
 ALTER TABLE IF EXISTS public.users ALTER COLUMN id DROP DEFAULT;
 
@@ -89,6 +93,9 @@ DROP TABLE IF EXISTS public.evaluation_types CASCADE;
 
 DROP SEQUENCE IF EXISTS public.evaluations_id_seq CASCADE;
 DROP TABLE IF EXISTS public.evaluations CASCADE;
+
+DROP SEQUENCE IF EXISTS public.supplemental_sections_id_seq;
+DROP TABLE IF EXISTS public.supplemental_sections CASCADE;
 
 DROP SEQUENCE IF EXISTS public.users_id_seq;
 DROP TABLE IF EXISTS public.users CASCADE;
