@@ -163,9 +163,10 @@ class Department(Base):
 
         all_eval_types = {et.name: et for et in EvaluationType.query.all()}
 
-        for course_number, loch_rows in sections_by_number.items():
+        for course_number in sorted(sections_by_number.keys()):
             section_evaluations = evaluations.get(course_number, [])
-            visible_loch_rows = [r for r in loch_rows if Section.is_visible_by_default(r) or course_number in supplemental_section_ids]
+            visible_loch_rows = [
+                r for r in sections_by_number[course_number] if Section.is_visible_by_default(r) or course_number in supplemental_section_ids]
             visible_evaluations = [e for e in section_evaluations if e.is_visible()]
             if len(visible_loch_rows) or len(visible_evaluations):
                 sections.append(Section(

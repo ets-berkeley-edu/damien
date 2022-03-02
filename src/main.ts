@@ -17,7 +17,7 @@ const isDebugMode = _.trim(process.env.VUE_APP_DEBUG).toLowerCase() === 'true'
 Vue.prototype.$_ = _
 Vue.prototype.$loading = () => store.dispatch('context/loadingStart')
 Vue.prototype.$putFocusNextTick = utils.putFocusNextTick
-Vue.prototype.$ready = label => store.dispatch('context/loadingComplete', label)
+Vue.prototype.$ready = (pageTitle, alert) => store.dispatch('context/loadingComplete', {pageTitle, alert})
 
 // Axios
 axios.defaults.withCredentials = true
@@ -33,7 +33,11 @@ axios.interceptors.response.use(
         return Promise.reject(error)
       })
     } else {
-      utils.axiosErrorHandler(error)
+      const errorUrl = _.get(error, 'response.config.url')
+      // 400 and 404 from the section API should be handled by the individual component.
+      if (!(errorUrl && errorUrl.includes('/api/section'))) {
+        utils.axiosErrorHandler(error)
+      }
       return Promise.reject(error)
     }
   }

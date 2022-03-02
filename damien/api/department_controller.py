@@ -50,7 +50,7 @@ def add_section(department_id):
     if not department:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
     params = request.get_json() or {}
-    course_number = params.get('courseNumber')
+    course_number = str(params.get('courseNumber'))
     if not course_number or not re.match(r'\d{5}\Z', course_number):
         raise BadRequestError('Missing or invalid course number.')
     current_term_id = app.config['CURRENT_TERM_ID']
