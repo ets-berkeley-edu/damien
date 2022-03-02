@@ -322,6 +322,7 @@ class TestUpdateDepartmentContact:
         std_commit(allow_test_environment=True)
         user = User.find_by_uid('4200')
         params = {
+            'canReceiveCommunications': False,
             'canViewReports': True,
             'canViewResponseRates': True,
             'csid': user.csid,
@@ -336,6 +337,7 @@ class TestUpdateDepartmentContact:
 
         assert contact['departmentId'] == str(department.id)
         assert contact['userId'] == user.id
+        assert contact['canReceiveCommunications'] is False
         assert contact['canViewReports'] is True
         assert contact['canViewResponseRates'] is True
         assert contact['uid'] == user.uid
