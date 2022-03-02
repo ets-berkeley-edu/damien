@@ -1,16 +1,44 @@
 <template>
   <v-app>
+    <v-snackbar
+      v-model="snackbarShow"
+      :color="snackbar.color"
+      :timeout="snackbar.timeout"
+      content-class="align-center"
+      :top="true"
+    >
+      <div class="d-flex align-center justify-space-between">
+        <div
+          id="alert-text"
+          aria-live="polite"
+          class="ml-4 mr-4 title"
+          role="alert"
+        >
+          {{ snackbar.text }}
+        </div>
+        <div>
+          <v-btn
+            id="btn-close-alert"
+            aria-label="Close this dialog box."
+            text
+            @click="snackbarClose"
+          >
+            Close
+          </v-btn>
+        </div>
+      </div>
+    </v-snackbar>
     <v-container class="background-lecture-hall" fill-height fluid>
       <v-main>
         <v-card
-          class="mx-auto px-8 py-6 semi-transparent accent-border accent--text"
+          class="mx-auto px-8 py-6 frosted accent-border accent--text"
           max-width="600"
           outlined
         >
           <div class="text-center">
-            <h1>
+            <h1 id="page-title">
               <strong>Welcome to Course Evaluation</strong>
-              Spring 2022
+              {{ currentTermName }}
             </h1>
           </div>
           <v-card-actions class="px-16 pt-12 d-flex flex-column">
@@ -34,35 +62,33 @@
 </template>
 
 <script>
+import Context from '@/mixins/Context'
 import DevAuth from '@/components/admin/DevAuth'
 import {getCasLoginURL} from '@/api/auth'
 
 export default {
   name: 'Login',
+  mixins: [Context],
   components: {
     DevAuth
   },
   data: () => ({
-    error: undefined,
-    showError: false
+    currentTermName: undefined
   }),
   created() {
-    this.reportError(this.$route.query.error)
+    this.$putFocusNextTick('page-title')
+    this.currentTermName = this.$_.get(this.$_.find(this.$config.availableTerms, {'id': this.$config.currentTermId}), 'name')
+    const error = this.$_.get(this.$route, 'query.error')
+    if (error) {
+      this.reportError(error)
+    } else {
+      this.alertScreenReader(`Welcome to Course Evaluation - ${this.currentTermName}. Please log in.`)
+    }
+
   },
   methods: {
     logIn() {
       getCasLoginURL().then(data => window.location.href = data.casLoginUrl)
-    },
-    onHidden() {
-      this.error = null
-      this.showError = false
-    },
-    reportError(error) {
-      error = this.$_.trim(error)
-      if (error.length) {
-        this.error = error
-        this.showError = true
-      }
     }
   }
 }
@@ -86,11 +112,11 @@ export default {
   text-align: center;
   white-space: nowrap;
 }
+.frosted {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
 h1 strong {
   display: block;
   font-size: 65%;
-}
-.semi-transparent {
-  background-color: rgba(255, 255, 255, 0.8) !important;
 }
 </style>

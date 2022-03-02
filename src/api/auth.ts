@@ -7,9 +7,7 @@ export function devAuthLogIn(uid: string, password: string) {
         .then(data => {
           Vue.prototype.$currentUser = data
           return Vue.prototype.$currentUser
-        }).catch(error => {
-          return error
-        })
+        }, error => error)
 }
 
 export function getCasLoginURL() {

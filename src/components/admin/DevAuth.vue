@@ -6,25 +6,30 @@
     <v-text-field
       id="dev-auth-uid"
       v-model="uid"
-      background-color="white"
+      flat
       outlined
+      solo
       placeholder="UID"
       :rules="[v => !!v || 'Required']"
+      @keyup.enter="logIn"
     ></v-text-field>
     <v-text-field
       id="dev-auth-password"
       v-model="password"
-      background-color="white"
+      flat
       outlined
+      solo
       placeholder="Password"
       :rules="[v => !!v || 'Required']"
       type="password"
+      @keyup.enter="logIn"
     ></v-text-field>
     <v-btn
       id="btn-dev-auth-login"
       block
-      :color="!uid || !password ? 'secondary lighten-1' : 'secondary'"
-      dark
+      :style="!uid || !password ? {background: `${$vuetify.theme.themes.light.secondary} !important`, color: '#FFF !important'} : {}"
+      class="secondary"
+      :disabled="!uid || !password"
       large
       @click="logIn"
     >
@@ -35,11 +40,13 @@
 </template>
 
 <script>
+import Context from '@/mixins/Context'
 import {devAuthLogIn} from '@/api/auth'
 import Damien from '../../assets/damien.svg'
 
 export default {
   name: 'DevAuth',
+  mixins: [Context],
   components: {
     Damien
   },
@@ -63,7 +70,7 @@ export default {
             const redirect = this.$_.get(this.$router, 'currentRoute.query.redirect')
             this.$router.push({path: redirect || '/'}, this.$_.noop)
           } else {
-            this.reportError('Sorry, user is not authorized to use Damien.')
+            this.reportError('Sorry, user is not authorized to use Course Evaluations.')
           }
         })
       } else if (uid) {
