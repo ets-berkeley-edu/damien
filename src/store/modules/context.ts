@@ -19,10 +19,12 @@ const getters = {
 }
 
 const mutations = {
-  loadingComplete: (state: any, pageTitle: string) => {
+  loadingComplete: (state: any, {pageTitle, alert}) => {
     document.title = `${pageTitle || 'UC Berkeley'} | Course Evaluations`
     state.loading = false
-    if (pageTitle) {
+    if (alert) {
+      state.screenReaderAlert = alert
+    } else if (pageTitle) {
       state.screenReaderAlert = `${pageTitle} page is ready`
     }
     Vue.prototype.$putFocusNextTick('page-title')
@@ -48,7 +50,7 @@ const mutations = {
 
 const actions = {
   alertScreenReader: ({ commit }, alert) => commit('setScreenReaderAlert', alert),
-  loadingComplete: ({ commit }, pageTitle) => commit('loadingComplete', pageTitle),
+  loadingComplete: ({ commit }, {pageTitle, alert}) => commit('loadingComplete', {pageTitle, alert}),
   loadingStart: ({ commit }) => commit('loadingStart'),
   snackbarClose: ({ commit }) => commit('snackbarClose'),
   snackbarOpen: ({ commit }, text) => commit('snackbarOpen', text),

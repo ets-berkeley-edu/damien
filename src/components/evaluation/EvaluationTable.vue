@@ -185,9 +185,9 @@ export default {
     },
     editEvaluation(evaluation) {
       this.editRowId = evaluation.id
-      this.selectedDepartmentForm = evaluation.departmentForm.id
+      this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
       this.selectedEndDate = evaluation.endDate
-      this.selectedEvaluationType = evaluation.evaluationType.id
+      this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
       this.selectedStartDate = evaluation.startDate
     },
     evaluationClass(evaluation) {

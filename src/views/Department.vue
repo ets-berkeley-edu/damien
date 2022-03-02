@@ -60,7 +60,7 @@
         <v-col cols="12" md="8"><DepartmentNote /></v-col>
       </v-row>
     </v-container>
-    <v-row v-if="selectedEvaluationIds.length">
+    <v-row>
       <v-col cols="12" md="4">
         <v-select
           id="select-term"
@@ -78,6 +78,26 @@
           Apply
         </v-btn>
       </v-col>
+      <v-col cols="12" md="4">
+        <v-btn
+          v-if="!isAddingSection"
+          id="add-course-section-btn"
+          class="text-capitalize pl-2 mt-1"
+          color="secondary"
+          text
+          @click="() => isAddingSection = true"
+        >
+          <v-icon>mdi-plus-thick</v-icon>
+          Add Course Section
+        </v-btn>
+        <AddCourseSection
+          v-if="isAddingSection"
+          id="add-course-section"
+          :evaluations="evaluations"
+          :on-submit="addCourseSection"
+          :on-cancel="cancelAddSection"
+        />
+      </v-col>
     </v-row>
     <v-card outlined class="elevation-1">
       <EvaluationTable :evaluations="evaluations" :update-evaluation="updateEvaluation" />
@@ -86,7 +106,8 @@
 </template>
 
 <script>
-import {updateEvaluations} from '@/api/departments'
+import {addSection, updateEvaluations} from '@/api/departments'
+import AddCourseSection from '@/components/evaluation/AddCourseSection.vue'
 import Context from '@/mixins/Context.vue'
 import DepartmentContact from '@/components/admin/DepartmentContact'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
@@ -96,7 +117,7 @@ import EvaluationTable from '@/components/evaluation/EvaluationTable'
 
 export default {
   name: 'Department',
-  components: {DepartmentContact, DepartmentNote, EditDepartmentContact, EvaluationTable},
+  components: {AddCourseSection, DepartmentContact, DepartmentNote, EditDepartmentContact, EvaluationTable},
   mixins: [Context, DepartmentEditSession],
   data: () => ({
     availableTerms: undefined,
@@ -108,6 +129,7 @@ export default {
     department: {},
     evaluations: [],
     isAddingContact: false,
+    isAddingSection: false,
     selectedCourseAction: undefined,
     selectedTermId: undefined
   }),
@@ -127,6 +149,10 @@ export default {
     this.refresh()
   },
   methods: {
+    addCourseSection(courseNumber) {
+      this.isAddingSection = false
+      addSection(this.department.id, courseNumber).then(this.refresh(`Section ${courseNumber} added.`))
+    },
     afterSaveContact() {
       this.isAddingContact = false
       this.alertScreenReader('Contact saved.')
@@ -135,12 +161,16 @@ export default {
     applyCourseAction() {
       updateEvaluations(this.department.id, this.selectedCourseAction, this.selectedEvaluationIds).then(this.refresh)
     },
+    cancelAddSection() {
+      this.isAddingSection = false
+      this.alertScreenReader('Section lookup canceled.')
+    },
     onCancelAddContact() {
       this.isAddingContact = false
       this.alertScreenReader('Canceled. Nothing saved.')
       this.$putFocusNextTick('add-dept-contact-btn')
     },
-    refresh() {
+    refresh(screenreaderAlert) {
       this.$loading()
       const departmentId = this.$_.get(this.$route, 'params.departmentId')
       const termId = this.selectedTermId
@@ -148,7 +178,7 @@ export default {
         this.department = department
         this.evaluations = department.evaluations
         this.$_.each(this.evaluations, e => e.isSelected = false)
-        this.$ready(department.deptName)
+        this.$ready(department.deptName, screenreaderAlert)
       })
     },
     updateEvaluation(evaluationId, fields) {

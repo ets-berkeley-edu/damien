@@ -1,6 +1,10 @@
 import axios from 'axios'
 import Vue from 'vue'
 
+export function addSection(departmentId: number, courseNumber: string) {
+  return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/section`, {courseNumber}).then(response => response.data, () => null)
+}
+
 export function deleteContact(departmentId: number, userId: number) {
   return axios.delete(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/contact/${userId}`)
 }

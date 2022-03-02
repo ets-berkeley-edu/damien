@@ -35,9 +35,9 @@ from flask_login import login_required
 @app.route('/api/section/<course_number>')
 @login_required
 def get_section(course_number):
-    if not re.match(r'\d{5}\Z', course_number):
+    if not re.match(r'\d{5}\Z', str(course_number)):
         raise BadRequestError(f'Malformed course number {course_number}.')
-    section = Section.for_id(app.config['CURRENT_TERM_ID'], course_number)
+    section = Section.for_id(app.config['CURRENT_TERM_ID'], str(course_number))
     if section:
         return tolerant_jsonify(section)
     else:
