@@ -181,9 +181,6 @@ WHERE s.term_id = ec.term_id AND s.course_number = ec.course_number;
 
 --
 
--- TODO Do we still need to keep track of cross-listings that are officially marked as such in campus
--- data, as opposed to co-scheduled sections?
-
 DELETE FROM unholy_loch.co_schedulings WHERE term_id = '{term_id}';
 
 WITH schedules AS (
@@ -215,3 +212,29 @@ SELECT s1.term_id, s1.course_number, s2.course_number AS room_share_number
 FROM schedules s1 JOIN schedules s2
 ON s1.schedule = s2.schedule
 AND s1.course_number != s2.course_number;
+
+DELETE FROM unholy_loch.cross_listings WHERE term_id = '{term_id}';
+
+WITH course_listings AS (
+  (SELECT * FROM dblink('{dblink_nessie_rds}',$NESSIE$
+    SELECT
+      sis_section_id AS course_number,
+      cs_course_id,
+      session_code,
+      sis_section_num
+    FROM sis_data.sis_sections
+    WHERE sis_term_id='{term_id}'
+  $NESSIE$)
+  AS nessie_course_listings (
+    course_number VARCHAR(5),
+    cs_course_id VARCHAR(80),
+    session_code VARCHAR(5),
+    sis_section_num VARCHAR(5)
+  )))
+INSERT INTO unholy_loch.cross_listings(term_id, course_number, cross_listing_number)
+SELECT '{term_id}' AS term_id, cl1.course_number, cl2.course_number AS cross_listing_number
+FROM course_listings cl1 JOIN course_listings cl2
+ON cl1.cs_course_id = cl2.cs_course_id
+AND cl1.session_code = cl2.session_code
+AND cl1.sis_section_num = cl2.sis_section_num
+AND cl1.course_number != cl2.course_number;
