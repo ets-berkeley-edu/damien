@@ -46,6 +46,7 @@
       :id="`checkbox-communications-${contactId}`"
       v-model="canReceiveCommunications"
       class="mt-1"
+      color="secondary"
       dense
       label="Receive notifications"
     >
@@ -132,7 +133,7 @@ export default {
     }
   },
   data: () => ({
-    canReceiveCommunications: false,
+    canReceiveCommunications: true,
     email: undefined,
     firstName: undefined,
     lastName: undefined,
@@ -166,11 +167,13 @@ export default {
     },
     populateForm(contact) {
       if (contact) {
-        this.canReceiveCommunications = contact.canReceiveCommunications
         this.email = contact.email
         this.firstName = contact.firstName
         this.lastName = contact.lastName
         this.userId = contact.id
+        if (contact.canReceiveCommunications !== undefined) {
+          this.canReceiveCommunications = contact.canReceiveCommunications
+        }
         if (contact.canViewReports) {
           this.permissions = contact.canViewResponseRates ? 'response_rates' : 'reports_only'
         }

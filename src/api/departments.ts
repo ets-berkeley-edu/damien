@@ -14,7 +14,7 @@ export function getDepartmentsEnrolled(includeContacts: boolean, includeSections
 }
 
 export function updateContact(departmentId: number, contact: any) {
-  return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/contact`, {...contact}).then(response => response.data, () => null)
+  return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/contact`, contact).then(response => response.data, () => null)
 }
 
 export function updateDepartmentNote(departmentId: number, note: string, termId?: string) {
