@@ -26,7 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from itertools import groupby
 
 from damien import db, std_commit
-from damien.lib.queries import get_loch_instructors, get_loch_sections, get_loch_sections_by_ids
+from damien.lib.queries import get_cross_listings, get_loch_instructors, get_loch_sections, get_loch_sections_by_ids, get_room_shares
 from damien.lib.util import isoformat
 from damien.merged.section import Section
 from damien.models.base import Base
@@ -124,11 +124,20 @@ class Department(Base):
             else:
                 subconditions.append(f"catalog_id SIMILAR TO '({'|'.join(catalog_ids)})'")
             conditions.append(f"({' AND '.join(subconditions)})")
-        return get_loch_sections(term_id, conditions)
+        sections = get_loch_sections(term_id, conditions)
+        self.merge_cross_listings(sections, term_id)
+        return sections
 
     def get_supplemental_sections(self, term_id):
         course_numbers = [r.course_number for r in SupplementalSection.for_term_and_department(term_id, self.id)]
-        return get_loch_sections_by_ids(term_id, course_numbers)
+        sections = get_loch_sections_by_ids(term_id, course_numbers)
+        self.merge_cross_listings(sections, term_id)
+        return sections
+
+    def merge_cross_listings(self, sections, term_id):
+        course_numbers = list(set(s.course_number for s in sections))
+        sections.extend(get_cross_listings(term_id, course_numbers))
+        sections.extend(get_room_shares(term_id, course_numbers))
 
     def get_visible_sections(self, term_id=None):
         sections = []
@@ -136,7 +145,7 @@ class Department(Base):
 
         # Sections included in the department by default.
         default_loch_sections = self.get_department_sections(term_id)
-        # Sections that have been manually added
+        # Sections that have been manually added.
         supplemental_loch_sections = self.get_supplemental_sections(term_id)
 
         supplemental_section_ids = set()
@@ -145,9 +154,11 @@ class Department(Base):
             sections_by_number[k] = list(v)
             supplemental_section_ids.add(k)
 
+        all_sections = default_loch_sections + supplemental_loch_sections
+
         evaluations = Evaluation.fetch_by_course_numbers(term_id, sections_by_number.keys())
 
-        instructor_uids = set(s['instructor_uid'] for s in (default_loch_sections + supplemental_loch_sections) if s['instructor_uid'])
+        instructor_uids = set(s['instructor_uid'] for s in all_sections if s['instructor_uid'])
         for v in evaluations.values():
             instructor_uids.update(e.instructor_uid for e in v if e.instructor_uid)
         instructors = {}

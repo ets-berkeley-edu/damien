@@ -28,6 +28,42 @@ from flask import current_app as app
 from sqlalchemy.sql import text
 
 
+def get_cross_listings(term_id, course_numbers):
+    query = """SELECT *
+            FROM unholy_loch.sis_sections
+            WHERE term_id = :term_id AND course_number IN (
+              SELECT cross_listing_number
+              FROM unholy_loch.cross_listings
+              WHERE term_id = :term_id AND course_number = ANY(:course_numbers)
+            )
+            ORDER BY course_number, instructor_uid
+        """
+    results = db.session().execute(
+        text(query),
+        {'term_id': term_id, 'course_numbers': course_numbers},
+    ).all()
+    app.logger.info(f'Unholy loch cross-listing query returned {len(results)} results: {query}')
+    return results
+
+
+def get_room_shares(term_id, course_numbers):
+    query = """SELECT *
+            FROM unholy_loch.sis_sections
+            WHERE term_id = :term_id AND course_number IN (
+              SELECT room_share_number
+              FROM unholy_loch.co_schedulings
+              WHERE term_id = :term_id AND course_number = ANY(:course_numbers)
+            )
+            ORDER BY course_number, instructor_uid
+        """
+    results = db.session().execute(
+        text(query),
+        {'term_id': term_id, 'course_numbers': course_numbers},
+    ).all()
+    app.logger.info(f'Unholy loch room share query returned {len(results)} results: {query}')
+    return results
+
+
 def get_loch_instructors(uids):
     query = """SELECT distinct *
             FROM unholy_loch.sis_instructors i
