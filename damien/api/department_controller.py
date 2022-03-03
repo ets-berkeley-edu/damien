@@ -115,31 +115,39 @@ def update_contact(department_id):
     department = Department.find_by_id(department_id)
     if department:
         params = request.get_json()
+        can_receive_communications = get_param(params, 'canReceiveCommunications')
+        can_view_reports = get_param(params, 'canViewReports')
+        can_view_response_rates = get_param(params, 'canViewResponseRates')
+        email = get_param(params, 'email')
+        first_name = get_param(params, 'firstName')
+        last_name = get_param(params, 'lastName')
         user_id = get_param(params, 'userId')
-        if User.find_by_id(user_id):
-            can_receive_communications = get_param(params, 'canReceiveCommunications')
-            can_view_reports = get_param(params, 'canViewReports')
-            can_view_response_rates = get_param(params, 'canViewResponseRates')
-            email = get_param(params, 'email')
-            first_name = get_param(params, 'firstName')
-            last_name = get_param(params, 'lastName')
-            blue_permissions = None
-            if can_view_response_rates:
-                blue_permissions = 'response_rates'
-            elif can_view_reports:
-                blue_permissions = 'reports_only'
-            department_member = DepartmentMember.upsert(
-                blue_permissions=blue_permissions,
-                can_receive_communications=can_receive_communications,
-                department_id=department_id,
+        if not _is_existing_user(user_id):
+            csid = get_param(params, 'csid')
+            uid = get_param(params, 'uid')
+            user = User.create(
+                csid=csid,
+                uid=uid,
                 email=email,
                 first_name=first_name,
                 last_name=last_name,
-                user_id=user_id,
             )
-            return tolerant_jsonify(department_member.to_api_json())
-        else:
-            raise ResourceNotFoundError(f'User {user_id} not found.')
+            user_id = user.id
+        blue_permissions = None
+        if can_view_response_rates:
+            blue_permissions = 'response_rates'
+        elif can_view_reports:
+            blue_permissions = 'reports_only'
+        department_member = DepartmentMember.upsert(
+            blue_permissions=blue_permissions,
+            can_receive_communications=can_receive_communications,
+            department_id=department_id,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            user_id=user_id,
+        )
+        return tolerant_jsonify(department_member.to_api_json())
     else:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
 
@@ -209,3 +217,7 @@ def _validate_evaluation_fields(fields):  # noqa C901
         else:
             raise BadRequestError(f"Evaluation field '{k}' not recognized.")
     return validated_fields
+
+
+def _is_existing_user(user_id):
+    return user_id and User.find_by_id(user_id)

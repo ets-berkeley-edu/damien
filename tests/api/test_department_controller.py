@@ -313,16 +313,22 @@ class TestUpdateDepartmentContact:
         department = Department.find_by_name('Philosophy')
         original_count = len(department.members)
         params = {
+            'canReceiveCommunications': True,
+            'canViewReports': True,
+            'canViewResponseRates': False,
+            'csid': None,
             'email': 'spooky@boo.edu',
             'firstName': 'Spooky',
             'lastName': 'Ghost',
             'uid': 0,
-            'userId': 0,
         }
-        _api_update_contact(client, params=params, expected_status_code=404)
+        _api_update_contact(client, params=params)
+        std_commit(allow_test_environment=True)
 
         department = Department.find_by_name('Philosophy')
-        assert len(department.members) == original_count
+        assert len(department.members) == original_count + 1
+        new_user = User.find_by_uid('0')
+        assert new_user
 
     def test_authorized(self, client, fake_auth, app):
         fake_auth.login(admin_uid)

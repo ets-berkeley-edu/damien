@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien.api.util import admin_required
 from damien.lib.http import tolerant_jsonify
+from damien.lib.queries import get_loch_basic_attributes
 from damien.lib.util import get as get_param
 from damien.models.user import User
 from flask import current_app as app, request
@@ -42,4 +43,19 @@ def search():
     params = request.get_json()
     snippet = get_param(params, 'snippet').strip()
     users = User.search(snippet)
-    return tolerant_jsonify([u.to_api_json() for u in users])
+    calnet_results = []
+    if len(users) < 20:
+        calnet_results = get_loch_basic_attributes(snippet, limit=(20 - len(users)))
+    results = [u.to_api_json() for u in users] + [_to_api_json(u) for u in calnet_results]
+    results.sort(key=lambda x: x['firstName'])
+    return tolerant_jsonify(results)
+
+
+def _to_api_json(loch_user):
+    return {
+        'csid': loch_user['csid'],
+        'email': loch_user['email'],
+        'firstName': loch_user['first_name'],
+        'lastName': loch_user['last_name'],
+        'uid': loch_user['uid'],
+    }
