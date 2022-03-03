@@ -56,9 +56,18 @@
                 <td :id="`department-${deptIndex}-contact-${contactIndex}-uid`" :class="subRowClass(contactIndex, department.contacts)">{{ contact.uid }}</td>
                 <td :id="`department-${deptIndex}-contact-${contactIndex}-email`" :class="subRowClass(contactIndex, department.contacts)">{{ contact.email }}</td>
                 <td :id="`department-${deptIndex}-contact-${contactIndex}-comms`" :class="subRowClass(contactIndex, department.contacts)">
+                  <span class="sr-only">{{ `${contact.canReceiveCommunications ? 'Receives' : 'Does not receive'} notifications` }}</span>
                   <BooleanIcon :model="contact.canReceiveCommunications" />
                 </td>
-                <td :id="`department-${deptIndex}-contact-${contactIndex}-blue`" :class="subRowClass(contactIndex, department.contacts)">
+                <td
+                  :id="`department-${deptIndex}-contact-${contactIndex}-blue`"
+                  :class="subRowClass(contactIndex, department.contacts)"
+                  class="font-italic d-flex flex-row-reverse justify-end"
+                >
+                  <span v-if="!contact.canViewReports" class="sr-only">No Blue access</span>
+                  <span v-if="contact.canViewReports">
+                    {{ `Reports ${contact.canViewResponseRates ? 'and response rates ' : ''}` }}
+                  </span>
                   <BooleanIcon :model="contact.canViewReports" />
                 </td>
               </tr>
@@ -85,7 +94,7 @@ export default {
       {text: 'Contacts'},
       {text: 'UID'},
       {text: 'Email Address'},
-      {text: 'Communication'},
+      {text: 'Receives Notifications'},
       {text: 'Blue Access'},
     ],
   }),

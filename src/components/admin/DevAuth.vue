@@ -7,6 +7,7 @@
       id="dev-auth-uid"
       v-model="uid"
       flat
+      light
       outlined
       solo
       placeholder="UID"
@@ -17,6 +18,7 @@
       id="dev-auth-password"
       v-model="password"
       flat
+      light
       outlined
       solo
       placeholder="Password"
@@ -49,12 +51,6 @@ export default {
   mixins: [Context],
   components: {
     Damien
-  },
-  props: {
-    reportError: {
-      required: true,
-      type: Function
-    }
   },
   data: () => ({
     uid: null,
