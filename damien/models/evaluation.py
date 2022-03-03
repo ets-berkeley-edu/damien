@@ -38,6 +38,7 @@ evaluation_status_enum = ENUM(
     'marked',
     'confirmed',
     'deleted',
+    'ignore',
     name='evaluation_status',
     create_type=False,
 )

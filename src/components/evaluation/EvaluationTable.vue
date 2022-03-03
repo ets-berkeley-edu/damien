@@ -27,7 +27,7 @@
                   <div
                     v-if="(!hover || isEditing(evaluation)) && evaluation.status"
                     class="pill"
-                    :class="{'pill-confirmed': evaluation.status === 'confirmed', 'pill-review': evaluation.status === 'review'}"
+                    :class="evaluationPillClass(evaluation)"
                   >
                     {{ evaluation.status }}
                   </div>
@@ -193,8 +193,16 @@ export default {
     evaluationClass(evaluation) {
       return {
         'evaluation-row-confirmed': evaluation.id !== this.editRowId && evaluation.status === 'confirmed',
+        'evaluation-row-ignore': evaluation.id !== this.editRowId && evaluation.status === 'ignore',
         'evaluation-row-editing': evaluation.id === this.editRowId,
         'evaluation-row-review': evaluation.id !== this.editRowId && evaluation.status === 'review'
+      }
+    },
+    evaluationPillClass(evaluation) {
+      return {
+        'pill-confirmed': evaluation.status === 'confirmed',
+        'pill-ignore': evaluation.status === 'ignore',
+        'pill-review': evaluation.status === 'review'
       }
     },
     isEditing(evaluation) {
@@ -232,6 +240,9 @@ export default {
 .pill-confirmed {
   background-color: #666;
 }
+.pill-ignore {
+  background-color: #777;
+}
 .pill-review {
   background-color: #595;
 }
@@ -246,6 +257,10 @@ export default {
 .evaluation-row-editing, .evaluation-row-editing:hover {
   background-color: #369 !important;
   color: #fff !important;
+}
+.evaluation-row-ignore {
+  background-color: #ddd;
+  color: #777;
 }
 .evaluation-row-review {
   background-color: #efe;  
