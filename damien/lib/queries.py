@@ -29,14 +29,13 @@ from sqlalchemy.sql import text
 
 
 def get_cross_listings(term_id, course_numbers):
-    query = """SELECT *
-            FROM unholy_loch.sis_sections
-            WHERE term_id = :term_id AND course_number IN (
-              SELECT cross_listing_number
-              FROM unholy_loch.cross_listings
-              WHERE term_id = :term_id AND course_number = ANY(:course_numbers)
-            )
-            ORDER BY course_number, instructor_uid
+    query = """SELECT ss.*, cl.course_number AS cross_listed_with
+            FROM unholy_loch.sis_sections ss
+            JOIN unholy_loch.cross_listings cl
+            ON cl.term_id = :term_id AND ss.term_id = :term_id
+            AND ss.course_number = cl.cross_listing_number
+            AND cl.course_number = ANY(:course_numbers)
+            ORDER BY ss.course_number, ss.instructor_uid
         """
     results = db.session().execute(
         text(query),
@@ -47,14 +46,13 @@ def get_cross_listings(term_id, course_numbers):
 
 
 def get_room_shares(term_id, course_numbers):
-    query = """SELECT *
-            FROM unholy_loch.sis_sections
-            WHERE term_id = :term_id AND course_number IN (
-              SELECT room_share_number
-              FROM unholy_loch.co_schedulings
-              WHERE term_id = :term_id AND course_number = ANY(:course_numbers)
-            )
-            ORDER BY course_number, instructor_uid
+    query = """SELECT ss.*, cs.course_number AS room_shared_with
+            FROM unholy_loch.sis_sections ss
+            JOIN unholy_loch.co_schedulings cs
+            ON cs.term_id = :term_id AND ss.term_id = :term_id
+            AND ss.course_number = cs.room_share_number
+            AND cs.course_number = ANY(:course_numbers)
+            ORDER BY ss.course_number, ss.instructor_uid
         """
     results = db.session().execute(
         text(query),

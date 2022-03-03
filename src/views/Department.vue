@@ -177,8 +177,18 @@ export default {
       const termId = this.selectedTermId
       this.init({departmentId, termId}).then(department => {
         this.department = department
-        this.evaluations = department.evaluations
-        this.$_.each(this.evaluations, e => e.isSelected = false)
+        this.$_.each(department.evaluations, e => {
+          e.isSelected = false
+          // When sorting by course number, keep cross-listings with home sections.
+          if (e.crossListedWith) {
+            e.sortableCourseNumber = `${e.crossListedWith}-${e.courseNumber}`
+          } else if (e.roomSharedWith) {
+            e.sortableCourseNumber = `${e.roomSharedWith}-${e.courseNumber}`          
+          } else {
+            e.sortableCourseNumber = e.courseNumber
+          }
+        })
+        this.evaluations = this.$_.sortBy(department.evaluations, 'sortableCourseNumber')
         this.$ready(department.deptName, screenreaderAlert)
       })
     },
