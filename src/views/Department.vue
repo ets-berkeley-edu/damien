@@ -2,7 +2,11 @@
   <div v-if="!loading">
     <v-row>
       <v-col cols="12" md="7" class="d-flex justify-start">
-        <h1>{{ department.deptName }} ({{ $_.keys(department.catalogListings).join(', ') }}) - {{ $_.get(selectedTerm, 'name') }}</h1>
+        <h1>
+          {{ department.deptName }}
+          ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})
+          - {{ $_.get(selectedTerm, 'name') }}
+        </h1>
       </v-col>
       <v-col
         v-if="$currentUser.isAdmin"
