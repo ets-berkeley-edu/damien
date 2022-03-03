@@ -53,7 +53,7 @@
               Sign In
               <v-icon class="pl-2">mdi-arrow-right-circle-outline</v-icon>
             </v-btn>
-            <DevAuth v-if="$config.devAuthEnabled" :report-error="reportError" />
+            <DevAuth v-if="$config.devAuthEnabled" />
           </v-card-actions>
         </v-card>
       </v-main>
