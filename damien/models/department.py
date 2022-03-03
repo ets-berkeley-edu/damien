@@ -43,6 +43,7 @@ class Department(Base):
     id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
     dept_name = db.Column(db.String(255), nullable=False)
     is_enrolled = db.Column(db.Boolean, nullable=False, default=False)
+    row_count = db.Column(db.Integer)
 
     members = db.relationship(
         'DepartmentMember',
@@ -187,6 +188,9 @@ class Department(Base):
                     catalog_listings=self.catalog_listings,
                     evaluation_type_cache=all_eval_types,
                 ))
+        self.row_count = len(sections)
+        db.session.add(self)
+        std_commit()
         return sections
 
     def evaluations_feed(self, term_id=None, evaluation_ids=None):
@@ -218,5 +222,7 @@ class Department(Base):
         if include_notes:
             feed['notes'] = {note.term_id: note.to_api_json() for note in self.notes}
         if include_sections:
-            feed['totalSections'] = len(self.get_visible_sections())
+            if self.row_count is None:
+                self.get_visible_sections()
+            feed['totalSections'] = self.row_count
         return feed
