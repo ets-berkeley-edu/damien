@@ -17,7 +17,8 @@
               <tr :key="department.name">
                 <td :id="`department-name-${index}`">
                   <router-link :to="`/department/${department.id}`">
-                    {{ department.deptName }} ({{ $_.keys(department.catalogListings).join(', ') }})
+                    {{ department.deptName }}
+                    ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})
                   </router-link>
                 </td>
               </tr>
