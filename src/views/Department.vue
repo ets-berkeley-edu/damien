@@ -124,6 +124,7 @@ export default {
     courseActions: [
       {'text': 'Mark for review', 'value': 'mark'},
       {'text': 'Mark as confirmed', 'value': 'confirm'},
+      {'text': 'Unmark', 'value': 'unmark'},
       {'text': 'Duplicate', 'value': 'duplicate'},
       {'text': 'Ignore', 'value': 'ignore'}
     ],

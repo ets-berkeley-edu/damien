@@ -417,7 +417,7 @@ class TestUpdateEvaluationStatus:
         assert response[0]['id'] == int(response[0]['id'])
         assert response[0]['transientId'] == '_2222_30659_637739'
 
-    def test_mark(self, client, fake_auth):
+    def test_mark_unmark(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         response = _api_update_evaluation(client, params={'evaluationIds': ['_2222_30659_637739'], 'action': 'mark'})
         assert len(response) == 1
@@ -428,6 +428,11 @@ class TestUpdateEvaluationStatus:
         assert response[0]['status'] == 'review'
         assert response[0]['id'] == int(response[0]['id'])
         assert response[0]['transientId'] == '_2222_30659_637739'
+        evaluation_id = response[0]['id']
+        response = _api_update_evaluation(client, params={'evaluationIds': [evaluation_id], 'action': 'unmark'})
+        assert response[0]['courseNumber'] == '30659'
+        assert response[0]['id'] == evaluation_id
+        assert response[0]['status'] is None
 
 
 class TestDuplicateEvaluation:
