@@ -202,9 +202,9 @@ class TestGetDepartment:
     def test_default_evaluations(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         department = _api_get_melc(client)
-        assert len(department['evaluations']) == 39
+        assert len(department['evaluations']) == 42
         for e in department['evaluations']:
-            assert e['subjectArea'] in ('MELC', 'CUNEIF')
+            assert (e['subjectArea'] in ('MELC', 'CUNEIF')) or e.get('crossListedWith') or e.get('roomSharedWith')
         elementary_sumerian = next(e for e in department['evaluations'] if e['subjectArea'] == 'CUNEIF' and e['catalogId'] == '102B')
         assert elementary_sumerian['termId'] == '2222'
         assert elementary_sumerian['courseNumber'] == '30659'
@@ -223,6 +223,22 @@ class TestGetDepartment:
             'affiliations': 'EMPLOYEE-TYPE-ACADEMIC',
         }
         assert elementary_sumerian['id'] == '_2222_30659_637739'
+
+    def test_include_cross_listing(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        department = _api_get_melc(client)
+        cross_listings = [e for e in department['evaluations'] if e['subjectArea'] == 'HISTORY' and e['catalogId'] == 'C188C']
+        assert len(cross_listings) == 2
+        for cl in cross_listings:
+            assert cl['courseNumber'] == '30643'
+            assert cl['crossListedWith'] == '30470'
+
+    def test_include_room_share(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        department = _api_get_melc(client)
+        room_share = next(e for e in department['evaluations'] if e['subjectArea'] == 'JEWISH' and e['catalogId'] == '120A')
+        assert room_share['courseNumber'] == '32159'
+        assert room_share['roomSharedWith'] == '30462'
 
 
 def _api_update_department_note(client, params={}, expected_status_code=200):
@@ -551,13 +567,13 @@ class TestAddSection:
     def test_add_screened_out_course(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         department = _api_get_melc(client)
-        assert len(department['evaluations']) == 39
+        assert len(department['evaluations']) == 42
         for e in department['evaluations']:
             assert e['instructionFormat'] != 'IND'
 
         _api_add_section(client, params={'courseNumber': '32940'})
         department = _api_get_melc(client)
-        assert len(department['evaluations']) == 40
+        assert len(department['evaluations']) == 43
         new_section = next(e for e in department['evaluations'] if e['courseNumber'] == '32940')
         assert new_section['instructionFormat'] == 'IND'
         assert new_section['courseTitle'] == 'Special Studies: Cuneiform'
@@ -565,13 +581,13 @@ class TestAddSection:
     def test_add_foreign_course(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         department = _api_get_melc(client)
-        assert len(department['evaluations']) == 39
+        assert len(department['evaluations']) == 42
         for e in department['evaluations']:
             assert e['subjectArea'] != 'LGBT'
 
         _api_add_section(client, params={'courseNumber': '30481'})
         department = _api_get_melc(client)
-        assert len(department['evaluations']) == 40
+        assert len(department['evaluations']) == 43
         new_section = next(e for e in department['evaluations'] if e['courseNumber'] == '30481')
         assert new_section['subjectArea'] == 'LGBT'
         assert new_section['courseTitle'] == 'Alternative Sexual Identities and Communities in Contemporary American Society'

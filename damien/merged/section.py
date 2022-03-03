@@ -47,6 +47,15 @@ class Section:
         self.instruction_format = loch_rows[0].instruction_format
         self.section_num = loch_rows[0].section_num
         self.course_title = loch_rows[0].course_title
+        self.cross_listed_with = None
+        self.room_shared_with = None
+        for r in loch_rows:
+            clw = getattr(r, 'cross_listed_with', None)
+            if clw and not self.cross_listed_with:
+                self.cross_listed_with = clw
+            rsw = getattr(r, 'room_shared_with', None)
+            if rsw and not self.room_shared_with:
+                self.room_shared_with = rsw
 
         self.instructors = instructors or {}
         self.merged_evaluations = []
@@ -113,7 +122,7 @@ class Section:
             return section.to_api_json()
 
     def to_api_json(self):
-        return {
+        feed = {
             'termId': self.term_id,
             'courseNumber': self.course_number,
             'subjectArea': self.subject_area,
@@ -122,6 +131,11 @@ class Section:
             'sectionNumber': self.section_num,
             'courseTitle': self.course_title,
         }
+        if self.cross_listed_with:
+            feed['crossListedWith'] = self.cross_listed_with
+        elif self.room_shared_with:
+            feed['roomSharedWith'] = self.room_shared_with
+        return feed
 
     def get_evaluation_feed(self, evaluation_ids=None):
         return [e.to_api_json(section=self) for e in self.merged_evaluations if not evaluation_ids or e.get_id() in evaluation_ids]

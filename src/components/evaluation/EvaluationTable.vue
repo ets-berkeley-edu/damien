@@ -45,6 +45,12 @@
                 </td>
                 <td :id="`evaluation-${evaluationId}-courseNumber`">
                   {{ evaluation.courseNumber }}
+                  <div v-if="evaluation.crossListedWith" class="xlisting-note">
+                    (Cross-listed with section {{ evaluation.crossListedWith }})
+                  </div>
+                  <div v-if="evaluation.roomSharedWith" class="xlisting-note">
+                    (Room shared with section {{ evaluation.roomSharedWith }})
+                  </div>
                 </td>
                 <td>
                   <div :id="`evaluation-${evaluationId}-courseName`">
@@ -162,7 +168,7 @@ export default {
       {text: 'Select'},
       {text: 'Status', value: 'status'},
       {text: 'Last Updated', value: 'lastUpdated'},
-      {text: 'Course Number', value: 'courseNumber'},
+      {text: 'Course Number', value: 'sortableCourseNumber'},
       {text: 'Course Name', value: 'courseName'},
       {text: 'Instructor', value: 'instructorUid'},
       {text: 'Department Form', value: 'departmentForm'},
@@ -195,7 +201,8 @@ export default {
         'evaluation-row-confirmed': evaluation.id !== this.editRowId && evaluation.status === 'confirmed',
         'evaluation-row-ignore': evaluation.id !== this.editRowId && evaluation.status === 'ignore',
         'evaluation-row-editing': evaluation.id === this.editRowId,
-        'evaluation-row-review': evaluation.id !== this.editRowId && evaluation.status === 'review'
+        'evaluation-row-review': evaluation.id !== this.editRowId && evaluation.status === 'review',
+        'evaluation-row-xlisting': evaluation.id !== this.editRowId && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith)
       }
     },
     evaluationPillClass(evaluation) {
@@ -226,6 +233,28 @@ export default {
 </script>
 
 <style scoped>
+.evaluation-row:hover {
+  background-color: #def !important;
+  color: #069 !important;
+}
+.evaluation-row-confirmed {
+  background-color: #eee;
+  color: #666;
+}
+.evaluation-row-editing, .evaluation-row-editing:hover {
+  background-color: #369 !important;
+  color: #fff !important;
+}
+.evaluation-row-ignore {
+  background-color: #ddd;
+  color: #777;
+}
+.evaluation-row-review {
+  background-color: #efe;  
+}
+.evaluation-row-xlisting {
+  background-color: #ffd;
+}
 .pill {
   border: 1px solid #999;
   border-radius: 5px;
@@ -246,23 +275,7 @@ export default {
 .pill-review {
   background-color: #595;
 }
-.evaluation-row:hover {
-  background-color: #def !important;
-  color: #069 !important;
-}
-.evaluation-row-confirmed {
-  background-color: #eee;
-  color: #666;
-}
-.evaluation-row-editing, .evaluation-row-editing:hover {
-  background-color: #369 !important;
-  color: #fff !important;
-}
-.evaluation-row-ignore {
-  background-color: #ddd;
-  color: #777;
-}
-.evaluation-row-review {
-  background-color: #efe;  
+.xlisting-note {
+  font-size: 0.8em;
 }
 </style>

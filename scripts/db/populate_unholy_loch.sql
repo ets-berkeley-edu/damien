@@ -150,8 +150,11 @@ VALUES
 ('2222','34087','MELC','H195','IND','003','Senior Honors',TRUE,'953419','PI',NULL,'',NULL,NULL,'2022-01-18','2022-05-06',1,'2022-02-04 15:40:33.41996-08',NULL),
 ('2222','32266','MELC','190C','LEC','002','Special Topics in Fields of Middle Eastern Languages and Cultures: Jewish Studies',TRUE,'471567','PI','Dwinelle 130','TUTH','17:00','18:29','2022-01-18','2022-05-06',0,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30462','MELC','134','LEC','001','Topics in History and Cultures of Israel',TRUE,'25306','PI','Haviland 12','TUTH','12:30','13:59','2022-01-18','2022-05-06',6,'2022-01-19 17:01:10.324583-08',NULL),
+('2222','32159','JEWISH','120A','LEC','001','Special Topics in Jewish Languages and Literature',TRUE,'25306','PI','Haviland 12','TUTH','12:30','13:59','2022-01-18','2022-05-06',6,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30470','MELC','C188','LEC','001','Magic, Religion, and Science: The Ancient and Medieval Worlds',TRUE,'326054','PI','Valley Life Sciences 2040','TUTH','11:00','12:29','2022-01-18','2022-05-06',35,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30470','MELC','C188','LEC','001','Magic, Religion, and Science: The Ancient and Medieval Worlds',TRUE,'738551','PI','Valley Life Sciences 2040','TUTH','11:00','12:29','2022-01-18','2022-05-06',35,'2022-01-19 17:01:10.324583-08',NULL),
+('2222','30643','HISTORY','C188C','LEC','001','Magic, Religion, and Science: The Ancient and Medieval Worlds',TRUE,'326054','PI','Valley Life Sciences 2040','TUTH','11:00','12:29','2022-01-18','2022-05-06',35,'2022-01-19 17:01:10.324583-08',NULL),
+('2222','30643','HISTORY','C188C','LEC','001','Magic, Religion, and Science: The Ancient and Medieval Worlds',TRUE,'738551','PI','Valley Life Sciences 2040','TUTH','11:00','12:29','2022-01-18','2022-05-06',35,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30472','MELC','291','WOR','001','Dissertation Writing Workshop',TRUE,'669648','PI','Internet/Onlin','MO','14:00','16:59','2022-01-18','2022-05-06',2,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','32265','MELC','190C','LEC','001','Special Topics in Fields of Middle Eastern Languages and Cultures: Jewish Studies',TRUE,'398155','PI','Cory 241','TUTH','14:00','15:29','2022-01-18','2022-05-06',3,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','32928','MELC','290A','IND','003','Special Studies: Middle Eastern Languages and Cultures',TRUE,'326054','PI',NULL,'','12:00','12:00','2022-01-18','2022-05-06',0,'2022-01-19 17:01:10.324583-08',NULL),
@@ -213,3 +216,13 @@ VALUES
 ('2222','32998','MELC','601','IND','014','Individual Studies for Master''s Students',TRUE,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','33016','MELC','602','IND','014','Individual Study for Doctoral Students',TRUE,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30481','LGBT','20AC','LEC','001','Alternative Sexual Identities and Communities in Contemporary American Society',TRUE,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,83,'2022-01-19 17:01:10.324583-08',NULL);
+
+INSERT INTO unholy_loch.co_schedulings (term_id, course_number, room_share_number)
+VALUES
+('2222', '30462', '32159'),
+('2222', '32159', '30462');
+
+INSERT INTO unholy_loch.cross_listings (term_id, course_number, cross_listing_number)
+VALUES
+('2222', '30643', '30470'),
+('2222', '30470', '30643');
