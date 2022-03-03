@@ -14,6 +14,7 @@
       v-model="firstName"
       class="mt-1"
       dense
+      :disabled="disableControls"
       outlined
       required
     ></v-text-field>
@@ -25,6 +26,7 @@
       v-model="lastName"
       class="mt-1"
       dense
+      :disabled="disableControls"
       outlined
       required
     ></v-text-field>
@@ -36,6 +38,7 @@
       v-model="email"
       class="mt-1"
       dense
+      :disabled="disableControls"
       outlined
       required
     ></v-text-field>
@@ -48,6 +51,7 @@
       class="mt-1"
       color="secondary"
       dense
+      :disabled="disableControls"
       label="Receive notifications"
     >
     </v-checkbox>
@@ -59,6 +63,7 @@
       class="mt-1"
       column
       dense
+      :disabled="disableControls"
       mandatory
     >
       <v-radio
@@ -134,10 +139,12 @@ export default {
   },
   data: () => ({
     canReceiveCommunications: true,
+    csid: undefined,
     email: undefined,
     firstName: undefined,
     lastName: undefined,
     permissions: undefined,
+    uid: undefined,
     userId: undefined
   }),
   computed: {
@@ -156,9 +163,11 @@ export default {
         'canReceiveCommunications': this.canReceiveCommunications,
         'canViewReports': this.permissions === 'reports_only',
         'canViewResponseRates': this.permissions === 'response_rates',
+        'csid': this.csid,
         'email': this.email,
         'firstName': this.firstName,
         'lastName': this.lastName,
+        'uid': this.uid,
         'userId': this.userId
       }).then(this.afterSave)
     },
@@ -167,10 +176,12 @@ export default {
     },
     populateForm(contact) {
       if (contact) {
+        this.csid = contact.csid
         this.email = contact.email
         this.firstName = contact.firstName
         this.lastName = contact.lastName
-        this.userId = contact.id
+        this.uid = contact.uid
+        this.userId = contact.userId
         if (contact.canReceiveCommunications !== undefined) {
           this.canReceiveCommunications = contact.canReceiveCommunications
         }

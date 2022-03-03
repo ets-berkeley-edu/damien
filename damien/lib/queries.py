@@ -23,9 +23,42 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import os
+
 from damien import db
+from damien.lib.util import resolve_sql_template_string
 from flask import current_app as app
 from sqlalchemy.sql import text
+
+
+def get_loch_basic_attributes(id_snippet, limit=20):
+    if os.environ.get('DAMIEN_ENV') == 'test':
+        return []
+    query = """SELECT * FROM dblink('{dblink_nessie_rds}',$NESSIE$
+                SELECT ldap_uid, sid, first_name, last_name, email_address
+                  FROM sis_data.basic_attributes
+            $NESSIE$)
+            AS nessie_basic_attributes (
+                uid VARCHAR,
+                csid VARCHAR,
+                first_name VARCHAR,
+                last_name VARCHAR,
+                email VARCHAR
+            )
+            WHERE uid ilike '{id_snippet}%'
+            OR csid ilike '{id_snippet}%'
+            LIMIT {limit};"""
+    resolved_ddl = resolve_sql_template_string(
+        query,
+        id_snippet=id_snippet,
+        limit=limit,
+    )
+    try:
+        results = db.session().execute(text(resolved_ddl)).all()
+        app.logger.info(f'Loch Ness basic attributes query returned {len(results)} results.')
+        return results
+    except Exception as e:
+        app.logger.exception(e)
 
 
 def get_cross_listings(term_id, course_numbers):
