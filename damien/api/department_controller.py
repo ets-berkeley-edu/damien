@@ -168,6 +168,8 @@ def update_evaluations(department_id):
         updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields=validated_fields)
     elif action == 'mark':
         updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': 'marked'})
+    elif action == 'ignore':
+        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': 'ignore'})
     elif action == 'remove':
         updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': None})
     else:

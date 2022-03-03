@@ -160,7 +160,7 @@ ALTER TABLE ONLY evaluation_types
 
 --
 
-CREATE TYPE evaluation_status AS ENUM ('marked', 'confirmed', 'deleted');
+CREATE TYPE evaluation_status AS ENUM ('marked', 'confirmed', 'deleted', 'ignore');
 
 CREATE TABLE evaluations (
     id integer NOT NULL,
