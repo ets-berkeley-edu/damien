@@ -1,5 +1,24 @@
 <template>
   <div>
+    <div class="ma-4 text-right">
+      Show statuses:
+      <v-btn
+        v-for="type in $_.keys(filterTypes)"
+        :id="`evaluations-filter-${type}`"
+        :key="type"
+        role="tablist"
+        class="filter ml-2 pl-2 pr-2 text-center"
+        :class="{
+          'filter-active': filterTypes[type].enabled,
+          'filter-inactive': !filterTypes[type].enabled
+        }"
+        aria-controls="timeline-messages"
+        :aria-selected="filterTypes[type].enabled"
+        @click="toggleFilter(type)"
+      >
+        {{ filterTypes[type].label }}
+      </v-btn>
+    </div>
     <v-data-table
       id="evaluation-table"
       disable-pagination
@@ -10,7 +29,7 @@
       <template #body="{items}">
         <tbody>
           <template v-for="(evaluation, evaluationId) in items">
-            <v-hover v-slot="{ hover }" :key="evaluation.id">
+            <v-hover v-if="filterEnabled(evaluation)" v-slot="{ hover }" :key="evaluation.id">
               <tr 
                 class="evaluation-row"
                 :class="evaluationClass(evaluation)"
@@ -147,9 +166,11 @@
 <script>
 import {getDepartmentForms} from '@/api/departmentForms'
 import {getEvaluationTypes} from '@/api/evaluationTypes'
+import Context from '@/mixins/Context.vue'
 
 export default {
   name: 'EvaluationTable',
+  mixins: [Context],
   props: {
     evaluations: {
       required: true,
@@ -164,6 +185,12 @@ export default {
     departmentForms: [],
     editRowId: null,
     evaluationTypes: [],
+    filterTypes: {
+      'unmarked': {label: 'Unmarked', enabled: true},
+      'review': {label: 'Review', enabled: true},
+      'confirmed': {label: 'Confirmed', enabled: true},
+      'ignore': {label: 'Ignore', enabled: false}
+    },
     headers: [
       {text: 'Select'},
       {text: 'Status', value: 'status'},
@@ -215,6 +242,10 @@ export default {
     isEditing(evaluation) {
       return this.editRowId === evaluation.id
     },
+    filterEnabled(evaluation) {
+      const status = evaluation.status || 'unmarked'
+      return this.filterTypes[status].enabled
+    },
     saveEvaluation(evaluation) {
       const fields = {
         'departmentFormId': this.selectedDepartmentForm,
@@ -223,6 +254,11 @@ export default {
         'startDate': this.selectedStartDate,
       }
       this.updateEvaluation(evaluation.id, fields)
+    },
+    toggleFilter(type) {
+      const filter = this.filterTypes[type]
+      filter.enabled = !filter.enabled
+      this.alertScreenReader(`Filter ${filter.label} ${filter.enabled ? 'enabled' : 'disabled'}.`)
     }
   },
   created() {
@@ -254,6 +290,15 @@ export default {
 }
 .evaluation-row-xlisting {
   background-color: #ffd;
+}
+.filter {
+  color: #fff;
+}
+.filter-active {
+  background-color: #0074aa !important;
+}
+.filter-inactive {
+  background-color: #999 !important;
 }
 .pill {
   border: 1px solid #999;
