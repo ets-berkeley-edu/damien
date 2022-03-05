@@ -62,7 +62,10 @@ def get_loch_basic_attributes(id_snippet, limit=20):
 
 
 def get_cross_listings(term_id, course_numbers):
-    query = """SELECT ss.*, cl.course_number AS cross_listed_with
+    query = """SELECT
+                ss.*,
+                cl.course_number AS cross_listed_with,
+                TRUE AS foreign_department_course
             FROM unholy_loch.sis_sections ss
             JOIN unholy_loch.cross_listings cl
             ON cl.term_id = :term_id AND ss.term_id = :term_id
@@ -79,7 +82,10 @@ def get_cross_listings(term_id, course_numbers):
 
 
 def get_room_shares(term_id, course_numbers):
-    query = """SELECT ss.*, cs.course_number AS room_shared_with
+    query = """SELECT
+                ss.*,
+                cs.course_number AS room_shared_with,
+                TRUE AS foreign_department_course
             FROM unholy_loch.sis_sections ss
             JOIN unholy_loch.co_schedulings cs
             ON cs.term_id = :term_id AND ss.term_id = :term_id
@@ -109,10 +115,19 @@ def get_loch_instructors(uids):
 
 
 def get_loch_sections(term_id, conditions):
-    query = f"""SELECT *
-            FROM unholy_loch.sis_sections
-            WHERE term_id = :term_id AND ({' OR '.join(conditions)})
-            ORDER BY course_number, instructor_uid
+    query = f"""SELECT
+                s.*,
+                cl.cross_listing_number AS cross_listed_with,
+                cs.room_share_number AS room_shared_with
+            FROM unholy_loch.sis_sections s
+            LEFT JOIN unholy_loch.cross_listings cl
+                ON cl.term_id = :term_id AND s.term_id = :term_id
+                AND s.course_number = cl.course_number
+            LEFT JOIN unholy_loch.co_schedulings cs
+                ON cs.term_id = :term_id AND s.term_id = :term_id
+                AND s.course_number = cs.course_number
+            WHERE s.term_id = :term_id AND ({' OR '.join(conditions)})
+            ORDER BY s.course_number, s.instructor_uid
         """
     results = db.session().execute(
         text(query),
@@ -123,10 +138,19 @@ def get_loch_sections(term_id, conditions):
 
 
 def get_loch_sections_by_ids(term_id, course_numbers):
-    query = """SELECT *
-            FROM unholy_loch.sis_sections
-            WHERE term_id = :term_id AND course_number = ANY(:course_numbers)
-            ORDER BY course_number, instructor_uid
+    query = """SELECT
+                s.*,
+                cl.cross_listing_number AS cross_listed_with,
+                cs.room_share_number AS room_shared_with
+            FROM unholy_loch.sis_sections s
+            LEFT JOIN unholy_loch.cross_listings cl
+                ON cl.term_id = :term_id AND s.term_id = :term_id
+                AND s.course_number = cl.course_number
+            LEFT JOIN unholy_loch.co_schedulings cs
+                ON cs.term_id = :term_id AND s.term_id = :term_id
+                AND s.course_number = cs.course_number
+            WHERE s.term_id = :term_id AND s.course_number = ANY(:course_numbers)
+            ORDER BY s.course_number, s.instructor_uid
         """
     results = db.session().execute(
         text(query),

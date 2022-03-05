@@ -185,9 +185,9 @@ export default {
         this.$_.each(department.evaluations, e => {
           e.isSelected = false
           // When sorting by course number, keep cross-listings with home sections.
-          if (e.crossListedWith) {
+          if (e.crossListedWith && e.foreignDepartmentCourse) {
             e.sortableCourseNumber = `${e.crossListedWith}-${e.courseNumber}`
-          } else if (e.roomSharedWith) {
+          } else if (e.roomSharedWith && e.foreignDepartmentCourse) {
             e.sortableCourseNumber = `${e.roomSharedWith}-${e.courseNumber}`          
           } else {
             e.sortableCourseNumber = e.courseNumber

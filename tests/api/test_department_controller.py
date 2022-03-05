@@ -232,6 +232,9 @@ class TestGetDepartment:
         for cl in cross_listings:
             assert cl['courseNumber'] == '30643'
             assert cl['crossListedWith'] == '30470'
+        home_dept_rows = [e for e in department['evaluations'] if e['courseNumber'] == '30470']
+        for hdr in home_dept_rows:
+            assert hdr['crossListedWith'] == '30643'
 
     def test_include_room_share(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
@@ -239,6 +242,8 @@ class TestGetDepartment:
         room_share = next(e for e in department['evaluations'] if e['subjectArea'] == 'JEWISH' and e['catalogId'] == '120A')
         assert room_share['courseNumber'] == '32159'
         assert room_share['roomSharedWith'] == '30462'
+        home_dept_row = next(e for e in department['evaluations'] if e['courseNumber'] == '30462')
+        assert home_dept_row['roomSharedWith'] == '32159'
 
 
 def _api_update_department_note(client, params={}, expected_status_code=200):
