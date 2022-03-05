@@ -79,6 +79,9 @@ class Page(object):
         elif strategy == 'xpath':
             return self.driver.find_elements_by_xpath(target)
 
+    def value(self, locator):
+        return self.element(locator).get_attribute('value')
+
     def is_present(self, locator):
         try:
             self.element(locator)

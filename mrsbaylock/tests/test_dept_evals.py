@@ -26,12 +26,12 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import time
 
 from flask import current_app as app
-from mrsbaylock.models.term import Term
 from mrsbaylock.test_utils import utils
 import pytest
 
-term = Term()
+term = utils.get_current_term()
 depts = utils.get_participating_depts()
+all_users = utils.get_all_users()
 
 
 @pytest.mark.usefixtures('page_objects')
@@ -48,8 +48,8 @@ class TestDeptEvaluations:
         self.status_board_admin_page.click_dept_link(dept)
 
     def test_evals(self, dept):
-        evaluations = utils.get_evaluations(term, dept)
-        expected = [f'{i.ccn}-{"" if i.uid is None else i.uid}' for i in evaluations]
+        dept.evaluations = utils.get_evaluations(term, dept)
+        expected = [f'{i.ccn}-{"" if i.uid is None else i.uid}' for i in dept.evaluations]
         expected = list(dict.fromkeys(expected))
         expected.sort()
         actual = self.dept_details_admin_page.visible_eval_identifiers()
@@ -57,3 +57,21 @@ class TestDeptEvaluations:
         app.logger.info(f'Missing: {[x for x in expected if x not in actual]}')
         app.logger.info(f'Unexpected: {[x for x in actual if x not in expected]}')
         assert actual == expected
+
+    def test_depts_details(self, dept):
+        self.group_mgmt_page.click_group_mgmt()
+        self.group_mgmt_page.wait_for_dept_row(dept)
+        idx = self.group_mgmt_page.dept_row_index(dept)
+        assert self.group_mgmt_page.dept_row_course_count(idx) == f'{len(dept.evaluations)}'
+
+    def test_depts_contact_details(self, dept):
+        contacts = utils.get_dept_users(dept, all_users)
+        idx = self.group_mgmt_page.dept_row_index(dept)
+        for contact in contacts:
+            dept_role = utils.get_user_dept_role(contact, dept)
+            expected_comms = 'Receives notifications' if dept_role.receives_comms else 'Does not receive notifications'
+            expected_blue = contact.blue_permissions.value['lists']
+            assert self.group_mgmt_page.dept_user_name(idx, contact) == f'{contact.first_name} {contact.last_name}'
+            assert self.group_mgmt_page.dept_user_email(idx, contact) == contact.email
+            assert self.group_mgmt_page.dept_user_comms(idx, contact) == expected_comms
+            assert self.group_mgmt_page.dept_user_blue_perm(idx, contact) == expected_blue

@@ -46,6 +46,13 @@ INDEX_HTML = f'{BASE_DIR}/tests/static/test-index.html'
 
 LOGGING_LEVEL = logging.INFO
 
+TEST_DEPT_CONTACT_UID = '123456'
+TEST_DEPT_CONTACT_FIRST_NAME = 'Father'
+TEST_DEPT_CONTACT_LAST_NAME = 'Spiletto'
+TEST_DEPT_CONTACT_EMAIL = 'foo@bar.com'
+
+TEST_EMAIL = 'damien@court_of_st_james.org'
+
 TESTING = True
 
 TIMEOUT_SHORT = 10

@@ -32,14 +32,6 @@ class StatusBoardAdminPage(DamienPages):
 
     EVAL_STATUS_DASH_HEADING = (By.XPATH, '//h1[contains(text(), "Evaluation Status Dashboard")]')
 
-    @staticmethod
-    def dept_link_loc(dept):
-        return By.XPATH, f'//a[contains(@href, "/department/{dept.dept_id}")]'
-
     def load_page(self):
         app.logger.info('Loading the dept status page')
         self.driver.get(f'{app.config["BASE_URL"]}/status')
-
-    def click_dept_link(self, dept):
-        app.logger.info(f'Clicking the link for {dept.name}')
-        self.wait_for_element_and_click(self.dept_link_loc(dept))

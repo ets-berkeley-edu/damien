@@ -23,18 +23,14 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from mrsbaylock.models.term import Term
 from mrsbaylock.models.user import User
 
 
 class Section(object):
 
-    def __init__(self, data):
+    def __init__(self, term, data):
+        self.term = term
         self.data = data
-
-    @property
-    def term(self):
-        return Term()
 
     @property
     def ccn(self):

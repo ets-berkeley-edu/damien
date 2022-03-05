@@ -24,36 +24,8 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 
-class Department(object):
+class DepartmentNote(object):
 
-    def __init__(self, data, notes=None):
-        self.data = data
-        self.notes = notes
-
-    @property
-    def dept_id(self):
-        return self.data['dept_id']
-
-    @property
-    def name(self):
-        return self.data['name']
-
-    @property
-    def participating(self):
-        return self.data['participating']
-
-    @property
-    def users(self):
-        return self.data['users']
-
-    @users.setter
-    def users(self, value):
-        self.data['users'] = value
-
-    @property
-    def evaluations(self):
-        return self.data['evaluations']
-
-    @evaluations.setter
-    def evaluations(self, value):
-        self.data['evaluations'] = value
+    def __init__(self, term_id, note):
+        self.term_id = term_id
+        self.note = note

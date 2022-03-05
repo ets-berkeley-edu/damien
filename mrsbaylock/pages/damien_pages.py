@@ -78,3 +78,15 @@ class DamienPages(Page):
     def click_status_board(self):
         app.logger.info('Clicking link to the Status Board')
         self.wait_for_element_and_click(DamienPages.STATUS_LINK)
+
+    def click_group_mgmt(self):
+        app.logger.info('Clicking link to Group Mgmt')
+        self.wait_for_element_and_click(DamienPages.GRP_MGMT_LINK)
+
+    @staticmethod
+    def dept_link_loc(dept):
+        return By.XPATH, f'//a[contains(@href, "/department/{dept.dept_id}")]'
+
+    def click_dept_link(self, dept):
+        app.logger.info(f'Clicking the link for {dept.name}')
+        self.wait_for_element_and_click(self.dept_link_loc(dept))

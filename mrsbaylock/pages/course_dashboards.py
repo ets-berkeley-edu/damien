@@ -49,7 +49,7 @@ class CourseDashboards(DamienPages):
         time.sleep(2)
         identifiers = []
         for index, value in enumerate(self.elements(CourseDashboards.EVALUATION_ROW)):
-            ccn = self.element((By.ID, f'evaluation-{index}-courseNumber')).text.strip()
+            ccn = self.element((By.ID, f'evaluation-{index}-courseNumber')).text.strip().split('\n')[0]
             uid_loc = (By.XPATH, f'//td[@id="evaluation-{index}-instructor"]/div')
             uid = ''
             if self.is_present(uid_loc):
@@ -67,7 +67,7 @@ class CourseDashboards(DamienPages):
 
     def eval_ccn(self, section, instructor):
         xpath = f'{self.eval_row_xpath(section, instructor)}/td[contains(@id, "courseNumber")]'
-        return self.element((By.XPATH, xpath)).text
+        return self.element((By.XPATH, xpath)).text.strip().split('\n')[0]
 
     def eval_course(self, section, instructor):
         xpath = f'{self.eval_row_xpath(section, instructor)}//div[contains(@id, "courseName")]'
