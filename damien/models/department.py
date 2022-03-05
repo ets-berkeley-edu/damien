@@ -115,28 +115,28 @@ class Department(Base):
         for subject_area, catalog_ids in self.catalog_listings_map().items():
             subconditions = []
             if len(subject_area):
-                subconditions.append(f"subject_area = '{subject_area}'")
+                subconditions.append(f"s.subject_area = '{subject_area}'")
             if '*' in catalog_ids:
                 exclusions = DepartmentCatalogListing.catalog_ids_to_exclude(self.id, subject_area)
                 if len(exclusions):
-                    subconditions.append(f"catalog_id NOT SIMILAR TO '({'|'.join(exclusions)})'")
+                    subconditions.append(f"s.catalog_id NOT SIMILAR TO '({'|'.join(exclusions)})'")
             elif len(catalog_ids) == 1:
-                subconditions.append(f"catalog_id SIMILAR TO '{catalog_ids[0]}'")
+                subconditions.append(f"s.catalog_id SIMILAR TO '{catalog_ids[0]}'")
             else:
-                subconditions.append(f"catalog_id SIMILAR TO '({'|'.join(catalog_ids)})'")
+                subconditions.append(f"s.catalog_id SIMILAR TO '({'|'.join(catalog_ids)})'")
             conditions.append(f"({' AND '.join(subconditions)})")
         sections = get_loch_sections(term_id, conditions)
         self.merge_cross_listings(sections, term_id)
-        return sections
+        return sorted(sections, key=lambda r: r['course_number'])
 
     def get_supplemental_sections(self, term_id):
         course_numbers = [r.course_number for r in SupplementalSection.for_term_and_department(term_id, self.id)]
         sections = get_loch_sections_by_ids(term_id, course_numbers)
         self.merge_cross_listings(sections, term_id)
-        return sections
+        return sorted(sections, key=lambda r: r['course_number'])
 
     def merge_cross_listings(self, sections, term_id):
-        course_numbers = list(set(s.course_number for s in sections))
+        course_numbers = list(set(s.course_number for s in sections if Section.is_visible_by_default(s)))
         sections.extend(get_room_shares(term_id, course_numbers))
         sections.extend(get_cross_listings(term_id, course_numbers))
 
