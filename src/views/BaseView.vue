@@ -6,7 +6,8 @@
       color="secondary"
       :expand-on-hover="true"
       :mini-variant="true"
-      :clipped="$vuetify.breakpoint.lgAndUp"
+      mini-variant-width="56"
+      clipped
       :right="false"
       dark
     >
@@ -38,11 +39,11 @@
     </v-navigation-drawer>
     <v-app-bar
       app
-      :clipped-left="$vuetify.breakpoint.lgAndUp"
+      clipped-left
       color="primary"
       dark
     >
-      <div class="display-1">
+      <div class="display-1 text-no-wrap">
         Course Evaluation
         <a
           id="skip-to-content-link"
