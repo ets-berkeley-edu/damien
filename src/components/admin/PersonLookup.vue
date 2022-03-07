@@ -3,6 +3,7 @@
     :id="id"
     v-model="selected"
     :append-icon="null"
+    class="autocomplete-input"
     dense
     :hide-no-data="true"
     :items="suggestions"
@@ -12,11 +13,12 @@
     placeholder="UID or CSID"
     return-object
     :search-input.sync="search"
+    hide-details="auto"
   ></v-autocomplete>
 </template>
 
 <script>
-import {searchUsers} from '@/api/user'
+import {searchInstructors, searchUsers} from '@/api/user'
 
 export default {
   name: 'PersonLookup',
@@ -30,6 +32,10 @@ export default {
       default: 'input-person-lookup-autocomplete',
       required: false,
       type: String
+    },
+    instructorLookup: {
+      required: false,
+      type: Boolean
     },
     onSelectResult: {
       default: () => {},
@@ -45,15 +51,7 @@ export default {
   }),
   watch: {
     search(snippet) {
-      if (snippet) {
-        this.isSearching = true
-        searchUsers(snippet, this.excludeUids).then(results => {
-          this.suggestions = this.$_.map(results, this.suggest)
-          this.isSearching = false
-        })
-      } else {
-        this.suggestions = []
-      }
+      this.debouncedSearch(snippet)
     },
     selected(suggestion) {
       if (suggestion) {
@@ -62,12 +60,33 @@ export default {
     }
   },
   methods: {
+    executeSearch(snippet) {
+      if (snippet) {
+        this.isSearching = true
+        const apiSearch = this.instructorLookup ? searchInstructors : searchUsers
+        apiSearch(snippet, this.excludeUids).then(results => {
+          this.suggestions = this.$_.map(results, this.suggest)
+          this.isSearching = false
+        })
+      } else {
+        this.suggestions = []
+      }
+    },
     suggest(user) {
       return {
         text: `${user.firstName} ${user.lastName} (${user.uid})`,
         value: user
       }
     }
+  },
+  created() {
+    this.debouncedSearch = this.$_.debounce(this.executeSearch, 300)
   }
 }
 </script>
+
+<style>
+.autocomplete-input {
+  background-color: white !important;
+}
+</style>

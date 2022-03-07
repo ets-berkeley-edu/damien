@@ -83,13 +83,37 @@
                   </div>
                 </td>
                 <td :id="`evaluation-${evaluationId}-instructor`">
-                  <div v-if="evaluation.instructor">
+                  <div v-if="!isEditing(evaluation) && evaluation.instructor">
                     {{ evaluation.instructor.firstName }}
                     {{ evaluation.instructor.lastName }}
                     ({{ evaluation.instructor.uid }})
                   </div>
-                  <div v-if="evaluation.instructor">
+                  <div v-if="!isEditing(evaluation) && evaluation.instructor">
                     {{ evaluation.instructor.emailAddress }}
+                  </div>
+                  <div v-if="isEditing(evaluation) && pendingInstructor">
+                    <div class="py-2">
+                      {{ pendingInstructor.firstName }}
+                      {{ pendingInstructor.lastName }}
+                      ({{ pendingInstructor.uid }})
+                    </div>
+                    <div class="pb-2">
+                      <v-btn
+                        :id="`evaluation-${evaluationId}-change-instructor`"
+                        @click="clearPendingInstructor"
+                        @keydown.enter="clearPendingInstructor"
+                      >
+                        Change
+                      </v-btn>
+                    </div>
+                  </div>
+                  <div v-if="isEditing(evaluation) && !pendingInstructor">
+                    <PersonLookup
+                      v-if="isEditing(evaluation)"
+                      :instructor-lookup="true"
+                      :on-select-result="setPendingInstructor"
+                      solo
+                    />
                   </div>
                 </td>
                 <td :id="`evaluation-${evaluationId}-departmentForm`">
@@ -167,9 +191,11 @@
 import {getDepartmentForms} from '@/api/departmentForms'
 import {getEvaluationTypes} from '@/api/evaluationTypes'
 import Context from '@/mixins/Context.vue'
+import PersonLookup from '@/components/admin/PersonLookup'
 
 export default {
   name: 'EvaluationTable',
+  components: {PersonLookup},
   mixins: [Context],
   props: {
     evaluations: {
@@ -203,6 +229,7 @@ export default {
       {text: 'Course Start Date', value: 'startDate'},
       {text: 'Course End Date', value: 'endDate'}
     ],
+    pendingInstructor: null,
     selectedDepartmentForm: null,
     selectedEndDate: null,
     selectedEvaluationType: null,
@@ -211,13 +238,18 @@ export default {
   methods: {
     cancelEdit() {
       this.editRowId = null
+      this.pendingInstructor = null
       this.selectedDepartmentForm = null
       this.selectedEndDate = null
       this.selectedEvaluationType = null
       this.selectedStartDate = null
     },
+    clearPendingInstructor() {
+      this.pendingInstructor = null
+    },
     editEvaluation(evaluation) {
       this.editRowId = evaluation.id
+      this.pendingInstructor = evaluation.instructor
       this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
       this.selectedEndDate = evaluation.endDate
       this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
@@ -246,11 +278,15 @@ export default {
       const status = evaluation.status || 'unmarked'
       return this.filterTypes[status].enabled
     },
+    setPendingInstructor(instructor) {
+      this.pendingInstructor = instructor
+    },
     saveEvaluation(evaluation) {
       const fields = {
         'departmentFormId': this.selectedDepartmentForm,
         'endDate': this.selectedEndDate,
         'evaluationTypeId': this.selectedEvaluationType,
+        'instructorUid': this.pendingInstructor.uid,
         'startDate': this.selectedStartDate,
       }
       this.updateEvaluation(evaluation.id, fields)

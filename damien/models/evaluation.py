@@ -259,6 +259,8 @@ class Evaluation(Base):
             self.end_date = fields['endDate']
         if 'evaluationType' in fields:
             self.evaluation_type = fields['evaluationType']
+        if 'instructorUid' in fields:
+            self.instructor_uid = fields['instructorUid']
         if 'startDate' in fields:
             self.start_date = fields['startDate']
         if 'status' in fields:
