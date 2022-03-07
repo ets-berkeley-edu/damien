@@ -258,7 +258,6 @@ class Evaluation(Base):
         if saved_evaluation and saved_evaluation.department_form:
             self.department_form = saved_evaluation.department_form
         elif default_form:
-            # TODO Do not set if cross-listed
             self.department_form = default_form
 
     def set_evaluation_type(self, saved_evaluation, instructor, all_eval_types):

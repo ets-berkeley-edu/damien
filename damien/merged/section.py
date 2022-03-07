@@ -48,30 +48,11 @@ class Section:
         self.section_num = loch_rows[0].section_num
         self.course_title = loch_rows[0].course_title
 
-        self.cross_listed_with = None
-        self.room_shared_with = None
-        self.foreign_department_course = True
-        for r in loch_rows:
-            # Any row with a room-share or cross-listing notation applies to the whole section.
-            clw = getattr(r, 'cross_listed_with', None)
-            if clw and not self.cross_listed_with:
-                self.cross_listed_with = clw
-            rsw = getattr(r, 'room_shared_with', None)
-            if rsw and not self.room_shared_with:
-                self.room_shared_with = rsw
-            # But a section is treated as belonging to a foreign department only if all rows have the notation.
-            fdc = getattr(r, 'foreign_department_course', None)
-            if not fdc:
-                self.foreign_department_course = False
-
         self.instructors = instructors or {}
         self.merged_evaluations = []
 
-        default_form = None
-        for c in catalog_listings:
-            if c.subject_area in (self.subject_area, '') and (c.catalog_id is None or re.match(c.catalog_id, self.catalog_id)):
-                default_form = c.default_form
-                break
+        self.set_cross_listed_status(loch_rows)
+        self.set_default_form(catalog_listings)
 
         # Multiple loch rows for a single section-instructor pairing are possible.
         loch_rows_by_instructor_uid = {k: list(v) for k, v in groupby(loch_rows, key=lambda r: r['instructor_uid'])}
@@ -90,7 +71,7 @@ class Section:
                 loch_rows_for_uid,
                 evaluation,
                 self.instructors.get(evaluation.instructor_uid),
-                default_form=default_form,
+                default_form=self.default_form,
                 evaluation_type_cache=evaluation_type_cache,
             ))
 
@@ -107,7 +88,7 @@ class Section:
                 loch_rows_for_uid,
                 None,
                 self.instructors.get(instructor_uid),
-                default_form=default_form,
+                default_form=self.default_form,
                 evaluation_type_cache=evaluation_type_cache,
             ))
 
@@ -127,6 +108,32 @@ class Section:
             section = cls(loch_rows)
         if section:
             return section.to_api_json()
+
+    def set_cross_listed_status(self, loch_rows):
+        self.cross_listed_with = None
+        self.room_shared_with = None
+        self.foreign_department_course = True
+        for r in loch_rows:
+            # Any row with a room-share or cross-listing notation applies to the whole section.
+            clw = getattr(r, 'cross_listed_with', None)
+            if clw and not self.cross_listed_with:
+                self.cross_listed_with = clw
+            rsw = getattr(r, 'room_shared_with', None)
+            if rsw and not self.room_shared_with:
+                self.room_shared_with = rsw
+            # But a section is treated as belonging to a foreign department only if all rows have the notation.
+            fdc = getattr(r, 'foreign_department_course', None)
+            if not fdc:
+                self.foreign_department_course = False
+
+    def set_default_form(self, catalog_listings):
+        # Apply a default form value to courses not cross-listed or room shared.
+        self.default_form = None
+        if not self.cross_listed_with and not self.room_shared_with:
+            for c in catalog_listings:
+                if c.subject_area in (self.subject_area, '') and (c.catalog_id is None or re.match(c.catalog_id, self.catalog_id)):
+                    self.default_form = c.default_form
+                    break
 
     def to_api_json(self):
         feed = {
