@@ -119,12 +119,13 @@ def update_contact(department_id):
         can_view_reports = get_param(params, 'canViewReports')
         can_view_response_rates = get_param(params, 'canViewResponseRates')
         email = get_param(params, 'email')
-        first_name = get_param(params, 'firstName')
-        last_name = get_param(params, 'lastName')
+        uid = get_param(params, 'uid')
         user_id = get_param(params, 'userId')
-        if not _is_existing_user(user_id):
+        user = User.find_by_id(user_id) or User.find_by_uid(uid)
+        if not user:
             csid = get_param(params, 'csid')
-            uid = get_param(params, 'uid')
+            first_name = get_param(params, 'firstName')
+            last_name = get_param(params, 'lastName')
             user = User.create(
                 csid=csid,
                 uid=uid,
@@ -132,7 +133,6 @@ def update_contact(department_id):
                 first_name=first_name,
                 last_name=last_name,
             )
-            user_id = user.id
         blue_permissions = None
         if can_view_response_rates:
             blue_permissions = 'response_rates'
@@ -143,9 +143,7 @@ def update_contact(department_id):
             can_receive_communications=can_receive_communications,
             department_id=department_id,
             email=email,
-            first_name=first_name,
-            last_name=last_name,
-            user_id=user_id,
+            user_id=user.id,
         )
         return tolerant_jsonify(department_member.to_api_json())
     else:
@@ -226,7 +224,3 @@ def _validate_evaluation_fields(fields):  # noqa C901
         else:
             raise BadRequestError(f"Evaluation field '{k}' not recognized.")
     return validated_fields
-
-
-def _is_existing_user(user_id):
-    return user_id and User.find_by_id(user_id)

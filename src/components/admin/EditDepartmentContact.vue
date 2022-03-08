@@ -1,35 +1,22 @@
 <template>
-  <v-form class="pa-3">
+  <v-form
+    v-model="valid"
+    class="pa-3"
+    lazy-validation
+  >
     <div v-if="!contact">
       <label for="input-person-lookup-autocomplete" class="form-label">
         Person Lookup
       </label>
-      <PersonLookup class="my-1" :on-select-result="onSelectSearchResult" />
+      <PersonLookup
+        class="my-1"
+        :exclude-uids="$_.map(contacts, 'uid')"
+        :on-select-result="onSelectSearchResult"
+      />
     </div>
-    <label :for="`input-first-name-${contactId}`" class="form-label">
-      First Name
-    </label>
-    <v-text-field
-      :id="`input-first-name-${contactId}`"
-      v-model="firstName"
-      class="mt-1"
-      dense
-      :disabled="disableControls"
-      outlined
-      required
-    ></v-text-field>
-    <label :for="`input-last-name-${contactId}`" class="form-label">
-      Last Name
-    </label>
-    <v-text-field
-      :id="`input-lase-name-${contactId}`"
-      v-model="lastName"
-      class="mt-1"
-      dense
-      :disabled="disableControls"
-      outlined
-      required
-    ></v-text-field>
+    <div v-if="fullName" class="mb-4">
+      <strong>{{ fullName }}</strong>
+    </div>
     <label :for="`input-email-${contactId}`" class="form-label">
       Email Address
     </label>
@@ -41,6 +28,7 @@
       :disabled="disableControls"
       outlined
       required
+      :rules="emailRules"
     ></v-text-field>
     <legend :for="`checkbox-communications-${contactId}`" class="form-label">
       Communications
@@ -92,7 +80,7 @@
       :id="`save-dept-contact-${contactId}-btn`"
       class="text-capitalize mr-2"
       color="secondary"
-      :disabled="disableControls"
+      :disabled="disableControls || !valid || !uid"
       elevation="2"
       @click="onSave"
     >
@@ -141,15 +129,23 @@ export default {
     canReceiveCommunications: true,
     csid: undefined,
     email: undefined,
+    emailRules: [
+      v => !!v || 'E-mail is required',
+      v => /.+@.+\..+/.test(v) || 'E-mail must be valid',
+    ],
     firstName: undefined,
     lastName: undefined,
     permissions: undefined,
     uid: undefined,
-    userId: undefined
+    userId: undefined,
+    valid: true
   }),
   computed: {
     contactId() {
       return this.$_.get(this.contact, 'uid', 'add-contact')
+    },
+    fullName() {
+      return this.firstName && this.lastName ? `${this.firstName} ${this.lastName}`.trim() : ''
     }
   },
   created() {

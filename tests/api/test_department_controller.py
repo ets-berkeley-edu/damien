@@ -329,7 +329,7 @@ class TestUpdateDepartmentContact:
             'email': 'spooky@boo.edu',
             'firstName': 'Spooky',
             'lastName': 'Ghost',
-            'uid': 0,
+            'uid': '0',
         }
         _api_update_contact(client, params=params)
         std_commit(allow_test_environment=True)

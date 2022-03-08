@@ -31,7 +31,7 @@ from flask import current_app as app
 from sqlalchemy.sql import text
 
 
-def get_loch_basic_attributes(id_snippet, limit=20):
+def get_loch_basic_attributes(id_snippet, limit=20, exclude_uids=None):
     if os.environ.get('DAMIEN_ENV') == 'test':
         return []
     query = """SELECT * FROM dblink('{dblink_nessie_rds}',$NESSIE$
@@ -45,16 +45,25 @@ def get_loch_basic_attributes(id_snippet, limit=20):
                 last_name VARCHAR,
                 email VARCHAR
             )
-            WHERE uid ilike '{id_snippet}%'
-            OR csid ilike '{id_snippet}%'
-            LIMIT {limit};"""
+            WHERE TRUE
+            AND (uid ilike '{id_snippet}%'
+            OR csid ilike '{id_snippet}%')
+            """
+    params = {'limit': limit}
+    if exclude_uids:
+        params['uids'] = exclude_uids
+        query += ' AND NOT uid = ANY(:uids)'
+    query += ' LIMIT :limit;'
     resolved_ddl = resolve_sql_template_string(
         query,
         id_snippet=id_snippet,
-        limit=limit,
     )
+    app.logger.error(resolved_ddl)
     try:
-        results = db.session().execute(text(resolved_ddl)).all()
+        results = db.session().execute(
+            text(resolved_ddl),
+            params,
+        ).all()
         app.logger.info(f'Loch Ness basic attributes query returned {len(results)} results.')
         return results
     except Exception as e:

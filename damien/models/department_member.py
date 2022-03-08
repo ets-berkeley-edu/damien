@@ -78,8 +78,6 @@ class DepartmentMember(Base):
         can_receive_communications,
         department_id,
         email,
-        first_name,
-        last_name,
         user_id,
     ):
         department_member = cls.query.filter_by(department_id=department_id, user_id=user_id).first()
@@ -90,8 +88,6 @@ class DepartmentMember(Base):
         department_member.can_receive_communications = can_receive_communications
         department_member.user.blue_permissions = blue_permissions
         department_member.user.email = email
-        department_member.user.first_name = first_name
-        department_member.user.last_name = last_name
         std_commit()
         return department_member
 
