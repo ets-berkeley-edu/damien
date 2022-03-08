@@ -65,7 +65,7 @@
       </v-row>
     </v-container>
     <v-row>
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="4" class="mb-4">
         <v-select
           id="select-term"
           v-model="selectedCourseAction"
@@ -73,9 +73,32 @@
           item-value="value"
           :items="courseActions"
           label="Course Actions"
+          hide-details="auto"
           solo
         >
         </v-select>
+        <div v-if="selectedCourseAction === 'duplicate'" class="my-4">
+          <v-checkbox
+            v-model="bulkUpdateOptions.midtermFormEnabled"
+            hide-details="auto"
+            label="Use midterm department forms"
+          />
+          <div class="d-flex">
+            <v-checkbox
+              v-model="bulkUpdateOptions.endDateEnabled"
+              label="Set end date:"
+              hide-details="auto"
+            />
+            <v-text-field
+              v-model="bulkUpdateOptions.endDate"
+              class="pl-3"
+              type="date"
+              hide-details="auto"
+              :disabled="!bulkUpdateOptions.endDateEnabled"
+              solo
+            />
+          </div>
+        </div>
       </v-col>
       <v-col cols="12" md="4">
         <v-btn @click="applyCourseAction">
@@ -125,6 +148,11 @@ export default {
   mixins: [Context, DepartmentEditSession],
   data: () => ({
     availableTerms: undefined,
+    bulkUpdateOptions: {
+      endDate: null,
+      endDateEnabled: false,
+      midtermFormEnabled: false
+    },
     courseActions: [
       {'text': 'Mark for review', 'value': 'mark'},
       {'text': 'Mark as confirmed', 'value': 'confirm'},
@@ -165,7 +193,22 @@ export default {
       this.$putFocusNextTick('add-dept-contact-btn')
     },
     applyCourseAction() {
-      updateEvaluations(this.department.id, this.selectedCourseAction, this.selectedEvaluationIds).then(this.refresh)
+      let fields = null
+      if (this.selectedCourseAction === 'duplicate') {
+        fields = {}
+        if (this.bulkUpdateOptions.midtermFormEnabled) {
+          fields.midterm = 'true'
+        }
+        if (this.bulkUpdateOptions.endDateEnabled) {
+          fields.endDate = this.bulkUpdateOptions.endDate
+        }
+      }
+      updateEvaluations(
+        this.department.id,
+        this.selectedCourseAction,
+        this.selectedEvaluationIds,
+        fields
+      ).then(this.refresh)
     },
     cancelAddSection() {
       this.isAddingSection = false

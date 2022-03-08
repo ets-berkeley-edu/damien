@@ -30,6 +30,7 @@ from damien.lib.util import safe_strftime
 from damien.models.base import Base
 from damien.models.department_form import DepartmentForm
 from damien.models.evaluation_type import EvaluationType
+from flask import current_app as app
 from flask_login import current_user
 from sqlalchemy.dialects.postgresql import ENUM
 
@@ -194,7 +195,11 @@ class Evaluation(Base):
         return evaluation
 
     @classmethod
-    def duplicate_bulk(cls, evaluation_ids):
+    def duplicate_bulk(cls, evaluation_ids, department, fields=None):
+        original_feed = []
+        if fields:
+            original_feed = department.evaluations_feed(app.config['CURRENT_TERM_ID'], evaluation_ids)
+
         evaluations = []
         for evaluation_id in evaluation_ids:
             evaluation = cls.from_id(evaluation_id)
@@ -202,6 +207,10 @@ class Evaluation(Base):
                 continue
 
             duplicate = evaluation.duplicate()
+            if fields:
+                original_evaluation_feed = next((f for f in original_feed if f['id'] == evaluation_id), None)
+                duplicate.set_fields(fields, original_evaluation_feed)
+
             duplicate.created_by = current_user.get_uid()
             duplicate.updated_by = current_user.get_uid()
 
@@ -218,19 +227,8 @@ class Evaluation(Base):
             evaluation = cls.from_id(evaluation_id)
             if not evaluation:
                 continue
-            if 'departmentForm' in fields:
-                evaluation.department_form = fields['departmentForm']
-            if 'endDate' in fields:
-                evaluation.end_date = fields['endDate']
-            if 'evaluationType' in fields:
-                evaluation.evaluation_type = fields['evaluationType']
-            if 'startDate' in fields:
-                evaluation.start_date = fields['startDate']
-            if 'status' in fields:
-                evaluation.status = fields['status']
-
+            evaluation.set_fields(fields)
             evaluation.updated_by = current_user.get_uid()
-
             db.session.add(evaluation)
             evaluations.append(evaluation)
         std_commit()
@@ -253,6 +251,23 @@ class Evaluation(Base):
             start_date=self.start_date,
             end_date=self.end_date,
         )
+
+    def set_fields(self, fields, original_evaluation_feed=None):
+        if 'departmentForm' in fields:
+            self.department_form = fields['departmentForm']
+        if 'endDate' in fields:
+            self.end_date = fields['endDate']
+        if 'evaluationType' in fields:
+            self.evaluation_type = fields['evaluationType']
+        if 'startDate' in fields:
+            self.start_date = fields['startDate']
+        if 'status' in fields:
+            self.status = fields['status']
+        if fields.get('midterm'):
+            if original_evaluation_feed and original_evaluation_feed.get('departmentForm'):
+                midterm_form = DepartmentForm.find_by_name(original_evaluation_feed['departmentForm']['name'] + '_MID')
+                if midterm_form:
+                    self.department_form = midterm_form
 
     def set_department_form(self, saved_evaluation, default_form):
         if saved_evaluation and saved_evaluation.department_form:
