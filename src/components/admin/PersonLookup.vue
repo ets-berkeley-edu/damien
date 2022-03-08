@@ -21,6 +21,11 @@ import {searchUsers} from '@/api/user'
 export default {
   name: 'PersonLookup',
   props: {
+    excludeUids: {
+      default: () => [],
+      required: false,
+      type: Array
+    },
     id: {
       default: 'input-person-lookup-autocomplete',
       required: false,
@@ -42,7 +47,7 @@ export default {
     search(snippet) {
       if (snippet) {
         this.isSearching = true
-        searchUsers(snippet).then(results => {
+        searchUsers(snippet, this.excludeUids).then(results => {
           this.suggestions = this.$_.map(results, this.suggest)
           this.isSearching = false
         })
@@ -58,10 +63,8 @@ export default {
   },
   methods: {
     suggest(user) {
-      let label = `${user.firstName} ${user.lastName} (${user.uid}`
-      label += user.csid ? ` ${user.csid})` : ')'
       return {
-        text: label,
+        text: `${user.firstName} ${user.lastName} (${user.uid})`,
         value: user
       }
     }

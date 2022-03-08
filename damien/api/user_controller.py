@@ -42,11 +42,13 @@ def my_profile():
 def search():
     params = request.get_json()
     snippet = get_param(params, 'snippet').strip()
-    users = User.search(snippet)
+    exclude_uids = get_param(params, 'excludeUids', [])
+    users = User.search(snippet, exclude_uids)
+    exclude_uids += [str(u.uid) for u in users]
     calnet_results = []
     if len(users) < 20:
-        calnet_results = get_loch_basic_attributes(snippet, limit=(20 - len(users)))
-    results = [u.to_api_json() for u in users] + [_to_api_json(u) for u in calnet_results]
+        calnet_results = get_loch_basic_attributes(snippet, limit=(20 - len(users)), exclude_uids=exclude_uids)
+    results = [u.to_api_json() for u in users] + [_to_api_json(u) for u in calnet_results or []]
     results.sort(key=lambda x: x['firstName'])
     return tolerant_jsonify(results)
 
