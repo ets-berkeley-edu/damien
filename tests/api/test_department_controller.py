@@ -465,6 +465,34 @@ class TestDuplicateEvaluation:
             assert r['transientId'] == '_2222_30659_637739'
             assert r['id'] == int(r['id'])
 
+    def test_duplicate_for_midterm(self, client, fake_auth):
+        from tests.api.test_department_form_controller import _api_add_department_form
+        fake_auth.login(admin_uid)
+        _api_add_department_form(client, 'CUNEIF_MID')
+
+        fake_auth.login(non_admin_uid)
+        response = _api_update_evaluation(
+            client,
+            params={
+                'evaluationIds': ['_2222_30659_637739'],
+                'action': 'duplicate',
+                'fields': {'midterm': 'true', 'endDate': '2022-03-01'},
+            },
+        )
+        assert len(response) == 2
+
+        midterm_eval = next(r for r in response if r['endDate'] == '2022-03-01')
+        assert midterm_eval['courseNumber'] == '30659'
+        assert midterm_eval['courseTitle'] == 'Elementary Sumerian'
+        assert midterm_eval['instructor']['uid'] == '637739'
+        assert midterm_eval['departmentForm']['name'] == 'CUNEIF_MID'
+
+        final_eval = next(r for r in response if r['endDate'] == '2022-05-06')
+        assert final_eval['courseNumber'] == '30659'
+        assert final_eval['courseTitle'] == 'Elementary Sumerian'
+        assert final_eval['instructor']['uid'] == '637739'
+        assert final_eval['departmentForm']['name'] == 'CUNEIF'
+
 
 class TestEditEvaluation:
 

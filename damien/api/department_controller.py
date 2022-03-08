@@ -169,11 +169,13 @@ def update_evaluations(department_id):
     elif action == 'delete':
         updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': 'deleted'})
     elif action == 'duplicate':
-        updated_ids = Evaluation.duplicate_bulk(evaluation_ids=evaluation_ids)
+        fields = None
+        if params.get('fields'):
+            fields = _validate_evaluation_fields(params.get('fields'))
+        updated_ids = Evaluation.duplicate_bulk(evaluation_ids=evaluation_ids, department=department, fields=fields)
     elif action == 'edit':
-        fields = params.get('fields')
-        validated_fields = _validate_evaluation_fields(fields)
-        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields=validated_fields)
+        fields = _validate_evaluation_fields(params.get('fields'))
+        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields=fields)
     elif action == 'mark':
         updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': 'marked'})
     elif action == 'ignore':
@@ -214,6 +216,13 @@ def _validate_evaluation_fields(fields):  # noqa C901
                 validated_fields[k] = date.fromisoformat(v)
             except ValueError:
                 raise BadRequestError(f'Invalid date format {v}.')
+        elif k == 'midterm':
+            if v == 'true':
+                validated_fields[k] = True
+            elif v == 'false':
+                validated_fields[k] = False
+            else:
+                raise BadRequestError(f'Invalid midterm value {v}')
         else:
             raise BadRequestError(f"Evaluation field '{k}' not recognized.")
     return validated_fields
