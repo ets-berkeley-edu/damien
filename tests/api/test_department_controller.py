@@ -560,6 +560,30 @@ class TestEditEvaluation:
         assert response[0]['transientId'] == '_2222_30659_637739'
         assert response[0]['evaluationType']['id'] == 3
 
+    def test_bad_instructor_uid(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'action': 'edit',
+            'fields': {'instructorUid': 'Not A. Number III'},
+        }, expected_status_code=400)
+
+    def test_edit_instructor_uid(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        response = _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'action': 'edit',
+            'fields': {'instructorUid': '434444'},
+        })
+        assert len(response) == 1
+        assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['transientId'] == '_2222_30659_434444'
+        assert response[0]['instructor']['uid'] == '434444'
+        assert response[0]['instructor']['sisId'] == '6526140'
+        assert response[0]['instructor']['firstName'] == 'Lxqtbhzei'
+        assert response[0]['instructor']['lastName'] == 'Ybaehymnl'
+        assert response[0]['instructor']['emailAddress'] == 'puejolbi@berkeley.edu'
+
     def test_bad_date(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         _api_update_evaluation(client, params={

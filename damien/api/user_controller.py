@@ -25,11 +25,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien.api.util import admin_required
 from damien.lib.http import tolerant_jsonify
-from damien.lib.queries import get_loch_basic_attributes
+from damien.lib.queries import get_loch_basic_attributes, get_loch_instructors_for_snippet
 from damien.lib.util import get as get_param
 from damien.models.user import User
 from flask import current_app as app, request
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 
 @app.route('/api/user/my_profile')
@@ -49,6 +49,21 @@ def search():
     if len(users) < 20:
         calnet_results = get_loch_basic_attributes(snippet, limit=(20 - len(users)), exclude_uids=exclude_uids)
     results = [u.to_api_json() for u in users] + [_to_api_json(u) for u in calnet_results or []]
+    results.sort(key=lambda x: x['firstName'])
+    return tolerant_jsonify(results)
+
+
+@app.route('/api/user/search_instructors', methods=['POST'])
+@login_required
+def search_instructors():
+    params = request.get_json()
+    snippet = get_param(params, 'snippet').strip()
+    exclude_uids = get_param(params, 'excludeUids', [])
+    instructors = get_loch_instructors_for_snippet(snippet, exclude_uids)
+    exclude_uids += [str(i['uid']) for i in instructors]
+    if len(instructors) < 20:
+        instructors.extend(get_loch_basic_attributes(snippet, limit=(20 - len(instructors)), exclude_uids=exclude_uids))
+    results = [_to_api_json(i) for i in instructors]
     results.sort(key=lambda x: x['firstName'])
     return tolerant_jsonify(results)
 

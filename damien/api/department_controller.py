@@ -214,6 +214,11 @@ def _validate_evaluation_fields(fields):  # noqa C901
                 validated_fields[k] = date.fromisoformat(v)
             except ValueError:
                 raise BadRequestError(f'Invalid date format {v}.')
+        elif k == 'instructorUid':
+            try:
+                validated_fields['instructorUid'] = str(int(v))
+            except ValueError:
+                raise BadRequestError(f'Invalid instructor UID {v}.')
         elif k == 'midterm':
             if v == 'true':
                 validated_fields[k] = True

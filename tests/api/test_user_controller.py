@@ -59,6 +59,16 @@ def _api_search(client, snippet='123', expected_status_code=200):
     return response.json
 
 
+def _api_search_instructors(client, snippet='123', expected_status_code=200):
+    response = client.post(
+        '/api/user/search_instructors',
+        data=json.dumps({'snippet': snippet}),
+        content_type='application/json',
+    )
+    assert response.status_code == expected_status_code
+    return response.json
+
+
 class TestSearch:
 
     def test_anonymous(self, client):
@@ -76,3 +86,17 @@ class TestSearch:
         results = _api_search(client, snippet='500')
         assert '400400500' in [r['csid'] for r in results]
         assert '500' in [r['uid'] for r in results]
+
+
+class TestSearchInstructors:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_search_instructors(client, expected_status_code=401)
+
+    def test_authenticated(self, client, fake_auth):
+        """Returns authenticated user profile."""
+        fake_auth.login(non_admin_uid)
+        results = _api_search_instructors(client, snippet='713')
+        assert '6856470' in [r['csid'] for r in results]
+        assert '713836' in [r['uid'] for r in results]

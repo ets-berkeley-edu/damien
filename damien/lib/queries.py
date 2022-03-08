@@ -46,25 +46,21 @@ def get_loch_basic_attributes(id_snippet, limit=20, exclude_uids=None):
                 email VARCHAR
             )
             WHERE TRUE
-            AND (uid ilike '{id_snippet}%'
-            OR csid ilike '{id_snippet}%')
+            AND (uid ilike :id_snippet
+            OR csid ilike :id_snippet)
             """
-    params = {'limit': limit}
+    params = {'id_snippet': f'{id_snippet}%', 'limit': limit}
     if exclude_uids:
         params['uids'] = exclude_uids
         query += ' AND NOT uid = ANY(:uids)'
     query += ' LIMIT :limit;'
-    resolved_ddl = resolve_sql_template_string(
-        query,
-        id_snippet=id_snippet,
-    )
-    app.logger.error(resolved_ddl)
+    resolved_ddl = resolve_sql_template_string(query)
     try:
         results = db.session().execute(
             text(resolved_ddl),
             params,
         ).all()
-        app.logger.info(f'Loch Ness basic attributes query returned {len(results)} results.')
+        app.logger.info(f'Loch Ness basic attributes query returned {len(results)} results (snippet={id_snippet}).')
         return results
     except Exception as e:
         app.logger.exception(e)
@@ -121,6 +117,18 @@ def get_loch_instructors(uids):
     ).all()
     app.logger.info(f'Unholy loch instructor query returned {len(results)} results for {len(uids)} uids')
     return results
+
+
+def get_loch_instructors_for_snippet(snippet, exclude_uids):
+    query = """SELECT ldap_uid AS uid, sis_id AS csid, first_name, last_name, email_address AS email
+            FROM unholy_loch.sis_instructors i
+            WHERE (ldap_uid LIKE :snippet OR sis_id LIKE :snippet)"""
+    params = {'snippet': f'{snippet}%'}
+    if exclude_uids:
+        query += ' AND ldap_uid NOT IN :exclude_uids'
+        params['exclude_uids'] = exclude_uids
+    query += ' LIMIT 20'
+    return db.session().execute(text(query), params).all()
 
 
 def get_loch_sections(term_id, conditions):
