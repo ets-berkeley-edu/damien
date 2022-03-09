@@ -30,28 +30,9 @@ admin_uid = '200'
 non_admin_uid = '100'
 
 
-def _api_my_profile(client, expected_status_code=200):
-    response = client.get('/api/user/my_profile')
-    assert response.status_code == expected_status_code
-    return response.json
-
-
-class TestMyProfile:
-
-    def test_anonymous(self, client):
-        """Returns a well-formed response to anonymous user."""
-        _api_my_profile(client)
-
-    def test_authenticated(self, client, fake_auth):
-        """Returns authenticated user profile."""
-        fake_auth.login(non_admin_uid)
-        api_json = _api_my_profile(client)
-        assert api_json['uid'] == non_admin_uid
-
-
-def _api_search(client, snippet='123', expected_status_code=200):
+def _api_search_instructors(client, snippet='123', expected_status_code=200):
     response = client.post(
-        '/api/user/search',
+        '/api/instructor/search',
         data=json.dumps({'snippet': snippet}),
         content_type='application/json',
     )
@@ -59,20 +40,28 @@ def _api_search(client, snippet='123', expected_status_code=200):
     return response.json
 
 
-class TestSearch:
+class TestSearchInstructors:
 
     def test_anonymous(self, client):
         """Denies anonymous user."""
-        _api_search(client, expected_status_code=401)
+        _api_search_instructors(client, expected_status_code=401)
 
-    def test_unauthorized(self, client, fake_auth):
-        """Denies unauthorized user."""
+    def test_search_by_uid(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
-        _api_search(client, expected_status_code=401)
+        results = _api_search_instructors(client, snippet='713')
+        assert len(results) == 1
+        assert results[0]['uid'] == '713836'
+        assert results[0]['csid'] == '6856470'
+        assert results[0]['firstName'] == 'Mlskagctr'
+        assert results[0]['lastName'] == 'Wondwzckm'
+        assert results[0]['email'] == 'wdjmytek@berkeley.edu'
 
-    def test_authenticated(self, client, fake_auth):
-        """Returns authenticated user profile."""
-        fake_auth.login(admin_uid)
-        results = _api_search(client, snippet='500')
-        assert '400400500' in [r['csid'] for r in results]
-        assert '500' in [r['uid'] for r in results]
+    def test_search_by_name(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        results = _api_search_instructors(client, snippet='Mlskagctr Wo')
+        assert len(results) == 1
+        assert results[0]['uid'] == '713836'
+        assert results[0]['csid'] == '6856470'
+        assert results[0]['firstName'] == 'Mlskagctr'
+        assert results[0]['lastName'] == 'Wondwzckm'
+        assert results[0]['email'] == 'wdjmytek@berkeley.edu'

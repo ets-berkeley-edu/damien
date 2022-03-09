@@ -197,6 +197,22 @@ CREATE INDEX evaluations_instructor_uid_idx ON evaluations USING btree (instruct
 
 --
 
+CREATE TABLE supplemental_instructors (
+    ldap_uid VARCHAR(80) NOT NULL,
+    sis_id VARCHAR(80),
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    email_address VARCHAR(255),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    deleted_at timestamp with time zone
+);
+
+ALTER TABLE ONLY supplemental_instructors
+    ADD CONSTRAINT supplemental_instructors_pkey PRIMARY KEY (ldap_uid);
+
+--
+
 CREATE TABLE supplemental_sections (
     id integer NOT NULL,
     term_id VARCHAR(4) NOT NULL,
