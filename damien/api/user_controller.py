@@ -25,7 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien.api.util import admin_required
 from damien.lib.http import tolerant_jsonify
-from damien.lib.queries import get_loch_basic_attributes, get_loch_instructors_for_snippet
+from damien.lib.queries import get_loch_basic_attributes, get_loch_basic_attributes_by_uid_or_name, get_loch_instructors_for_snippet
 from damien.lib.util import get as get_param
 from damien.models.user import User
 from flask import current_app as app, request
@@ -58,11 +58,10 @@ def search():
 def search_instructors():
     params = request.get_json()
     snippet = get_param(params, 'snippet').strip()
-    exclude_uids = get_param(params, 'excludeUids', [])
-    instructors = get_loch_instructors_for_snippet(snippet, exclude_uids)
-    exclude_uids += [str(i['uid']) for i in instructors]
+    instructors = get_loch_instructors_for_snippet(snippet)
+    exclude_uids = [str(i['uid']) for i in instructors]
     if len(instructors) < 20:
-        instructors.extend(get_loch_basic_attributes(snippet, limit=(20 - len(instructors)), exclude_uids=exclude_uids))
+        instructors.extend(get_loch_basic_attributes_by_uid_or_name(snippet, limit=(20 - len(instructors)), exclude_uids=exclude_uids))
     results = [_to_api_json(i) for i in instructors]
     results.sort(key=lambda x: x['firstName'])
     return tolerant_jsonify(results)

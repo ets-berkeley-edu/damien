@@ -94,9 +94,22 @@ class TestSearchInstructors:
         """Denies anonymous user."""
         _api_search_instructors(client, expected_status_code=401)
 
-    def test_authenticated(self, client, fake_auth):
-        """Returns authenticated user profile."""
+    def test_search_by_uid(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         results = _api_search_instructors(client, snippet='713')
-        assert '6856470' in [r['csid'] for r in results]
-        assert '713836' in [r['uid'] for r in results]
+        assert len(results) == 1
+        assert results[0]['uid'] == '713836'
+        assert results[0]['csid'] == '6856470'
+        assert results[0]['firstName'] == 'Mlskagctr'
+        assert results[0]['lastName'] == 'Wondwzckm'
+        assert results[0]['email'] == 'wdjmytek@berkeley.edu'
+
+    def test_search_by_name(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        results = _api_search_instructors(client, snippet='Mlskagctr Wo')
+        assert len(results) == 1
+        assert results[0]['uid'] == '713836'
+        assert results[0]['csid'] == '6856470'
+        assert results[0]['firstName'] == 'Mlskagctr'
+        assert results[0]['lastName'] == 'Wondwzckm'
+        assert results[0]['email'] == 'wdjmytek@berkeley.edu'
