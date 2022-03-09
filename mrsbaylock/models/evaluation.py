@@ -42,6 +42,14 @@ class Evaluation(object):
         return self.data['ccn']
 
     @property
+    def x_listing_ccns(self):
+        return self.data['x_listing_ccns']
+
+    @property
+    def room_share_ccns(self):
+        return self.data['room_share_ccns']
+
+    @property
     def uid(self):
         return self.data['uid']
 

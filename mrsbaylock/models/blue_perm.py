@@ -23,37 +23,23 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import enum
 
-class Department(object):
 
-    def __init__(self, data, notes=None):
-        self.data = data
-        self.notes = notes
+class BluePerm(enum.Enum):
 
-    @property
-    def dept_id(self):
-        return self.data['dept_id']
-
-    @property
-    def name(self):
-        return self.data['name']
-
-    @property
-    def participating(self):
-        return self.data['participating']
-
-    @property
-    def users(self):
-        return self.data['users']
-
-    @users.setter
-    def users(self, value):
-        self.data['users'] = value
-
-    @property
-    def evaluations(self):
-        return self.data['evaluations']
-
-    @evaluations.setter
-    def evaluations(self, value):
-        self.data['evaluations'] = value
+    NO_BLUE = {
+        'radio': 'No access to Blue',
+        'lists': 'No Blue access',
+        'description': 'Does not have access to Blue',
+    }
+    BLUE_REPORTS = {
+        'radio': 'View reports',
+        'lists': 'Reports',
+        'description': 'Can view reports in Blue',
+    }
+    BLUE_REPORTS_RESPONSES = {
+        'radio': 'View reports and response rates',
+        'lists': 'Reports and response rates',
+        'description': 'Can view reports and response rates in Blue',
+    }

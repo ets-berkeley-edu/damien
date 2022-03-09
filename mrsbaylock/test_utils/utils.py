@@ -22,14 +22,21 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
 ENHANCEMENTS, OR MODIFICATIONS.
 """
+
+from datetime import datetime
+import itertools
 import re
 
 from damien import db, std_commit
 from flask import current_app as app
 from mrsbaylock.models.department import Department
+from mrsbaylock.models.department_note import DepartmentNote
 from mrsbaylock.models.evaluation import Evaluation
+from mrsbaylock.models.term import Term
 from mrsbaylock.models.user import User
+from mrsbaylock.models.user_dept_role import UserDeptRole
 from sqlalchemy import text
+from sqlalchemy.exc import NoSuchColumnError
 
 
 def get_browser():
@@ -68,30 +75,113 @@ def get_admin_password():
     return app.config['ADMIN_PASSWORD']
 
 
+def get_test_dept_contact_uid():
+    return app.config['TEST_DEPT_CONTACT_UID']
+
+
+def get_test_email_account():
+    return app.config['TEST_EMAIL']
+
+
 def default_download_dir():
     return f'{app.config["BASE_DIR"]}/mrsbaylock/downloads'
+
+
+def get_current_term():
+    return Term(
+        term_id=app.config['CURRENT_TERM_ID'],
+        name=app.config['CURRENT_TERM_NAME'],
+        start_date=datetime.strptime(app.config['CURRENT_TERM_BEGIN'], '%Y-%m-%d'),
+        end_date=datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d'),
+    )
 
 
 # DATABASE - USERS
 
 
-def get_user(uid):
-    sql = f"SELECT * FROM users WHERE uid = '{uid}'"
+def get_all_users():
+    sql = """SELECT users.id,
+                    users.uid,
+                    users.csid,
+                    users.first_name,
+                    users.last_name,
+                    users.email,
+                    users.blue_permissions,
+                    department_members.department_id,
+                    department_members.can_receive_communications
+               FROM users
+          LEFT JOIN department_members ON department_members.user_id = users.id
+          LEFT JOIN departments ON departments.id = department_members.department_id
+    """
     app.logger.info(sql)
-    result = db.session.execute(text(sql)).first()
+    results = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
-    app.logger.info(f'{result}')
-    data = {
-        'uid': uid,
-        'csid': result['csid'],
-        'first_name': result['first_name'],
-        'last_name': result['last_name'],
-        'email': result['email'],
-        'is_admin': result['is_admin'],
-        'receives_comms': result['can_receive_communications'],
-        'views_response_rates': result['can_view_response_rates'],
-    }
-    return User(data)
+    users_data = []
+    for row in results:
+        data = {
+            'uid': row['uid'],
+            'csid': row['csid'],
+            'first_name': row['first_name'],
+            'last_name': row['last_name'],
+            'email': row['email'],
+            'blue_permissions': row['blue_permissions'],
+            'dept_id': row['department_id'],
+            'receives_comms': row['can_receive_communications'],
+        }
+        users_data.append(data)
+    users = []
+    key = lambda x: x['uid']
+    grouped = itertools.groupby(users_data, key)
+    for k, g in grouped:
+        grp = list(g)
+        data = {
+            'uid': grp[0]['uid'],
+            'csid': grp[0]['csid'],
+            'first_name': grp[0]['first_name'],
+            'last_name': grp[0]['last_name'],
+            'email': grp[0]['email'],
+            'blue_permissions': grp[0]['blue_permissions'],
+        }
+        dept_roles = []
+        for i in grp:
+            role = UserDeptRole(dept_id=i['dept_id'], receives_comms=i['receives_comms'])
+            dept_roles.append(role)
+        user = User(data, dept_roles)
+        users.append(user)
+    return users
+
+
+def get_user(uid):
+    users = get_all_users()
+    for u in users:
+        if u.uid == uid:
+            user = u
+    return user
+
+
+def get_dept_users(dept, all_users=None):
+    dept_users = []
+    users = all_users or get_all_users()
+    for u in users:
+        for r in u.dept_roles:
+            if r.dept_id == dept.dept_id:
+                dept_users.append(u)
+    return dept_users
+
+
+def get_user_dept_role(user, dept):
+    for role in user.dept_roles:
+        if role.dept_id == dept.dept_id:
+            return role
+
+
+def get_test_user():
+    return User({
+        'uid': app.config['TEST_DEPT_CONTACT_UID'],
+        'first_name': app.config['TEST_DEPT_CONTACT_FIRST_NAME'],
+        'last_name': app.config['TEST_DEPT_CONTACT_LAST_NAME'],
+        'email': app.config['TEST_DEPT_CONTACT_EMAIL'],
+    })
 
 
 def create_admin_user(user):
@@ -141,7 +231,7 @@ def get_participating_depts():
     std_commit(allow_test_environment=True)
     for row in result:
         data = {
-            'id': row['id'],
+            'dept_id': row['id'],
             'name': row['dept_name'],
             'participating': True,
         }
@@ -149,66 +239,58 @@ def get_participating_depts():
     return depts
 
 
-def get_dept_users(dept):
-    sql = f"""
-        SELECT users.id,
-               users.uid,
-               users.csid,
-               users.first_name,
-               users.last_name,
-               users.email,
-               users.can_receive_communications,
-               users.can_view_response_rates
-          FROM users
-          JOIN department_members ON department_members.user_id = users.id
-          JOIN departments ON departments.id = department_members.department_id
-         WHERE departments.id = '{dept.dept_id}';
-    """
-    app.logger.info(sql)
-    users = []
-    result = db.session.execute(text(sql))
-    std_commit(allow_test_environment=True)
-    for row in result:
-        user_data = {
-            'id': row['id'],
-            'uid': row['uid'],
-            'csid': row['csid'],
-            'first_name': row['first_name'],
-            'last_name': row['last_name'],
-            'email': row['email'],
-            'receives_comms': row['can_receive_communications'],
-            'views_response_rates': row['can_view_response_rates'],
-        }
-        user = User(user_data)
-        users.append(user)
-    return users
-
-
 def get_dept(name):
     sql = f"""
-        SELECT id,
-               is_enrolled,
-               note
+        SELECT departments.id AS dept_id,
+               departments.is_enrolled,
+               department_notes.term_id,
+               department_notes.note
           FROM departments
-         WHERE dept_name = '{name}';
+     LEFT JOIN department_notes
+            ON departments.id = department_notes.department_id
+         WHERE departments.dept_name = '{name}';
     """
     app.logger.info(sql)
-    result = db.session.execute(text(sql)).first()
+    result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     app.logger.info(result)
-    dept_data = {
-        'id': result['id'],
-        'name': name,
-        'participating': result['is_enrolled'],
-        'note': result['note'],
-    }
-    dept = Department(dept_data)
+    dept_terms_data = []
+    for row in result:
+        term_data = {
+            'dept_id': row['dept_id'],
+            'participating': row['is_enrolled'],
+            'term_id': row['term_id'],
+            'note': row['note'],
+        }
+        dept_terms_data.append(term_data)
+    key = lambda x: x['dept_id']
+    grouped = itertools.groupby(dept_terms_data, key)
+    for k, g in grouped:
+        grp = list(g)
+        dept_data = {
+            'dept_id': grp[0]['dept_id'],
+            'name': name,
+            'participating': grp[0]['participating'],
+        }
+        notes = []
+        for i in grp:
+            note = DepartmentNote(term_id=i['term_id'], note=i['note'])
+            notes.append(note)
+    dept = Department(dept_data, notes)
+    app.logger.info(f'Department object: {vars(dept)}')
+    for n in dept.notes:
+        app.logger.info(f'Department note: {vars(n)}')
     dept.users = get_dept_users(dept)
     return dept
 
 
-def delete_dept_note(dept):
-    sql = f'UPDATE departments SET note = NULL WHERE id = {dept.dept_id};'
+def delete_dept_note(term, dept):
+    sql = f"""
+        UPDATE department_notes
+           SET note = NULL
+         WHERE department_id = {dept.dept_id}
+           AND term_id = '{term.term_id}';
+    """
     app.logger.info(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
@@ -244,29 +326,47 @@ def get_evaluations(term, dept):
 
     clause = '' if '' in dept_subjects else ' AND unholy_loch.sis_sections.subject_area = department_catalog_listings.subject_area'
     sql = f"""
-        SELECT DISTINCT unholy_loch.sis_sections.course_number AS ccn,
-                        unholy_loch.sis_sections.subject_area AS subject,
-                        unholy_loch.sis_sections.catalog_id AS catalog_id,
-                        unholy_loch.sis_sections.instruction_format AS instruction_format,
-                        unholy_loch.sis_sections.instructor_uid AS uid,
-                        unholy_loch.sis_sections.instructor_role_code AS instructor_role,
-                        unholy_loch.sis_sections.meeting_start_date AS start_date,
-                        unholy_loch.sis_sections.meeting_end_date AS end_date,
-                        department_forms.name AS dept_form
-                   FROM departments
-                   JOIN unholy_loch.sis_sections
-                     ON unholy_loch.sis_sections.subject_area IN ({subject_str[:-2]})
-                   JOIN department_catalog_listings
-                     ON department_catalog_listings.department_id = departments.id{clause}
-                   JOIN department_forms
-                     ON department_forms.id = department_catalog_listings.default_form_id
-                  WHERE departments.id = '{dept.dept_id}'
-                    AND unholy_loch.sis_sections.term_id = '{term.id}'
-                    AND unholy_loch.sis_sections.enrollment_count > 0
-                    AND (unholy_loch.sis_sections.instructor_role_code IS NULL
-                     OR unholy_loch.sis_sections.instructor_role_code !='ICNT')
-                    AND	unholy_loch.sis_sections.instruction_format NOT IN ('CLC', 'GRP', 'IND', 'SUP', 'VOL');
-        """
+        SELECT unholy_loch.sis_sections.course_number AS ccn,
+               ARRAY_TO_STRING(ARRAY_AGG(DISTINCT unholy_loch.cross_listings.cross_listing_number), ',') AS listings,
+               ARRAY_TO_STRING(ARRAY_AGG(DISTINCT unholy_loch.co_schedulings.room_share_number), ',') AS shares,
+               unholy_loch.sis_sections.subject_area AS subject,
+               unholy_loch.sis_sections.catalog_id AS catalog_id,
+               unholy_loch.sis_sections.instruction_format AS instruction_format,
+               unholy_loch.sis_sections.instructor_uid AS uid,
+               unholy_loch.sis_sections.instructor_role_code AS instructor_role,
+               unholy_loch.sis_sections.meeting_start_date AS start_date,
+               unholy_loch.sis_sections.meeting_end_date AS end_date,
+               department_forms.name AS dept_form
+          FROM departments
+          JOIN unholy_loch.sis_sections
+            ON unholy_loch.sis_sections.subject_area IN ({subject_str[:-2]})
+          JOIN department_catalog_listings
+            ON department_catalog_listings.department_id = departments.id{clause}
+          JOIN department_forms
+            ON department_forms.id = department_catalog_listings.default_form_id
+     LEFT JOIN unholy_loch.cross_listings
+            ON unholy_loch.cross_listings.course_number = unholy_loch.sis_sections.course_number
+           AND unholy_loch.cross_listings.term_id = unholy_loch.sis_sections.term_id
+     LEFT JOIN unholy_loch.co_schedulings
+            ON unholy_loch.co_schedulings.course_number = unholy_loch.sis_sections.course_number
+           AND unholy_loch.co_schedulings.term_id = unholy_loch.sis_sections.term_id
+         WHERE departments.id = '{dept.dept_id}'
+           AND unholy_loch.sis_sections.term_id = '{term.term_id}'
+           AND unholy_loch.sis_sections.enrollment_count > 0
+           AND (unholy_loch.sis_sections.instructor_role_code IS NULL
+            OR unholy_loch.sis_sections.instructor_role_code !='ICNT')
+           AND unholy_loch.sis_sections.instruction_format NOT IN ('CLC', 'GRP', 'IND', 'SUP', 'VOL')
+      GROUP BY unholy_loch.sis_sections.course_number,
+               unholy_loch.sis_sections.subject_area,
+               unholy_loch.sis_sections.catalog_id,
+               unholy_loch.sis_sections.instruction_format,
+               unholy_loch.sis_sections.instructor_uid,
+               unholy_loch.sis_sections.instructor_role_code,
+               unholy_loch.sis_sections.enrollment_count,
+               unholy_loch.sis_sections.meeting_start_date,
+               unholy_loch.sis_sections.meeting_end_date,
+               department_forms.name;
+    """
     app.logger.info(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
@@ -293,16 +393,30 @@ def get_evaluations(term, dept):
         for i in evals_to_exclude:
             if i in evals_total:
                 evals_total.remove(i)
+
+    get_x_listings_and_shares(evals_total, term, dept)
+    app.logger.info(f'{dept.name} has {len(evals_total)} total evaluation rows')
     return evals_total
 
 
 def result_to_evals(result, evaluations, term, dept):
     for row in result:
+        listings = row['listings'].split(',')
+        shares = row['shares'].split(',')
+        for i in listings:
+            if i in shares:
+                shares.remove(i)
+        try:
+            dept_form = row['dept_form']
+        except NoSuchColumnError:
+            dept_form = None
         eval_data = {
             'term': term,
             'dept': dept,
-            'dept_form': row['dept_form'],
+            'dept_form': dept_form,
             'ccn': row['ccn'],
+            'x_listing_ccns': listings,
+            'room_share_ccns': shares,
             'uid': row['uid'],
             'instructor_role': row['instructor_role'],
             'subject': row['subject'],
@@ -338,3 +452,52 @@ def get_matching_evals(subject, catalog_ids, all_evals, matching_evals, included
             if evaluation.subject == subject:
                 if evaluation not in included_evals:
                     matching_evals.append(evaluation)
+
+
+def get_x_listings_and_shares(evals, term, dept):
+    ccns = []
+    for i in evals:
+        for x in i.x_listing_ccns:
+            if x != '':
+                ccns.append(x)
+        for x in i.room_share_ccns:
+            if x != '':
+                ccns.append(x)
+    if ccns:
+        ccn_str = ''
+        for ccn in ccns:
+            ccn_str += f'\'{ccn}\', '
+        sql = f"""
+            SELECT unholy_loch.sis_sections.course_number AS ccn,
+                   ARRAY_TO_STRING(ARRAY_AGG(DISTINCT unholy_loch.cross_listings.cross_listing_number), ',') AS listings,
+                   ARRAY_TO_STRING(ARRAY_AGG(DISTINCT unholy_loch.co_schedulings.room_share_number), ',') AS shares,
+                   unholy_loch.sis_sections.subject_area AS subject,
+                   unholy_loch.sis_sections.catalog_id AS catalog_id,
+                   unholy_loch.sis_sections.instruction_format AS instruction_format,
+                   unholy_loch.sis_sections.instructor_uid AS uid,
+                   unholy_loch.sis_sections.instructor_role_code AS instructor_role,
+                   unholy_loch.sis_sections.meeting_start_date AS start_date,
+                   unholy_loch.sis_sections.meeting_end_date AS end_date
+              FROM unholy_loch.sis_sections
+         LEFT JOIN unholy_loch.cross_listings
+                ON unholy_loch.cross_listings.course_number = unholy_loch.sis_sections.course_number
+               AND unholy_loch.cross_listings.term_id = unholy_loch.sis_sections.term_id
+         LEFT JOIN unholy_loch.co_schedulings
+                ON unholy_loch.co_schedulings.course_number = unholy_loch.sis_sections.course_number
+               AND unholy_loch.co_schedulings.term_id = unholy_loch.sis_sections.term_id
+             WHERE unholy_loch.sis_sections.course_number IN({ccn_str[:-2]})
+               AND unholy_loch.sis_sections.enrollment_count > 0
+          GROUP BY unholy_loch.sis_sections.course_number,
+                   unholy_loch.sis_sections.subject_area,
+                   unholy_loch.sis_sections.catalog_id,
+                   unholy_loch.sis_sections.instruction_format,
+                   unholy_loch.sis_sections.instructor_uid,
+                   unholy_loch.sis_sections.instructor_role_code,
+                   unholy_loch.sis_sections.enrollment_count,
+                   unholy_loch.sis_sections.meeting_start_date,
+                   unholy_loch.sis_sections.meeting_end_date;
+        """
+        app.logger.info(sql)
+        result = db.session.execute(text(sql))
+        std_commit(allow_test_environment=True)
+        result_to_evals(result, evals, term, dept)

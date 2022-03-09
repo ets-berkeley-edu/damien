@@ -23,13 +23,14 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from mrsbaylock.models.department import Department
+from mrsbaylock.models.blue_perm import BluePerm
 
 
 class User(object):
 
-    def __init__(self, data):
+    def __init__(self, data, dept_roles=None):
         self.data = data
+        self.dept_roles = dept_roles
 
     @property
     def user_id(self):
@@ -64,13 +65,10 @@ class User(object):
         return self.data['is_admin']
 
     @property
-    def receives_comms(self):
-        return self.data['receives_comms']
-
-    @property
-    def views_response_rates(self):
-        return self.data['views_response_rates']
-
-    @property
-    def dept(self):
-        return [Department(i) for i in self.data['departments']]
+    def blue_permissions(self):
+        if self.data['blue_permissions'] == 'reports_only':
+            return BluePerm.BLUE_REPORTS
+        elif self.data['blue_permissions'] == 'response_rates':
+            return BluePerm.BLUE_REPORTS_RESPONSES
+        else:
+            return BluePerm.NO_BLUE
