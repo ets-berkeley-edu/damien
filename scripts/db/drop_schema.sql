@@ -70,6 +70,11 @@ ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluati
 ALTER TABLE IF EXISTS ONLY public.supplemental_sections DROP CONSTRAINT IF EXISTS supplemental_sections_pkey;
 ALTER TABLE IF EXISTS public.supplemental_sections ALTER COLUMN id DROP DEFAULT;
 
+ALTER TABLE IF EXISTS ONLY public.supplemental_instructors DROP CONSTRAINT IF EXISTS supplemental_instructors_pkey;
+
+ALTER TABLE IF EXISTS ONLY public.department_catalog_listings DROP CONSTRAINT IF EXISTS department_catalog_listings_pkey;
+ALTER TABLE IF EXISTS public.department_catalog_listings ALTER COLUMN id DROP DEFAULT;
+
 ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_pkey;
 ALTER TABLE IF EXISTS public.users ALTER COLUMN id DROP DEFAULT;
 
@@ -93,6 +98,8 @@ DROP TABLE IF EXISTS public.evaluation_types CASCADE;
 
 DROP SEQUENCE IF EXISTS public.evaluations_id_seq CASCADE;
 DROP TABLE IF EXISTS public.evaluations CASCADE;
+
+DROP TABLE IF EXISTS public.supplemental_instructors CASCADE;
 
 DROP SEQUENCE IF EXISTS public.supplemental_sections_id_seq;
 DROP TABLE IF EXISTS public.supplemental_sections CASCADE;

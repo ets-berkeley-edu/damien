@@ -31,6 +31,54 @@ from flask import current_app as app
 from sqlalchemy.sql import text
 
 
+# Refresh attributes in loch for evaluated instructors without instructor assignments in SIS data. These additional instructors
+# are _not_ the same as the separately maintained table of "supplemental instructors"; those are manually added records for
+# people who don't appear in SIS data at all.
+def refresh_additional_instructors(uids=None):
+    if os.environ.get('DAMIEN_ENV') == 'test':
+        return True
+
+    if uids:
+        uid_source = 'unnest(:uids) AS instructor_uid'
+        uid_params = {'uids': uids}
+    else:
+        uid_source = 'evaluations'
+        uid_params = {}
+    uid_query = f"""
+        SELECT DISTINCT instructor_uid FROM {uid_source}
+        WHERE instructor_uid NOT IN
+        (SELECT ldap_uid FROM unholy_loch.sis_instructors)"""
+
+    uids_to_refresh = [r['instructor_uid'] for r in db.session().execute(text(uid_query), uid_params).all()]
+
+    refresh_query = f"""INSERT INTO unholy_loch.sis_instructors
+        (ldap_uid, sis_id, first_name, last_name, email_address, affiliations, created_at)
+        (SELECT * FROM dblink('{app.config['DBLINK_NESSIE_RDS']}',$NESSIE$
+          SELECT DISTINCT
+            ba.ldap_uid, ba.sid AS sis_id, ba.first_name, ba.last_name, ba.email_address, ba.affiliations,
+            now() AS created_at
+          FROM sis_data.basic_attributes ba
+          WHERE ba.ldap_uid = ANY(:uids_to_refresh)
+          $NESSIE$)
+          AS nessie_sis_instructors (
+            ldap_uid VARCHAR(80),
+            sis_id VARCHAR(80),
+            first_name VARCHAR(255),
+            last_name VARCHAR(255),
+            email_address VARCHAR(255),
+            affiliations TEXT,
+            created_at TIMESTAMP WITH TIME ZONE
+          )
+        )"""
+
+    try:
+        db.session().execute(text(refresh_query), {'uids_to_refresh': uids_to_refresh})
+        return True
+    except Exception as e:
+        app.logger.exception(e)
+        return False
+
+
 def get_loch_basic_attributes(id_snippet, limit=20, exclude_uids=None):
     if os.environ.get('DAMIEN_ENV') == 'test':
         return []

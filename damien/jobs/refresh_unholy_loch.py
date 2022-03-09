@@ -28,6 +28,7 @@ from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from damien import db, std_commit
+from damien.lib.queries import refresh_additional_instructors
 from damien.lib.util import resolve_sql_template
 from sqlalchemy.sql import text
 
@@ -68,6 +69,7 @@ def _bg_refresh_unholy_loch(app):
             template_sql = 'refresh_unholy_loch.template.sql'
             resolved_ddl = resolve_sql_template(template_sql, term_id=app.config['CURRENT_TERM_ID'])
             db.session().execute(text(resolved_ddl))
+            refresh_additional_instructors()
             std_commit()
             app.logger.info('Unholy loch refresh completed.')
         except Exception as e:

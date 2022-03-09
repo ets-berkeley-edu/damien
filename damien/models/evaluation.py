@@ -26,6 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from itertools import groupby
 
 from damien import db, std_commit
+from damien.lib.queries import refresh_additional_instructors
 from damien.lib.util import safe_strftime
 from damien.models.base import Base
 from damien.models.department_form import DepartmentForm
@@ -261,6 +262,7 @@ class Evaluation(Base):
             self.evaluation_type = fields['evaluationType']
         if 'instructorUid' in fields:
             self.instructor_uid = fields['instructorUid']
+            refresh_additional_instructors([self.instructor_uid])
         if 'startDate' in fields:
             self.start_date = fields['startDate']
         if 'status' in fields:

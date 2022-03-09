@@ -18,7 +18,8 @@
 </template>
 
 <script>
-import {searchInstructors, searchUsers} from '@/api/user'
+import {searchInstructors} from '@/api/instructor'
+import {searchUsers} from '@/api/user'
 
 export default {
   name: 'PersonLookup',
