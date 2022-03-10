@@ -189,8 +189,7 @@ class Department(Base):
             section_evaluations = evaluations.get(course_number, [])
             visible_loch_rows = [
                 r for r in sections_by_number[course_number] if Section.is_visible_by_default(r) or course_number in supplemental_section_ids]
-            visible_evaluations = [e for e in section_evaluations if e.is_visible()]
-            if len(visible_loch_rows) or len(visible_evaluations):
+            if len(visible_loch_rows):
                 sections.append(Section(
                     visible_loch_rows,
                     section_evaluations,
