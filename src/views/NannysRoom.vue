@@ -12,9 +12,9 @@
         <a :href="$config.easterEggNannysRoom" target="_blank">The Nanny's Room</a>
       </v-banner>
     </div>
-    <v-container class="px-0 mx-0">
+    <v-container class="px-0 mx-0" fluid>
       <v-row>
-        <v-col>
+        <v-col cols="12" md="3">
           <v-card elevation="2" class="mr-4">
             <v-card-title>Department Forms</v-card-title>
             <v-btn
@@ -30,7 +30,7 @@
               <v-icon>mdi-plus-thick</v-icon>
               Add new department form
             </v-btn>
-            <v-form v-if="isAddingDepartmentForm" @submit.prevent="onSubmitAddDepartmentForm">
+            <v-form v-if="isAddingDepartmentForm" class="px-4" @submit.prevent="onSubmitAddDepartmentForm">
               <label :for="'input-dept-form-name'" class="form-label">
                 Form name
               </label>
@@ -98,7 +98,7 @@
             </v-data-table>
           </v-card>
         </v-col>
-        <v-col>
+        <v-col cols="12" md="3">
           <v-card elevation="2" class="mr-4">
             <v-card-title>Evaluation Types</v-card-title>
             <v-btn
@@ -109,12 +109,12 @@
               :disabled="disableControls"
               text
               @click="onClickAddEvaluationType"
-              @keyup.enter="onClickAddDepartmentForm"
+              @keyup.enter="onClickAddEvaluationType"
             >
               <v-icon>mdi-plus-thick</v-icon>
               Add new evaluation type
             </v-btn>
-            <v-form v-if="isAddingEvaluationType" @submit.prevent="onSubmitAddEvaluationType">
+            <v-form v-if="isAddingEvaluationType" class="px-4" @submit.prevent="onSubmitAddEvaluationType">
               <label :for="'input-eval-type-name'" class="form-label">
                 Type name
               </label>
@@ -182,6 +182,138 @@
             </v-data-table>
           </v-card>
         </v-col>
+        <v-col cols="12" md="6">
+          <v-card elevation="2" class="mr-4">
+            <v-card-title>Manually Added Instructors</v-card-title>
+            <v-btn
+              v-if="!isAddingInstructor"
+              id="add-instructor-btn"
+              class="text-capitalize pl-2 mt-1"
+              color="secondary"
+              :disabled="disableControls"
+              text
+              @click="onClickAddInstructor"
+              @keyup.enter="onClickAddInstructor"
+            >
+              <v-icon>mdi-plus-thick</v-icon>
+              Add new instructor
+            </v-btn>
+            <v-form
+              v-if="isAddingInstructor"
+              v-model="validInstructor"
+              class="px-4"
+              @submit.prevent="onSubmitAddInstructor"
+            >
+              <label for="input-instructor-uid" class="form-label">
+                UID
+              </label>
+              <v-text-field
+                id="input-instructor-uid"
+                v-model="newInstructor.uid"
+                class="mt-1"
+                dense
+                :disabled="isSaving"
+                outlined
+                required
+                :rules="rules.numeric"
+              ></v-text-field>
+              <label for="input-instructor-csid" class="form-label">
+                CSID
+              </label>
+              <v-text-field
+                id="input-instructor-csid"
+                v-model="newInstructor.csid"
+                class="mt-1"
+                dense
+                :disabled="isSaving"
+                outlined
+                :rules="rules.numeric"
+              ></v-text-field>
+              <label for="input-instructor-first-name" class="form-label">
+                First name
+              </label>
+              <v-text-field
+                id="input-instructor-first-name"
+                v-model="newInstructor.firstName"
+                class="mt-1"
+                dense
+                :disabled="isSaving"
+                outlined
+              ></v-text-field>
+              <label for="input-instructor-last-name" class="form-label">
+                Last name
+              </label>
+              <v-text-field
+                id="input-instructor-last-name"
+                v-model="newInstructor.lastName"
+                class="mt-1"
+                dense
+                :disabled="isSaving"
+                outlined
+                required
+              ></v-text-field>
+              <label for="input-instructor-last-name" class="form-label">
+                Email
+              </label>
+              <v-text-field
+                id="input-instructor-email"
+                v-model="newInstructor.emailAddress"
+                class="mt-1"
+                dense
+                :disabled="isSaving"
+                outlined
+                required
+                :rules="rules.email"
+              ></v-text-field>
+              <v-btn
+                id="save-instructor-btn"
+                class="text-capitalize mr-2"
+                color="secondary"
+                :disabled="!newInstructor.uid || !newInstructor.lastName || !newInstructor.emailAddress || isSaving"
+                elevation="2"
+                @click="onSubmitAddInstructor"
+                @keyup.enter="onSubmitAddInstructor"
+              >
+                Save
+              </v-btn>
+              <v-btn
+                id="cancel-save-instructor-btn"
+                class="text-capitalize ml-1"
+                color="secondary"
+                :disabled="!instructorValid || isSaving"
+                elevation="2"
+                outlined
+                text
+                @click="cancelAdd('add-instructor-btn')"
+                @keyup.enter="cancelAdd('add-instructor-btn')"
+              >
+                Cancel
+              </v-btn>
+            </v-form>
+            <v-data-table
+              id="instructors-table"
+              dense
+              disable-pagination
+              :headers="instructorHeaders"
+              hide-default-footer
+              :items="instructors"
+            >
+              <template #item.delete="{ item }">
+                <v-btn
+                  :id="`delete-instructor-${item.uid}-btn`"
+                  class="text-capitalize pa-0"
+                  color="secondary"
+                  :disabled="disableControls"
+                  text
+                  @click="() => confirmDeleteInstructor(item)"
+                  @keyup.enter="() => confirmDeleteInstructor(item)"
+                >
+                  Delete
+                </v-btn>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-col>
       </v-row>
     </v-container>
     <ConfirmDialog
@@ -204,9 +336,27 @@ export default {
   components: {ConfirmDialog},
   mixins: [Context, ListManagementSession],
   data: () => ({
-    newItemName: ''
+    instructorValid: true,
+    rules: {
+      email: [
+        v => !!v || 'E-mail is required',
+        v => /.+@.+\..+/.test(v) || 'E-mail must be valid',
+      ],
+      numeric: [v => !/[^\d]/.test(v) || 'Invalid number.']
+    },
+    instructorHeaders: [
+      {text: 'UID', value: 'uid'},
+      {text: 'SID', value: 'csid'},
+      {text: 'First Name', value: 'firstName'},
+      {text: 'Last Name', value: 'lastName'},
+      {text: 'Email', value: 'email'},
+      {text: '', value: 'delete', sortable: false}
+    ],
+    newInstructor: null,
+    newItemName: null
   }),
   created() {
+    this.resetNewInstructor()
     this.init().then(() => {
       this.$ready('List management')
     })
@@ -217,6 +367,7 @@ export default {
     },
     cancelAdd(elementId) {
       this.newItemName = ''
+      this.resetNewInstructor()
       this.reset()
       this.alertScreenReader('Canceled. Nothing saved.')
       this.$putFocusNextTick(elementId)
@@ -238,12 +389,27 @@ export default {
         this.$putFocusNextTick('input-eval-type-name')
       })
     },
+    onClickAddInstructor() {
+      this.setAddingInstructor().then(() => {
+        this.resetNewInstructor()
+        this.$putFocusNextTick('input-instructor-uid')
+      })
+    },
     onSubmitAddDepartmentForm() {
       if (this.newItemName) {
         this.addDepartmentForm(this.newItemName).then(() => {
           this.alertScreenReader(`Created department form ${this.newItemName}.`)
           this.newItemName = ''
           this.$putFocusNextTick('add-dept-form-btn')
+        })
+      }
+    },
+    onSubmitAddInstructor() {
+      if (this.newInstructor) {
+        this.addInstructor(this.newInstructor).then(() => {
+          this.alertScreenReader(`Added instructor with UID ${this.newInstructor.uid}.`)
+          this.resetNewInstructor()
+          this.$putFocusNextTick('add-instructor-btn')
         })
       }
     },
@@ -254,6 +420,15 @@ export default {
           this.newItemName = ''
           this.$putFocusNextTick('add-eval-type-btn')
         })
+      }
+    },
+    resetNewInstructor() {
+      this.newInstructor = {
+        'csid': null,
+        'emailAddress': null,
+        'firstName': null,
+        'lastName': null,
+        'uid': null
       }
     }
   }

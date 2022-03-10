@@ -8,8 +8,10 @@ export default {
       'departmentForms',
       'disableControls',
       'evaluationTypes',
+      'instructors',
       'isAddingDepartmentForm',
       'isAddingEvaluationType',
+      'isAddingInstructor',
       'isConfirming',
       'isSaving',
       'itemToDelete',
@@ -20,14 +22,18 @@ export default {
     ...mapActions('listManagementSession', [
       'addDepartmentForm',
       'addEvaluationType',
+      'addInstructor',
       'confirmDeleteDepartmentForm',
       'confirmDeleteEvaluationType',
+      'confirmDeleteInstructor',
       'deleteDepartmentForm',
       'deleteEvaluationType',
+      'deleteInstructor',
       'init',
       'reset',
       'setAddingDepartmentForm',
-      'setAddingEvaluationType'
+      'setAddingEvaluationType',
+      'setAddingInstructor'
     ])
   }
 }

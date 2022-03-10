@@ -1,11 +1,13 @@
 import {addDepartmentForm, deleteDepartmentForm, getDepartmentForms} from '@/api/departmentForms'
 import {addEvaluationType, deleteEvaluationType, getEvaluationTypes} from '@/api/evaluationTypes'
+import {addInstructor, deleteInstructor, getInstructors} from '@/api/instructor'
 import store from '@/store'
 
 const $_refreshAll = (commit) => {
-  return Promise.all([getDepartmentForms(), getEvaluationTypes()]).then(response => {
+  return Promise.all([getDepartmentForms(), getEvaluationTypes(), getInstructors()]).then(response => {
     commit('setDepartmentForms', response[0])
     commit('setEvaluationTypes', response[1])
+    commit('setInstructors', response[2])
   })
 }
 
@@ -21,12 +23,20 @@ const $_refreshEvaluationTypes = (commit) => {
   })
 }
 
+const $_refreshInstructors = (commit) => {
+  return getInstructors().then((instructors: any) => {
+    commit('setInstructors', instructors)
+  })
+}
+
 const state = {
   departmentForms: [],
   disableControls: false,
   evaluationTypes: [],
+  instructors: [],
   isAddingDepartmentForm: false,
   isAddingEvaluationType: false,
+  isAddingInstructor: false,
   isConfirming: false,
   isSaving: false,
   itemToDelete: undefined,
@@ -37,8 +47,10 @@ const getters = {
   departmentForms: (state: any): any[] => state.departmentForms,
   disableControls: (state: any): number => state.disableControls,
   evaluationTypes: (state: any): any[] => state.evaluationTypes,
+  instructors: (state: any): any[] => state.instructors,
   isAddingDepartmentForm: (state: any): boolean => state.isAddingDepartmentForm,
   isAddingEvaluationType: (state: any): boolean => state.isAddingEvaluationType,
+  isAddingInstructor: (state: any): boolean => state.isAddingInstructor,
   isConfirming: (state: any): boolean => state.isConfirming,
   isSaving: (state: any): boolean => state.isSaving,
   itemToDelete: (state: any): any => state.itemToDelete,
@@ -60,6 +72,13 @@ const actions = {
       $_refreshEvaluationTypes(commit)
     }).finally(() => commit('reset'))
   },
+  addInstructor: ({commit}, name: string) => {
+    commit('setIsSaving', true)
+    commit('setDisableControls', true)
+    return addInstructor(name).then(() => {
+      $_refreshInstructors(commit)
+    }).finally(() => commit('reset'))
+  },
   confirmDeleteDepartmentForm: ({commit}, itemToDelete: any) => {
     commit('setIsConfirming', true)
     commit('setItemToDelete', {
@@ -78,6 +97,16 @@ const actions = {
     })
     commit('setOnDelete', () => store.dispatch('listManagementSession/deleteEvaluationType'))
   },
+  confirmDeleteInstructor: ({commit}, itemToDelete: any) => {
+    commit('setIsConfirming', true)
+    commit('setItemToDelete', {
+      ...itemToDelete,
+      name: `${itemToDelete.firstName} ${itemToDelete.lastName} (${itemToDelete.uid})`,
+      description: 'instructor',
+      elementId: `delete-instructor-${itemToDelete.uid}-btn`
+    })
+    commit('setOnDelete', () => store.dispatch('listManagementSession/deleteInstructor'))
+  },
   deleteDepartmentForm: ({commit, state}) => {
     commit('setDisableControls', true)
     return new Promise<void>(resolve => {
@@ -92,6 +121,15 @@ const actions = {
     return new Promise<void>(resolve => {
       return deleteEvaluationType(state.itemToDelete.name).then(() => {
         $_refreshEvaluationTypes(commit)
+        resolve(state.itemToDelete)
+      }).finally(() => commit('reset'))
+    })
+  },
+  deleteInstructor: ({commit, state}) => {
+    commit('setDisableControls', true)
+    return new Promise<void>(resolve => {
+      return deleteInstructor(state.itemToDelete.uid).then(() => {
+        $_refreshInstructors(commit)
         resolve(state.itemToDelete)
       }).finally(() => commit('reset'))
     })
@@ -113,6 +151,13 @@ const actions = {
       commit('setAddingEvaluationType')
       resolve()
     })
+  },
+  setAddingInstructor: ({commit}) => {
+    return new Promise<void>(resolve => {
+      commit('reset')
+      commit('setAddingInstructor')
+      resolve()
+    })
   }
 }
 
@@ -121,6 +166,7 @@ const mutations = {
     state.disableControls = false
     state.isAddingDepartmentForm = false
     state.isAddingEvaluationType = false
+    state.isAddingInstructor = false
     state.isConfirming = false
     state.isSaving = false
     state.itemToDelete = undefined
@@ -128,9 +174,11 @@ const mutations = {
   },
   setAddingDepartmentForm: (state: any) => state.isAddingDepartmentForm = true,
   setAddingEvaluationType: (state: any) => state.isAddingEvaluationType = true,
+  setAddingInstructor: (state: any) => state.isAddingInstructor = true,
   setDepartmentForms: (state: any, departmentForms: any[]) => state.departmentForms = departmentForms,
   setDisableControls: (state: any, disable: boolean) => state.disableControls = disable,
   setEvaluationTypes: (state: any, evaluationTypes: any[]) => state.evaluationTypes = evaluationTypes,
+  setInstructors: (state: any, instructors: any[]) => state.instructors = instructors,
   setIsConfirming: (state: any, isConfirming: boolean) => state.isConfirming = isConfirming,
   setIsSaving: (state: any, isSaving: boolean) => state.isSaving = isSaving,
   setItemToDelete: (state: any, item: any) => state.itemToDelete = item,

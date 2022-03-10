@@ -198,13 +198,17 @@ def get_loch_instructors(uids):
     return results
 
 
-def get_loch_instructors_for_snippet(snippet):
+def get_loch_instructors_for_snippet(snippet, limit, exclude_uids):
     if not snippet:
         return []
     query_filter, params = _parse_search_snippet(snippet)
+    if exclude_uids:
+        params['uids'] = exclude_uids
+        query_filter += ' AND NOT ldap_uid = ANY(:uids)'
+    params['limit'] = limit
     query = f"""SELECT ldap_uid AS uid, sis_id AS csid, first_name, last_name, email_address AS email
             FROM unholy_loch.sis_instructors
-            {query_filter} LIMIT 20"""
+            {query_filter} LIMIT :limit"""
     return db.session().execute(text(query), params).all()
 
 
