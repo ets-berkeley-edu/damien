@@ -3,6 +3,7 @@
     <v-navigation-drawer
       app
       permanent
+      class="nav"
       color="secondary"
       :expand-on-hover="true"
       :mini-variant="true"
@@ -39,6 +40,7 @@
     </v-navigation-drawer>
     <v-app-bar
       app
+      class="nav"
       clipped-left
       color="primary"
       dark
@@ -139,6 +141,9 @@
 </script>
 
 <style scoped>
+.nav {
+  z-index: 9 !important;
+}
 .sr-debug {
   width: fit-content;
 }

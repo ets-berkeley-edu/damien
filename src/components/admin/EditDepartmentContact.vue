@@ -9,7 +9,7 @@
         Person Lookup
       </label>
       <PersonLookup
-        class="my-1"
+        class="mt-1 mb-4"
         :exclude-uids="$_.map(contacts, 'uid')"
         :on-select-result="onSelectSearchResult"
       />
@@ -17,65 +17,68 @@
     <div v-if="fullName" class="mb-4">
       <strong>{{ fullName }}</strong>
     </div>
-    <label :for="`input-email-${contactId}`" class="form-label">
-      Email Address
-    </label>
-    <v-text-field
-      :id="`input-email-${contactId}`"
-      v-model="email"
-      class="mt-1"
-      dense
-      :disabled="disableControls"
-      outlined
-      required
-      :rules="emailRules"
-    ></v-text-field>
-    <legend :for="`checkbox-communications-${contactId}`" class="form-label">
-      Communications
-    </legend>
-    <v-checkbox
-      :id="`checkbox-communications-${contactId}`"
-      v-model="canReceiveCommunications"
-      class="mt-1"
-      color="secondary"
-      dense
-      :disabled="disableControls"
-      label="Receive notifications"
-    >
-    </v-checkbox>
-    <legend :for="`checkbox-communications-${contactId}`" class="form-label">
-      Blue Access
-    </legend>
-    <v-radio-group
-      v-model="permissions"
-      class="mt-1"
-      column
-      dense
-      :disabled="disableControls"
-      mandatory
-    >
-      <v-radio
-        :id="`radio-no-blue-${contactId}`"
-        :value="null"
-        class="mb-1"
+    <div v-if="uid">
+      <label :for="`input-email-${contactId}`" class="form-label">
+        Email Address
+      </label>
+      <v-text-field
+        :id="`input-email-${contactId}`"
+        v-model="email"
+        class="mt-1"
         color="secondary"
-        label="No access to Blue"
-      ></v-radio>
-      <v-radio
-        :id="`radio-reports-only-${contactId}`"
-        value="reports_only"
-        class="mb-1"
+        dense
+        :disabled="disableControls"
+        outlined
+        required
+        :rules="emailRules"
+      ></v-text-field>
+      <legend :for="`checkbox-communications-${contactId}`" class="form-label">
+        Communications
+      </legend>
+      <v-checkbox
+        :id="`checkbox-communications-${contactId}`"
+        v-model="canReceiveCommunications"
+        class="mt-1"
         color="secondary"
-        label="View reports"
-      ></v-radio>
-      <v-radio
-        :id="`radio-response-rates-${contactId}`"
-        value="response_rates"
-        class="mb-1"
-        color="secondary"
-        label="View reports and response rates"
-      ></v-radio>
-    </v-radio-group>
+        dense
+        :disabled="disableControls"
+        label="Receive notifications"
+      >
+      </v-checkbox>
+      <legend :for="`checkbox-communications-${contactId}`" class="form-label">
+        Blue Access
+      </legend>
+      <v-radio-group
+        v-model="permissions"
+        class="mt-1"
+        column
+        dense
+        :disabled="disableControls"
+        mandatory
+      >
+        <v-radio
+          :id="`radio-no-blue-${contactId}`"
+          :value="null"
+          class="mb-1"
+          color="secondary"
+          label="No access to Blue"
+        ></v-radio>
+        <v-radio
+          :id="`radio-reports-only-${contactId}`"
+          value="reports_only"
+          class="mb-1"
+          color="secondary"
+          label="View reports"
+        ></v-radio>
+        <v-radio
+          :id="`radio-response-rates-${contactId}`"
+          value="response_rates"
+          class="mb-1"
+          color="secondary"
+          label="View reports and response rates"
+        ></v-radio>
+      </v-radio-group>
+    </div>
     <v-btn
       :id="`save-dept-contact-${contactId}-btn`"
       class="text-capitalize mr-2"
@@ -184,7 +187,6 @@ export default {
         if (contact.canViewReports) {
           this.permissions = contact.canViewResponseRates ? 'response_rates' : 'reports_only'
         }
-
         this.$putFocusNextTick(`input-first-name-${this.contactId}`)
       } else {
         this.$putFocusNextTick('input-person-lookup-autocomplete')

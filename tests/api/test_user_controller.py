@@ -70,9 +70,15 @@ class TestSearch:
         fake_auth.login(non_admin_uid)
         _api_search(client, expected_status_code=401)
 
-    def test_authenticated(self, client, fake_auth):
-        """Returns authenticated user profile."""
+    def test_authenticated_uid_search(self, client, fake_auth):
+        """Returns UID matches."""
         fake_auth.login(admin_uid)
         results = _api_search(client, snippet='500')
-        assert '400400500' in [r['csid'] for r in results]
         assert '500' in [r['uid'] for r in results]
+
+    def test_authenticated_name_search(self, client, fake_auth):
+        """Returns name matches."""
+        fake_auth.login(admin_uid)
+        results = _api_search(client, snippet='THO R')
+        assert results[0]['firstName'] == 'Robert'
+        assert results[0]['lastName'] == 'Thorn'

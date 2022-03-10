@@ -24,9 +24,9 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import os
-import re
 
 from damien import db
+from damien.lib.util import parse_search_snippet
 from flask import current_app as app
 from sqlalchemy.sql import text
 
@@ -79,45 +79,12 @@ def refresh_additional_instructors(uids=None):
         return False
 
 
-def get_loch_basic_attributes(id_snippet, limit=20, exclude_uids=None):
-    if os.environ.get('DAMIEN_ENV') == 'test':
-        return []
-    params = {'id_snippet': f'{id_snippet}%', 'limit': limit}
-    uid_exclusion = ''
-    if exclude_uids:
-        params['uids'] = exclude_uids
-        uid_exclusion = 'AND NOT ldap_uid = ANY(:uids)'
-    query = f"""SELECT * FROM dblink('{app.config['DBLINK_NESSIE_RDS']}',$NESSIE$
-                SELECT ldap_uid, sid, first_name, last_name, email_address
-                  FROM sis_data.basic_attributes
-                  WHERE (ldap_uid LIKE :id_snippet OR sid LIKE :id_snippet)
-                    {uid_exclusion}
-                  LIMIT :limit
-            $NESSIE$)
-            AS nessie_basic_attributes (
-                uid VARCHAR,
-                csid VARCHAR,
-                first_name VARCHAR,
-                last_name VARCHAR,
-                email VARCHAR
-            )"""
-    try:
-        results = db.session().execute(
-            text(query),
-            params,
-        ).all()
-        app.logger.info(f'Loch Ness basic attributes query returned {len(results)} results (snippet={id_snippet}).')
-        return results
-    except Exception as e:
-        app.logger.exception(e)
-
-
 def get_loch_basic_attributes_by_uid_or_name(snippet, limit=20, exclude_uids=None):
     if os.environ.get('DAMIEN_ENV') == 'test':
         return []
     if not snippet:
         return []
-    query_filter, params = _parse_search_snippet(snippet)
+    query_filter, params = parse_search_snippet(snippet)
     params['limit'] = limit
     if exclude_uids:
         params['uids'] = exclude_uids
@@ -201,7 +168,7 @@ def get_loch_instructors(uids):
 def get_loch_instructors_for_snippet(snippet, limit, exclude_uids):
     if not snippet:
         return []
-    query_filter, params = _parse_search_snippet(snippet)
+    query_filter, params = parse_search_snippet(snippet)
     if exclude_uids:
         params['uids'] = exclude_uids
         query_filter += ' AND NOT ldap_uid = ANY(:uids)'
@@ -256,20 +223,3 @@ def get_loch_sections_by_ids(term_id, course_numbers):
     ).all()
     app.logger.info(f'Unholy loch course query returned {len(results)} results: {query}')
     return results
-
-
-def _parse_search_snippet(snippet):
-    params = {}
-    words = list(set(snippet.upper().split()))
-    # A single numeric string indicates a UID search.
-    if len(words) == 1 and re.match(r'^\d+$', words[0]):
-        query_filter = ' WHERE ldap_uid LIKE :uid_prefix'
-        params.update({'uid_prefix': f'{words[0]}%'})
-    # Otherwise search by name.
-    else:
-        query_filter = ' WHERE TRUE'
-        for i, word in enumerate(words):
-            word = ''.join(re.split('\W', word))
-            query_filter += f' AND (first_name ILIKE :name_phrase_{i} OR last_name ILIKE :name_phrase_{i})'
-            params.update({f'name_phrase_{i}': f'{word}%'})
-    return query_filter, params

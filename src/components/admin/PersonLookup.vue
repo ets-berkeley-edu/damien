@@ -3,18 +3,31 @@
     :id="id"
     v-model="selected"
     :append-icon="null"
-    class="autocomplete-input"
+    :auto-select-first="true"
+    background-color="white"
     dense
     :hide-no-data="true"
     :items="suggestions"
+    light
     :loading="isSearching"
+    :menu-props="menuProps"
+    no-data-text="No results found."
     no-filter
     outlined
-    placeholder="UID or CSID"
+    placeholder="Name or UID"
     return-object
     :search-input.sync="search"
     hide-details="auto"
-  ></v-autocomplete>
+  >
+    <template #selection>
+      <span>{{ toLabel(selected) }}</span>
+    </template>
+    <template #item="data">
+      <v-list-item-content>
+        <span v-html="suggest(data.item)" />
+      </v-list-item-content>
+    </template>
+  </v-autocomplete>
 </template>
 
 <script>
@@ -46,7 +59,11 @@ export default {
   },
   data: () => ({
     isSearching: false,
+    menuProps: {
+      contentClass: 'v-sheet--outlined'
+    },
     search: undefined,
+    searchTokenMatcher: undefined,
     selected: undefined,
     suggestions: undefined
   }),
@@ -56,7 +73,7 @@ export default {
     },
     selected(suggestion) {
       if (suggestion) {
-        this.onSelectResult(suggestion.value)
+        this.onSelectResult(suggestion)
       }
     }
   },
@@ -66,18 +83,21 @@ export default {
         this.isSearching = true
         const apiSearch = this.instructorLookup ? searchInstructors : searchUsers
         apiSearch(snippet, this.excludeUids).then(results => {
-          this.suggestions = this.$_.map(results, this.suggest)
+          const searchTokens = this.$_.split(this.$_.trim(snippet), /\W/g)
+          this.searchTokenMatcher = RegExp(this.$_.join(searchTokens, '|'), 'gi')
+          this.suggestions = results
           this.isSearching = false
         })
       } else {
+        this.searchTokenMatcher = null
         this.suggestions = []
       }
     },
     suggest(user) {
-      return {
-        text: `${user.firstName} ${user.lastName} (${user.uid})`,
-        value: user
-      }
+      return this.toLabel(user).replace(this.searchTokenMatcher, match => `<strong>${match}</strong>`)
+    },
+    toLabel(user) {
+      return `${user.firstName} ${user.lastName} (${user.uid})`
     }
   },
   created() {
@@ -87,7 +107,7 @@ export default {
 </script>
 
 <style>
-.autocomplete-input {
-  background-color: white !important;
+.autocomplete-menu {
+  border: thin solid gray;
 }
 </style>
