@@ -33,6 +33,7 @@ from damien.models.base import Base
 from damien.models.department_catalog_listing import DepartmentCatalogListing
 from damien.models.evaluation import Evaluation
 from damien.models.evaluation_type import EvaluationType
+from damien.models.supplemental_instructor import SupplementalInstructor
 from damien.models.supplemental_section import SupplementalSection
 from flask import current_app as app
 
@@ -163,6 +164,15 @@ class Department(Base):
         for v in evaluations.values():
             instructor_uids.update(e.instructor_uid for e in v if e.instructor_uid)
         instructors = {}
+        for i in SupplementalInstructor.find_by_uids(list(instructor_uids)):
+            instructor_uids.remove(i.ldap_uid)
+            instructors[i.ldap_uid] = {
+                'uid': i.ldap_uid,
+                'sisId': i.sis_id,
+                'firstName': i.first_name,
+                'lastName': i.last_name,
+                'emailAddress': i.email_address,
+            }
         for row in get_loch_instructors(list(instructor_uids)):
             instructors[row['ldap_uid']] = {
                 'uid': row['ldap_uid'],

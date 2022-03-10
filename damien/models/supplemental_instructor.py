@@ -23,9 +23,12 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import re
+
 from damien import db, std_commit
-from damien.lib.util import utc_now
+from damien.lib.util import isoformat, utc_now
 from damien.models.base import Base
+from sqlalchemy import and_, or_
 
 
 class SupplementalInstructor(Base):
@@ -103,5 +106,36 @@ class SupplementalInstructor(Base):
 
     @classmethod
     def find_by_uid(cls, ldap_uid):
-        query = cls.query.filter_by(uid=ldap_uid, deleted_at=None)
+        query = cls.query.filter_by(ldap_uid=ldap_uid, deleted_at=None)
         return query.first()
+
+    @classmethod
+    def find_by_uids(cls, ldap_uids):
+        query = cls.query.filter(and_(cls.ldap_uid.in_(ldap_uids), cls.deleted_at == None))  # noqa: E711
+        return query.all()
+
+    @classmethod
+    def search(cls, snippet):
+        words = list(set(snippet.upper().split()))
+        # A single numeric string indicates a UID search.
+        if len(words) == 1 and re.match(r'^\d+$', words[0]):
+            criteria = cls.ldap_uid.ilike(f'{words[0]}%')
+        # Otherwise search by name.
+        else:
+            criteria = []
+            for word in words:
+                word = ''.join(re.split('\W', word))
+                criteria.append(or_(cls.first_name.ilike(f'{word}%'), cls.last_name.ilike(f'{word}%')))
+            criteria = and_(*criteria)
+        return cls.query.filter(criteria).all()
+
+    def to_api_json(self):
+        return {
+            'uid': self.ldap_uid,
+            'csid': self.sis_id,
+            'firstName': self.first_name,
+            'lastName': self.last_name,
+            'email': self.email_address,
+            'createdAt': isoformat(self.created_at),
+            'updatedAt': isoformat(self.updated_at),
+        }

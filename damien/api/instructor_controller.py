@@ -23,6 +23,9 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import re
+
+from damien.api.errors import BadRequestError
 from damien.api.util import admin_required
 from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_loch_basic_attributes_by_uid_or_name, get_loch_instructors_for_snippet
@@ -34,12 +37,40 @@ from flask_login import login_required
 
 @app.route('/api/instructor', methods=['POST'])
 @admin_required
-def add_instructor(name):
-    instructor = SupplementalInstructor.create_or_restore(name)
+def add_instructor():
+    params = request.get_json() or {}
+
+    try:
+        valid_uid = (params.get('uid') and params['uid'] == str(int(params['uid'])))
+    except ValueError:
+        valid_uid = False
+    if not valid_uid:
+        raise BadRequestError('Bad or missing UID')
+
+    try:
+        valid_csid = (params.get('csid') is None or params['csid'] == str(int(params['csid'])))
+    except ValueError:
+        valid_csid = False
+    if not valid_csid:
+        raise BadRequestError('Bad CSID')
+
+    if not params.get('lastName'):
+        raise BadRequestError('Missing lastName')
+
+    if not params.get('emailAddress') or not re.match(r'.+@.+\..+\Z', str(params['emailAddress'])):
+        raise BadRequestError('Bad or missing email address')
+
+    instructor = SupplementalInstructor.create_or_restore(
+        ldap_uid=params['uid'],
+        sis_id=params['csid'],
+        first_name=params['firstName'],
+        last_name=params['lastName'],
+        email_address=params['emailAddress'],
+    )
     return tolerant_jsonify(instructor.to_api_json())
 
 
-@app.route('/api/instructor/by_uid/<uid>', methods=['DELETE'])
+@app.route('/api/instructor/<uid>', methods=['DELETE'])
 @admin_required
 def delete_instructor(uid):
     SupplementalInstructor.delete(uid)
@@ -50,7 +81,7 @@ def delete_instructor(uid):
 @admin_required
 def get_supplemental_instructors():
     instructors = SupplementalInstructor.query.filter_by(deleted_at=None).order_by(SupplementalInstructor.ldap_uid).all()
-    return tolerant_jsonify([i.to_api_json() for i in instructors])
+    return tolerant_jsonify([_to_api_json(i) for i in instructors])
 
 
 @app.route('/api/instructor/search', methods=['POST'])
@@ -58,8 +89,12 @@ def get_supplemental_instructors():
 def search_instructors():
     params = request.get_json()
     snippet = get_param(params, 'snippet').strip()
-    instructors = get_loch_instructors_for_snippet(snippet)
-    exclude_uids = [str(i['uid']) for i in instructors]
+    instructors = SupplementalInstructor.search(snippet)
+    exclude_uids = [i.ldap_uid for i in instructors]
+    if len(instructors) < 20:
+        loch_instructors = get_loch_instructors_for_snippet(snippet, limit=(20 - len(instructors)), exclude_uids=exclude_uids)
+        instructors.extend(loch_instructors)
+        exclude_uids.extend([str(i['uid']) for i in loch_instructors])
     if len(instructors) < 20:
         instructors.extend(get_loch_basic_attributes_by_uid_or_name(snippet, limit=(20 - len(instructors)), exclude_uids=exclude_uids))
     results = [_to_api_json(i) for i in instructors]
@@ -68,10 +103,13 @@ def search_instructors():
 
 
 def _to_api_json(instructor):
-    return {
-        'csid': instructor['csid'],
-        'email': instructor['email'],
-        'firstName': instructor['first_name'],
-        'lastName': instructor['last_name'],
-        'uid': instructor['uid'],
-    }
+    if isinstance(instructor, SupplementalInstructor):
+        return instructor.to_api_json()
+    else:
+        return {
+            'csid': instructor['csid'],
+            'email': instructor['email'],
+            'firstName': instructor['first_name'],
+            'lastName': instructor['last_name'],
+            'uid': instructor['uid'],
+        }
