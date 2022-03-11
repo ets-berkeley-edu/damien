@@ -26,7 +26,7 @@
           :items="availableTerms"
           label="Select..."
           solo
-          @change="refresh"
+          @change="refresh(null)"
         >
           <span :id="`term-option-${data.item.id}`" slot="item" slot-scope="data">{{ data.item.name }}</span>
         </v-select>
@@ -237,7 +237,7 @@ export default {
           }
         })
         this.evaluations = this.$_.sortBy(department.evaluations, 'sortableCourseNumber')
-        this.$ready(department.deptName, screenreaderAlert)
+        this.$ready(`${this.department.deptName} ${this.$_.get(this.selectedTerm, 'name')}`, screenreaderAlert)
       })
     },
     updateEvaluation(evaluationId, fields) {
