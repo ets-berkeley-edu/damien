@@ -18,7 +18,7 @@
         id="dept-note-textarea"
         v-model="item"
         auto-grow
-        :disabled="disableControls"
+        :disabled="disableControls || !isEditable"
         flat
         hide-details="auto"
         solo
@@ -34,7 +34,7 @@
           id="edit-dept-note-btn"
           class="text-capitalize pa-0"
           color="secondary"
-          :disabled="disableControls"
+          :disabled="disableControls || !isEditable"
           dark
           height="unset"
           min-width="unset"
@@ -54,7 +54,7 @@
           id="delete-dept-note-btn"
           class="text-capitalize pa-0"
           color="secondary"
-          :disabled="disableControls"
+          :disabled="disableControls || !isEditable"
           height="unset"
           min-width="unset"
           text
@@ -75,7 +75,7 @@
           id="save-dept-note-btn"
           class="text-capitalize mr-2"
           color="secondary"
-          :disabled="disableControls"
+          :disabled="disableControls || !isEditable"
           elevation="2"
           @click="onSave"
         >
@@ -85,7 +85,7 @@
           id="cancel-dept-note-btn"
           class="text-capitalize ml-1"
           color="secondary"
-          :disabled="disableControls"
+          :disabled="disableControls || !isEditable"
           elevation="2"
           outlined
           text
@@ -109,6 +109,7 @@ export default {
   components: {ConfirmDialog},
   data: () => ({
     isConfirming: false,
+    isEditable: false,
     isEditing: false,
     item: undefined
   }),
@@ -142,6 +143,7 @@ export default {
     },
     reset() {
       this.isConfirming = false
+      this.isEditable = this.selectedTerm.id === this.$config.currentTermId
       this.isEditing = false
       this.item = this.note
     }
