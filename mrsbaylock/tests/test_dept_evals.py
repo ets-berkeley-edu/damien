@@ -49,29 +49,30 @@ class TestDeptEvaluations:
 
     def test_evals(self, dept):
         dept.evaluations = utils.get_evaluations(term, dept)
-        expected = [f'{i.ccn}-{"" if i.uid is None else i.uid}' for i in dept.evaluations]
+        expected = []
+        for e in dept.evaluations:
+            uid = '' if (e.instructor is None or e.instructor.uid is None) else e.instructor.uid.strip()
+            eval_type = '' if e.eval_type is None else e.eval_type
+            expected.append(f'{e.ccn}-{uid}-{eval_type}')
         expected = list(dict.fromkeys(expected))
-        expected.sort()
         actual = self.dept_details_admin_page.visible_eval_identifiers()
-        actual.sort()
-        app.logger.info(f'Missing: {[x for x in expected if x not in actual]}')
-        app.logger.info(f'Unexpected: {[x for x in actual if x not in expected]}')
-        assert actual == expected
-
-    def test_depts_details(self, dept):
-        self.group_mgmt_page.click_group_mgmt()
-        self.group_mgmt_page.wait_for_dept_row(dept)
-        idx = self.group_mgmt_page.dept_row_index(dept)
-        assert self.group_mgmt_page.dept_row_course_count(idx) == f'{len(dept.evaluations)}'
+        missing = [x for x in expected if x not in actual]
+        unexpected = [x for x in actual if x not in expected]
+        app.logger.info(f'Missing {missing} Unexpected {unexpected}')
+        assert not missing
+        assert not unexpected
 
     def test_depts_contact_details(self, dept):
         contacts = utils.get_dept_users(dept, all_users)
-        idx = self.group_mgmt_page.dept_row_index(dept)
-        for contact in contacts:
-            dept_role = utils.get_user_dept_role(contact, dept)
-            expected_comms = 'Receives notifications' if dept_role.receives_comms else 'Does not receive notifications'
-            expected_blue = contact.blue_permissions.value['lists']
-            assert self.group_mgmt_page.dept_user_name(idx, contact) == f'{contact.first_name} {contact.last_name}'
-            assert self.group_mgmt_page.dept_user_email(idx, contact) == contact.email
-            assert self.group_mgmt_page.dept_user_comms(idx, contact) == expected_comms
-            assert self.group_mgmt_page.dept_user_blue_perm(idx, contact) == expected_blue
+        if contacts:
+            self.group_mgmt_page.click_group_mgmt()
+            self.group_mgmt_page.wait_for_dept_row(dept)
+            idx = self.group_mgmt_page.dept_row_index(dept)
+            for contact in contacts:
+                dept_role = utils.get_user_dept_role(contact, dept)
+                expected_comms = 'Receives notifications' if dept_role.receives_comms else 'Does not receive notifications'
+                expected_blue = contact.blue_permissions.value['lists']
+                assert self.group_mgmt_page.dept_user_name(idx, contact) == f'{contact.first_name} {contact.last_name}'
+                assert self.group_mgmt_page.dept_user_email(idx, contact) == contact.email
+                assert self.group_mgmt_page.dept_user_comms(idx, contact) == expected_comms
+                assert self.group_mgmt_page.dept_user_blue_perm(idx, contact) == expected_blue

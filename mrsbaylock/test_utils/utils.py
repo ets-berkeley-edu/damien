@@ -30,8 +30,11 @@ import re
 from damien import db, std_commit
 from flask import current_app as app
 from mrsbaylock.models.department import Department
+from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.department_note import DepartmentNote
 from mrsbaylock.models.evaluation import Evaluation
+from mrsbaylock.models.evaluation_type import EvaluationType
+from mrsbaylock.models.instructor import Instructor
 from mrsbaylock.models.term import Term
 from mrsbaylock.models.user import User
 from mrsbaylock.models.user_dept_role import UserDeptRole
@@ -121,8 +124,8 @@ def get_all_users():
         data = {
             'uid': row['uid'],
             'csid': row['csid'],
-            'first_name': row['first_name'],
-            'last_name': row['last_name'],
+            'first_name': row['first_name'].strip(),
+            'last_name': row['last_name'].strip(),
             'email': row['email'],
             'blue_permissions': row['blue_permissions'],
             'dept_id': row['department_id'],
@@ -297,7 +300,14 @@ def delete_dept_note(term, dept):
     dept.note = None
 
 
-# SECTIONS
+# EVALUATIONS
+
+
+def list_to_str(list_o_strings):
+    string = ''
+    for i in list_o_strings:
+        string += f'\'{i}\', '
+    return string[:-2]
 
 
 def get_evaluations(term, dept):
@@ -320,9 +330,7 @@ def get_evaluations(term, dept):
     dept_subjects = [row['subject_area'] for row in result]
 
     subjects = all_subjects if '' in dept_subjects else dept_subjects
-    subject_str = ''
-    for subject in subjects:
-        subject_str += f'\'{subject}\', '
+    subject_str = list_to_str(subjects)
 
     clause = '' if '' in dept_subjects else ' AND unholy_loch.sis_sections.subject_area = department_catalog_listings.subject_area'
     sql = f"""
@@ -339,7 +347,7 @@ def get_evaluations(term, dept):
                department_forms.name AS dept_form
           FROM departments
           JOIN unholy_loch.sis_sections
-            ON unholy_loch.sis_sections.subject_area IN ({subject_str[:-2]})
+            ON unholy_loch.sis_sections.subject_area IN ({subject_str})
           JOIN department_catalog_listings
             ON department_catalog_listings.department_id = departments.id{clause}
           JOIN department_forms
@@ -395,38 +403,84 @@ def get_evaluations(term, dept):
                 evals_total.remove(i)
 
     get_x_listings_and_shares(evals_total, term, dept)
-    app.logger.info(f'{dept.name} has {len(evals_total)} total evaluation rows')
-    return evals_total
+    get_manual_sections(evals_total, term, dept)
+    edits = get_edited_sections(term, dept)
+    merge_edited_evals(evals_total, edits)
+    get_instructors(evals_total)
+    get_eval_types(evals_total)
+
+    return sorted(
+        evals_total,
+        key=lambda x: (x.ccn, (float('-inf') if x.instructor and x.instructor.uid is None or 'None' or '' else float(x.uid))),
+    )
+
+
+def row_data(row, field):
+    try:
+        return row[field]
+    except NoSuchColumnError:
+        return None
+
+
+def row_x_listings(row):
+    try:
+        return row['listings'].split(',')
+    except NoSuchColumnError:
+        return []
+
+
+def row_room_shares(row):
+    try:
+        return row['shares'].split(',')
+    except NoSuchColumnError:
+        return []
+
+
+def row_instructor(row):
+    try:
+        instructor_data = {
+            'uid': row['uid'],
+            'instructor_role': row['instructor_role'],
+        }
+        return Instructor(instructor_data)
+    except NoSuchColumnError:
+        return None
+
+
+def result_row_to_eval(row, term, dept):
+    listings = row_x_listings(row)
+    shares = row_room_shares(row)
+    for i in listings:
+        if i in shares:
+            shares.remove(i)
+
+    dept_form = row_data(row, 'dept_form')
+    eval_type = row_data(row, 'eval_type')
+    status = row_data(row, 'status')
+    instructor = row_instructor(row)
+
+    eval_data = {
+        'term': term,
+        'dept': dept,
+        'dept_form': dept_form,
+        'eval_type': eval_type,
+        'status': status,
+        'ccn': row['ccn'],
+        'x_listing_ccns': listings,
+        'room_share_ccns': shares,
+        'instructor': instructor,
+        'subject': row['subject'],
+        'catalog_id': row['catalog_id'],
+        'instruction_format': row['instruction_format'],
+        'start_date': row['start_date'],
+        'end_date': row['end_date'],
+    }
+    return Evaluation(eval_data)
 
 
 def result_to_evals(result, evaluations, term, dept):
     for row in result:
-        listings = row['listings'].split(',')
-        shares = row['shares'].split(',')
-        for i in listings:
-            if i in shares:
-                shares.remove(i)
-        try:
-            dept_form = row['dept_form']
-        except NoSuchColumnError:
-            dept_form = None
-        eval_data = {
-            'term': term,
-            'dept': dept,
-            'dept_form': dept_form,
-            'ccn': row['ccn'],
-            'x_listing_ccns': listings,
-            'room_share_ccns': shares,
-            'uid': row['uid'],
-            'instructor_role': row['instructor_role'],
-            'subject': row['subject'],
-            'catalog_id': row['catalog_id'],
-            'instruction_format': row['instruction_format'],
-            'start_date': row['start_date'],
-            'end_date': row['end_date'],
-        }
-        evaluation = Evaluation(eval_data)
-        evaluations.append(evaluation)
+        evaluations.append(result_row_to_eval(row, term, dept))
 
 
 def get_subj_catalog_ids(sql):
@@ -464,9 +518,7 @@ def get_x_listings_and_shares(evals, term, dept):
             if x != '':
                 ccns.append(x)
     if ccns:
-        ccn_str = ''
-        for ccn in ccns:
-            ccn_str += f'\'{ccn}\', '
+        ccn_str = list_to_str(ccns)
         sql = f"""
             SELECT unholy_loch.sis_sections.course_number AS ccn,
                    ARRAY_TO_STRING(ARRAY_AGG(DISTINCT unholy_loch.cross_listings.cross_listing_number), ',') AS listings,
@@ -485,8 +537,11 @@ def get_x_listings_and_shares(evals, term, dept):
          LEFT JOIN unholy_loch.co_schedulings
                 ON unholy_loch.co_schedulings.course_number = unholy_loch.sis_sections.course_number
                AND unholy_loch.co_schedulings.term_id = unholy_loch.sis_sections.term_id
-             WHERE unholy_loch.sis_sections.course_number IN({ccn_str[:-2]})
+             WHERE unholy_loch.sis_sections.course_number IN({ccn_str})
                AND unholy_loch.sis_sections.enrollment_count > 0
+               AND (unholy_loch.sis_sections.instructor_role_code IS NULL
+                OR unholy_loch.sis_sections.instructor_role_code !='ICNT')
+               AND unholy_loch.sis_sections.instruction_format NOT IN ('CLC', 'GRP', 'IND', 'SUP', 'VOL')
           GROUP BY unholy_loch.sis_sections.course_number,
                    unholy_loch.sis_sections.subject_area,
                    unholy_loch.sis_sections.catalog_id,
@@ -501,3 +556,185 @@ def get_x_listings_and_shares(evals, term, dept):
         result = db.session.execute(text(sql))
         std_commit(allow_test_environment=True)
         result_to_evals(result, evals, term, dept)
+
+
+def get_manual_sections(evals, term, dept):
+    sql = f"""
+        SELECT supplemental_sections.course_number AS ccn,
+               unholy_loch.sis_sections.subject_area AS subject,
+               unholy_loch.sis_sections.catalog_id AS catalog_id,
+               unholy_loch.sis_sections.instruction_format AS instruction_format,
+               unholy_loch.sis_sections.instructor_uid AS uid,
+               unholy_loch.sis_sections.instructor_role_code AS instructor_role,
+               unholy_loch.sis_sections.meeting_start_date AS start_date,
+               unholy_loch.sis_sections.meeting_end_date AS end_date
+          FROM supplemental_sections
+          JOIN unholy_loch.sis_sections
+            ON unholy_loch.sis_sections.course_number = supplemental_sections.course_number
+         WHERE supplemental_sections.department_id = '{dept.dept_id}'
+           AND supplemental_sections.term_id = '{term.term_id}'
+    """
+    app.logger.info(sql)
+    result = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    result_to_evals(result, evals, term, dept)
+
+
+def get_edited_sections(term, dept):
+    sql = f"""
+        SELECT evaluations.course_number AS ccn,
+               unholy_loch.sis_sections.subject_area AS subject,
+               unholy_loch.sis_sections.catalog_id AS catalog_id,
+               unholy_loch.sis_sections.instruction_format AS instruction_format,
+               evaluations.instructor_uid AS uid,
+               unholy_loch.sis_sections.instructor_role_code AS instructor_role,
+               evaluations.start_date AS start_date,
+               evaluations.end_date AS end_date,
+               evaluations.status AS status,
+               evaluations.department_form_id AS dept_form,
+               evaluation_types.name AS eval_type
+          FROM evaluations
+          JOIN unholy_loch.sis_sections
+            ON unholy_loch.sis_sections.course_number = evaluations.course_number
+     LEFT JOIN evaluation_types
+            ON evaluation_types.id = evaluations.evaluation_type_id
+         WHERE evaluations.term_id = '{term.term_id}'
+    """
+    app.logger.info(sql)
+    results = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    evals = []
+    result_to_evals(results, evals, term, dept)
+    return evals
+
+
+def merge_edited_evals(evaluations, edited_evals):
+    eval_ccns = []
+    for e in evaluations:
+        eval_ccns.append(e.ccn)
+    for edit in edited_evals:
+        uid = edit.instructor.uid if edit.instructor else ''
+        app.logger.info(f'Checking edited eval for {edit.ccn}-{uid}')
+        match = None
+        for e in evaluations:
+            if e.ccn == edit.ccn and e.instructor and e.instructor.uid == uid:
+                match = True
+                app.logger.info(f'Merging existing eval for {e.ccn}-{uid}')
+                e.status = edit.status
+                if edit.dept_form:
+                    e.dept_form = edit.dept_form
+                if edit.eval_type:
+                    e.eval_type = edit.eval_type
+                if edit.start_date:
+                    e.start_date = edit.start_date
+                if edit.end_date:
+                    e.end_date = edit.end_date
+        if not match and edit.ccn in eval_ccns:
+            app.logger.info(f'CCN match but no UID match, adding new eval for {edit.ccn}-{uid}')
+            evaluations.append(edit)
+
+
+def get_dept_forms():
+    sql = 'SELECT name FROM department_forms WHERE deleted_at IS NULL'
+    app.logger.info(sql)
+    results = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    forms = []
+    for row in results:
+        forms.append(DepartmentForm(row['name']))
+    return forms
+
+
+def get_all_eval_types():
+    sql = 'SELECT name FROM evaluation_types WHERE deleted_at IS NULL'
+    app.logger.info(sql)
+    results = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    types = []
+    for row in results:
+        types.append(EvaluationType(row['name']))
+    return types
+
+
+def get_instructors(evals):
+    instructors = []
+    uids = []
+    for e in evals:
+        if e.instructor and e.instructor.uid not in uids:
+            uids.append(e.instructor.uid)
+    uids_string = list_to_str(uids)
+    sql = f"""
+        SELECT ldap_uid,
+               first_name,
+               last_name,
+               email_address,
+               deleted_at
+          FROM supplemental_instructors
+         WHERE ldap_uid IN({uids_string})
+    """
+    app.logger.info(sql)
+    results = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    for row in results:
+        if not row['deleted_at']:
+            instructors.append(Instructor({
+                'uid': row['ldap_uid'],
+                'first_name': row['first_name'],
+                'last_name': row['last_name'],
+                'email': row['email_address'],
+                'affiliations': None,
+            }))
+
+    for i in instructors:
+        uids.remove(i.uid)
+    uids_string = list_to_str(uids)
+    sql = f"""
+        SELECT ldap_uid,
+               first_name,
+               last_name,
+               email_address,
+               affiliations,
+               deleted_at
+          FROM unholy_loch.sis_instructors
+         WHERE ldap_uid IN({uids_string})
+    """
+    app.logger.info(sql)
+    results = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    for row in results:
+        # if not row['deleted_at']:
+        instructors.append(Instructor({
+            'uid': row['ldap_uid'],
+            'first_name': row['first_name'],
+            'last_name': row['last_name'],
+            'email': row['email_address'],
+            'affiliations': row['affiliations'],
+        }))
+
+    for e in evals:
+        for i in instructors:
+            if e.instructor and e.instructor.uid == i.uid:
+                e.instructor.first_name = i.first_name
+                e.instructor.last_name = i.last_name
+                e.instructor.email = i.email
+                e.instructor.affiliations = i.affiliations
+
+
+def get_eval_types(evals):
+    for e in evals:
+        if e.eval_type or e.dept.dept_id == '92':
+            app.logger.info('Skipping eval type')
+        else:
+            if e.instructor.uid and e.instructor.affiliations:
+                affils = e.instructor.affiliations
+                if 'EMPLOYEE-TYPE-ACADEMIC' in affils:
+                    if 'STUDENT-TYPE' in affils:
+                        e.eval_type = 'G'
+                    else:
+                        e.eval_type = 'F'
+                elif 'STUDENT-TYPE' in affils:
+                    e.eval_type = 'G'
+                else:
+                    e.eval_type = None
+            else:
+                e.eval_type = None
