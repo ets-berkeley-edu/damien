@@ -25,7 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien.api.util import admin_required
 from damien.lib.http import tolerant_jsonify
-from damien.lib.queries import get_loch_basic_attributes
+from damien.lib.queries import get_loch_basic_attributes_by_uid_or_name
 from damien.lib.util import get as get_param
 from damien.models.user import User
 from flask import current_app as app, request
@@ -44,20 +44,20 @@ def search():
     snippet = get_param(params, 'snippet').strip()
     exclude_uids = get_param(params, 'excludeUids', [])
     users = User.search(snippet, exclude_uids)
-    exclude_uids += [str(u.uid) for u in users]
+    exclude_uids += [u['uid'] for u in users]
     calnet_results = []
     if len(users) < 20:
-        calnet_results = get_loch_basic_attributes(snippet, limit=(20 - len(users)), exclude_uids=exclude_uids)
-    results = [u.to_api_json() for u in users] + [_to_api_json(u) for u in calnet_results or []]
+        calnet_results = get_loch_basic_attributes_by_uid_or_name(snippet, limit=(20 - len(users)), exclude_uids=exclude_uids)
+    results = [_to_api_json(u) for u in users] + [_to_api_json(u) for u in calnet_results or []]
     results.sort(key=lambda x: x['firstName'])
     return tolerant_jsonify(results)
 
 
-def _to_api_json(loch_user):
+def _to_api_json(user):
     return {
-        'csid': loch_user['csid'],
-        'email': loch_user['email'],
-        'firstName': loch_user['first_name'],
-        'lastName': loch_user['last_name'],
-        'uid': loch_user['uid'],
+        'csid': user['csid'],
+        'email': user['email'],
+        'firstName': user['first_name'],
+        'lastName': user['last_name'],
+        'uid': user['uid'],
     }

@@ -2,8 +2,9 @@
   <v-footer
     id="footer"
     app
-    dark
+    class="footer"
     color="secondary darken-1"
+    dark
   >
     <v-container fluid class="pa-1">
       <v-row no-gutters justify="space-between">
@@ -37,3 +38,9 @@
     mixins: [Context]
   }
 </script>
+
+<style scoped>
+.footer {
+  z-index: 10;
+}
+</style>

@@ -39,6 +39,23 @@ def isoformat(value):
     return value and value.astimezone(tzutc()).isoformat()
 
 
+def parse_search_snippet(snippet, uid_col='ldap_uid'):
+    params = {}
+    words = list(set(snippet.upper().split()))
+    # A single numeric string indicates a UID search.
+    if len(words) == 1 and re.match(r'^\d+$', words[0]):
+        query_filter = f' WHERE {uid_col} LIKE :uid_prefix'
+        params.update({'uid_prefix': f'{words[0]}%'})
+    # Otherwise search by name.
+    else:
+        query_filter = ' WHERE TRUE'
+        for i, word in enumerate(words):
+            word = ''.join(re.split('\W', word))
+            query_filter += f' AND (first_name ILIKE :name_phrase_{i} OR last_name ILIKE :name_phrase_{i})'
+            params.update({f'name_phrase_{i}': f'{word}%'})
+    return query_filter, params
+
+
 def resolve_sql_template_string(template_string, **kwargs):
     """Our DDL template files are simple enough to use standard Python string formatting."""
     template_data = {

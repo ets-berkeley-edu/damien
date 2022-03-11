@@ -26,10 +26,9 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from datetime import datetime
 
 from damien import db, std_commit
-from damien.lib.util import isoformat
+from damien.lib.util import isoformat, parse_search_snippet
 from damien.models.base import Base
 from damien.models.department_member import DepartmentMember
-from sqlalchemy import and_, or_
 from sqlalchemy.dialects.postgresql import ENUM
 
 
@@ -136,14 +135,19 @@ class User(Base):
 
     @classmethod
     def search(cls, snippet, exclude_uids):
-        like_csid_snippet = cls.csid.ilike(f'%{snippet}%')
-        like_uid_snippet = cls.uid.ilike(f'%{snippet}%')
-        not_in_uids = cls.uid.not_in(exclude_uids)
-        criteria = and_(
-            not_in_uids,
-            or_(like_csid_snippet, like_uid_snippet),
-        )
-        return cls.query.filter(criteria).all()
+        if not snippet:
+            return []
+        query_filter, params = parse_search_snippet(snippet, uid_col='uid')
+        if exclude_uids:
+            params['uids'] = exclude_uids
+            query_filter += ' AND NOT uid = ANY(:uids)'
+        query = f"""SELECT uid, csid, first_name, last_name, email
+                    FROM users
+                    {query_filter}
+                    LIMIT 20"""
+        results = db.session.execute(query, params)
+        keys = results.keys()
+        return [dict(zip(keys, row)) for row in results.fetchall()]
 
     def to_api_json(self):
         return {
