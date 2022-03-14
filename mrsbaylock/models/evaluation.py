@@ -66,17 +66,49 @@ class Evaluation(object):
         return self.data['instruction_format']
 
     @property
-    def instructor_role(self):
-        return self.data['instructor_role']
+    def instructor(self):
+        return self.data['instructor']
+
+    @instructor.setter
+    def instructor(self, value):
+        self.data['instructor'] = value
 
     @property
     def start_date(self):
         return self.data['start_date']
 
+    @start_date.setter
+    def start_date(self, value):
+        self.data['start_date'] = value
+
     @property
     def end_date(self):
         return self.data['end_date']
 
+    @end_date.setter
+    def end_date(self, value):
+        self.data['end_date'] = value
+
     @property
     def dept_form(self):
         return self.data['dept_form']
+
+    @dept_form.setter
+    def dept_form(self, value):
+        self.data['dept_form'] = value
+
+    @property
+    def eval_type(self):
+        return self.data['eval_type']
+
+    @eval_type.setter
+    def eval_type(self, value):
+        self.data['eval_type'] = value
+
+    @property
+    def status(self):
+        return self.data['status']
+
+    @status.setter
+    def status(self, value):
+        self.data['status'] = value

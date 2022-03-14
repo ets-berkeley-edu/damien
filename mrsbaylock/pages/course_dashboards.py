@@ -33,7 +33,7 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 class CourseDashboards(DamienPages):
 
-    EVALUATION_ROW = (By.CLASS_NAME, 'evaluation-row')
+    EVALUATION_ROW = (By.XPATH, '//tr[contains(@class, "evaluation-row")]')
 
     @staticmethod
     def eval_row_xpath(section, instructor):
@@ -49,12 +49,15 @@ class CourseDashboards(DamienPages):
         time.sleep(2)
         identifiers = []
         for index, value in enumerate(self.elements(CourseDashboards.EVALUATION_ROW)):
-            ccn = self.element((By.ID, f'evaluation-{index}-courseNumber')).text.strip().split('\n')[0]
-            uid_loc = (By.XPATH, f'//td[@id="evaluation-{index}-instructor"]/div')
+            cell = self.element((By.XPATH, f'//tr[contains(@class, "evaluation-row")][{index + 1}]/td[2]'))
+            idx = cell.get_attribute('id').split('-')[1]
+            ccn = self.element((By.ID, f'evaluation-{idx}-courseNumber')).text.strip().split('\n')[0]
+            uid_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-instructor"]/div')
             uid = ''
             if self.is_present(uid_loc):
                 uid = self.element(uid_loc).text.strip().split()[-1].replace('(', '').replace(')', '')
-            identifiers.append(f'{ccn}-{uid}')
+            e_type = self.element((By.ID, f'evaluation-{idx}-evaluationType')).text.strip()
+            identifiers.append(f'{ccn}-{uid}-{e_type}')
         return identifiers
 
     def eval_status(self, section, instructor):

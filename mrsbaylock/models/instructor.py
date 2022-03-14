@@ -23,61 +23,19 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from mrsbaylock.models.blue_perm import BluePerm
+from mrsbaylock.models.user import User
 
 
-class User(object):
-
-    def __init__(self, data, dept_roles=None):
-        self.data = data
-        self.dept_roles = dept_roles
+class Instructor(User):
 
     @property
-    def user_id(self):
-        return self.data['id']
+    def affiliations(self):
+        return self.data['affiliations']
+
+    @affiliations.setter
+    def affiliations(self, value):
+        self.data['affiliations'] = value
 
     @property
-    def uid(self):
-        uid = self.data['uid'].strip() if self.data['uid'] else None
-        return uid
-
-    @property
-    def csid(self):
-        return self.data['csid']
-
-    @property
-    def first_name(self):
-        return self.data['first_name']
-
-    @first_name.setter
-    def first_name(self, value):
-        self.data['first_name'] = value
-
-    @property
-    def last_name(self):
-        return self.data['last_name']
-
-    @last_name.setter
-    def last_name(self, value):
-        self.data['last_name'] = value
-
-    @property
-    def email(self):
-        return self.data['email']
-
-    @email.setter
-    def email(self, value):
-        self.data['email'] = value
-
-    @property
-    def is_admin(self):
-        return self.data['is_admin']
-
-    @property
-    def blue_permissions(self):
-        if self.data['blue_permissions'] == 'reports_only':
-            return BluePerm.BLUE_REPORTS
-        elif self.data['blue_permissions'] == 'response_rates':
-            return BluePerm.BLUE_REPORTS_RESPONSES
-        else:
-            return BluePerm.NO_BLUE
+    def role_code(self):
+        return self.data['role_code']

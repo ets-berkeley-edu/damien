@@ -40,7 +40,7 @@ class GroupMgmtPage(DamienPages):
         self.element((By.XPATH, f'//a[@href="/department/{dept.dept_id}"]'))
 
     def wait_for_dept_row(self, dept):
-        Wait(self.driver, utils.get_medium_timeout()).until(
+        Wait(self.driver, utils.get_short_timeout()).until(
             ec.visibility_of_element_located((By.XPATH, f'//a[@href="/department/{dept.dept_id}"]')),
         )
 
