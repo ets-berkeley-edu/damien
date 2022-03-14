@@ -37,6 +37,20 @@
       <v-row justify="start">
         <v-col cols="12" md="4">
           <h2 class="pb-1 px-2">Department Contacts</h2>
+          <v-btn
+            v-if="!isCreatingNotification"
+            id="open-notification-form-btn"
+            class="ma-2 secondary text-capitalize"
+            :disabled="disableControls"
+            @click="() => isCreatingNotification = true"
+          >
+            Send notification
+          </v-btn>
+          <NotificationForm
+            v-if="isCreatingNotification"
+            :after-send="afterSendNotification"
+            :on-cancel="cancelSendNotification"
+          />
           <DepartmentContact
             v-for="(contact, index) in contacts"
             :key="contact.id"
@@ -141,10 +155,18 @@ import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import DepartmentNote from '@/components/admin/DepartmentNote'
 import EditDepartmentContact from '@/components/admin/EditDepartmentContact'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
+import NotificationForm from '@/components/admin/NotificationForm'
 
 export default {
   name: 'Department',
-  components: {AddCourseSection, DepartmentContact, DepartmentNote, EditDepartmentContact, EvaluationTable},
+  components: {
+    AddCourseSection,
+    DepartmentContact,
+    DepartmentNote,
+    EditDepartmentContact,
+    EvaluationTable,
+    NotificationForm
+  },
   mixins: [Context, DepartmentEditSession],
   data: () => ({
     availableTerms: undefined,
@@ -164,6 +186,7 @@ export default {
     evaluations: [],
     isAddingContact: false,
     isAddingSection: false,
+    isCreatingNotification: false,
     selectedCourseAction: undefined,
     selectedTermId: undefined
   }),
@@ -192,6 +215,11 @@ export default {
       this.alertScreenReader('Contact saved.')
       this.$putFocusNextTick('add-dept-contact-btn')
     },
+    afterSendNotification() {
+      this.isCreatingNotification = false
+      this.alertScreenReader('Notification sent.')
+      this.$putFocusNextTick('open-notification-form-btn')
+    },
     applyCourseAction() {
       let fields = null
       if (this.selectedCourseAction === 'duplicate') {
@@ -213,6 +241,10 @@ export default {
     cancelAddSection() {
       this.isAddingSection = false
       this.alertScreenReader('Section lookup canceled.')
+    },
+    cancelSendNotification() {
+      this.isCreatingNotification = false
+      this.alertScreenReader('Notification canceled.')
     },
     onCancelAddContact() {
       this.isAddingContact = false
