@@ -24,11 +24,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import json
+from unittest import mock
 
 import cas
 from damien import std_commit
 from damien.models.user import User
-import mock
 from tests.util import override_config
 
 authorized_uid = '100'
