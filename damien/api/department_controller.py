@@ -214,6 +214,7 @@ def _validate_evaluation_fields(fields):  # noqa C901
                 validated_fields[k] = date.fromisoformat(v)
             except ValueError:
                 raise BadRequestError(f'Invalid date format {v}.')
+            _validate_current_term_date(validated_fields[k])
         elif k == 'instructorUid':
             try:
                 validated_fields['instructorUid'] = str(int(v))
@@ -228,4 +229,22 @@ def _validate_evaluation_fields(fields):  # noqa C901
                 raise BadRequestError(f'Invalid midterm value {v}')
         else:
             raise BadRequestError(f"Evaluation field '{k}' not recognized.")
+    if 'startDate' in validated_fields and 'endDate' in validated_fields and validated_fields['startDate'] >= validated_fields['endDate']:
+        raise BadRequestError('Start date must be before end date.')
     return validated_fields
+
+
+def _validate_current_term_date(submitted_date):
+    current_term_id = app.config['CURRENT_TERM_ID']
+    current_year = 2000 + int(current_term_id[1:3])
+    if current_term_id[3:4] == '2':
+        term_begin = date(current_year, 1, 1)
+        term_end = date(current_year, 5, 31)
+    elif current_term_id[3:4] == '5':
+        term_begin = date(current_year, 5, 1)
+        term_end = date(current_year, 8, 31)
+    elif current_term_id[3:4] == '8':
+        term_begin = date(current_year, 8, 1)
+        term_end = date(current_year, 12, 31)
+    if submitted_date < term_begin or submitted_date > term_end:
+        raise BadRequestError(f'Date {date} outside current term.')
