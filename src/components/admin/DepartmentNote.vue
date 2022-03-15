@@ -13,16 +13,18 @@
       >
         {{ item }}
       </div>
-      <v-textarea
-        v-if="isEditing"
-        id="dept-note-textarea"
-        v-model="item"
-        auto-grow
-        :disabled="disableControls || !isEditable"
-        flat
-        hide-details="auto"
-        solo
-      ></v-textarea>
+      <v-form v-if="isEditing" class="pa-3">
+        <v-textarea
+          id="dept-note-textarea"
+          v-model="item"
+          auto-grow
+          color="secondary"
+          :disabled="disableControls || !isEditable"
+          flat
+          hide-details="auto"
+          outlined
+        ></v-textarea>
+      </v-form>
       <v-toolbar
         v-if="!isEditing"
         id="dept-note-actions"
@@ -39,7 +41,7 @@
           height="unset"
           min-width="unset"
           text
-          @click="isEditing = true"
+          @click="onEdit"
         >
           Edit
         </v-btn>
@@ -133,6 +135,10 @@ export default {
         this.$putFocusNextTick('delete-dept-note-btn')
         this.reset()
       })
+    },
+    onEdit() {
+      this.isEditing = true
+      this.$putFocusNextTick('dept-note-textarea')
     },
     onSave() {
       this.updateNote(this.item).then(() => {

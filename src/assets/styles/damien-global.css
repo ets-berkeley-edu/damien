@@ -1,6 +1,14 @@
 .borderless {
   border: none !important;
 }
+.form-label {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .separator {
   border-color: rgba(128, 128, 128, .75) !important;
 }

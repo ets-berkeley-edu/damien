@@ -195,14 +195,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.form-label {
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-</style>
