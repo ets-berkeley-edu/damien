@@ -23,8 +23,9 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.lib.berkeley import available_term_ids, term_name_for_sis_id
+from damien.lib.berkeley import available_term_ids, current_term_dates, term_name_for_sis_id
 from damien.lib.http import tolerant_jsonify
+from damien.lib.util import safe_strftime
 from flask import current_app as app
 
 
@@ -32,8 +33,13 @@ from flask import current_app as app
 def app_config():
     def _term_feed(term_id):
         return {'id': term_id, 'name': term_name_for_sis_id(term_id)}
+    term_begin, term_end = current_term_dates()
     return tolerant_jsonify({
         'availableTerms': [_term_feed(term_id) for term_id in available_term_ids()],
+        'currentTermDates': {
+            'begin': safe_strftime(term_begin, '%Y-%m-%d'),
+            'end': safe_strftime(term_end, '%Y-%m-%d'),
+        },
         'currentTermId': app.config['CURRENT_TERM_ID'],
         'damienEnv': app.config['DAMIEN_ENV'],
         'devAuthEnabled': app.config['DEVELOPER_AUTH_ENABLED'],

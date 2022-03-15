@@ -28,7 +28,7 @@ import re
 
 from damien.api.errors import BadRequestError, ResourceNotFoundError
 from damien.api.util import admin_required
-from damien.lib.berkeley import available_term_ids
+from damien.lib.berkeley import available_term_ids, current_term_dates
 from damien.lib.http import tolerant_jsonify
 from damien.lib.util import get as get_param
 from damien.models.department import Department
@@ -235,16 +235,6 @@ def _validate_evaluation_fields(fields):  # noqa C901
 
 
 def _validate_current_term_date(submitted_date):
-    current_term_id = app.config['CURRENT_TERM_ID']
-    current_year = 2000 + int(current_term_id[1:3])
-    if current_term_id[3:4] == '2':
-        term_begin = date(current_year, 1, 1)
-        term_end = date(current_year, 5, 31)
-    elif current_term_id[3:4] == '5':
-        term_begin = date(current_year, 5, 1)
-        term_end = date(current_year, 8, 31)
-    elif current_term_id[3:4] == '8':
-        term_begin = date(current_year, 8, 1)
-        term_end = date(current_year, 12, 31)
+    term_begin, term_end = current_term_dates()
     if submitted_date < term_begin or submitted_date > term_end:
         raise BadRequestError(f'Date {date} outside current term.')
