@@ -591,6 +591,27 @@ class TestEditEvaluation:
             'fields': {'startDate': 'ill', 'endDate': 'communication'},
         }, expected_status_code=400)
 
+    def test_date_before_term(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'fields': {'startDate': '2021-12-25'},
+        }, expected_status_code=400)
+
+    def test_date_after_term(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'fields': {'startDate': '2022-07-14'},
+        }, expected_status_code=400)
+
+    def test_start_after_end(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={
+            'evaluationIds': ['_2222_30659_637739'],
+            'fields': {'startDate': '2022-05-01', 'endDate': '2022-02-14'},
+        }, expected_status_code=400)
+
     def test_edit_dates(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         response = _api_update_evaluation(client, params={
