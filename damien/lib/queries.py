@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import json
 import os
 
 from damien import db
@@ -80,10 +81,16 @@ def refresh_additional_instructors(uids=None):
 
 
 def get_loch_basic_attributes_by_uid_or_name(snippet, limit=20, exclude_uids=None):
-    if os.environ.get('DAMIEN_ENV') == 'test':
-        return []
     if not snippet:
         return []
+    if os.environ.get('DAMIEN_ENV') == 'test':
+        fixture_path = f"{app.config['FIXTURES_PATH']}/loch_ness/basic_attributes_for_snippet_{snippet}.json"
+        results = []
+        if os.path.isfile(fixture_path):
+            with open(fixture_path) as f:
+                results = json.load(f)
+        return results
+
     query_filter, params = parse_search_snippet(snippet)
     params['limit'] = limit
     if exclude_uids:

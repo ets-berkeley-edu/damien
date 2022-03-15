@@ -25,6 +25,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import os
 
+# Base directory for the application (one level up from this config file).
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+FIXTURES_PATH = f'{BASE_DIR}/fixtures'
+
 INDEX_HTML = 'tests/static/test-index.html'
 
 LOGGING_LOCATION = 'STDOUT'

@@ -61,13 +61,19 @@ def _create_users():
     for test_user in _test_users:
         db.session.add(User(**test_user))
     std_commit(allow_test_environment=True)
+    with open(app.config['FIXTURES_PATH'] + '/department_contacts.sql', 'r') as ddlfile:
+        _execute(ddlfile)
 
 
 def _load_schemas():
     """Create DB schema from SQL file."""
-    for schema in ['schema', 'unholy_loch', 'populate_departments', 'populate_department_contacts', 'populate_unholy_loch']:
+    for schema in ['schema', 'unholy_loch', 'populate_departments', 'populate_unholy_loch']:
         with open(app.config['BASE_DIR'] + f'/scripts/db/{schema}.sql', 'r') as ddlfile:
-            # Let's leave the preprended copyright and license text out of this.
-            sql = re.sub(r'^/\*.*?\*/\s*', '', ddlfile.read(), flags=re.DOTALL)
-            db.session().execute(text(sql))
-            std_commit()
+            _execute(ddlfile)
+
+
+def _execute(ddlfile):
+    # Let's leave the preprended copyright and license text out of this.
+    sql = re.sub(r'^/\*.*?\*/\s*', '', ddlfile.read(), flags=re.DOTALL)
+    db.session().execute(text(sql))
+    std_commit()

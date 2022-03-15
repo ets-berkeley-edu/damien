@@ -71,14 +71,29 @@ class TestSearch:
         _api_search(client, expected_status_code=401)
 
     def test_authenticated_uid_search(self, client, fake_auth):
-        """Returns UID matches."""
+        """Returns UID matches from local and loch ness data."""
         fake_auth.login(admin_uid)
         results = _api_search(client, snippet='500')
-        assert '500' in [r['uid'] for r in results]
+        uids = [r['uid'] for r in results]
+        assert '500' in uids  # local result
+        assert '5000286' in uids  # loch ness result
 
     def test_authenticated_name_search(self, client, fake_auth):
-        """Returns name matches."""
+        """Returns name matches from local and loch ness data."""
         fake_auth.login(admin_uid)
-        results = _api_search(client, snippet='THO R')
+        results = _api_search(client, snippet='RO')
+        last_names = [r['lastName'] for r in results]
+        assert 'Romney' in last_names  # local result
+        assert 'Rockwell' in last_names  # loch ness result
+
+        first_names = [r['firstName'] for r in results]
+        assert 'Roland' in first_names  # local result
+        assert 'Roscoe' in first_names  # loch ness result
+
+        results = _api_search(client, snippet='ROBERT THORN')
+        assert len(results) == 1
+        assert results[0]['csid'] == '300300300'
+        assert results[0]['email'] == 'rt@berkeley.edu'
         assert results[0]['firstName'] == 'Robert'
         assert results[0]['lastName'] == 'Thorn'
+        assert results[0]['uid'] == '300'
