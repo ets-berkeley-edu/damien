@@ -58,7 +58,15 @@ class TestConfigController:
         response = client.get('/api/config')
         assert response.status_code == 200
         data = response.json
-        assert data['currentTermId'] == '2222'
         assert len(data['availableTerms']) == 2
         assert data['availableTerms'][0] == {'id': '2218', 'name': 'Fall 2021'}
         assert data['availableTerms'][1] == {'id': '2222', 'name': 'Spring 2022'}
+
+    def test_current_term(self, app, client, fake_auth):
+        fake_auth.login(authorized_uid)
+        response = client.get('/api/config')
+        assert response.status_code == 200
+        data = response.json
+        assert data['currentTermId'] == '2222'
+        assert data['currentTermDates']['begin'] == '2022-01-01'
+        assert data['currentTermDates']['end'] == '2022-05-31'

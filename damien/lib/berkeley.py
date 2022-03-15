@@ -23,11 +23,29 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from datetime import date
+
 from flask import current_app as app
 
 
 def available_term_ids():
     return term_ids_range(app.config['EARLIEST_TERM_ID'], app.config['CURRENT_TERM_ID'])
+
+
+def current_term_dates():
+    """Return loose boundaries (not official term dates) for sanity checking."""
+    current_term_id = app.config['CURRENT_TERM_ID']
+    current_year = 2000 + int(current_term_id[1:3])
+    if current_term_id[3:4] == '2':
+        term_begin = date(current_year, 1, 1)
+        term_end = date(current_year, 5, 31)
+    elif current_term_id[3:4] == '5':
+        term_begin = date(current_year, 5, 1)
+        term_end = date(current_year, 8, 31)
+    elif current_term_id[3:4] == '8':
+        term_begin = date(current_year, 8, 1)
+        term_end = date(current_year, 12, 31)
+    return term_begin, term_end
 
 
 def term_ids_range(earliest_term_id, latest_term_id):

@@ -157,6 +157,8 @@
                     v-model="selectedStartDate"
                     type="date"
                     hide-details="auto"
+                    class="evaluation-input"
+                    :rules="[rules.currentTermDate, rules.beforeEndDate]"
                     solo
                   />
                 </td>
@@ -169,12 +171,21 @@
                     v-model="selectedEndDate"
                     type="date"
                     hide-details="auto"
+                    class="evaluation-input"
+                    :rules="[rules.currentTermDate, rules.afterStartDate]"
                     solo
                   />
                 </td>
                 <td>
                   <div v-if="isEditing(evaluation)" class="d-flex align-center">
-                    <v-btn class="ma-1" color="primary" @click="saveEvaluation(evaluation)">Save</v-btn>
+                    <v-btn
+                      class="ma-1"
+                      color="primary"
+                      :disabled="!rowValid"
+                      @click="saveEvaluation(evaluation)"
+                    >
+                      Save
+                    </v-btn>
                     <v-btn class="ma-1" @click="cancelEdit">Cancel</v-btn>
                   </div>
                 </td>
@@ -230,11 +241,25 @@ export default {
       {text: 'Course End Date', value: 'endDate'}
     ],
     pendingInstructor: null,
+    rules: {
+      afterStartDate: null,
+      currentTermDate: null,
+    },
     selectedDepartmentForm: null,
     selectedEndDate: null,
     selectedEvaluationType: null,
     selectedStartDate: null
   }),
+  computed: {
+    rowValid() {
+      return (
+        this.rules.currentTermDate(this.selectedStartDate) === true &&
+        this.rules.currentTermDate(this.selectedEndDate) === true &&
+        this.rules.afterStartDate(this.selectedEndDate) === true &&
+        this.rules.beforeEndDate(this.selectedStartDate) === true
+      )
+    }
+  },
   methods: {
     cancelEdit() {
       this.editRowId = null
@@ -300,9 +325,25 @@ export default {
   created() {
     getDepartmentForms().then(data => this.departmentForms = data)
     getEvaluationTypes().then(data => this.evaluationTypes = data)
+    this.rules.afterStartDate = v => (v > this.selectedStartDate) || 'End date must be after start date.'
+    this.rules.beforeEndDate = v => (v < this.selectedEndDate) || 'End date must be after start date.'
+    this.rules.currentTermDate = v => {
+      if (v > this.$config.currentTermDates.begin && v < this.$config.currentTermDates.end) {
+        return true
+      }
+      return 'Date must be within current term.'
+    }
   },
 }
 </script>
+
+<style>
+.evaluation-input.error--text,
+.evaluation-input .error--text {
+  color: #fff !important;
+  caret-color: #fff !important;
+}
+</style>
 
 <style scoped>
 .evaluation-row:hover {
