@@ -33,12 +33,10 @@ from damien.lib.http import tolerant_jsonify
 from damien.lib.util import get as get_param
 from damien.models.department import Department
 from damien.models.department_form import DepartmentForm
-from damien.models.department_member import DepartmentMember
 from damien.models.department_note import DepartmentNote
 from damien.models.evaluation import Evaluation
 from damien.models.evaluation_type import EvaluationType
 from damien.models.supplemental_section import SupplementalSection
-from damien.models.user import User
 from flask import current_app as app, request
 from flask_login import current_user, login_required
 
@@ -57,13 +55,6 @@ def add_section(department_id):
     SupplementalSection.create_or_restore(current_term_id, course_number, department_id)
     response = department.evaluations_feed(current_term_id)
     return tolerant_jsonify(response)
-
-
-@app.route('/api/department/<department_id>/contact/<user_id>', methods=['DELETE'])
-@admin_required
-def delete_contact(department_id, user_id):
-    DepartmentMember.delete(department_id, user_id)
-    return tolerant_jsonify({'message': f'Department contact <dept_id={department_id}, user_id={user_id}> has been deleted'}), 200
 
 
 @app.route('/api/departments/enrolled')
@@ -105,47 +96,6 @@ def update_note(department_id):
             raise BadRequestError('Invalid term id.')
         department_note = DepartmentNote.upsert(department_id, term_id=term_id, note=note)
         return tolerant_jsonify(department_note.to_api_json())
-    else:
-        raise ResourceNotFoundError(f'Department {department_id} not found.')
-
-
-@app.route('/api/department/<department_id>/contact', methods=['POST'])
-@admin_required
-def update_contact(department_id):
-    department = Department.find_by_id(department_id)
-    if department:
-        params = request.get_json()
-        can_receive_communications = get_param(params, 'canReceiveCommunications')
-        can_view_reports = get_param(params, 'canViewReports')
-        can_view_response_rates = get_param(params, 'canViewResponseRates')
-        email = get_param(params, 'email')
-        uid = get_param(params, 'uid')
-        user_id = get_param(params, 'userId')
-        user = User.find_by_id(user_id) or User.find_by_uid(uid)
-        if not user:
-            csid = get_param(params, 'csid')
-            first_name = get_param(params, 'firstName')
-            last_name = get_param(params, 'lastName')
-            user = User.create(
-                csid=csid,
-                uid=uid,
-                email=email,
-                first_name=first_name,
-                last_name=last_name,
-            )
-        blue_permissions = None
-        if can_view_response_rates:
-            blue_permissions = 'response_rates'
-        elif can_view_reports:
-            blue_permissions = 'reports_only'
-        department_member = DepartmentMember.upsert(
-            blue_permissions=blue_permissions,
-            can_receive_communications=can_receive_communications,
-            department_id=department_id,
-            email=email,
-            user_id=user.id,
-        )
-        return tolerant_jsonify(department_member.to_api_json())
     else:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
 

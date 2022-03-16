@@ -46,6 +46,7 @@ def app_config():
         'easterEggMonastery': app.config['EASTER_EGG_MONASTERY'],
         'easterEggNannysRoom': app.config['EASTER_EGG_NANNYSROOM'],
         'ebEnvironment': app.config['EB_ENVIRONMENT'] if 'EB_ENVIRONMENT' in app.config else None,
-        'emailSupport': app.config['SUPPORT_EMAIL'],
+        'emailSupport': app.config['EMAIL_COURSE_EVALUATION_ADMIN'],
+        'emailTestMode': app.config['EMAIL_TEST_MODE'],
         'timezone': app.config['TIMEZONE'],
     })

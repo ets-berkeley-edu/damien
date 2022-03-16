@@ -29,6 +29,12 @@ import os
 # Base directory for the application (one level up from this config file).
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
+# bConnected On-Premise (bCOP) SMTP server
+BCOP_SMTP_PASSWORD = None
+BCOP_SMTP_PORT = 587
+BCOP_SMTP_SERVER = 'bcop.berkeley.edu'
+BCOP_SMTP_USERNAME = None
+
 CAS_SERVER = 'https://auth-test.berkeley.edu/cas/'
 
 CURRENT_TERM_ID = '2222'
@@ -42,6 +48,11 @@ DEVELOPER_AUTH_PASSWORD = 'a secret'
 
 EASTER_EGG_MONASTERY = None
 EASTER_EGG_NANNYSROOM = None
+
+EMAIL_COURSE_EVALUATION_ADMIN = '__EMAIL_COURSE_EVALUATION_ADMIN__at_berkeley.edu'
+EMAIL_COURSE_EVALUATION_ADMIN_LABEL = 'Course Evaluation Admin'
+EMAIL_REDIRECT_WHEN_TESTING = ['__EMAIL_REDIRECT_WHEN_TESTING__at_berkeley.edu']
+EMAIL_TEST_MODE = True
 
 # Directory to search for mock fixtures, if running in "test" or "demo" mode.
 FIXTURES_PATH = None
@@ -68,8 +79,6 @@ SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
 # Override in local configs.
 SQLALCHEMY_DATABASE_URI = 'postgresql://damien:damien@localhost:5432/bugenhagen'
-
-SUPPORT_EMAIL = 'TODO'
 
 # A common configuration; one request thread, one background worker thread.
 THREADS_PER_PAGE = 2

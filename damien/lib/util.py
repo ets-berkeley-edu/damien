@@ -35,6 +35,10 @@ def get(_dict, key, default_value=None):
     return _dict[key] if key in _dict else default_value
 
 
+def get_eb_environment():
+    return app.config['EB_ENVIRONMENT'] if 'EB_ENVIRONMENT' in app.config else None
+
+
 def isoformat(value):
     return value and value.astimezone(tzutc()).isoformat()
 

@@ -44,7 +44,7 @@ def cas_login():
     if user is None:
         param = ('error', f"""
             Sorry, you are not registered to use Course Evaluations.
-            Please <a href="mailto:{app.config['SUPPORT_EMAIL']}">email us</a> for assistance.
+            Please <a href="mailto:{app.config['EMAIL_COURSE_EVALUATION_ADMIN']}">email us</a> for assistance.
         """)
         redirect_url = add_param_to_url('/', param)
     else:
