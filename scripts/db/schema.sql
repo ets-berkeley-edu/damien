@@ -165,6 +165,7 @@ CREATE TYPE evaluation_status AS ENUM ('marked', 'confirmed', 'deleted', 'ignore
 
 CREATE TABLE evaluations (
     id integer NOT NULL,
+    department_id INTEGER NOT NULL,
     term_id VARCHAR(4) NOT NULL,
     course_number VARCHAR(5) NOT NULL,
     instructor_uid VARCHAR(80),
@@ -285,6 +286,8 @@ ALTER TABLE ONLY department_members
 ALTER TABLE ONLY department_notes
     ADD CONSTRAINT department_notes_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
 
+ALTER TABLE ONLY evaluations
+    ADD CONSTRAINT evaluations_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
 ALTER TABLE ONLY evaluations
     ADD CONSTRAINT evaluations_department_form_id_fkey FOREIGN KEY (department_form_id) REFERENCES department_forms(id);
 ALTER TABLE ONLY evaluations
