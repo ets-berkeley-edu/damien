@@ -113,23 +113,23 @@ def update_evaluations(department_id):
         raise BadRequestError('No evaluation ids supplied.')
     updated_ids = []
     if action == 'confirm':
-        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': 'confirmed'})
+        updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'confirmed'})
     elif action == 'delete':
-        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': 'deleted'})
+        updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'deleted'})
     elif action == 'duplicate':
         fields = None
         if params.get('fields'):
             fields = _validate_evaluation_fields(params.get('fields'))
-        updated_ids = Evaluation.duplicate_bulk(evaluation_ids=evaluation_ids, department=department, fields=fields)
+        updated_ids = Evaluation.duplicate_bulk(department_id=department_id, evaluation_ids=evaluation_ids, department=department, fields=fields)
     elif action == 'edit':
         fields = _validate_evaluation_fields(params.get('fields'))
-        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields=fields)
+        updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields=fields)
     elif action == 'mark':
-        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': 'marked'})
+        updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'marked'})
     elif action == 'ignore':
-        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': 'ignore'})
+        updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'ignore'})
     elif action == 'unmark':
-        updated_ids = Evaluation.update_bulk(evaluation_ids=evaluation_ids, fields={'status': None})
+        updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': None})
     else:
         raise BadRequestError('Invalid update action.')
     if not updated_ids:

@@ -54,6 +54,10 @@ class Department(Base):
         'DepartmentNote',
         back_populates='department',
     )
+    evaluations = db.relationship(
+        'Evaluation',
+        back_populates='department',
+    )
     catalog_listings = db.relationship(
         DepartmentCatalogListing.__name__,
         back_populates='department',
@@ -205,7 +209,7 @@ class Department(Base):
     def evaluations_feed(self, term_id=None, evaluation_ids=None):
         feed = []
         for s in self.get_visible_sections(term_id):
-            feed.extend(s.get_evaluation_feed(evaluation_ids=evaluation_ids))
+            feed.extend(s.get_evaluation_feed(department=self, evaluation_ids=evaluation_ids))
         return feed
 
     def to_api_json(

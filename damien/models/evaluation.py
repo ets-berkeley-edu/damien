@@ -51,6 +51,7 @@ class Evaluation(Base):
 
     id = db.Column(db.Integer, nullable=False, primary_key=True, autoincrement=True)  # noqa: A003
     term_id = db.Column(db.String(4), nullable=False, primary_key=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), primary_key=True)
     course_number = db.Column(db.String(5), nullable=False, primary_key=True)
     instructor_uid = db.Column(db.String(80), primary_key=True)
     status = db.Column(evaluation_status_enum)
@@ -60,6 +61,8 @@ class Evaluation(Base):
     end_date = db.Column(db.Date)
     created_by = db.Column(db.String(80))
     updated_by = db.Column(db.String(80))
+
+    department = db.relationship('Department', back_populates='evaluations', lazy='joined')
 
     department_form = db.relationship(
         DepartmentForm.__name__,
@@ -74,6 +77,7 @@ class Evaluation(Base):
         self,
         term_id,
         course_number,
+        department_id=None,
         instructor_uid=None,
         status=None,
         department_form_id=None,
@@ -85,6 +89,7 @@ class Evaluation(Base):
     ):
         self.term_id = term_id
         self.course_number = course_number
+        self.department_id = department_id
         self.instructor_uid = instructor_uid
         self.status = status
         self.department_form_id = department_form_id
@@ -97,6 +102,7 @@ class Evaluation(Base):
     def __repr__(self):
         return f"""<Evaluation id={self.id},
                     term_id={self.term_id},
+                    department_id={self.department_id},
                     course_number={self.course_number},
                     instructor_uid={self.instructor_uid},
                     status={self.status},
@@ -115,6 +121,7 @@ class Evaluation(Base):
             cls,
             term_id,
             course_number,
+            department_id=None,
             instructor_uid=None,
             status=None,
             department_form_id=None,
@@ -125,6 +132,7 @@ class Evaluation(Base):
         evaluation = cls(
             term_id=term_id,
             course_number=course_number,
+            department_id=department_id,
             instructor_uid=instructor_uid,
             status=status,
             department_form_id=department_form_id,
@@ -162,6 +170,11 @@ class Evaluation(Base):
         else:
             transient_evaluation.status = None
 
+        if saved_evaluation and saved_evaluation.department_id:
+            transient_evaluation.department_id = saved_evaluation.department_id
+        else:
+            transient_evaluation.department_id = None
+
         all_eval_types = evaluation_type_cache or {et.name: et for et in EvaluationType.query.all()}
 
         transient_evaluation.set_department_form(saved_evaluation, default_form)
@@ -196,7 +209,7 @@ class Evaluation(Base):
         return evaluation
 
     @classmethod
-    def duplicate_bulk(cls, evaluation_ids, department, fields=None):
+    def duplicate_bulk(cls, department_id, evaluation_ids, department, fields=None):
         original_feed = []
         if fields:
             original_feed = department.evaluations_feed(app.config['CURRENT_TERM_ID'], evaluation_ids)
@@ -212,6 +225,10 @@ class Evaluation(Base):
                 original_evaluation_feed = next((f for f in original_feed if f['id'] == evaluation_id), None)
                 duplicate.set_fields(fields, original_evaluation_feed)
 
+            if not evaluation.department_id:
+                evaluation.department_id = department_id
+            duplicate.department_id = department_id
+
             duplicate.created_by = current_user.get_uid()
             duplicate.updated_by = current_user.get_uid()
 
@@ -222,13 +239,14 @@ class Evaluation(Base):
         return [e.id for e in evaluations]
 
     @classmethod
-    def update_bulk(cls, evaluation_ids, fields):
+    def update_bulk(cls, department_id, evaluation_ids, fields):
         evaluations = []
         for evaluation_id in evaluation_ids:
             evaluation = cls.from_id(evaluation_id)
             if not evaluation:
                 continue
             evaluation.set_fields(fields)
+            evaluation.department_id = department_id
             evaluation.updated_by = current_user.get_uid()
             db.session.add(evaluation)
             evaluations.append(evaluation)
@@ -245,6 +263,7 @@ class Evaluation(Base):
         return self.__class__(
             term_id=self.term_id,
             course_number=self.course_number,
+            department_id=self.department_id,
             instructor_uid=self.instructor_uid,
             status=self.status,
             department_form_id=self.department_form_id,
@@ -329,6 +348,7 @@ class Evaluation(Base):
         feed.update({
             'id': self.get_id(),
             'transientId': self.transient_id(),
+            'departmentId': self.department_id,
             'status': feed_status,
             'instructor': section.instructors.get(self.instructor_uid),
             'departmentForm': dept_form_feed,
