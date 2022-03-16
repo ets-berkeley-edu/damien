@@ -38,7 +38,8 @@ class TestConfigController:
         data = response.json
         assert data['damienEnv'] == 'test'
         assert data['devAuthEnabled'] is False
-        assert data['ebEnvironment'] is None
+        assert data['ebEnvironment'] == 'damien-test'
+        assert data['emailTestMode'] is True
         assert data['timezone'] == 'America/Los_Angeles'
 
     def test_authorized_user(self, app, client, fake_auth):
@@ -50,7 +51,8 @@ class TestConfigController:
             data = response.json
             assert data['damienEnv'] == 'test'
             assert data['devAuthEnabled'] is True
-            assert data['ebEnvironment'] is None
+            assert data['ebEnvironment'] == 'damien-test'
+            assert data['emailTestMode'] is True
             assert data['timezone'] == 'America/Los_Angeles'
 
     def test_available_terms(self, app, client, fake_auth):

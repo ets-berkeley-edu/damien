@@ -30,12 +30,12 @@
         hide-details="auto"
         outlined
       ></v-text-field>
-      <label for="input-notification-body" class="form-label">
+      <label for="input-notification-message" class="form-label">
         Message
       </label>
       <v-textarea
-        id="input-notification-body"
-        v-model="body"
+        id="input-notification-message"
+        v-model="message"
         auto-grow
         class="mt-1"
         color="secondary"
@@ -73,6 +73,7 @@
 </template>
 
 <script>
+import {notifyContacts} from '@/api/departments'
 import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 
@@ -90,14 +91,14 @@ export default {
     }
   },
   data: () => ({
-    body: undefined,
+    message: undefined,
     isSending: false,
     recipients: [],
     subject: undefined
   }),
   computed: {
     disabled() {
-      return this.isSending || !this.$_.trim(this.subject) || !this.$_.trim(this.body) || !this.$_.size(this.recipients)
+      return this.isSending || !this.$_.trim(this.subject) || !this.$_.trim(this.message) || !this.$_.size(this.recipients)
     }
   },
   created() {
@@ -117,8 +118,9 @@ export default {
     sendNotification() {
       this.alertScreenReader('Sending')
       this.isSending = true
-      console.log('TODO: API for sending a notification')
-      this.afterSend()
+      notifyContacts(this.message, this.recipients, this.subject).then(() => {
+        this.afterSend()
+      })
     }
   }
 }

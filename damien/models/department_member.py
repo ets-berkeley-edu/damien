@@ -72,6 +72,10 @@ class DepartmentMember(Base):
         return department_member
 
     @classmethod
+    def find_by_department_and_user(cls, department_id, user_id):
+        return cls.query.filter_by(department_id=department_id, user_id=user_id).first()
+
+    @classmethod
     def upsert(
         cls,
         blue_permissions,

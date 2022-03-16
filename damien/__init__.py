@@ -23,6 +23,9 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import json
+
+from decorator import decorator
 from flask import current_app as app
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
@@ -56,3 +59,17 @@ def std_commit(allow_test_environment=False, session=None):
     finally:
         if not successful_commit:
             session.close()
+
+
+def skip_when_pytest(mock_object=None, is_fixture_json_file=False):
+    @decorator
+    def _skip_when_pytest(func, *args, **kw):
+        if app.config['DAMIEN_ENV'] == 'test':
+            if mock_object and is_fixture_json_file:
+                with open(f"{app.config['FIXTURES_PATH']}/{mock_object}", 'r') as file:
+                    return json.loads(file.read())
+            else:
+                return mock_object
+        else:
+            return func(*args, **kw)
+    return _skip_when_pytest
