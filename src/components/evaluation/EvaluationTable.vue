@@ -117,9 +117,12 @@
                   </div>
                 </td>
                 <td :id="`evaluation-${evaluationId}-departmentForm`">
-                  <span v-if="evaluation.departmentForm && !isEditing(evaluation)">
+                  <div v-if="evaluation.departmentForm && !isEditing(evaluation)" :class="{'evaluation-error-text': evaluation.conflicts.departmentForm}">
                     {{ evaluation.departmentForm.name }}
-                  </span>
+                    <div v-for="(conflict, index) in evaluation.conflicts.departmentForm" :key="index" class="evaluation-error evaluation-error-text">
+                      <v-icon small color="red">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
+                    </div>
+                  </div>
                   <v-select
                     v-if="isEditing(evaluation)"
                     id="select-department-form"
@@ -133,9 +136,12 @@
                   />
                 </td>
                 <td :id="`evaluation-${evaluationId}-evaluationType`">
-                  <span v-if="evaluation.evaluationType && !isEditing(evaluation)">
+                  <div v-if="evaluation.evaluationType && !isEditing(evaluation)" :class="{'evaluation-error-text': evaluation.conflicts.evaluationType}">
                     {{ evaluation.evaluationType.name }}
-                  </span>
+                    <div v-for="(conflict, index) in evaluation.conflicts.evaluationType" :key="index" class="evaluation-error evaluation-error-text">
+                      <v-icon small color="red">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
+                    </div>
+                  </div>
                   <v-select
                     v-if="isEditing(evaluation)"
                     id="select-evaluation-type"
@@ -149,8 +155,11 @@
                   />
                 </td>
                 <td :id="`evaluation-${evaluationId}-startDate`">
-                  <span v-if="!isEditing(evaluation)">
+                  <span v-if="!isEditing(evaluation)" :class="{'evaluation-error-text': evaluation.conflicts.startDate}">
                     {{ evaluation.startDate | moment('MM/DD/YYYY') }}
+                    <div v-for="(conflict, index) in evaluation.conflicts.startDate" :key="index" class="evaluation-error evaluation-error-text">
+                      <v-icon small color="red">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value | moment('MM/DD/YYYY') }} from {{ conflict.department }} department
+                    </div>
                   </span>
                   <v-text-field
                     v-if="isEditing(evaluation)"
@@ -163,8 +172,11 @@
                   />
                 </td>
                 <td :id="`evaluation-${evaluationId}-endDate`">
-                  <span v-if="!isEditing(evaluation)">
+                  <span v-if="!isEditing(evaluation)" :class="{'evaluation-error-text': evaluation.conflicts.endDate}">
                     {{ evaluation.endDate | moment('MM/DD/YYYY') }}
+                    <div v-for="(conflict, index) in evaluation.conflicts.endDate" :key="index" class="evaluation-error evaluation-error-text">
+                      <v-icon small color="red">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value | moment('MM/DD/YYYY') }} from {{ conflict.department }} department
+                    </div>
                   </span>
                   <v-text-field
                     v-if="isEditing(evaluation)"
@@ -346,6 +358,13 @@ export default {
 </style>
 
 <style scoped>
+.evaluation-error {
+  font-size: 0.8em;
+  font-style: italic;
+}
+.evaluation-error-text {
+  color: #f00;
+}
 .evaluation-row:hover {
   background-color: #def !important;
   color: #069 !important;
