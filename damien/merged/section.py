@@ -106,11 +106,19 @@ class Section:
         loch_rows_by_instructor_uid = {k: list(v) for k, v in groupby(self.loch_rows, key=lambda r: r['instructor_uid'])}
         evaluation_uids = set()
 
-        # Create one API feed element per visible saved evaluation, merging in data from SIS as needed.
+        home_dept_evals = []
+        foreign_dept_evals_by_uid = {}
+
         for evaluation in self.evaluations:
-            # TODO merge in evaluations from foreign departments, noting conflicts as they appear.
-            if evaluation.department != department:
-                continue
+            if evaluation.department == department:
+                home_dept_evals.append(evaluation)
+            elif evaluation.status in ('marked', 'confirmed'):
+                if evaluation.instructor_uid not in foreign_dept_evals_by_uid:
+                    foreign_dept_evals_by_uid[evaluation.instructor_uid] = []
+                foreign_dept_evals_by_uid[evaluation.instructor_uid].append(evaluation)
+
+        # Create one API feed element per visible saved evaluation, merging in data from SIS as needed.
+        for evaluation in home_dept_evals:
             evaluation_uids.add(evaluation.instructor_uid)
             if not evaluation.is_visible():
                 continue
@@ -120,8 +128,9 @@ class Section:
             merged_evaluations.append(Evaluation.merge_transient(
                 evaluation.instructor_uid,
                 loch_rows_for_uid,
-                evaluation,
-                self.instructors.get(evaluation.instructor_uid),
+                saved_evaluation=evaluation,
+                foreign_dept_evaluations=foreign_dept_evals_by_uid.get(evaluation.instructor_uid, []),
+                instructor=self.instructors.get(evaluation.instructor_uid),
                 default_form=self.default_form,
                 evaluation_type_cache=self.evaluation_type_cache,
             ))
@@ -137,8 +146,9 @@ class Section:
             merged_evaluations.append(Evaluation.merge_transient(
                 instructor_uid,
                 loch_rows_for_uid,
-                None,
-                self.instructors.get(instructor_uid),
+                saved_evaluation=None,
+                foreign_dept_evaluations=foreign_dept_evals_by_uid.get(instructor_uid, []),
+                instructor=self.instructors.get(instructor_uid),
                 default_form=self.default_form,
                 evaluation_type_cache=self.evaluation_type_cache,
             ))
