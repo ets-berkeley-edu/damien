@@ -28,7 +28,7 @@
             <v-list-item-title>{{ item.title }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item class="primary-contrast--text" @click="$vuetify.theme.dark = !$vuetify.theme.dark">
+        <v-list-item class="primary-contrast--text" @click="toggleColorScheme">
           <v-list-item-icon>
             <DarkModeIcon />
           </v-list-item-icon>
@@ -114,12 +114,14 @@
     }),
     created() {
       this.prefersColorScheme()
-      this.navItems = [
-        { title: 'Status Board', icon: StatusIcon, path: '/status' },
-        { title: 'Course Errors Board', icon: ErrorIcon, path: '/errors' },
-        { title: 'Group Management', icon: GroupIcon, path: '/departments' },
-        { title: 'List Management', icon: ListIcon, path: '/lists' }
-      ]
+      if (this.$currentUser.isAdmin) {
+        this.navItems = [
+          { title: 'Status Board', icon: StatusIcon, path: '/status' },
+          { title: 'Course Errors Board', icon: ErrorIcon, path: '/errors' },
+          { title: 'Group Management', icon: GroupIcon, path: '/departments' },
+          { title: 'List Management', icon: ListIcon, path: '/lists' }
+        ]
+      }
     },
     methods: {
       logOut() {
@@ -127,11 +129,11 @@
         getCasLogoutUrl().then(data => window.location.href = data.casLogoutUrl)
       },
       prefersColorScheme() {
-        const mq = window.matchMedia('(prefers-color-scheme: dark)')
-        this.$vuetify.theme.dark = mq.matches
-        if (typeof mq.addEventListener === 'function') {
-          mq.addEventListener('change', e => this.$vuetify.theme.dark = e.matches)
-        }
+        this.$vuetify.theme.dark = window.localStorage.getItem('prefersDarkMode')
+      },
+      toggleColorScheme() {
+        this.$vuetify.theme.dark = !this.$vuetify.theme.dark
+        window.localStorage.setItem('prefersDarkMode', this.$vuetify.theme.dark)
       },
       toRoute(path) {
         this.$router.push({ path }, this.$_.noop)
