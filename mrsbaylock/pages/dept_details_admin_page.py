@@ -34,8 +34,16 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 class DeptDetailsAdminPage(CourseDashboards):
 
+    TERM_SELECT = (By.ID, 'select-term')
+    APPLY_TERM_BUTTON = (By.XPATH, '//label[text()=" Previous terms: "]/following-sibling::button[contains(., "Apply")]')
+
+    def select_term(self, term):
+        app.logger.info(f'Selecting term {term.name}')
+        self.wait_for_element_and_click(DeptDetailsAdminPage.TERM_SELECT)
+        self.wait_for_element_and_click(self.menu_option_locator(term.name))
+        self.wait_for_element_and_click(DeptDetailsAdminPage.APPLY_TERM_BUTTON)
+
     ADD_CONTACT_BUTTON = (By.ID, 'add-dept-contact-btn')
-    ADD_CONTACT_LOOKUP_INPUT = (By.ID, 'input-person-lookup-autocomplete')
     ADD_CONTACT_EMAIL = (By.ID, 'input-email-add-contact')
     EMAIL_REQUIRED_MSG = (By.XPATH, '//div[@text()="E-mail is required"]')
     EMAIL_INVALID_MSG = (By.XPATH, '//div[text()="E-mail must be valid"]')
@@ -48,22 +56,9 @@ class DeptDetailsAdminPage(CourseDashboards):
     DELETE_CONFIRM_BUTTON = (By.ID, 'confirm-dialog-btn')
     DELETE_CANCEL_BUTTON = (By.ID, 'cancel-dialog-btn')
 
-    DEPT_NOTE = (By.ID, 'dept-note')
-    DEPT_NOTE_EDIT_BUTTON = (By.ID, 'edit-dept-note-btn')
-    DEPT_NOTE_TEXTAREA = (By.ID, 'dept-note-textarea')
-    DEPT_NOTE_SAVE_BUTTON = (By.ID, 'save-dept-note-btn')
-    DEPT_NOTE_CXL_BUTTON = (By.ID, 'cancel-dept-note-btn')
-    DEPT_NOTE_DELETE_BUTTON = (By.ID, 'delete-dept-note-btn')
-
-    # CONTACTS
-
     @staticmethod
     def dept_contact_xpath(user):
         return f'//div[contains(@id, "department-contact-")][contains(., "{user.email}")]/div'
-
-    @staticmethod
-    def add_contact_lookup_result(user):
-        return By.XPATH, f'//div[contains(@id, "list-item")][contains(., "{user.uid}")]'
 
     @staticmethod
     def dept_contact_edit_button(user):
@@ -94,17 +89,6 @@ class DeptDetailsAdminPage(CourseDashboards):
 
     def click_delete_contact(self, user):
         self.wait_for_element_and_click(self.dept_contact_delete_button(user))
-
-    def look_up_contact_uid(self, uid):
-        app.logger.info(f'Looking up UID {uid}')
-        self.wait_for_element_and_type(DeptDetailsAdminPage.ADD_CONTACT_LOOKUP_INPUT, uid)
-
-    def look_up_contact_name(self, name):
-        app.logger.info(f'Looking up {name}')
-        self.wait_for_element_and_type(DeptDetailsAdminPage.ADD_CONTACT_LOOKUP_INPUT, name)
-
-    def click_look_up_result(self, user):
-        self.wait_for_page_and_click(self.add_contact_lookup_result(user))
 
     def enter_contact_email(self, email):
         app.logger.info(f'Entering email {email}')
@@ -141,7 +125,12 @@ class DeptDetailsAdminPage(CourseDashboards):
             ec.presence_of_element_located((By.XPATH, self.dept_contact_xpath(user))),
         )
 
-    # NOTE
+    DEPT_NOTE = (By.ID, 'dept-note')
+    DEPT_NOTE_EDIT_BUTTON = (By.ID, 'edit-dept-note-btn')
+    DEPT_NOTE_TEXTAREA = (By.ID, 'dept-note-textarea')
+    DEPT_NOTE_SAVE_BUTTON = (By.ID, 'save-dept-note-btn')
+    DEPT_NOTE_CXL_BUTTON = (By.ID, 'cancel-dept-note-btn')
+    DEPT_NOTE_DELETE_BUTTON = (By.ID, 'delete-dept-note-btn')
 
     def edit_dept_note(self, note):
         app.logger.info(f'Setting dept note to "{note}"')

@@ -55,6 +55,7 @@ class TestDeptEvaluations:
             eval_type = '' if e.eval_type is None else e.eval_type
             expected.append(f'{e.ccn}-{uid}-{eval_type}')
         expected = list(dict.fromkeys(expected))
+        self.dept_details_admin_page.click_ignored_filter()
         actual = self.dept_details_admin_page.visible_eval_identifiers()
         missing = [x for x in expected if x not in actual]
         unexpected = [x for x in actual if x not in expected]
