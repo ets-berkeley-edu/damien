@@ -38,7 +38,7 @@
           <div class="text-center">
             <h1 id="page-title">
               <strong>Welcome to Course Evaluation</strong>
-              {{ currentTermName }}
+              {{ $config.currentTermName }}
             </h1>
           </div>
           <v-card-actions class="px-16 pt-12 d-flex flex-column">
@@ -72,17 +72,13 @@ export default {
   components: {
     DevAuth
   },
-  data: () => ({
-    currentTermName: undefined
-  }),
   created() {
     this.$putFocusNextTick('page-title')
-    this.currentTermName = this.$_.get(this.$_.find(this.$config.availableTerms, {'id': this.$config.currentTermId}), 'name')
     const error = this.$_.get(this.$route, 'query.error')
     if (error) {
       this.reportError(error)
     } else {
-      this.alertScreenReader(`Welcome to Course Evaluation - ${this.currentTermName}. Please log in.`)
+      this.alertScreenReader(`Welcome to Course Evaluation - ${this.$config.currentTermName}. Please log in.`)
     }
 
   },

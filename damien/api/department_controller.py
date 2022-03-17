@@ -78,7 +78,6 @@ def get_department(department_id):
     feed = department.to_api_json(
         include_contacts=current_user.is_admin,
         include_evaluations=True,
-        include_notes=True,
         term_id=term_id,
     )
     return tolerant_jsonify(feed)
