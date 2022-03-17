@@ -77,6 +77,11 @@ class EvaluationType(Base):
         query = cls.query.filter_by(id=db_id, deleted_at=None)
         return query.first()
 
+    @classmethod
+    def find_by_name(cls, name):
+        query = cls.query.filter_by(name=name, deleted_at=None)
+        return query.first()
+
     def to_api_json(self):
         return {
             'id': self.id,

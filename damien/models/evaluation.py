@@ -99,6 +99,13 @@ class Evaluation(Base):
         self.created_by = created_by
         self.updated_by = updated_by
 
+        self.conflicts = {
+            'departmentForm': [],
+            'evaluationType': [],
+            'startDate': [],
+            'endDate': [],
+        }
+
     def __repr__(self):
         return f"""<Evaluation id={self.id},
                     term_id={self.term_id},
@@ -152,6 +159,7 @@ class Evaluation(Base):
         uid,
         loch_rows,
         saved_evaluation=None,
+        foreign_dept_evaluations=(),
         instructor=None,
         default_form=None,
         evaluation_type_cache=None,
@@ -177,10 +185,10 @@ class Evaluation(Base):
 
         all_eval_types = evaluation_type_cache or {et.name: et for et in EvaluationType.query.all()}
 
-        transient_evaluation.set_department_form(saved_evaluation, default_form)
-        transient_evaluation.set_evaluation_type(saved_evaluation, instructor, all_eval_types)
-        transient_evaluation.set_start_date(loch_rows, saved_evaluation)
-        transient_evaluation.set_end_date(loch_rows, saved_evaluation)
+        transient_evaluation.set_department_form(saved_evaluation, foreign_dept_evaluations, default_form)
+        transient_evaluation.set_evaluation_type(saved_evaluation, foreign_dept_evaluations, instructor, all_eval_types)
+        transient_evaluation.set_start_date(loch_rows, foreign_dept_evaluations, saved_evaluation)
+        transient_evaluation.set_end_date(loch_rows, foreign_dept_evaluations, saved_evaluation)
         transient_evaluation.set_last_updated(loch_rows, saved_evaluation)
 
         return transient_evaluation
@@ -292,16 +300,32 @@ class Evaluation(Base):
                 if midterm_form:
                     self.department_form = midterm_form
 
-    def set_department_form(self, saved_evaluation, default_form):
+    def set_department_form(self, saved_evaluation, foreign_dept_evaluations, default_form):
         if saved_evaluation and saved_evaluation.department_form:
             self.department_form = saved_evaluation.department_form
-        elif default_form:
+            for fde in foreign_dept_evaluations:
+                if fde.department_form and fde.department_form != self.department_form:
+                    self.conflicts['departmentForm'].append({'department': fde.department.dept_name, 'value': fde.department_form.name})
+        else:
+            for fde in foreign_dept_evaluations:
+                if fde.department_form:
+                    self.department_form = fde.department_form
+                    break
+        if default_form and not self.department_form:
             self.department_form = default_form
 
-    def set_evaluation_type(self, saved_evaluation, instructor, all_eval_types):
+    def set_evaluation_type(self, saved_evaluation, foreign_dept_evaluations, instructor, all_eval_types):
         if saved_evaluation and saved_evaluation.evaluation_type:
             self.evaluation_type = saved_evaluation.evaluation_type
+            for fde in foreign_dept_evaluations:
+                if fde.evaluation_type and fde.evaluation_type != self.evaluation_type:
+                    self.conflicts['evaluationType'].append({'department': fde.department.dept_name, 'value': fde.evaluation_type.name})
         else:
+            for fde in foreign_dept_evaluations:
+                if fde.evaluation_type:
+                    self.evaluation_type = fde.evaluation_type
+                    break
+        if not self.evaluation_type:
             # TODO Leave blank if department_form above is set to LAW or SPANISH, otherwise set based on instructor affiliation.
             if self.department_form and self.department_form.name in ('LAW', 'SPANISH'):
                 return
@@ -310,16 +334,32 @@ class Evaluation(Base):
             elif instructor and 'ACADEMIC' in instructor['affiliations']:
                 self.evaluation_type = all_eval_types.get('F')
 
-    def set_start_date(self, loch_rows, saved_evaluation):
+    def set_start_date(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
         if saved_evaluation and saved_evaluation.start_date:
             self.start_date = saved_evaluation.start_date
+            for fde in foreign_dept_evaluations:
+                if fde.start_date and fde.start_date != self.start_date:
+                    self.conflicts['startDate'].append({'department': fde.department.dept_name, 'value': safe_strftime(fde.start_date, '%Y-%m-%d')})
         else:
+            for fde in foreign_dept_evaluations:
+                if fde.start_date:
+                    self.start_date = fde.start_date
+                    break
+        if not self.start_date:
             self.start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
 
-    def set_end_date(self, loch_rows, saved_evaluation):
+    def set_end_date(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
         if saved_evaluation and saved_evaluation.end_date:
             self.end_date = saved_evaluation.end_date
+            for fde in foreign_dept_evaluations:
+                if fde.end_date and fde.end_date != self.end_date:
+                    self.conflicts['endDate'].append({'department': fde.department.dept_name, 'value': safe_strftime(fde.end_date, '%Y-%m-%d')})
         else:
+            for fde in foreign_dept_evaluations:
+                if fde.end_date:
+                    self.end_date = fde.end_date
+                    break
+        if not self.end_date:
             self.end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)
 
     def set_last_updated(self, loch_rows, saved_evaluation):
@@ -356,7 +396,11 @@ class Evaluation(Base):
             'startDate': safe_strftime(self.start_date, '%Y-%m-%d'),
             'endDate': safe_strftime(self.end_date, '%Y-%m-%d'),
             'lastUpdated': safe_strftime(self.last_updated, '%Y-%m-%d'),
+            'conflicts': {},
         })
+        for k, v in self.conflicts.items():
+            if v:
+                feed['conflicts'][k] = v
         return feed
 
 
