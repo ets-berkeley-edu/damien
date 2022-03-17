@@ -40,19 +40,21 @@ class DamienPages(Page):
     GRP_MGMT_LINK = (By.ID, 'sidebar-link-Group Management')
     LIST_MGMT_LINK = (By.ID, 'sidebar-link-List Management')
 
+    ADD_CONTACT_LOOKUP_INPUT = (By.ID, 'input-person-lookup-autocomplete')
+
     MENU_BUTTON = (By.ID, 'btn-main-menu')
     LOG_OUT_LINK = (By.ID, 'menu-item-log-out')
-
-    TERM_SELECT = (By.ID, 'select-term')
 
     @staticmethod
     def menu_option_locator(option_str):
         return By.XPATH, f'//div[@role="option"][contains(., "{option_str}")]'
 
-    def select_term(self, term):
-        app.logger.info(f'Selecting term {term.name}')
-        self.wait_for_element_and_click(DamienPages.TERM_SELECT)
-        self.wait_for_element_and_click(self.menu_option_locator(term.name))
+    def click_menu_option(self, option_text):
+        app.logger.info(f"Clicking the option '{option_text}'")
+        self.wait_for_element_and_click(DamienPages.menu_option_locator(option_text))
+
+    def is_menu_option_disabled(self, option_text):
+        return self.element(DamienPages.menu_option_locator(option_text)).get_attribute('aria-disabled') == 'true'
 
     def wait_for_admin_login(self):
         Wait(self.driver, utils.get_medium_timeout()).until(ec.presence_of_element_located(DamienPages.STATUS_LINK))
@@ -90,3 +92,18 @@ class DamienPages(Page):
     def click_dept_link(self, dept):
         app.logger.info(f'Clicking the link for {dept.name}')
         self.wait_for_element_and_click(self.dept_link_loc(dept))
+
+    @staticmethod
+    def add_contact_lookup_result(user):
+        return By.XPATH, f'//div[contains(@id, "list-item")][contains(., "{user.uid}")]'
+
+    def look_up_contact_uid(self, uid):
+        app.logger.info(f'Looking up UID {uid}')
+        self.wait_for_element_and_type(DamienPages.ADD_CONTACT_LOOKUP_INPUT, uid)
+
+    def look_up_contact_name(self, name):
+        app.logger.info(f'Looking up {name}')
+        self.wait_for_element_and_type(DamienPages.ADD_CONTACT_LOOKUP_INPUT, name)
+
+    def click_look_up_result(self, user):
+        self.wait_for_page_and_click(self.add_contact_lookup_result(user))
