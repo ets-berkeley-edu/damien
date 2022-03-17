@@ -41,6 +41,7 @@ def app_config():
             'end': safe_strftime(term_end, '%Y-%m-%d'),
         },
         'currentTermId': app.config['CURRENT_TERM_ID'],
+        'currentTermName': term_name_for_sis_id(app.config['CURRENT_TERM_ID']),
         'damienEnv': app.config['DAMIEN_ENV'],
         'devAuthEnabled': app.config['DEVELOPER_AUTH_ENABLED'],
         'easterEggMonastery': app.config['EASTER_EGG_MONASTERY'],

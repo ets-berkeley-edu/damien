@@ -228,12 +228,11 @@ class Department(Base):
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
         }
+        feed['notes'] = {note.term_id: note.to_api_json() for note in self.notes}
         if include_contacts:
             feed['contacts'] = [user.to_api_json() for user in self.members]
         if include_evaluations:
             feed['evaluations'] = self.evaluations_feed(term_id)
-        if include_notes:
-            feed['notes'] = {note.term_id: note.to_api_json() for note in self.notes}
         if include_sections:
             if self.row_count is None:
                 self.get_visible_sections()
