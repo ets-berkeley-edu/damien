@@ -3,7 +3,6 @@ import auth from './auth'
 import BaseView from '@/views/BaseView.vue'
 import Department from '@/views/Department.vue'
 import Error from '@/views/Error.vue'
-import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
 import NannysRoom from '@/views/NannysRoom.vue'
 import NotFound from '@/views/NotFound.vue'
@@ -19,7 +18,18 @@ const router = new Router({
   routes: [
     {
       path: '/',
-      redirect: '/home'
+      beforeEnter: (to: any, from: any, next: any) => {
+        if (!_.get(Vue.prototype.$currentUser, 'isAuthenticated')) {
+          next('/login')
+        } if (_.get(Vue.prototype.$currentUser, 'isAdmin')) {
+          next('/status')
+        } else if (_.get(Vue.prototype.$currentUser, 'departments[0]')) {
+          next(`/department/${Vue.prototype.$currentUser.departments[0]}`)
+        } else {
+          //TODO: where to send a non-admin user who doesn't belong to a department?
+          next()
+        }
+      }
     },
     {
       path: '/login',
@@ -53,11 +63,6 @@ const router = new Router({
           meta: {
             title: 'Group Management'
           }
-        },
-        {
-          path: '/home',
-          component: Home,
-          name: 'home'
         },
         {
           path: '/lists',
