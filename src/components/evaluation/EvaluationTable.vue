@@ -50,14 +50,19 @@
                   >
                     {{ evaluation.status }}
                   </div>
-                  <v-btn
-                    v-if="hover && !isEditing(evaluation)"
-                    block
-                    text
-                    @click="editEvaluation(evaluation)"
+                  <div
+                    v-if="(hover && !isEditing(evaluation)) || !evaluation.status"
+                    class="pill pill-invisible"
                   >
-                    Edit
-                  </v-btn>
+                    <v-btn
+                      :class="{'hidden': isEditing(evaluation) || !hover}"
+                      block
+                      text
+                      @click="editEvaluation(evaluation)"
+                    >
+                      Edit
+                    </v-btn>
+                  </div>
                 </td>
                 <td :id="`evaluation-${evaluationId}-lastUpdated`">
                   {{ evaluation.lastUpdated | moment('MM/DD/YYYY') }}
@@ -201,7 +206,7 @@
                   />
                 </td>
                 <td>
-                  <div v-if="isEditing(evaluation)" class="d-flex align-center">
+                  <div class="d-flex align-center" :class="{'hidden': !isEditing(evaluation)}">
                     <v-btn
                       class="ma-1"
                       color="primary"
@@ -408,6 +413,9 @@ export default {
 .filter-inactive {
   background-color: #999 !important;
 }
+.hidden {
+  visibility: hidden;
+}
 .pill {
   border: 1px solid #999;
   border-radius: 5px;
@@ -424,6 +432,9 @@ export default {
 }
 .pill-ignore {
   background-color: #777;
+}
+.pill-invisible {
+  border: none;
 }
 .pill-review {
   background-color: #595;
