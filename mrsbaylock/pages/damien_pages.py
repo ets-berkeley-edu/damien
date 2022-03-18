@@ -87,7 +87,7 @@ class DamienPages(Page):
 
     @staticmethod
     def dept_link_loc(dept):
-        return By.XPATH, f'//a[contains(@href, "/department/{dept.dept_id}")]'
+        return By.XPATH, f'//a[contains(@href, "/department/{dept.dept_id}") and contains(text(), "{dept.name}")]'
 
     def click_dept_link(self, dept):
         app.logger.info(f'Clicking the link for {dept.name}')

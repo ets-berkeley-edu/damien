@@ -155,7 +155,10 @@ class Page(object):
         self.click_element(locator, addl_pause)
 
     def wait_for_page_and_click_js(self, locator, addl_pause=None):
-        self.wait_for_element(locator, utils.get_medium_timeout())
+        Wait(self.driver, utils.get_medium_timeout()).until(
+            method=ec.presence_of_element_located(locator),
+            message=f'Failed wait for presence_of_element_located: {str(locator)}',
+        )
         self.click_element_js(locator, addl_pause)
 
     def wait_for_element_and_click(self, locator, addl_pause=None):
@@ -206,6 +209,10 @@ class Page(object):
 
     def mouseover(self, element):
         ActionChains(self.driver).move_to_element(element).perform()
+        time.sleep(0.5)
+
+    def hit_delete(self):
+        ActionChains(self.driver).send_keys(Keys.DELETE).perform()
 
     def hit_enter(self):
         ActionChains(self.driver).send_keys(Keys.ENTER).perform()

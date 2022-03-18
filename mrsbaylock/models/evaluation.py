@@ -50,10 +50,6 @@ class Evaluation(object):
         return self.data['room_share_ccns']
 
     @property
-    def uid(self):
-        return self.data['uid']
-
-    @property
     def subject(self):
         return self.data['subject']
 
