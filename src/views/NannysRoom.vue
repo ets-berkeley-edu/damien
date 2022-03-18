@@ -21,7 +21,7 @@
               v-if="!isAddingDepartmentForm"
               id="add-dept-form-btn"
               class="text-capitalize pl-2 mt-1"
-              color="secondary"
+              color="tertiary"
               :disabled="disableControls"
               text
               @click="onClickAddDepartmentForm"
@@ -38,6 +38,7 @@
                 :id="'input-dept-form-name'"
                 v-model="newItemName"
                 class="mt-1"
+                color="tertiary"
                 dense
                 :disabled="isSaving"
                 outlined
@@ -57,7 +58,7 @@
               <v-btn
                 :id="'cancel-save-dept-form-btn'"
                 class="text-capitalize ml-1"
-                color="secondary"
+                color="tertiary"
                 :disabled="isSaving"
                 elevation="2"
                 outlined
@@ -83,7 +84,7 @@
                   <v-btn
                     :id="`delete-dept-form-${item.id}-btn`"
                     class="text-capitalize pa-0"
-                    color="secondary"
+                    color="tertiary"
                     :disabled="disableControls"
                     height="unset"
                     min-width="unset"
@@ -105,7 +106,7 @@
               v-if="!isAddingEvaluationType"
               id="add-eval-type-btn"
               class="text-capitalize pl-2 mt-1"
-              color="secondary"
+              color="tertiary"
               :disabled="disableControls"
               text
               @click="onClickAddEvaluationType"
@@ -122,6 +123,7 @@
                 :id="'input-eval-type-name'"
                 v-model="newItemName"
                 class="mt-1"
+                color="tertiary"
                 dense
                 :disabled="isSaving"
                 outlined
@@ -141,7 +143,7 @@
               <v-btn
                 :id="'cancel-save-eval-type-btn'"
                 class="text-capitalize ml-1"
-                color="secondary"
+                color="tertiary"
                 :disabled="isSaving"
                 elevation="2"
                 outlined
@@ -167,7 +169,7 @@
                   <v-btn
                     :id="`delete-eval-type-${item.id}-btn`"
                     class="text-capitalize pa-0"
-                    color="secondary"
+                    color="tertiary"
                     :disabled="disableControls"
                     height="unset"
                     min-width="unset"
@@ -189,7 +191,7 @@
               v-if="!isAddingInstructor"
               id="add-instructor-btn"
               class="text-capitalize pl-2 mt-1"
-              color="secondary"
+              color="tertiary"
               :disabled="disableControls"
               text
               @click="onClickAddInstructor"
@@ -211,6 +213,7 @@
                 id="input-instructor-uid"
                 v-model="newInstructor.uid"
                 class="mt-1"
+                color="tertiary"
                 dense
                 :disabled="isSaving"
                 outlined
@@ -224,6 +227,7 @@
                 id="input-instructor-csid"
                 v-model="newInstructor.csid"
                 class="mt-1"
+                color="tertiary"
                 dense
                 :disabled="isSaving"
                 outlined
@@ -236,6 +240,7 @@
                 id="input-instructor-first-name"
                 v-model="newInstructor.firstName"
                 class="mt-1"
+                color="tertiary"
                 dense
                 :disabled="isSaving"
                 outlined
@@ -247,6 +252,7 @@
                 id="input-instructor-last-name"
                 v-model="newInstructor.lastName"
                 class="mt-1"
+                color="tertiary"
                 dense
                 :disabled="isSaving"
                 outlined
@@ -259,6 +265,7 @@
                 id="input-instructor-email"
                 v-model="newInstructor.emailAddress"
                 class="mt-1"
+                color="tertiary"
                 dense
                 :disabled="isSaving"
                 outlined
@@ -279,7 +286,7 @@
               <v-btn
                 id="cancel-save-instructor-btn"
                 class="text-capitalize ml-1"
-                color="secondary"
+                color="tertiary"
                 :disabled="!instructorValid || isSaving"
                 elevation="2"
                 outlined

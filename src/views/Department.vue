@@ -61,7 +61,7 @@
             v-if="!isAddingContact"
             id="add-dept-contact-btn"
             class="text-capitalize pl-2 mt-1"
-            color="secondary"
+            color="tertiary"
             text
             @click="() => isAddingContact = true"
           >
@@ -124,7 +124,7 @@
           v-if="!isAddingSection"
           id="add-course-section-btn"
           class="text-capitalize pl-2 mt-1"
-          color="secondary"
+          color="tertiary"
           text
           @click="() => isAddingSection = true"
         >

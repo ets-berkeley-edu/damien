@@ -40,7 +40,7 @@
         <v-btn
           :id="`edit-dept-contact-${contact.id}-btn`"
           class="text-capitalize pa-0"
-          color="secondary"
+          color="tertiary"
           :disabled="disableControls"
           height="unset"
           min-width="unset"
@@ -57,7 +57,7 @@
         <v-btn
           :id="`delete-dept-contact-${contact.id}-btn`"
           class="text-capitalize pa-0"
-          color="secondary"
+          color="tertiary"
           :disabled="disableControls"
           height="unset"
           min-width="unset"
