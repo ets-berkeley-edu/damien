@@ -18,7 +18,7 @@
           id="dept-note-textarea"
           v-model="item"
           auto-grow
-          color="secondary"
+          color="tertiary"
           :disabled="disableControls || !isEditable"
           flat
           hide-details="auto"
@@ -35,7 +35,7 @@
         <v-btn
           id="edit-dept-note-btn"
           class="text-capitalize pa-0"
-          color="secondary"
+          color="tertiary"
           :disabled="disableControls || !isEditable"
           dark
           height="unset"
@@ -55,7 +55,7 @@
           v-if="item"
           id="delete-dept-note-btn"
           class="text-capitalize pa-0"
-          color="secondary"
+          color="tertiary"
           :disabled="disableControls || !isEditable"
           height="unset"
           min-width="unset"

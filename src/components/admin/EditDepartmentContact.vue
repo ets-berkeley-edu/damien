@@ -25,7 +25,7 @@
         :id="`input-email-${contactId}`"
         v-model="email"
         class="mt-1"
-        color="secondary"
+        color="tertiary"
         dense
         :disabled="disableControls"
         outlined
@@ -39,7 +39,7 @@
         :id="`checkbox-communications-${contactId}`"
         v-model="canReceiveCommunications"
         class="mt-1"
-        color="secondary"
+        color="tertiary"
         dense
         :disabled="disableControls"
         label="Receive notifications"
@@ -60,21 +60,21 @@
           :id="`radio-no-blue-${contactId}`"
           :value="null"
           class="mb-1"
-          color="secondary"
+          color="tertiary"
           label="No access to Blue"
         ></v-radio>
         <v-radio
           :id="`radio-reports-only-${contactId}`"
           value="reports_only"
           class="mb-1"
-          color="secondary"
+          color="tertiary"
           label="View reports"
         ></v-radio>
         <v-radio
           :id="`radio-response-rates-${contactId}`"
           value="response_rates"
           class="mb-1"
-          color="secondary"
+          color="tertiary"
           label="View reports and response rates"
         ></v-radio>
       </v-radio-group>

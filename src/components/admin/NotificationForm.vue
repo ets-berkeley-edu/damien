@@ -24,7 +24,7 @@
         id="input-notification-subject"
         v-model="subject"
         class="my-1"
-        color="secondary"
+        color="tertiary"
         dense
         :disabled="isSending"
         hide-details="auto"
@@ -38,7 +38,7 @@
         v-model="message"
         auto-grow
         class="mt-1"
-        color="secondary"
+        color="tertiary"
         :disabled="isSending"
         flat
         hide-details="auto"

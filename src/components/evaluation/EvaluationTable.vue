@@ -9,7 +9,7 @@
         role="tablist"
         class="filter ml-2 pl-2 pr-2 text-center"
         :class="{
-          'filter-active': filterTypes[type].enabled,
+          'secondary': filterTypes[type].enabled,
           'filter-inactive': !filterTypes[type].enabled
         }"
         aria-controls="timeline-messages"
@@ -32,7 +32,7 @@
             <v-hover v-if="filterEnabled(evaluation)" v-slot="{ hover }" :key="evaluation.id">
               <tr 
                 class="evaluation-row"
-                :class="evaluationClass(evaluation)"
+                :class="evaluationClass(evaluation, hover)"
               >
                 <td>
                   <v-checkbox
@@ -55,6 +55,7 @@
                     class="pill pill-invisible"
                   >
                     <v-btn
+                      class="primary--text"
                       :class="{'hidden': isEditing(evaluation) || !hover}"
                       block
                       text
@@ -122,17 +123,17 @@
                   </div>
                 </td>
                 <td :id="`evaluation-${evaluationId}-departmentForm`">
-                  <div v-if="evaluation.departmentForm && !isEditing(evaluation)" :class="{'evaluation-error-text': evaluation.conflicts.departmentForm}">
+                  <div v-if="evaluation.departmentForm && !isEditing(evaluation)" :class="{'error': evaluation.conflicts.departmentForm}">
                     {{ evaluation.departmentForm.name }}
-                    <div v-for="(conflict, index) in evaluation.conflicts.departmentForm" :key="index" class="evaluation-error evaluation-error-text">
-                      <v-icon small color="red">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
+                    <div v-for="(conflict, index) in evaluation.conflicts.departmentForm" :key="index" class="evaluation-error error--text">
+                      <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
                     </div>
                   </div>
                   <div
                     v-if="!evaluation.departmentForm && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
-                    class="evaluation-error evaluation-error-text"
+                    class="evaluation-error error--text"
                   >
-                    <v-icon small color="red">mdi-alert-circle</v-icon> Department form required
+                    <v-icon small color="error">mdi-alert-circle</v-icon> Department form required
                   </div>
                   <v-select
                     v-if="isEditing(evaluation)"
@@ -147,17 +148,17 @@
                   />
                 </td>
                 <td :id="`evaluation-${evaluationId}-evaluationType`">
-                  <div v-if="evaluation.evaluationType && !isEditing(evaluation)" :class="{'evaluation-error-text': evaluation.conflicts.evaluationType}">
+                  <div v-if="evaluation.evaluationType && !isEditing(evaluation)" :class="{'error': evaluation.conflicts.evaluationType}">
                     {{ evaluation.evaluationType.name }}
-                    <div v-for="(conflict, index) in evaluation.conflicts.evaluationType" :key="index" class="evaluation-error evaluation-error-text">
-                      <v-icon small color="red">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
+                    <div v-for="(conflict, index) in evaluation.conflicts.evaluationType" :key="index" class="evaluation-error error--text">
+                      <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
                     </div>
                   </div>
                   <div
                     v-if="!evaluation.evaluationType && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
-                    class="evaluation-error evaluation-error-text"
+                    class="evaluation-error error--text"
                   >
-                    <v-icon small color="red">mdi-alert-circle</v-icon> Evaluation type required
+                    <v-icon small color="error">mdi-alert-circle</v-icon> Evaluation type required
                   </div>
                   <v-select
                     v-if="isEditing(evaluation)"
@@ -172,10 +173,10 @@
                   />
                 </td>
                 <td :id="`evaluation-${evaluationId}-startDate`">
-                  <span v-if="!isEditing(evaluation)" :class="{'evaluation-error-text': evaluation.conflicts.startDate}">
+                  <span v-if="!isEditing(evaluation)" :class="{'error': evaluation.conflicts.startDate}">
                     {{ evaluation.startDate | moment('MM/DD/YYYY') }}
-                    <div v-for="(conflict, index) in evaluation.conflicts.startDate" :key="index" class="evaluation-error evaluation-error-text">
-                      <v-icon small color="red">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value | moment('MM/DD/YYYY') }} from {{ conflict.department }} department
+                    <div v-for="(conflict, index) in evaluation.conflicts.startDate" :key="index" class="evaluation-error error--text">
+                      <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value | moment('MM/DD/YYYY') }} from {{ conflict.department }} department
                     </div>
                   </span>
                   <v-text-field
@@ -189,10 +190,10 @@
                   />
                 </td>
                 <td :id="`evaluation-${evaluationId}-endDate`">
-                  <span v-if="!isEditing(evaluation)" :class="{'evaluation-error-text': evaluation.conflicts.endDate}">
+                  <span v-if="!isEditing(evaluation)" :class="{'error': evaluation.conflicts.endDate}">
                     {{ evaluation.endDate | moment('MM/DD/YYYY') }}
-                    <div v-for="(conflict, index) in evaluation.conflicts.endDate" :key="index" class="evaluation-error evaluation-error-text">
-                      <v-icon small color="red">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value | moment('MM/DD/YYYY') }} from {{ conflict.department }} department
+                    <div v-for="(conflict, index) in evaluation.conflicts.endDate" :key="index" class="evaluation-error error--text">
+                      <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value | moment('MM/DD/YYYY') }} from {{ conflict.department }} department
                     </div>
                   </span>
                   <v-text-field
@@ -309,13 +310,14 @@ export default {
       this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
       this.selectedStartDate = evaluation.startDate
     },
-    evaluationClass(evaluation) {
+    evaluationClass(evaluation, hover) {
       return {
         'evaluation-row-confirmed': evaluation.id !== this.editRowId && evaluation.status === 'confirmed',
-        'evaluation-row-ignore': evaluation.id !== this.editRowId && evaluation.status === 'ignore',
+        'evaluation-row-ignore muted--text': evaluation.id !== this.editRowId && evaluation.status === 'ignore',
         'evaluation-row-editing': evaluation.id === this.editRowId,
         'evaluation-row-review': evaluation.id !== this.editRowId && evaluation.status === 'review',
-        'evaluation-row-xlisting': evaluation.id !== this.editRowId && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith)
+        'evaluation-row-xlisting': evaluation.id !== this.editRowId && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith),
+        'primary-contrast primary--text': hover
       }
     },
     evaluationPillClass(evaluation) {
@@ -377,30 +379,9 @@ export default {
   font-size: 0.8em;
   font-style: italic;
 }
-.evaluation-error-text {
-  color: #f00;
-}
-.evaluation-row:hover {
-  background-color: #def !important;
-  color: #069 !important;
-}
-.evaluation-row-confirmed {
-  background-color: #eee;
-  color: #666;
-}
 .evaluation-row-editing, .evaluation-row-editing:hover {
   background-color: #369 !important;
   color: #fff !important;
-}
-.evaluation-row-ignore {
-  background-color: #ddd;
-  color: #777;
-}
-.evaluation-row-review {
-  background-color: #efe;  
-}
-.evaluation-row-xlisting {
-  background-color: #ffd;
 }
 .filter {
   color: #fff;
