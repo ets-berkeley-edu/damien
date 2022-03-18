@@ -40,6 +40,7 @@
                     v-model="evaluation.isSelected"
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
+                    @change="updateEvaluationsSelected"
                   ></v-checkbox>
                 </td>
                 <td :id="`evaluation-${evaluationId}-status`">
@@ -351,6 +352,9 @@ export default {
       const filter = this.filterTypes[type]
       filter.enabled = !filter.enabled
       this.alertScreenReader(`Filter ${filter.label} ${filter.enabled ? 'enabled' : 'disabled'}.`)
+    },
+    updateEvaluationsSelected() {
+      this.$root.$emit('update-evaluations-selected')
     }
   },
   created() {

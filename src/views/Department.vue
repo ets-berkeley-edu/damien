@@ -115,7 +115,7 @@
         </div>
       </v-col>
       <v-col cols="12" md="4">
-        <v-btn @click="applyCourseAction">
+        <v-btn :disabled="!selectedCourseAction || !selectedEvaluationIds.length" @click="applyCourseAction">
           Apply
         </v-btn>
       </v-col>
@@ -188,21 +188,13 @@ export default {
     isAddingSection: false,
     isCreatingNotification: false,
     selectedCourseAction: undefined,
+    selectedEvaluationIds: [],
     selectedTermId: undefined
   }),
-  computed: {
-    selectedEvaluationIds() {
-      return this.$_.reduce(this.evaluations, (ids, e) => {
-        if (e.isSelected) {
-          ids.push(e.id)
-        }
-        return ids
-      }, [])
-    }
-  },
   created() {
     this.availableTerms = this.$config.availableTerms
     this.selectedTermId = this.$config.currentTermId
+    this.$root.$on('update-evaluations-selected', this.updateEvaluationsSelected)
     this.refresh()
   },
   methods: {
@@ -274,6 +266,14 @@ export default {
     },
     updateEvaluation(evaluationId, fields) {
       updateEvaluations(this.department.id, 'edit', [evaluationId], fields).then(this.refresh)
+    },
+    updateEvaluationsSelected() {
+      this.selectedEvaluationIds = this.$_.reduce(this.evaluations, (ids, e) => {
+        if (e.isSelected) {
+          ids.push(e.id)
+        }
+        return ids
+      }, [])
     }
   }
 }
