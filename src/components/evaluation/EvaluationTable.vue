@@ -123,6 +123,12 @@
                       <v-icon small color="red">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
                     </div>
                   </div>
+                  <div
+                    v-if="!evaluation.departmentForm && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
+                    class="evaluation-error evaluation-error-text"
+                  >
+                    <v-icon small color="red">mdi-alert-circle</v-icon> Department form required
+                  </div>
                   <v-select
                     v-if="isEditing(evaluation)"
                     id="select-department-form"
@@ -141,6 +147,12 @@
                     <div v-for="(conflict, index) in evaluation.conflicts.evaluationType" :key="index" class="evaluation-error evaluation-error-text">
                       <v-icon small color="red">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
                     </div>
+                  </div>
+                  <div
+                    v-if="!evaluation.evaluationType && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
+                    class="evaluation-error evaluation-error-text"
+                  >
+                    <v-icon small color="red">mdi-alert-circle</v-icon> Evaluation type required
                   </div>
                   <v-select
                     v-if="isEditing(evaluation)"
