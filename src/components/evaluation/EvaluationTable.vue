@@ -367,10 +367,8 @@ export default {
 </script>
 
 <style>
-.evaluation-input.error--text,
-.evaluation-input .error--text {
+.evaluation-input .v-messages__message {
   color: #fff !important;
-  caret-color: #fff !important;
 }
 </style>
 
