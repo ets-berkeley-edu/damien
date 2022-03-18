@@ -124,7 +124,7 @@
                   </div>
                 </td>
                 <td :id="`evaluation-${evaluationId}-departmentForm`">
-                  <div v-if="evaluation.departmentForm && !isEditing(evaluation)" :class="{'error': evaluation.conflicts.departmentForm}">
+                  <div v-if="evaluation.departmentForm && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.departmentForm}">
                     {{ evaluation.departmentForm.name }}
                     <div v-for="(conflict, index) in evaluation.conflicts.departmentForm" :key="index" class="evaluation-error error--text">
                       <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
@@ -140,6 +140,7 @@
                     v-if="isEditing(evaluation)"
                     id="select-department-form"
                     v-model="selectedDepartmentForm"
+                    color="tertiary"
                     item-text="name"
                     item-value="id"
                     :items="departmentForms"
@@ -149,7 +150,7 @@
                   />
                 </td>
                 <td :id="`evaluation-${evaluationId}-evaluationType`">
-                  <div v-if="evaluation.evaluationType && !isEditing(evaluation)" :class="{'error': evaluation.conflicts.evaluationType}">
+                  <div v-if="evaluation.evaluationType && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationType}">
                     {{ evaluation.evaluationType.name }}
                     <div v-for="(conflict, index) in evaluation.conflicts.evaluationType" :key="index" class="evaluation-error error--text">
                       <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
@@ -165,6 +166,7 @@
                     v-if="isEditing(evaluation)"
                     id="select-evaluation-type"
                     v-model="selectedEvaluationType"
+                    color="tertiary"
                     item-text="name"
                     item-value="id"
                     :items="evaluationTypes"
@@ -174,7 +176,7 @@
                   />
                 </td>
                 <td :id="`evaluation-${evaluationId}-startDate`">
-                  <span v-if="!isEditing(evaluation)" :class="{'error': evaluation.conflicts.startDate}">
+                  <span v-if="!isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.startDate}">
                     {{ evaluation.startDate | moment('MM/DD/YYYY') }}
                     <div v-for="(conflict, index) in evaluation.conflicts.startDate" :key="index" class="evaluation-error error--text">
                       <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value | moment('MM/DD/YYYY') }} from {{ conflict.department }} department
@@ -183,6 +185,7 @@
                   <v-text-field
                     v-if="isEditing(evaluation)"
                     v-model="selectedStartDate"
+                    color="tertiary"
                     type="date"
                     hide-details="auto"
                     class="evaluation-input"
@@ -191,7 +194,7 @@
                   />
                 </td>
                 <td :id="`evaluation-${evaluationId}-endDate`">
-                  <span v-if="!isEditing(evaluation)" :class="{'error': evaluation.conflicts.endDate}">
+                  <span v-if="!isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.endDate}">
                     {{ evaluation.endDate | moment('MM/DD/YYYY') }}
                     <div v-for="(conflict, index) in evaluation.conflicts.endDate" :key="index" class="evaluation-error error--text">
                       <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value | moment('MM/DD/YYYY') }} from {{ conflict.department }} department
@@ -200,6 +203,7 @@
                   <v-text-field
                     v-if="isEditing(evaluation)"
                     v-model="selectedEndDate"
+                    color="tertiary"
                     type="date"
                     hide-details="auto"
                     class="evaluation-input"
@@ -315,10 +319,10 @@ export default {
       return {
         'evaluation-row-confirmed': evaluation.id !== this.editRowId && evaluation.status === 'confirmed',
         'evaluation-row-ignore muted--text': evaluation.id !== this.editRowId && evaluation.status === 'ignore',
-        'evaluation-row-editing': evaluation.id === this.editRowId,
+        'secondary white--text': evaluation.id === this.editRowId,
         'evaluation-row-review': evaluation.id !== this.editRowId && evaluation.status === 'review',
         'evaluation-row-xlisting': evaluation.id !== this.editRowId && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith),
-        'primary-contrast primary--text': hover
+        'primary-contrast primary--text': hover && !this.isEditing(evaluation)
       }
     },
     evaluationPillClass(evaluation) {
@@ -382,10 +386,6 @@ export default {
 .evaluation-error {
   font-size: 0.8em;
   font-style: italic;
-}
-.evaluation-row-editing, .evaluation-row-editing:hover {
-  background-color: #369 !important;
-  color: #fff !important;
 }
 .filter {
   color: #fff;
