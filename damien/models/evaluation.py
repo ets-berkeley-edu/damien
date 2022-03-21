@@ -33,6 +33,7 @@ from damien.models.department_form import DepartmentForm
 from damien.models.evaluation_type import EvaluationType
 from flask import current_app as app
 from flask_login import current_user
+from sqlalchemy import and_, update
 from sqlalchemy.dialects.postgresql import ENUM
 
 
@@ -173,10 +174,7 @@ class Evaluation(Base):
         if saved_evaluation:
             transient_evaluation.id = saved_evaluation.id
 
-        if saved_evaluation and saved_evaluation.status:
-            transient_evaluation.status = saved_evaluation.status
-        else:
-            transient_evaluation.status = None
+        transient_evaluation.set_status(saved_evaluation, foreign_dept_evaluations)
 
         if saved_evaluation and saved_evaluation.department_id:
             transient_evaluation.department_id = saved_evaluation.department_id
@@ -261,6 +259,17 @@ class Evaluation(Base):
         std_commit()
         return [e.id for e in evaluations]
 
+    @classmethod
+    def update_evaluation_status(cls, term_id, course_number, instructor_uid, status):
+        # Keep evaluation status from different departments in sync per term/course/instructor, unless that
+        # status is 'ignore' (or, if enabled, 'deleted'), which is confined to individual departments.
+        db.session.execute(update(cls).where(and_(
+            cls.term_id == term_id,
+            cls.course_number == course_number,
+            cls.instructor_uid == instructor_uid,
+            cls.status.in_(['confirmed', 'marked', None]),
+        )).values(status=status))
+
     def is_transient(self):
         return self.id is None
 
@@ -294,6 +303,9 @@ class Evaluation(Base):
             self.start_date = fields['startDate']
         if 'status' in fields:
             self.status = fields['status']
+            if fields['status'] in ('marked', 'confirmed', None):
+                self.__class__.update_evaluation_status(self.term_id, self.course_number, self.instructor_uid, fields['status'])
+
         if fields.get('midterm'):
             if original_evaluation_feed and original_evaluation_feed.get('departmentForm'):
                 midterm_form = DepartmentForm.find_by_name(original_evaluation_feed['departmentForm']['name'] + '_MID')
@@ -361,6 +373,16 @@ class Evaluation(Base):
                     break
         if not self.end_date:
             self.end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)
+
+    def set_status(self, saved_evaluation, foreign_dept_evaluations):
+        if saved_evaluation and saved_evaluation.status:
+            self.status = saved_evaluation.status
+        else:
+            for fde in foreign_dept_evaluations:
+                if fde.status == 'marked' and self.status is None:
+                    self.status = 'marked'
+                elif fde.status == 'confirmed' and self.status in ('confirmed', None):
+                    self.status = 'confirmed'
 
     def set_last_updated(self, loch_rows, saved_evaluation):
         updates = [r['created_at'] for r in loch_rows]
