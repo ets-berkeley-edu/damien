@@ -117,3 +117,39 @@ def db_session(db):
 def fake_auth(app, db, client):
     """Shortcut to start an authenticated session."""
     return FakeAuth(app, client)
+
+
+@pytest.fixture(scope='session')
+def form_history_id(app, db):
+    from damien.models.department_form import DepartmentForm
+    return DepartmentForm.find_by_name('HISTORY').id
+
+
+@pytest.fixture(scope='session')
+def form_melc_id(app, db):
+    from damien.models.department_form import DepartmentForm
+    return DepartmentForm.find_by_name('MELC').id
+
+
+@pytest.fixture(scope='session')
+def type_f_id(app, db):
+    from damien.models.evaluation_type import EvaluationType
+    return EvaluationType.find_by_name('F').id
+
+
+@pytest.fixture(scope='session')
+def type_g_id(app, db):
+    from damien.models.evaluation_type import EvaluationType
+    return EvaluationType.find_by_name('G').id
+
+
+@pytest.fixture(scope='session')
+def history_id(app, db):
+    from damien.models.department import Department
+    return Department.find_by_name('History').id
+
+
+@pytest.fixture(scope='session')
+def melc_id(app, db):
+    from damien.models.department import Department
+    return Department.find_by_name('Middle Eastern Languages and Cultures').id

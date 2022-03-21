@@ -109,13 +109,18 @@ class Section:
         home_dept_evals = []
         foreign_dept_evals_by_uid = {}
 
-        for evaluation in self.evaluations:
-            if evaluation.department == department:
-                home_dept_evals.append(evaluation)
-            elif evaluation.status in ('marked', 'confirmed'):
-                if evaluation.instructor_uid not in foreign_dept_evals_by_uid:
-                    foreign_dept_evals_by_uid[evaluation.instructor_uid] = []
-                foreign_dept_evals_by_uid[evaluation.instructor_uid].append(evaluation)
+        for instructor_uid, evaluations_for_instructor_uid in groupby(self.evaluations, key=lambda e: e.instructor_uid):
+            evaluations_for_instructor_uid = list(evaluations_for_instructor_uid)
+            check_for_conflicts = False
+            for evaluation in evaluations_for_instructor_uid:
+                if evaluation.department == department:
+                    home_dept_evals.append(evaluation)
+                if evaluation.status in ('marked', 'confirmed'):
+                    check_for_conflicts = True
+            if check_for_conflicts:
+                if instructor_uid not in foreign_dept_evals_by_uid:
+                    foreign_dept_evals_by_uid[instructor_uid] = []
+                foreign_dept_evals_by_uid[instructor_uid].extend(evaluations_for_instructor_uid)
 
         # Create one API feed element per visible saved evaluation, merging in data from SIS as needed.
         for evaluation in home_dept_evals:

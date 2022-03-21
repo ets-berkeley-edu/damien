@@ -50,6 +50,7 @@ def register_routes(app):
     import damien.api.job_controller
     import damien.api.section_controller
     import damien.api.user_controller
+    import damien.api.validation_controller
 
     # Register error handlers.
     import damien.api.error_handlers

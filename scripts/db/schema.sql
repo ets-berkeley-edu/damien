@@ -174,6 +174,7 @@ CREATE TABLE evaluations (
     evaluation_type_id INTEGER,
     start_date DATE,
     end_date DATE,
+    valid boolean NOT NULL DEFAULT TRUE,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     created_by character varying(255),
     updated_at timestamp with time zone DEFAULT now() NOT NULL,

@@ -145,7 +145,7 @@ def _validate_evaluation_fields(fields):  # noqa C901
         if k == 'departmentFormId':
             try:
                 department_form = DepartmentForm.find_by_id(int(v))
-            except ValueError:
+            except (TypeError, ValueError):
                 department_form = None
             if not department_form:
                 raise BadRequestError(f'Invalid department form id {v}.')
@@ -153,7 +153,7 @@ def _validate_evaluation_fields(fields):  # noqa C901
         elif k == 'evaluationTypeId':
             try:
                 evaluation_type = EvaluationType.find_by_id(int(v))
-            except ValueError:
+            except (TypeError, ValueError):
                 evaluation_type = None
             if not evaluation_type:
                 raise BadRequestError(f'Invalid evaluation type id {v}.')
@@ -161,13 +161,13 @@ def _validate_evaluation_fields(fields):  # noqa C901
         elif k in {'startDate', 'endDate'}:
             try:
                 validated_fields[k] = date.fromisoformat(v)
-            except ValueError:
+            except (TypeError, ValueError):
                 raise BadRequestError(f'Invalid date format {v}.')
             _validate_current_term_date(validated_fields[k])
         elif k == 'instructorUid':
             try:
                 validated_fields['instructorUid'] = str(int(v))
-            except ValueError:
+            except (TypeError, ValueError):
                 raise BadRequestError(f'Invalid instructor UID {v}.')
         elif k == 'midterm':
             if v == 'true':

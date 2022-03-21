@@ -60,6 +60,7 @@ class Evaluation(Base):
     evaluation_type_id = db.Column(db.Integer, db.ForeignKey('evaluation_types.id'))
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
+    valid = db.Column(db.Boolean, nullable=False, default=True)
     created_by = db.Column(db.String(80))
     updated_by = db.Column(db.String(80))
 
@@ -189,6 +190,9 @@ class Evaluation(Base):
         transient_evaluation.set_end_date(loch_rows, foreign_dept_evaluations, saved_evaluation)
         transient_evaluation.set_last_updated(loch_rows, saved_evaluation)
 
+        if saved_evaluation:
+            saved_evaluation.update_validity(transient_evaluation)
+
         return transient_evaluation
 
     @classmethod
@@ -269,6 +273,10 @@ class Evaluation(Base):
             cls.instructor_uid == instructor_uid,
             cls.status.in_(['confirmed', 'marked', None]),
         )).values(status=status))
+
+    @classmethod
+    def invalid(cls, term_id):
+        return cls.query.where(and_(cls.term_id == term_id, cls.valid == False)).all()  # noqa: E712
 
     def is_transient(self):
         return self.id is None
@@ -389,6 +397,17 @@ class Evaluation(Base):
         if saved_evaluation:
             updates.append(saved_evaluation.updated_at)
         self.last_updated = max(updates)
+
+    def update_validity(self, transient_evaluation):
+        self.valid = True
+        for k, v in transient_evaluation.conflicts.items():
+            if v:
+                self.valid = False
+        if transient_evaluation.status in ('marked', 'confirmed'):
+            if not transient_evaluation.department_form or not transient_evaluation.evaluation_type:
+                self.valid = False
+        db.session.add(self)
+        std_commit()
 
     # Fallback id string for Evaluation instances that are created for the department/section API but not saved to the database.
     def transient_id(self):
