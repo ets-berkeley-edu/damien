@@ -458,10 +458,16 @@ def _api_get_evaluation(client, dept_id, course_number, instructor_uid):
 
 class TestEditEvaluationMultipleDepartments:
 
-    def test_evaluation_status_not_shared_between_depts(self, client, fake_auth, history_id, melc_id):
+    def test_confirmed_status_shared_between_depts(self, client, fake_auth, history_id, melc_id):
         fake_auth.login(non_admin_uid)
         _api_update_evaluation(client, melc_id, params={'evaluationIds': ['_2222_30643_326054'], 'action': 'confirm'})
         assert _api_get_evaluation(client, melc_id, '30643', '326054')['status'] == 'confirmed'
+        assert _api_get_evaluation(client, history_id, '30643', '326054')['status'] == 'confirmed'
+
+    def test_ignore_status_not_shared_between_depts(self, client, fake_auth, history_id, melc_id):
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, melc_id, params={'evaluationIds': ['_2222_30643_326054'], 'action': 'ignore'})
+        assert _api_get_evaluation(client, melc_id, '30643', '326054')['status'] == 'ignore'
         assert _api_get_evaluation(client, history_id, '30643', '326054')['status'] is None
 
     def test_evaluation_edits_shared_between_depts_after_marked(self, client, fake_auth, history_id, melc_id):
@@ -472,17 +478,20 @@ class TestEditEvaluationMultipleDepartments:
             'fields': {'departmentFormId': '13', 'evaluationTypeId': '3', 'startDate': '2022-02-14', 'endDate': '2022-05-01'},
         })
         melc_eval = _api_get_evaluation(client, melc_id, '30643', '326054')
+        assert melc_eval['status'] is None
         assert melc_eval['departmentForm']['id'] == 13
         assert melc_eval['evaluationType']['id'] == 3
         assert melc_eval['startDate'] == '2022-02-14'
         assert melc_eval['endDate'] == '2022-05-01'
         history_eval = _api_get_evaluation(client, history_id, '30643', '326054')
+        assert history_eval['status'] is None
         assert history_eval['departmentForm'] is None
         assert history_eval['evaluationType']['id'] != 3
         assert history_eval['startDate'] != '2022-02-14'
         assert history_eval['endDate'] != '2022-05-01'
         _api_update_evaluation(client, melc_id, params={'evaluationIds': [melc_eval['id']], 'action': 'mark'})
         history_eval = _api_get_evaluation(client, history_id, '30643', '326054')
+        assert history_eval['status'] == 'review'
         assert history_eval['departmentForm']['id'] == 13
         assert history_eval['evaluationType']['id'] == 3
         assert history_eval['startDate'] == '2022-02-14'
@@ -507,12 +516,17 @@ class TestEditEvaluationMultipleDepartments:
         })
         melc_eval = _api_get_evaluation(client, melc_id, '30643', '326054')
         history_eval = _api_get_evaluation(client, history_id, '30643', '326054')
+
+        assert melc_eval['status'] is None
+        assert history_eval['status'] is None
         assert not melc_eval['conflicts']
         assert not history_eval['conflicts']
 
         _api_update_evaluation(client, melc_id, params={'evaluationIds': [melc_eval['id']], 'action': 'mark'})
         melc_eval = _api_get_evaluation(client, melc_id, '30643', '326054')
         history_eval = _api_get_evaluation(client, history_id, '30643', '326054')
+        assert melc_eval['status'] == 'review'
+        assert history_eval['status'] == 'review'
         assert not melc_eval['conflicts']
         assert history_eval['conflicts']['departmentForm'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': 'MELC'}]
         assert history_eval['conflicts']['evaluationType'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': 'F'}]
@@ -522,6 +536,8 @@ class TestEditEvaluationMultipleDepartments:
         _api_update_evaluation(client, history_id, params={'evaluationIds': [history_eval['id']], 'action': 'mark'})
         melc_eval = _api_get_evaluation(client, melc_id, '30643', '326054')
         history_eval = _api_get_evaluation(client, history_id, '30643', '326054')
+        assert melc_eval['status'] == 'review'
+        assert history_eval['status'] == 'review'
         assert melc_eval['conflicts']['departmentForm'] == [{'department': 'History', 'value': 'HISTORY'}]
         assert melc_eval['conflicts']['evaluationType'] == [{'department': 'History', 'value': 'G'}]
         assert melc_eval['conflicts']['startDate'] == [{'department': 'History', 'value': '2022-02-13'}]
