@@ -99,7 +99,6 @@ class TestGetValidations:
         _api_update_melc_evaluation(client, melc_id, form_melc_id, type_g_id)
         evaluation = _api_get_evaluation(client, history_id, '30643', '326054')
         _api_update_evaluation(client, history_id, params={'evaluationIds': [evaluation['id']], 'action': 'confirm'})
-        client.get(f'/api/department/{history_id}')
         client.get(f'/api/department/{melc_id}')
         response = _api_get_validations(client)
         assert len(response) == 2

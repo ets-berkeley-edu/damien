@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import auth from './auth'
 import BaseView from '@/views/BaseView.vue'
+import CourseErrors from '@/views/CourseErrors.vue'
 import Department from '@/views/Department.vue'
 import Error from '@/views/Error.vue'
 import Login from '@/views/Login.vue'
@@ -65,6 +66,13 @@ const router = new Router({
           }
         },
         {
+          path: '/errors',
+          component: CourseErrors,
+          meta: {
+            title: 'Course Errors Board'
+          }
+        },
+        {
           path: '/lists',
           component: NannysRoom,
           meta: {
@@ -97,13 +105,6 @@ const router = new Router({
           component: Error,
           meta: {
             title: 'Error'
-          }
-        },
-        {
-          path: '/errors',
-          component: NotFound,
-          meta: {
-            title: 'Course Errors Board'
           }
         },
         {

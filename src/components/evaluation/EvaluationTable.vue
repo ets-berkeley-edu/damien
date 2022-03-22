@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="ma-4 text-right">
+    <div v-if="!readonly" class="ma-4 text-right">
       Show statuses:
       <v-btn
         v-for="type in $_.keys(filterTypes)"
@@ -34,7 +34,12 @@
                 class="evaluation-row"
                 :class="evaluationClass(evaluation, hover)"
               >
-                <td>
+                <td v-if="readonly" :id="`evaluation-${evaluationId}-department`">
+                  <router-link :to="`/department/${evaluation.department.id}`">
+                    {{ evaluation.department.name }}
+                  </router-link>
+                </td>
+                <td v-if="!readonly">
                   <v-checkbox
                     :id="`evaluation-${evaluationId}-checkbox`"
                     v-model="evaluation.isSelected"
@@ -45,14 +50,14 @@
                 </td>
                 <td :id="`evaluation-${evaluationId}-status`">
                   <div
-                    v-if="(!hover || isEditing(evaluation)) && evaluation.status"
+                    v-if="(!hover || readonly || isEditing(evaluation)) && evaluation.status"
                     class="pill"
                     :class="evaluationPillClass(evaluation)"
                   >
                     {{ evaluation.status }}
                   </div>
                   <div
-                    v-if="(hover && !isEditing(evaluation)) || !evaluation.status"
+                    v-if="(hover && !readonly && !isEditing(evaluation)) || !evaluation.status"
                     class="pill pill-invisible"
                   >
                     <v-btn
@@ -211,7 +216,7 @@
                     solo
                   />
                 </td>
-                <td>
+                <td v-if="!readonly">
                   <div class="d-flex align-center" :class="{'hidden': !isEditing(evaluation)}">
                     <v-btn
                       class="ma-1"
@@ -249,7 +254,8 @@ export default {
       type: Array
     },
     updateEvaluation: {
-      required: true,
+      required: false,
+      default: null,
       type: Function
     }
   },
@@ -264,7 +270,6 @@ export default {
       'ignore': {label: 'Ignore', enabled: false}
     },
     headers: [
-      {text: 'Select'},
       {text: 'Status', value: 'status'},
       {text: 'Last Updated', value: 'lastUpdated'},
       {text: 'Course Number', value: 'sortableCourseNumber'},
@@ -276,6 +281,7 @@ export default {
       {text: 'Course End Date', value: 'endDate'}
     ],
     pendingInstructor: null,
+    readonly: false,
     rules: {
       afterStartDate: null,
       currentTermDate: null,
@@ -322,7 +328,7 @@ export default {
         'secondary white--text': evaluation.id === this.editRowId,
         'evaluation-row-review': evaluation.id !== this.editRowId && evaluation.status === 'review',
         'evaluation-row-xlisting': evaluation.id !== this.editRowId && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith),
-        'primary-contrast primary--text': hover && !this.isEditing(evaluation)
+        'primary-contrast primary--text': hover && !this.readonly && !this.isEditing(evaluation)
       }
     },
     evaluationPillClass(evaluation) {
@@ -362,6 +368,12 @@ export default {
     }
   },
   created() {
+    this.readonly = !this.updateEvaluation
+    if (this.readonly) {
+      this.headers = [{text: 'Department', value: 'department.id'}].concat(this.headers)
+    } else {
+      this.headers = [{text: 'Select'}].concat(this.headers)
+    }
     getDepartmentForms().then(data => this.departmentForms = data)
     getEvaluationTypes().then(data => this.evaluationTypes = data)
     this.rules.afterStartDate = v => (v > this.selectedStartDate) || 'End date must be after start date.'
