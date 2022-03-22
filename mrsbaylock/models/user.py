@@ -41,6 +41,10 @@ class User(object):
         uid = self.data['uid'].strip() if self.data['uid'] else None
         return uid
 
+    @uid.setter
+    def uid(self, value):
+        self.data['uid'] = value
+
     @property
     def csid(self):
         return self.data['csid']

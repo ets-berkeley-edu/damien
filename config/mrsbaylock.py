@@ -46,6 +46,8 @@ INDEX_HTML = f'{BASE_DIR}/tests/static/test-index.html'
 
 LOGGING_LEVEL = logging.INFO
 
+TEST_DEPT_1 = 'Astronomy'
+TEST_DEPT_2 = 'Theology'
 TEST_DEPT_CONTACT_UID = '123456'
 TEST_DEPT_CONTACT_FIRST_NAME = 'Father'
 TEST_DEPT_CONTACT_LAST_NAME = 'Spiletto'

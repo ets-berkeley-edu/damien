@@ -51,4 +51,4 @@ class LoginPage(Page):
         self.wait_for_element_and_type(LoginPage.USERNAME_INPUT, uid)
         self.wait_for_element_and_type(LoginPage.PASSWORD_INPUT, app.config['DEVELOPER_AUTH_PASSWORD'])
         self.wait_for_element_and_click(LoginPage.DEV_AUTH_LOGIN_BUTTON)
-        self.wait_for_title_contains('Home')
+        self.wait_for_title_contains('UC Berkeley')

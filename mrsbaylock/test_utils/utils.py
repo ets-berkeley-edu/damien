@@ -287,6 +287,16 @@ def get_dept(name):
     return dept
 
 
+def get_test_dept_1():
+    name = app.config['TEST_DEPT_1']
+    return get_dept(name)
+
+
+def get_test_dept_2():
+    name = app.config['TEST_DEPT_2']
+    return get_dept(name)
+
+
 def delete_dept_note(term, dept):
     sql = f"""
         UPDATE department_notes
@@ -458,6 +468,8 @@ def result_row_to_eval(row, term, dept):
     eval_type = row_data(row, 'eval_type')
     status = row_data(row, 'status')
     instructor = row_instructor(row)
+    if instructor.uid == 'None':
+        instructor.uid = None
 
     eval_data = {
         'term': term,
@@ -475,6 +487,7 @@ def result_row_to_eval(row, term, dept):
         'start_date': row['start_date'],
         'end_date': row['end_date'],
     }
+    app.logger.info(f"Start date is {eval_data['start_date']}")
     return Evaluation(eval_data)
 
 
@@ -662,6 +675,7 @@ def get_instructors(evals):
     for e in evals:
         if e.instructor and e.instructor.uid not in uids:
             uids.append(e.instructor.uid)
+    uids = [u for u in uids if (u and u != 'None')]
     uids_string = list_to_str(uids)
     sql = f"""
         SELECT ldap_uid,
@@ -676,6 +690,7 @@ def get_instructors(evals):
     results = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     for row in results:
+        app.logger.info(f"Checking UID {row['ldap_uid']}")
         if not row['deleted_at']:
             instructors.append(Instructor({
                 'uid': row['ldap_uid'],
@@ -725,6 +740,8 @@ def get_eval_types(evals):
         if e.eval_type or e.dept.dept_id == '92':
             app.logger.info('Skipping eval type')
         else:
+            app.logger.info(f'Checking eval {vars(e)}')
+            app.logger.info(f'Instructor {vars(e.instructor)}')
             if e.instructor.uid and e.instructor.affiliations:
                 affils = e.instructor.affiliations
                 if 'EMPLOYEE-TYPE-ACADEMIC' in affils:
@@ -738,3 +755,23 @@ def get_eval_types(evals):
                     e.eval_type = None
             else:
                 e.eval_type = None
+
+
+# TEST DATA
+
+
+def reset_test_data(term, dept):
+    sql = f"DELETE FROM evaluations WHERE term_id = '{term.term_id}' AND department_id = {dept.dept_id}"
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+
+    sql = f"DELETE FROM supplemental_sections WHERE term_id = '{term.term_id}' AND department_id = {dept.dept_id}"
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+
+    sql = 'DELETE FROM supplemental_instructors'
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
