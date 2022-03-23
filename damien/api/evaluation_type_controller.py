@@ -48,4 +48,5 @@ def delete_evaluation_type(name):
 @login_required
 def get_evaluation_types():
     evaluation_types = EvaluationType.query.filter_by(deleted_at=None).order_by(EvaluationType.name).all()
-    return tolerant_jsonify([e.to_api_json() for e in evaluation_types])
+    # Force 'F' and 'G' to sort to the top of the list.
+    return tolerant_jsonify([e.to_api_json() for e in sorted(evaluation_types, key=lambda e: {'F': '0', 'G': '00'}.get(e.name, e.name))])
