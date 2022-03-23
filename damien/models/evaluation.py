@@ -350,9 +350,9 @@ class Evaluation(Base):
             # TODO Leave blank if department_form above is set to LAW or SPANISH, otherwise set based on instructor affiliation.
             if self.department_form and self.department_form.name in ('LAW', 'SPANISH'):
                 return
-            elif instructor and 'STUDENT-TYPE' in instructor['affiliations']:
+            elif instructor and 'STUDENT-TYPE' in instructor.get('affiliations', []):
                 self.evaluation_type = all_eval_types.get('G')
-            elif instructor and 'ACADEMIC' in instructor['affiliations']:
+            elif instructor and 'ACADEMIC' in instructor.get('affiliations', []):
                 self.evaluation_type = all_eval_types.get('F')
 
     def set_start_date(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
