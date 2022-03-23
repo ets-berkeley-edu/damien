@@ -50,17 +50,20 @@ def notify_contacts():
     subject = get_param(params, 'subject')
     if not (message and recipient and subject):
         raise BadRequestError('Required parameters are missing.')
-    valid_recipient = []
-    for user in recipient:
-        contact = DepartmentMember.find_by_department_and_user(department_id=user['departmentId'], user_id=user['id'])
-        if contact.can_receive_communications:
-            valid_recipient.append(user['email'])
-    BConnected().send(
-        recipient=valid_recipient,
-        message=message,
-        subject_line=subject,
-    )
-    return tolerant_jsonify({'message': f'Email sent to {valid_recipient}'}), 200
+    result = {}
+    for department in recipient:
+        valid_recipient = []
+        for user in department['recipients']:
+            contact = DepartmentMember.find_by_department_and_user(department_id=user['departmentId'], user_id=user['id'])
+            if contact.can_receive_communications:
+                valid_recipient.append(user['email'])
+        BConnected().send(
+            recipient=valid_recipient,
+            message=message,
+            subject_line=subject,
+        )
+        result[department['deptName']] = valid_recipient
+    return tolerant_jsonify({'message': f'Email sent to {result}'}), 200
 
 
 @app.route('/api/department/<department_id>/contact', methods=['POST'])

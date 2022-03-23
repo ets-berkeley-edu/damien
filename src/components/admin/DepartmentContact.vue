@@ -1,7 +1,7 @@
 <template>
   <v-card
     :id="`department-contact-${index}`"
-    class="my-1 pa-2"
+    class="my-1 px-3 py-2"
     :flat="!isEditing"
     :outlined="isEditing"
   >

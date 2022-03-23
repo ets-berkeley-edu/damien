@@ -35,7 +35,7 @@
     </v-row>
     <v-container v-if="$currentUser.isAdmin" class="mx-0 px-0 pb-6">
       <v-row justify="start">
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="5">
           <h2 class="pb-1 px-2">Department Contacts</h2>
           <v-btn
             v-if="!isCreatingNotification"
@@ -50,6 +50,7 @@
             v-if="isCreatingNotification"
             :after-send="afterSendNotification"
             :on-cancel="cancelSendNotification"
+            :recipients="[notificationRecipients]"
           />
           <DepartmentContact
             v-for="(contact, index) in contacts"
@@ -75,7 +76,7 @@
             :on-cancel="onCancelAddContact"
           />
         </v-col>
-        <v-col cols="12" md="8"><DepartmentNote /></v-col>
+        <v-col cols="12" md="7"><DepartmentNote /></v-col>
       </v-row>
     </v-container>
     <v-row>
@@ -191,6 +192,15 @@ export default {
     selectedEvaluationIds: [],
     selectedTermId: undefined
   }),
+  computed: {
+    notificationRecipients() {
+      return {
+        'deptName': this.department.deptName,
+        'deptId': this.department.id,
+        'recipients': this.$_.filter(this.contacts, 'canReceiveCommunications')
+      }
+    }
+  },
   created() {
     this.availableTerms = this.$config.availableTerms
     this.selectedTermId = this.$config.currentTermId
