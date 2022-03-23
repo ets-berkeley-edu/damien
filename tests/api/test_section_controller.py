@@ -57,4 +57,5 @@ class TestGetSection:
             'instructionFormat': 'IND',
             'sectionNumber': '003',
             'courseTitle': 'Special Studies: Cuneiform',
+            'modular': False,
         }

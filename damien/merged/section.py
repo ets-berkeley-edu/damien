@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from datetime import timedelta
 from itertools import groupby
 import re
 
@@ -47,6 +48,13 @@ class Section:
         self.instruction_format = loch_rows[0].instruction_format
         self.section_num = loch_rows[0].section_num
         self.course_title = loch_rows[0].course_title
+
+        self.start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
+        self.end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)
+        if self.start_date and self.end_date and self.end_date - self.start_date < timedelta(days=90):
+            self.modular = True
+        else:
+            self.modular = False
 
         self.loch_rows = loch_rows
         self.evaluations = evaluations
@@ -169,6 +177,7 @@ class Section:
             'instructionFormat': self.instruction_format,
             'sectionNumber': self.section_num,
             'courseTitle': self.course_title,
+            'modular': self.modular,
         }
         if self.cross_listed_with:
             feed['crossListedWith'] = self.cross_listed_with

@@ -13,6 +13,7 @@
     "core-js": "^3.6.5",
     "lodash": "^4.17.21",
     "moment-timezone": "0.5.34",
+    "v-calendar": "2.3.4",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",
     "vue-moment": "4.1.0",
