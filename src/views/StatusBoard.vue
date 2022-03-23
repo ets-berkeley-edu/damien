@@ -8,17 +8,33 @@
         id="department-table"
         disable-pagination
         :headers="headers"
+        :header-props="{'every-item': true, 'some-items': true}"
         hide-default-footer
         :items="departments"
         show-select
       >
-        <template #header.data-table-select="{ on, props }">
-          <v-simple-checkbox
-            id="checkbox-select-dept-all"
-            :ripple="false"
-            v-bind="props"
-            v-on="on"
-          ></v-simple-checkbox>
+        <template #header.data-table-select>
+          <div class="d-flex flex-row notify-all">
+            <v-simple-checkbox
+              id="'checkbox-select-dept-all'"
+              :indeterminate="someDepartmentsSelected"
+              :ripple="false"
+              :value="allDepartmentsSelected"
+              @input="toggleSelectAll"
+            ></v-simple-checkbox>
+            <div class="d-flex align-center">Send notification</div>
+            <v-btn
+              v-if="!isCreatingNotification"
+              id="open-notification-form-btn"
+              class="ma-2 secondary text-capitalize"
+              color="secondary"
+              :disabled="$_.isEmpty(selectedDepartmentIds)"
+              small
+              @click="() => isCreatingNotification = true"
+            >
+              Apply
+            </v-btn>
+          </div>
         </template>
         <template #body="{items}">
           <tbody>
@@ -27,9 +43,9 @@
                 <td>
                   <v-simple-checkbox
                     :id="`checkbox-select-dept-${$_.kebabCase(department.deptName)}`"
-                    v-model="department.isSelected"
                     :ripple="false"
-                    @input="select($event)"
+                    :value="isSelected(department)"
+                    @input="toggleSelect(department)"
                   ></v-simple-checkbox>
                 </td>
                 <td class="department-name">
@@ -56,24 +72,62 @@
         </template>
       </v-data-table>
     </v-card>
+    <v-dialog v-model="isCreatingNotification" width="600">
+      <NotificationForm
+        v-if="isCreatingNotification"
+        :after-send="afterSendNotification"
+        :on-cancel="cancelSendNotification"
+        :recipients="notificationRecipients"
+      />
+    </v-dialog>
   </div>
 </template>
 
 <script>
 import {getDepartmentsEnrolled} from '@/api/departments'
+import Context from '@/mixins/Context.vue'
+import NotificationForm from '@/components/admin/NotificationForm'
 
 export default {
   name: 'StatusBoard',
+  components: {NotificationForm},
+  mixins: [Context],
   data: () => ({
     departments: [],
     headers: [
-      {text: 'Department', value: 'deptName'},
-      {text: 'Last Updated', value: 'updatedAt'},
-      {text: 'Errors', value: 'errors'},
-      {text: 'Confirmed', value: 'confirmed'},
-      {text: 'Notes', value: 'notes'},
+      {class: 'pt-12 pb-3', text: 'Department', value: 'deptName'},
+      {class: 'pt-12 pb-3', text: 'Last Updated', value: 'updatedAt'},
+      {class: 'pt-12 pb-3', text: 'Errors', value: 'errors'},
+      {class: 'pt-12 pb-3', text: 'Confirmed', value: 'confirmed'},
+      {class: 'pt-12 pb-3', text: 'Notes', value: 'notes'},
     ],
+    isCreatingNotification: false,
+    selectedDepartmentIds: []
   }),
+  computed: {
+    allDepartmentsSelected() {
+      return !!(this.$_.size(this.selectedDepartmentIds) && this.$_.size(this.selectedDepartmentIds) === this.$_.size(this.departments))
+    },
+    notificationRecipients() {
+      let recipients = []
+      this.$_.each(this.departments, d => {
+        if (this.isSelected(d)) {
+          const departmentRecipients = this.$_.filter(d.contacts, 'canReceiveCommunications')
+          if (departmentRecipients.length) {
+            recipients.push({
+              'deptId': d.id,
+              'deptName': d.deptName,
+              'recipients': this.$_.filter(d.contacts, 'canReceiveCommunications')
+            })
+          }
+        }
+      })
+      return recipients
+    },
+    someDepartmentsSelected() {
+      return !!(this.$_.size(this.selectedDepartmentIds) && this.$_.size(this.selectedDepartmentIds) < this.$_.size(this.departments))
+    }
+  },
   created() {
     this.$loading()
     getDepartmentsEnrolled().then(data => {
@@ -82,9 +136,34 @@ export default {
     })
   },
   methods: {
-    select(e) {
-      //TODO:
-      console.log(e)
+    afterSendNotification() {
+      this.selectedDepartmentIds = []
+      this.isCreatingNotification = false
+      this.alertScreenReader('Notification sent.')
+      this.$putFocusNextTick('open-notification-form-btn')
+    },
+    cancelSendNotification() {
+      this.isCreatingNotification = false
+      this.alertScreenReader('Notification canceled.')
+      this.$putFocusNextTick('open-notification-form-btn')
+    },
+    isSelected(department) {
+      return this.$_.includes(this.selectedDepartmentIds, department.id)
+    },
+    toggleSelect(department) {
+      const index = this.$_.indexOf(this.selectedDepartmentIds, department.id)
+      if (index === -1) {
+        this.selectedDepartmentIds.push(department.id)
+      } else {
+        this.selectedDepartmentIds.splice(index, 1)
+      }
+    },
+    toggleSelectAll() {
+      if (this.allDepartmentsSelected) {
+        this.selectedDepartmentIds = []
+      } else {
+        this.selectedDepartmentIds = this.$_.map(this.departments, 'id')
+      }
     }
   }
 }
@@ -105,5 +184,9 @@ export default {
 }
 .department-note {
   width: 35%;
+}
+.notify-all {
+  position: absolute;
+  top: 0;
 }
 </style>

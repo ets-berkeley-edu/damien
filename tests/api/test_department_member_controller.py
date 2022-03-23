@@ -89,10 +89,15 @@ class TestDeleteDepartmentContact:
         _api_delete_contact(client, user_id=0)
 
 
-def _api_notify_contacts(client, recipient=None, expected_status_code=200):
-    if not recipient:
-        user = User.find_by_uid(non_admin_uid)
-        recipient = [m.to_api_json() for m in user.department_memberships]
+def _api_notify_contacts(client, department_ids, expected_status_code=200):
+    depts = [Department.find_by_id(_id) for _id in department_ids]
+    recipient = [
+        {
+            'deptName': dept.dept_name,
+            'deptId': dept.id,
+            'recipients': [m.to_api_json() for m in dept.members],
+        } for dept in depts
+    ]
     params = {
         'message': 'OUR FINAL WARNING',
         'recipient': recipient,
@@ -109,23 +114,40 @@ def _api_notify_contacts(client, recipient=None, expected_status_code=200):
 
 class TestNotifyContacts:
 
-    def test_anonymous(self, client):
+    def test_anonymous(self, client, history_id):
         """Denies anonymous user."""
-        _api_notify_contacts(client, expected_status_code=401)
+        _api_notify_contacts(client, [history_id], expected_status_code=401)
 
-    def test_unauthorized(self, client, fake_auth):
+    def test_unauthorized(self, client, fake_auth, history_id):
         """Denies unauthorized user."""
         fake_auth.login(non_admin_uid)
-        _api_notify_contacts(client, expected_status_code=401)
+        _api_notify_contacts(client, [history_id], expected_status_code=401)
 
-    def test_authorized(self, client, fake_auth):
+    def test_authorized(self, client, fake_auth, history_id):
         """Authorized user can send an email."""
         fake_auth.login(admin_uid)
-        dept = Department.find_by_name('Freshman and Sophomore Seminars')
-        recipient = [m.to_api_json() for m in dept.members]
-        intended_recipient = [r['email'] for r in recipient if r['canReceiveCommunications']]
+        history_dept = Department.find_by_id(history_id)
+        history_contacts = [m.to_api_json() for m in history_dept.members]
+        intended_recipient = {
+            history_dept.dept_name: [c['email'] for c in history_contacts if c['canReceiveCommunications']],
+        }
 
-        response = _api_notify_contacts(client, recipient=recipient)
+        response = _api_notify_contacts(client, [history_id])
+        assert response['message'] == f'Email sent to {intended_recipient}'
+
+    def test_bulk_notification(self, client, fake_auth, history_id, melc_id):
+        """Bulk option sends one email per department."""
+        fake_auth.login(admin_uid)
+        history_dept = Department.find_by_id(history_id)
+        history_contacts = [m.to_api_json() for m in history_dept.members]
+        melc_dept = Department.find_by_id(melc_id)
+        melc_contacts = [m.to_api_json() for m in melc_dept.members]
+        intended_recipient = {
+            history_dept.dept_name: [c['email'] for c in history_contacts if c['canReceiveCommunications']],
+            melc_dept.dept_name: [c['email'] for c in melc_contacts if c['canReceiveCommunications']],
+        }
+
+        response = _api_notify_contacts(client, [history_id, melc_id])
         assert response['message'] == f'Email sent to {intended_recipient}'
 
 
