@@ -1,28 +1,41 @@
 <template>
   <div>
-    <div v-if="!readonly" class="ma-4 text-right">
-      Show statuses:
-      <v-btn
-        v-for="type in $_.keys(filterTypes)"
-        :id="`evaluations-filter-${type}`"
-        :key="type"
-        role="tablist"
-        class="filter ml-2 pl-2 pr-2 text-center"
-        :class="{
-          'secondary': filterTypes[type].enabled,
-          'filter-inactive': !filterTypes[type].enabled
-        }"
-        aria-controls="timeline-messages"
-        :aria-selected="filterTypes[type].enabled"
-        @click="toggleFilter(type)"
-      >
-        {{ filterTypes[type].label }}
-      </v-btn>
-    </div>
+    <v-row>
+      <v-col>
+        <v-text-field
+          v-model="searchFilter"
+          class="ml-4"
+          append-icon="mdi-magnify"
+          label="Find"
+          single-line
+          hide-details
+        ></v-text-field>
+      </v-col>
+      <v-col v-if="!readonly" class="ma-4 text-right">
+        Show statuses:
+        <v-btn
+          v-for="type in $_.keys(filterTypes)"
+          :id="`evaluations-filter-${type}`"
+          :key="type"
+          role="tablist"
+          class="filter ml-2 pl-2 pr-2 text-center"
+          :class="{
+            'secondary': filterTypes[type].enabled,
+            'filter-inactive': !filterTypes[type].enabled
+          }"
+          aria-controls="timeline-messages"
+          :aria-selected="filterTypes[type].enabled"
+          @click="toggleFilter(type)"
+        >
+          {{ filterTypes[type].label }}
+        </v-btn>
+      </v-col>
+    </v-row>
     <v-data-table
       id="evaluation-table"
       disable-pagination
       :headers="headers"
+      :search="searchFilter"
       hide-default-footer
       :items="evaluations"
     >
@@ -273,10 +286,10 @@ export default {
       {text: 'Status', value: 'status'},
       {text: 'Last Updated', value: 'lastUpdated'},
       {text: 'Course Number', value: 'sortableCourseNumber'},
-      {text: 'Course Name', value: 'courseName'},
-      {text: 'Instructor', value: 'instructorUid'},
-      {text: 'Department Form', value: 'departmentForm'},
-      {text: 'Evaluation Type', value: 'evaluationType'},
+      {text: 'Course Name', value: 'sortableCourseName'},
+      {text: 'Instructor', value: 'sortableInstructor'},
+      {text: 'Department Form', value: 'departmentForm.name'},
+      {text: 'Evaluation Type', value: 'evaluationType.name'},
       {text: 'Course Start Date', value: 'startDate'},
       {text: 'Course End Date', value: 'endDate'}
     ],
@@ -286,6 +299,7 @@ export default {
       afterStartDate: null,
       currentTermDate: null,
     },
+    searchFilter: '',
     selectedDepartmentForm: null,
     selectedEndDate: null,
     selectedEvaluationType: null,
@@ -374,6 +388,11 @@ export default {
     } else {
       this.headers = [{text: 'Select'}].concat(this.headers)
     }
+    this.$_.each(this.evaluations, e => {
+      e.sortableCourseName = `${e.subjectArea} ${e.catalogId} ${e.instructionFormat} ${e.sectionNumber} ${e.courseTitle}`
+      e.sortableCourseNumber = e.sortableCourseNumber || e.courseNumber
+      e.sortableInstructor = `${e.instructor.lastName} ${e.instructor.firstName} ${e.instructor.uid} ${e.instructor.emailAddress}`
+    })
     getDepartmentForms().then(data => this.departmentForms = data)
     getEvaluationTypes().then(data => this.evaluationTypes = data)
     this.rules.afterStartDate = v => (v > this.selectedStartDate) || 'End date must be after start date.'
