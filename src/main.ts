@@ -8,6 +8,9 @@ import utils from './utils'
 import Vue from 'vue'
 import vuetify from './plugins/vuetify'
 
+import VCalendar from 'v-calendar'
+Vue.use(VCalendar, {componentPrefix: 'c'})
+
 import VueMoment from 'vue-moment'
 Vue.use(VueMoment, {moment})
 

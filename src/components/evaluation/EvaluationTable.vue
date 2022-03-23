@@ -187,41 +187,34 @@
                     <option v-for="et in evaluationTypes" :key="et.id" :value="et.id">{{ et.name }}</option>
                   </select>
                 </td>
-                <td :id="`evaluation-${evaluationId}-startDate`">
-                  <span v-if="!isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.startDate}">
-                    {{ evaluation.startDate | moment('MM/DD/YYYY') }}
-                    <div v-for="(conflict, index) in evaluation.conflicts.startDate" :key="index" class="evaluation-error error--text">
-                      <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value | moment('MM/DD/YYYY') }} from {{ conflict.department }} department
-                    </div>
-                  </span>
-                  <v-text-field
-                    v-if="isEditing(evaluation)"
-                    v-model="selectedStartDate"
-                    color="tertiary"
-                    type="date"
-                    hide-details="auto"
-                    class="evaluation-input"
-                    :rules="[rules.currentTermDate, rules.beforeEndDate]"
-                    solo
-                  />
-                </td>
-                <td :id="`evaluation-${evaluationId}-endDate`">
-                  <span v-if="!isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.endDate}">
-                    {{ evaluation.endDate | moment('MM/DD/YYYY') }}
+                <td :id="`evaluation-${evaluationId}-period`">
+                  <span v-if="evaluation.period.start && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.endDate}">
+                    <div>{{ evaluation.period.start | moment('MM/DD/YY') }} - {{ evaluation.period.end | moment('MM/DD/YY') }}</div>
+                    <div>{{ evaluation.modular ? 2 : 3 }} weeks</div>
                     <div v-for="(conflict, index) in evaluation.conflicts.endDate" :key="index" class="evaluation-error error--text">
-                      <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value | moment('MM/DD/YYYY') }} from {{ conflict.department }} department
+                      <v-icon small color="error">mdi-alert-circle</v-icon>
+                      Conflicts with period starting
+                      {{ $moment(conflict.value).subtract(evaluation.modular ? 14 : 21, 'days').format('MM/DD/YY') }}
+                      from {{ conflict.department }} department
                     </div>
                   </span>
-                  <v-text-field
-                    v-if="isEditing(evaluation)"
-                    v-model="selectedEndDate"
-                    color="tertiary"
-                    type="date"
-                    hide-details="auto"
-                    class="evaluation-input"
-                    :rules="[rules.currentTermDate, rules.afterStartDate]"
-                    solo
-                  />
+                  <div v-if="isEditing(evaluation)">
+                    {{ evaluation.modular ? 2 : 3 }} weeks starting:
+                    <c-date-picker
+                      v-model="selectedStartDate"
+                      :min-date="new Date($config.currentTermDates.begin)"
+                      :max-date="new Date($config.currentTermDates.end)"
+                      title-position="left"
+                    >
+                      <template v-slot="{ inputValue, inputEvents }">
+                        <input
+                          class="input-override"
+                          :value="inputValue"
+                          v-on="inputEvents"
+                        /> 
+                      </template>
+                    </c-date-picker>
+                  </div>
                 </td>
                 <td v-if="!readonly">
                   <div class="d-flex align-center" :class="{'hidden': !isEditing(evaluation)}">
@@ -279,34 +272,27 @@ export default {
     headers: [
       {text: 'Status', value: 'status'},
       {text: 'Last Updated', value: 'lastUpdated'},
-      {text: 'Course Number', value: 'sortableCourseNumber'},
-      {text: 'Course Name', value: 'sortableCourseName'},
+      {text: 'Course Number', value: 'sortableCourseNumber', width: '100px'},
+      {text: 'Course Name', value: 'sortableCourseName', width: '200px'},
       {text: 'Instructor', value: 'sortableInstructor'},
       {text: 'Department Form', value: 'departmentForm.name', width: '180px'},
       {text: 'Evaluation Type', value: 'evaluationType.name'},
-      {text: 'Course Start Date', value: 'startDate'},
-      {text: 'Course End Date', value: 'endDate'}
+      {text: 'Evaluation Period', value: 'period.start', width: '200px'},
+      {text: ''}
     ],
     pendingInstructor: null,
     readonly: false,
     rules: {
-      afterStartDate: null,
       currentTermDate: null,
     },
     searchFilter: '',
     selectedDepartmentForm: null,
-    selectedEndDate: null,
     selectedEvaluationType: null,
     selectedStartDate: null
   }),
   computed: {
     rowValid() {
-      return (
-        this.rules.currentTermDate(this.selectedStartDate) === true &&
-        this.rules.currentTermDate(this.selectedEndDate) === true &&
-        this.rules.afterStartDate(this.selectedEndDate) === true &&
-        this.rules.beforeEndDate(this.selectedStartDate) === true
-      )
+      return this.rules.currentTermDate(this.selectedStartDate) === true
     }
   },
   methods: {
@@ -314,7 +300,6 @@ export default {
       this.editRowId = null
       this.pendingInstructor = null
       this.selectedDepartmentForm = null
-      this.selectedEndDate = null
       this.selectedEvaluationType = null
       this.selectedStartDate = null
     },
@@ -325,9 +310,8 @@ export default {
       this.editRowId = evaluation.id
       this.pendingInstructor = evaluation.instructor
       this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm')
-      this.selectedEndDate = evaluation.endDate
       this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
-      this.selectedStartDate = evaluation.startDate
+      this.selectedStartDate = evaluation.period.start
     },
     evaluationClass(evaluation, hover) {
       return {
@@ -359,10 +343,9 @@ export default {
     saveEvaluation(evaluation) {
       const fields = {
         'departmentFormId': this.$_.get(this.selectedDepartmentForm, 'id'),
-        'endDate': this.selectedEndDate,
+        'endDate': this.$moment(this.selectedStartDate).add((evaluation.modular ? 14 : 21), 'days').format('YYYY-MM-DD'),
         'evaluationTypeId': this.selectedEvaluationType,
-        'instructorUid': this.pendingInstructor.uid,
-        'startDate': this.selectedStartDate,
+        'instructorUid': this.pendingInstructor.uid
       }
       this.updateEvaluation(evaluation.id, fields)
     },
@@ -390,13 +373,17 @@ export default {
       } else {
         e.sortableInstructor = ''
       }
+      e.period = {start: null, end: null}
+      if (e.endDate) {
+        e.period.end = this.$moment(e.endDate).toDate()
+        e.period.start = this.$moment(e.endDate).subtract((e.modular ? 14 : 21), 'days').toDate()
+      }
     })
     getDepartmentForms().then(data => this.departmentForms = data)
     getEvaluationTypes().then(data => this.evaluationTypes = data)
-    this.rules.afterStartDate = v => (v > this.selectedStartDate) || 'End date must be after start date.'
-    this.rules.beforeEndDate = v => (v < this.selectedEndDate) || 'End date must be after start date.'
     this.rules.currentTermDate = v => {
-      if (v > this.$config.currentTermDates.begin && v < this.$config.currentTermDates.end) {
+      const formatted = this.$moment(v).format('YYYY-MM-DD')
+      if (formatted > this.$config.currentTermDates.begin && formatted < this.$config.currentTermDates.end) {
         return true
       }
       return 'Date must be within current term.'
@@ -408,6 +395,14 @@ export default {
 <style>
 .evaluation-input .v-messages__message {
   color: #fff !important;
+}
+
+.input-override {
+  background-color: #fff !important;
+  border-radius: 5px;
+  border: 1px solid #333333;
+  margin: 5px 0;
+  padding: 5px;
 }
 
 .native-select-override {

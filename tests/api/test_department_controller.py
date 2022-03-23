@@ -539,11 +539,12 @@ class TestEditEvaluationMultipleDepartments:
         assert history_eval['status'] == 'review'
         assert melc_eval['conflicts']['departmentForm'] == [{'department': 'History', 'value': 'HISTORY'}]
         assert melc_eval['conflicts']['evaluationType'] == [{'department': 'History', 'value': 'G'}]
-        assert melc_eval['conflicts']['startDate'] == [{'department': 'History', 'value': '2022-02-13'}]
+        # TODO remove back end for setting start dates
+        # assert melc_eval['conflicts']['startDate'] == [{'department': 'History', 'value': '2022-02-13'}]
         assert melc_eval['conflicts']['endDate'] == [{'department': 'History', 'value': '2022-05-02'}]
         assert history_eval['conflicts']['departmentForm'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': 'MELC'}]
         assert history_eval['conflicts']['evaluationType'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': 'F'}]
-        assert history_eval['conflicts']['startDate'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': '2022-02-14'}]
+        # assert history_eval['conflicts']['startDate'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': '2022-02-14'}]
         assert history_eval['conflicts']['endDate'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': '2022-05-01'}]
 
 

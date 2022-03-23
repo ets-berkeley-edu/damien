@@ -358,9 +358,10 @@ class Evaluation(Base):
     def set_start_date(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
         if saved_evaluation and saved_evaluation.start_date:
             self.start_date = saved_evaluation.start_date
-            for fde in foreign_dept_evaluations:
-                if fde.start_date and fde.start_date != self.start_date:
-                    self.mark_conflict(fde, 'startDate', safe_strftime(fde.start_date, '%Y-%m-%d'))
+            # TODO remove start date as independently tracked value
+            # for fde in foreign_dept_evaluations:
+            #    if fde.start_date and fde.start_date != self.start_date:
+            #         self.mark_conflict(fde, 'startDate', safe_strftime(fde.start_date, '%Y-%m-%d'))
         else:
             for fde in foreign_dept_evaluations:
                 if fde.start_date:
