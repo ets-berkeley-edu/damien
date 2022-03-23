@@ -154,18 +154,16 @@
                   >
                     <v-icon small color="error">mdi-alert-circle</v-icon> Department form required
                   </div>
-                  <v-select
+                  <vue-select
                     v-if="isEditing(evaluation)"
                     id="select-department-form"
                     v-model="selectedDepartmentForm"
-                    color="tertiary"
-                    item-text="name"
-                    item-value="id"
-                    :items="departmentForms"
-                    hide-details="auto"
-                    label="Select..."
-                    solo
-                  />
+                    :options="departmentForms"
+                    label="name"
+                    :clearable="false"
+                    class="vue-select-override"
+                  >
+                  </vue-select>
                 </td>
                 <td :id="`evaluation-${evaluationId}-evaluationType`">
                   <div v-if="evaluation.evaluationType && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationType}">
@@ -180,18 +178,14 @@
                   >
                     <v-icon small color="error">mdi-alert-circle</v-icon> Evaluation type required
                   </div>
-                  <v-select
+                  <select
                     v-if="isEditing(evaluation)"
                     id="select-evaluation-type"
                     v-model="selectedEvaluationType"
-                    color="tertiary"
-                    item-text="name"
-                    item-value="id"
-                    :items="evaluationTypes"
-                    hide-details="auto"
-                    label="Select..."
-                    solo
-                  />
+                    class="native-select-override"
+                  >
+                    <option v-for="et in evaluationTypes" :key="et.id" :value="et.id">{{ et.name }}</option>
+                  </select>
                 </td>
                 <td :id="`evaluation-${evaluationId}-startDate`">
                   <span v-if="!isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.startDate}">
@@ -288,7 +282,7 @@ export default {
       {text: 'Course Number', value: 'sortableCourseNumber'},
       {text: 'Course Name', value: 'sortableCourseName'},
       {text: 'Instructor', value: 'sortableInstructor'},
-      {text: 'Department Form', value: 'departmentForm.name'},
+      {text: 'Department Form', value: 'departmentForm.name', width: '180px'},
       {text: 'Evaluation Type', value: 'evaluationType.name'},
       {text: 'Course Start Date', value: 'startDate'},
       {text: 'Course End Date', value: 'endDate'}
@@ -330,7 +324,7 @@ export default {
     editEvaluation(evaluation) {
       this.editRowId = evaluation.id
       this.pendingInstructor = evaluation.instructor
-      this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
+      this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm')
       this.selectedEndDate = evaluation.endDate
       this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
       this.selectedStartDate = evaluation.startDate
@@ -364,7 +358,7 @@ export default {
     },
     saveEvaluation(evaluation) {
       const fields = {
-        'departmentFormId': this.selectedDepartmentForm,
+        'departmentFormId': this.$_.get(this.selectedDepartmentForm, 'id'),
         'endDate': this.selectedEndDate,
         'evaluationTypeId': this.selectedEvaluationType,
         'instructorUid': this.pendingInstructor.uid,
@@ -414,6 +408,29 @@ export default {
 <style>
 .evaluation-input .v-messages__message {
   color: #fff !important;
+}
+
+.native-select-override {
+  border-radius: 5px;
+  border: 1px solid #333333;
+  padding: 10px;
+  -webkit-appearance: menulist !important; /* override vuetify style */
+  -moze-appearance: menulist !important; /* override vuetify style */
+  appearance: menulist !important; /* override vuetify style */
+  background-color: #fff !important;
+  margin-bottom: 0;
+}
+
+.vue-select-override {
+  color: #000 !important;
+  background-color: #fff !important;
+  border-radius: 5px;
+  border: 1px solid #333333;
+  padding: 0;
+}
+
+.vs__dropdown-toggle {
+  padding: 5px !important;
 }
 </style>
 

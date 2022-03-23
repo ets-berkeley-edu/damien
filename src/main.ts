@@ -6,10 +6,15 @@ import router from './router'
 import store from './store'
 import utils from './utils'
 import Vue from 'vue'
-import VueMoment from 'vue-moment'
 import vuetify from './plugins/vuetify'
 
+import VueMoment from 'vue-moment'
 Vue.use(VueMoment, {moment})
+
+import vSelect from 'vue-select'
+import 'vue-select/dist/vue-select.css'
+// Do not use the default v-select name for this component as that will conflict with Vuetify's v-select.
+Vue.component('vue-select', vSelect)
 
 const apiBaseUrl = process.env.VUE_APP_API_BASE_URL
 const isDebugMode = _.trim(process.env.VUE_APP_DEBUG).toLowerCase() === 'true'
