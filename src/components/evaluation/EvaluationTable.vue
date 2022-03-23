@@ -391,7 +391,11 @@ export default {
     this.$_.each(this.evaluations, e => {
       e.sortableCourseName = `${e.subjectArea} ${e.catalogId} ${e.instructionFormat} ${e.sectionNumber} ${e.courseTitle}`
       e.sortableCourseNumber = e.sortableCourseNumber || e.courseNumber
-      e.sortableInstructor = `${e.instructor.lastName} ${e.instructor.firstName} ${e.instructor.uid} ${e.instructor.emailAddress}`
+      if (e.instructor) {
+        e.sortableInstructor = `${e.instructor.lastName} ${e.instructor.firstName} ${e.instructor.uid} ${e.instructor.emailAddress}`
+      } else {
+        e.sortableInstructor = ''
+      }
     })
     getDepartmentForms().then(data => this.departmentForms = data)
     getEvaluationTypes().then(data => this.evaluationTypes = data)
