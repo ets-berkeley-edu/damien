@@ -275,24 +275,24 @@ ALTER TABLE ONLY users ADD CONSTRAINT users_uid_unique_key UNIQUE (uid);
 --
 
 ALTER TABLE ONLY department_catalog_listings
-    ADD CONSTRAINT department_catalog_listings_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
+    ADD CONSTRAINT department_catalog_listings_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE CASCADE;
 ALTER TABLE ONLY department_catalog_listings
-    ADD CONSTRAINT department_catalog_listings_default_form_id_fkey FOREIGN KEY (default_form_id) REFERENCES department_forms(id);
+    ADD CONSTRAINT department_catalog_listings_default_form_id_fkey FOREIGN KEY (default_form_id) REFERENCES department_forms(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY department_members
-    ADD CONSTRAINT department_members_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
+    ADD CONSTRAINT department_members_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE CASCADE;
 ALTER TABLE ONLY department_members
-    ADD CONSTRAINT department_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
+    ADD CONSTRAINT department_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY department_notes
-    ADD CONSTRAINT department_notes_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
+    ADD CONSTRAINT department_notes_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY evaluations
-    ADD CONSTRAINT evaluations_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
+    ADD CONSTRAINT evaluations_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE CASCADE;
 ALTER TABLE ONLY evaluations
-    ADD CONSTRAINT evaluations_department_form_id_fkey FOREIGN KEY (department_form_id) REFERENCES department_forms(id);
+    ADD CONSTRAINT evaluations_department_form_id_fkey FOREIGN KEY (department_form_id) REFERENCES department_forms(id) ON DELETE CASCADE;
 ALTER TABLE ONLY evaluations
-    ADD CONSTRAINT evaluations_evaluation_type_fkey FOREIGN KEY (evaluation_type_id) REFERENCES evaluation_types(id);
+    ADD CONSTRAINT evaluations_evaluation_type_fkey FOREIGN KEY (evaluation_type_id) REFERENCES evaluation_types(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY supplemental_sections
-    ADD CONSTRAINT supplemental_sections_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id);
+    ADD CONSTRAINT supplemental_sections_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE CASCADE;
