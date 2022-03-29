@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import {getValidation} from '@/api/validation'
+import {getValidation} from '@/api/evaluations'
 import Context from '@/mixins/Context.vue'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
 

@@ -32,7 +32,7 @@ admin_uid = '200'
 
 
 def _api_get_validations(client, expected_status_code=200):
-    response = client.get('/api/validation')
+    response = client.get('/api/evaluations/validate')
     assert response.status_code == expected_status_code
     return response.json
 
@@ -79,9 +79,15 @@ class TestGetValidations:
     def test_missing_data(self, client, fake_auth, history_id, type_f_id):
         fake_auth.login(admin_uid)
         _api_update_history_evaluation(client, None, None, type_f_id)
-        _api_update_evaluation(client, history_id, params={'evaluationIds': ['_2222_30643_326054'], 'action': 'confirm'})
+        evaluation = _api_get_evaluation(client, history_id, '30643', '326054')
+        _api_update_evaluation(client, history_id, params={'evaluationIds': [evaluation['id']], 'action': 'confirm'})
         response = _api_get_validations(client)
-        assert len(response) == 1
+        assert len(response) == 2
+        for r in response:
+            assert r['courseNumber'] == '30643'
+            assert r['instructor']['uid'] == '326054'
+            assert r['departmentForm'] is None
+            assert r['valid'] is False
 
     def test_validation_conflicts(
         self,
@@ -102,3 +108,9 @@ class TestGetValidations:
         client.get(f'/api/department/{melc_id}')
         response = _api_get_validations(client)
         assert len(response) == 2
+        for r in response:
+            assert r['courseNumber'] == '30643'
+            assert r['instructor']['uid'] == '326054'
+            assert r['conflicts']['departmentForm']
+            assert r['conflicts']['evaluationType']
+            assert r['valid'] is False

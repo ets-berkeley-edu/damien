@@ -33,7 +33,7 @@ from damien.models.department_form import DepartmentForm
 from damien.models.evaluation_type import EvaluationType
 from flask import current_app as app
 from flask_login import current_user
-from sqlalchemy import and_, update
+from sqlalchemy import and_, orm, update
 from sqlalchemy.dialects.postgresql import ENUM
 
 
@@ -100,7 +100,10 @@ class Evaluation(Base):
         self.end_date = end_date
         self.created_by = created_by
         self.updated_by = updated_by
+        self._init_on_load()
 
+    @orm.reconstructor
+    def _init_on_load(self):
         self.conflicts = {
             'departmentForm': [],
             'evaluationType': [],
@@ -187,8 +190,9 @@ class Evaluation(Base):
         transient_evaluation.set_end_date(loch_rows, foreign_dept_evaluations, saved_evaluation)
         transient_evaluation.set_last_updated(loch_rows, saved_evaluation)
 
+        transient_evaluation.update_validity(saved_evaluation, foreign_dept_evaluations)
+
         if saved_evaluation:
-            saved_evaluation.mark_missing_values(transient_evaluation)
             transient_evaluation.id = saved_evaluation.id
             # Underscore hack needed because setting the "department" relationship on a transient evaluation results
             # in an attempted save and a primary-key conflict.
@@ -276,8 +280,16 @@ class Evaluation(Base):
         )).values(status=status))
 
     @classmethod
-    def invalid(cls, term_id):
-        return cls.query.where(and_(cls.term_id == term_id, cls.valid == False)).all()  # noqa: E712
+    def get_confirmed(cls, term_id):
+        filters = [cls.term_id == term_id, cls.status == 'confirmed']
+        return cls.query.where(and_(*filters)).all()
+
+    @classmethod
+    def get_invalid(cls, term_id, status=None):
+        filters = [cls.term_id == term_id, cls.valid == False]  # noqa: E712
+        if status:
+            filters.append(cls.status == status)
+        return cls.query.where(and_(*filters)).all()
 
     def is_transient(self):
         return self.id is None
@@ -326,7 +338,7 @@ class Evaluation(Base):
             self.department_form = saved_evaluation.department_form
             for fde in foreign_dept_evaluations:
                 if fde.department_form and fde.department_form != self.department_form:
-                    self.mark_conflict(fde, 'departmentForm', fde.department_form.name)
+                    self.mark_conflict(fde, 'departmentForm', saved_evaluation, self.department_form.name, fde.department_form.name)
         else:
             for fde in foreign_dept_evaluations:
                 if fde.department_form:
@@ -340,7 +352,7 @@ class Evaluation(Base):
             self.evaluation_type = saved_evaluation.evaluation_type
             for fde in foreign_dept_evaluations:
                 if fde.evaluation_type and fde.evaluation_type != self.evaluation_type:
-                    self.mark_conflict(fde, 'evaluationType', fde.evaluation_type.name)
+                    self.mark_conflict(fde, 'evaluationType', saved_evaluation, self.evaluation_type.name, fde.evaluation_type.name)
         else:
             for fde in foreign_dept_evaluations:
                 if fde.evaluation_type:
@@ -375,7 +387,13 @@ class Evaluation(Base):
             self.end_date = saved_evaluation.end_date
             for fde in foreign_dept_evaluations:
                 if fde.end_date and fde.end_date != self.end_date:
-                    self.mark_conflict(fde, 'endDate', safe_strftime(fde.end_date, '%Y-%m-%d'))
+                    self.mark_conflict(
+                        fde,
+                        'endDate',
+                        saved_evaluation,
+                        safe_strftime(self.end_date, '%Y-%m-%d'),
+                        safe_strftime(fde.end_date, '%Y-%m-%d'),
+                    )
         else:
             for fde in foreign_dept_evaluations:
                 if fde.end_date:
@@ -400,21 +418,35 @@ class Evaluation(Base):
             updates.append(saved_evaluation.updated_at)
         self.last_updated = max(updates)
 
-    def mark_conflict(self, foreign_dept_evaluation, key, value):
-        self.conflicts[key].append({'department': foreign_dept_evaluation.department.dept_name, 'value': value})
-        if self.valid:
-            self.valid = False
-            db.session.add(self)
-        if foreign_dept_evaluation.valid:
-            foreign_dept_evaluation.valid = False
-            db.session.add(foreign_dept_evaluation)
+    def mark_conflict(self, foreign_dept_evaluation, key, saved_evaluation, self_value, other_value):
+        self.conflicts[key].append({'department': foreign_dept_evaluation.department.dept_name, 'value': other_value})
+        foreign_dept_evaluation.conflicts[key].append({'department': saved_evaluation.department.dept_name, 'value': self_value})
 
-    def mark_missing_values(self, transient_evaluation):
-        if transient_evaluation.status in ('marked', 'confirmed'):
-            if not transient_evaluation.department_form or not transient_evaluation.evaluation_type:
-                if self.valid:
-                    self.valid = False
-                    db.session.add(self)
+    def update_validity(self, saved_evaluation, foreign_dept_evaluations):
+        self.valid = True
+        if saved_evaluation:
+            updated_validity = True
+            if self.status in ('marked', 'confirmed'):
+                if not self.department_form or not self.evaluation_type:
+                    updated_validity = False
+                if next((v for v in self.conflicts.values() if len(v)), None):
+                    updated_validity = False
+            if updated_validity != saved_evaluation.valid:
+                saved_evaluation.valid = updated_validity
+                db.session.add(saved_evaluation)
+            self.valid = saved_evaluation.valid
+        for fde in foreign_dept_evaluations:
+            updated_validity = True
+            if self.status in ('marked', 'confirmed'):
+                if next((v for v in fde.conflicts.values() if len(v)), None):
+                    updated_validity = False
+                if not self.department_form and not fde.department_form:
+                    updated_validity = False
+                if not self.evaluation_type and not fde.evaluation_type:
+                    updated_validity = False
+            if updated_validity != fde.valid:
+                fde.valid = updated_validity
+                db.session.add(fde)
         std_commit()
 
     # Fallback id string for Evaluation instances that are created for the department/section API but not saved to the database.
@@ -445,6 +477,7 @@ class Evaluation(Base):
             'endDate': safe_strftime(self.end_date, '%Y-%m-%d'),
             'lastUpdated': safe_strftime(self.last_updated, '%Y-%m-%d'),
             'conflicts': {},
+            'valid': self.valid,
         })
         dept = self.department or (hasattr(self, '_department') and self._department)
         if dept:

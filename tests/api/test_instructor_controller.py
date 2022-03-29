@@ -39,7 +39,6 @@ default_instructor = {
 
 def _api_add_instructor(client, params={}, expected_status_code=200):
     instructor = {**default_instructor, **params}
-    print(instructor)
     response = client.post(
         '/api/instructor',
         data=json.dumps(instructor),

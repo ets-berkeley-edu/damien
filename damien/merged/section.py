@@ -187,6 +187,15 @@ class Section:
             feed['foreignDepartmentCourse'] = True
         return feed
 
+    def get_evaluation_exports(self, department, evaluation_ids):
+        exports = {'instructorUids': set()}
+        merged_evaluations = self.merge_evaluations(department=department)
+        for e in merged_evaluations:
+            if e.get_id() not in evaluation_ids:
+                continue
+            exports['instructorUids'].add(e.instructor_uid)
+        return exports
+
     def get_evaluation_feed(self, department, evaluation_ids=None):
         merged_evaluations = self.merge_evaluations(department=department)
         return [e.to_api_json(section=self) for e in merged_evaluations if not evaluation_ids or e.get_id() in evaluation_ids]
