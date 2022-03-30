@@ -47,7 +47,7 @@ class DamienPages(Page):
 
     @staticmethod
     def menu_option_locator(option_str):
-        return By.XPATH, f'//div[@role="option"][contains(., "{option_str}")]'
+        return By.XPATH, f'//*[@role="option"][contains(., "{option_str}")]'
 
     def click_menu_option(self, option_text):
         app.logger.info(f"Clicking the option '{option_text}'")
@@ -84,6 +84,10 @@ class DamienPages(Page):
     def click_group_mgmt(self):
         app.logger.info('Clicking link to Group Mgmt')
         self.wait_for_element_and_click(DamienPages.GRP_MGMT_LINK)
+
+    def click_list_mgmt(self):
+        app.logger.info('Clicking link to List Mgmt')
+        self.wait_for_element_and_click(DamienPages.LIST_MGMT_LINK)
 
     @staticmethod
     def dept_link_loc(dept):

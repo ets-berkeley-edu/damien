@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from mrsbaylock.models.term import Term
 from mrsbaylock.pages.dept_details_admin_page import DeptDetailsAdminPage
 from mrsbaylock.test_utils import utils
 import pytest
@@ -30,6 +31,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 term = utils.get_current_term()
+previous_term = Term(utils.get_previous_term_code(term.term_id), None)
 depts = utils.get_participating_depts()
 utils.get_all_users()
 
@@ -37,6 +39,7 @@ test_dept = utils.get_dept('Astronomy')
 test_user = utils.get_test_user()
 utils.hard_delete_user(test_user)
 utils.delete_dept_note(term, test_dept)
+utils.create_dept_note(previous_term, test_dept, 'Test note')
 
 
 @pytest.mark.usefixtures('page_objects')
@@ -56,17 +59,20 @@ class TestDeptMgmt:
         note = f'{test_dept.name} note {self.test_id}'
         self.dept_details_admin_page.edit_dept_note(note)
         self.dept_details_admin_page.cxl_dept_note()
-        self.dept_details_admin_page.verify_dept_note(test_dept)
+        self.dept_details_admin_page.verify_dept_note()
 
     def test_edit_note_save(self):
         note = f'{test_dept.name} note {self.test_id}'
         self.dept_details_admin_page.edit_dept_note(note)
         self.dept_details_admin_page.save_dept_note()
-        test_dept.note = note
-        self.dept_details_admin_page.verify_dept_note(test_dept)
+        self.dept_details_admin_page.verify_dept_note(note)
 
     def test_delete_note(self):
         self.dept_details_admin_page.delete_dept_note()
+
+    def test_previous_term_note(self):
+        self.dept_details_admin_page.select_term(previous_term)
+        # TODO verify note not editable
 
     # CONTACTS
 

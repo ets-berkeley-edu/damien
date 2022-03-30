@@ -31,6 +31,7 @@ from mrsbaylock.pages.calnet_page import CalNetPage
 from mrsbaylock.pages.dept_details_admin_page import DeptDetailsAdminPage
 from mrsbaylock.pages.group_mgmt_page import GroupMgmtPage
 from mrsbaylock.pages.homepage import Homepage
+from mrsbaylock.pages.list_mgmt_page import ListMgmtPage
 from mrsbaylock.pages.login_page import LoginPage
 from mrsbaylock.pages.status_board_admin_page import StatusBoardAdminPage
 from mrsbaylock.test_utils.webdriver_utils import WebDriverManager
@@ -55,6 +56,7 @@ def page_objects(request):
     dept_details_admin_page = DeptDetailsAdminPage(driver)
     group_mgmt_page = GroupMgmtPage(driver)
     homepage = Homepage(driver)
+    list_mgmt_page = ListMgmtPage(driver)
     login_page = LoginPage(driver)
     status_board_admin_page = StatusBoardAdminPage(driver)
 
@@ -68,6 +70,7 @@ def page_objects(request):
             setattr(cls.obj, 'dept_details_admin_page', dept_details_admin_page)
             setattr(cls.obj, 'group_mgmt_page', group_mgmt_page)
             setattr(cls.obj, 'homepage', homepage)
+            setattr(cls.obj, 'list_mgmt_page', list_mgmt_page)
             setattr(cls.obj, 'login_page', login_page)
             setattr(cls.obj, 'status_board_admin_page', status_board_admin_page)
         yield

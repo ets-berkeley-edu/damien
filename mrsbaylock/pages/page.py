@@ -32,6 +32,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
@@ -173,6 +174,11 @@ class Page(object):
     def wait_for_element_and_type_js(self, element_id, string, addl_pause=None):
         self.wait_for_page_and_click_js((By.ID, element_id), addl_pause)
         self.driver.execute_script(f"document.getElementById('{element_id}').value='{string}'")
+
+    def wait_for_select_and_click_option(self, select_el_loc, option_str):
+        self.wait_for_element(select_el_loc, utils.get_short_timeout())
+        select_el = Select(self.element(select_el_loc))
+        select_el.select_by_visible_text(option_str)
 
     # PAGE TITLE AND HEADING
 

@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from datetime import timedelta
 
+from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.pages.course_dashboards import CourseDashboards
 from mrsbaylock.test_utils import utils
@@ -39,7 +40,7 @@ class TestEvaluationManagement:
 
     instructor = utils.get_test_user()
     dept_forms = utils.get_dept_forms()
-    # TODO ensure midterm form exists
+    midterm_form = next(filter(lambda form: (form.name.endswith('_MID')), dept_forms))
     eval_types = utils.get_all_eval_types()
 
     dept_2 = utils.get_test_dept_2()
@@ -47,10 +48,19 @@ class TestEvaluationManagement:
 
     utils.reset_test_data(term, dept_1)
 
-    def test_status_page(self):
+    def test_list_mgmt_page(self):
         self.homepage.load_page()
         self.login_page.load_page()
         self.login_page.dev_auth()
+        self.status_board_admin_page.click_list_mgmt()
+
+    def test_ensure_dept_form(self):
+        if not self.midterm_form:
+            self.midterm_form = DepartmentForm(f'{self.dept_forms[0]}_MID')
+            self.list_mgmt_page.add_dept_form(self.midterm_form)
+
+    def test_status_board(self):
+        self.list_mgmt_page.click_status_board()
         self.status_board_admin_page.click_dept_link(self.dept_1)
 
     def test_add_instructor(self):
@@ -75,29 +85,79 @@ class TestEvaluationManagement:
 
     # TODO def test_remove_instructor(self):
 
-    # TODO def test_add_dept_form(self):
-    # TODO def test_change_dept_form(self):
+    def test_add_dept_form(self):
+        form = self.dept_forms[-1]
+        e = next(filter(lambda row: (row.dept_form is None), self.dept_1.evaluations))
+        self.dept_details_admin_page.click_edit_evaluation(e)
+        self.dept_details_admin_page.change_dept_form(e, form)
+        self.dept_details_admin_page.click_save_eval_changes(e)
+        self.dept_details_admin_page.wait_for_eval_rows()
+        assert form.name in self.dept_details_admin_page.eval_dept_form(e)
+
+    def test_change_dept_form(self):
+        form = self.dept_forms[1]
+        e = next(filter(lambda row: row.dept_form, self.dept_1.evaluations))
+        self.dept_details_admin_page.click_edit_evaluation(e)
+        self.dept_details_admin_page.change_dept_form(e, form)
+        self.dept_details_admin_page.click_save_eval_changes(e)
+        self.dept_details_admin_page.wait_for_eval_rows()
+        assert form.name in self.dept_details_admin_page.eval_dept_form(e)
+
+    def test_invalid_dept_form(self):
+        form = DepartmentForm('FOO')
+        e = next(filter(lambda row: row.dept_form, self.dept_1.evaluations))
+        self.dept_details_admin_page.click_edit_evaluation(e)
+        self.dept_details_admin_page.click_dept_form_input()
+        self.dept_details_admin_page.enter_dept_form(form)
+        self.dept_details_admin_page.wait_for_no_dept_form_option()
+
     # TODO def test_remove_dept_form(self):
 
-    # TODO def test_add_eval_type(self):
-    # TODO def test_change_eval_type(self):
+    def test_eval_types_available(self):
+        eval_names = list(map(lambda e: e.name, self.eval_types))
+        eval_names.sort()
+        visible = self.dept_details_admin_page.visible_eval_type_options()
+        visible.sort()
+        assert visible == eval_names
+
+    def test_add_eval_type(self):
+        eval_type = self.eval_types[0]
+        e = next(filter(lambda row: (row.eval_type is None), self.dept_1.evaluations))
+        self.dept_details_admin_page.click_edit_evaluation(e)
+        self.dept_details_admin_page.change_eval_type(e, eval_type)
+        self.dept_details_admin_page.click_save_eval_changes(e)
+        self.dept_details_admin_page.wait_for_eval_rows()
+        assert eval_type.name in self.dept_details_admin_page.eval_type(e)
+
+    def test_change_eval_type(self):
+        eval_type = self.eval_types[1]
+        e = next(filter(lambda row: row.eval_type, self.dept_1.evaluations))
+        self.dept_details_admin_page.click_edit_evaluation(e)
+        self.dept_details_admin_page.change_eval_type(e, eval_type)
+        self.dept_details_admin_page.click_save_eval_changes(e)
+        self.dept_details_admin_page.wait_for_eval_rows()
+        assert eval_type.name in self.dept_details_admin_page.eval_type(e)
+
     # TODO def test_remove_eval_type(self):
 
     def test_change_start_date(self):
         e = self.dept_1.evaluations[0]
         date = e.start_date + timedelta(days=1)
+        end = date + timedelta(days=21)
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_eval_start_date(e, date)
         self.dept_details_admin_page.click_save_eval_changes(e)
         self.dept_details_admin_page.wait_for_eval_rows()
-        assert date.strftime('%m/%d/%Y') in self.dept_details_admin_page.eval_course_start(e)
+        expected = f"{date.strftime('%m/%d/%y')} - {end.strftime('%m/%d/%y')}"
+        assert expected in self.dept_details_admin_page.eval_period_dates(e)
         e.start_date = date
 
     def test_remove_start_date(self):
         e = self.dept_1.evaluations[0]
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_eval_start_date(e)
-        self.dept_details_admin_page.wait_for_validation_error('Date must be within current term.')
+        assert not self.dept_details_admin_page.save_eval_changes_button_enabled(e)
+        # TODO validation error?
 
     def test_start_before_term(self):
         e = self.dept_1.evaluations[0]
@@ -105,62 +165,15 @@ class TestEvaluationManagement:
         date = self.term.start_date - timedelta(days=1)
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_eval_start_date(e, date)
-        self.dept_details_admin_page.wait_for_validation_error('Date must be within current term.')
+        # TODO validation error?
 
     def test_start_after_term(self):
         e = self.dept_1.evaluations[0]
         self.dept_details_admin_page.click_cancel_eval_changes(e)
         start = self.term.end_date + timedelta(days=1)
-        end = self.term.end_date + timedelta(days=2)
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_eval_start_date(e, start)
-        self.dept_details_admin_page.change_eval_end_date(e, end)
-        self.dept_details_admin_page.wait_for_validation_error('Date must be within current term.')
-
-    def test_change_end_date(self):
-        e = self.dept_1.evaluations[0]
-        self.dept_details_admin_page.click_cancel_eval_changes(e)
-        date = e.end_date - timedelta(days=1)
-        self.dept_details_admin_page.click_edit_evaluation(e)
-        self.dept_details_admin_page.change_eval_end_date(e, date)
-        self.dept_details_admin_page.click_save_eval_changes(e)
-        self.dept_details_admin_page.wait_for_eval_rows()
-        assert date.strftime('%m/%d/%Y') in self.dept_details_admin_page.eval_course_end(e)
-        e.end_date = date
-
-    def test_remove_end_date(self):
-        e = self.dept_1.evaluations[0]
-        self.dept_details_admin_page.click_edit_evaluation(e)
-        self.dept_details_admin_page.change_eval_end_date(e)
-        self.dept_details_admin_page.wait_for_validation_error('Date must be within current term.')
-
-    def test_end_before_term(self):
-        e = self.dept_1.evaluations[0]
-        self.dept_details_admin_page.click_cancel_eval_changes(e)
-        start = self.term.end_date - timedelta(days=2)
-        end = self.term.end_date - timedelta(days=1)
-        self.dept_details_admin_page.click_edit_evaluation(e)
-        self.dept_details_admin_page.change_eval_start_date(e, start)
-        self.dept_details_admin_page.change_eval_end_date(e, end)
-        self.dept_details_admin_page.wait_for_validation_error('Date must be within current term.')
-
-    def test_end_after_term(self):
-        e = self.dept_1.evaluations[0]
-        self.dept_details_admin_page.click_cancel_eval_changes(e)
-        date = self.term.end_date + timedelta(days=1)
-        self.dept_details_admin_page.click_edit_evaluation(e)
-        self.dept_details_admin_page.change_eval_end_date(e, date)
-        self.dept_details_admin_page.wait_for_validation_error('Date must be within current term.')
-
-    def test_end_before_start(self):
-        e = self.dept_1.evaluations[0]
-        self.dept_details_admin_page.click_cancel_eval_changes(e)
-        start = self.term.start_date + timedelta(days=14)
-        end = self.term.start_date + timedelta(days=7)
-        self.dept_details_admin_page.click_edit_evaluation(e)
-        self.dept_details_admin_page.change_eval_start_date(e, start)
-        self.dept_details_admin_page.change_eval_end_date(e, end)
-        self.dept_details_admin_page.wait_for_validation_error('End date must be after start date.')
+        # TODO validation error?
 
     def test_duplicate_section(self):
         e = self.dept_1.evaluations[0]
@@ -172,7 +185,11 @@ class TestEvaluationManagement:
     def test_duplicate_section_midterm(self):
         e = self.dept_1.evaluations[0]
         date = e.end_date - timedelta(days=30)
-        self.dept_details_admin_page.reload_page()
+        form = next(filter(lambda f: f.name == self.midterm_form.name.replace('_MID', ''), self.dept_forms))
+        self.dept_details_admin_page.click_edit_evaluation(e)
+        self.dept_details_admin_page.change_dept_form(e, form)
+        self.dept_details_admin_page.click_save_eval_changes(e)
+        self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.duplicate_section(e, self.dept_1.evaluations, True, date)
         self.dept_details_admin_page.wait_for_eval_rows()
         # TODO - verify new row
