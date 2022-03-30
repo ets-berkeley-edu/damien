@@ -23,10 +23,13 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import csv
+from datetime import datetime
 import urllib
 
 from flask import Response
 import simplejson as json
+from werkzeug.wrappers import ResponseStream
 
 
 def add_param_to_url(url, param):
@@ -34,6 +37,20 @@ def add_param_to_url(url, param):
     parsed_query = urllib.parse.parse_qsl(parsed_url.query)
     parsed_query.append(param)
     return urllib.parse.urlunparse(parsed_url._replace(query=urllib.parse.urlencode(parsed_query)))
+
+
+def response_with_csv_download(rows, filename_prefix, fieldnames=None):
+    now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    response = Response(
+        content_type='text/csv',
+        headers={
+            'Content-disposition': f'attachment; filename="{filename_prefix}_{now}.csv"',
+        },
+    )
+    csv_writer = csv.DictWriter(ResponseStream(response), fieldnames=fieldnames)
+    csv_writer.writeheader()
+    csv_writer.writerows(rows)
+    return response
 
 
 def tolerant_jsonify(obj, status=200, **kwargs):

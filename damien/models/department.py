@@ -204,11 +204,20 @@ class Department(Base):
         self.row_count = len(sections)
         db.session.add(self)
         std_commit()
-        return sections
+        return {'sections': sections, 'instructors': instructors}
+
+    def get_evaluation_exports(self, term_id, evaluation_ids):
+        instructor_uids = set()
+        vs = self.get_visible_sections(term_id)
+        for s in vs['sections']:
+            section_exports = s.get_evaluation_exports(department=self, evaluation_ids=evaluation_ids)
+            instructor_uids.update(section_exports['instructorUids'])
+        export_instructors = {uid: vs['instructors'].get(uid) for uid in instructor_uids if vs['instructors'].get(uid)}
+        return {'instructors': export_instructors}
 
     def evaluations_feed(self, term_id=None, evaluation_ids=None):
         feed = []
-        for s in self.get_visible_sections(term_id):
+        for s in self.get_visible_sections(term_id)['sections']:
             feed.extend(s.get_evaluation_feed(department=self, evaluation_ids=evaluation_ids))
         return feed
 
@@ -235,6 +244,6 @@ class Department(Base):
             feed['evaluations'] = self.evaluations_feed(term_id)
         if include_sections:
             if self.row_count is None:
-                self.get_visible_sections()
+                self.get_visible_sections()['sections']
             feed['totalSections'] = self.row_count
         return feed
