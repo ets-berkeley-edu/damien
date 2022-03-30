@@ -114,3 +114,45 @@ class TestGetValidations:
             assert r['conflicts']['departmentForm']
             assert r['conflicts']['evaluationType']
             assert r['valid'] is False
+
+
+def _api_export_evaluations(client, expected_status_code=200):
+    response = client.get('/api/evaluations/export')
+    assert response.status_code == expected_status_code
+    rows = response.data.decode('utf-8').split('\r\n')
+    if rows[-1] == '':
+        rows.pop()
+    return rows
+
+
+class TestExportEvaluations:
+
+    def test_anonymous(self, client):
+        _api_export_evaluations(client, expected_status_code=401)
+
+    def test_unauthorized(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_export_evaluations(client, expected_status_code=401)
+
+    def test_validation_errors(self, client, fake_auth, history_id, type_f_id):
+        fake_auth.login(admin_uid)
+        _api_update_history_evaluation(client, None, None, type_f_id)
+        evaluation = _api_get_evaluation(client, history_id, '30643', '326054')
+        _api_update_evaluation(client, history_id, params={'evaluationIds': [evaluation['id']], 'action': 'confirm'})
+        _api_export_evaluations(client, expected_status_code=400)
+
+    def test_nothing_confirmed_headers_only(self, client, fake_auth):
+        fake_auth.login(admin_uid)
+        rows = _api_export_evaluations(client)
+        assert len(rows) == 1
+        assert rows[0] == 'LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS,BLUE_ROLE'
+
+    def test_confirmed_course(self, client, fake_auth, history_id, form_history_id, type_f_id):
+        fake_auth.login(admin_uid)
+        _api_update_history_evaluation(client, history_id, form_history_id, type_f_id)
+        evaluation = _api_get_evaluation(client, history_id, '30643', '326054')
+        _api_update_evaluation(client, history_id, params={'evaluationIds': [evaluation['id']], 'action': 'confirm'})
+        rows = _api_export_evaluations(client)
+        assert len(rows) == 2
+        assert rows[0] == 'LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS,BLUE_ROLE'
+        assert rows[1] == '326054,4159446,Kjsyobkui,Nxvlusjof,ietkoqrg@berkeley.edu,23'

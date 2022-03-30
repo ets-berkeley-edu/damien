@@ -3,6 +3,14 @@
     <div class="pb-2">
       <h1>Evaluation Status Dashboard - Spring 2022</h1>
     </div>
+    <v-btn
+      id="publish-btn"
+      class="my-4"
+      @click="downloadEvaluations"
+      @keypress.enter.prevent="downloadEvaluations"
+    >
+      Publish
+    </v-btn>
     <v-card outlined class="elevation-1">
       <v-data-table
         id="department-table"
@@ -146,6 +154,9 @@ export default {
       this.isCreatingNotification = false
       this.alertScreenReader('Notification canceled.')
       this.$putFocusNextTick('open-notification-form-btn')
+    },
+    downloadEvaluations() {
+      window.location.href = `${this.$config.apiBaseUrl}/api/evaluations/export`
     },
     isSelected(department) {
       return this.$_.includes(this.selectedDepartmentIds, department.id)
