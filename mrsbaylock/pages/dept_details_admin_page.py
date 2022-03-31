@@ -37,10 +37,14 @@ class DeptDetailsAdminPage(CourseDashboards):
     TERM_SELECT = (By.ID, 'select-term')
     APPLY_TERM_BUTTON = (By.XPATH, '//label[text()=" Previous terms: "]/following-sibling::button[contains(., "Apply")]')
 
+    @staticmethod
+    def term_option_locator(term):
+        return By.XPATH, f'//span[@id="term-option-{term.term_id}"]/..'
+
     def select_term(self, term):
         app.logger.info(f'Selecting term {term.name}')
         self.wait_for_element_and_click(DeptDetailsAdminPage.TERM_SELECT)
-        self.wait_for_element_and_click(self.menu_option_locator(term.name))
+        self.wait_for_element_and_click(DeptDetailsAdminPage.term_option_locator(term))
         self.wait_for_element_and_click(DeptDetailsAdminPage.APPLY_TERM_BUTTON)
 
     ADD_CONTACT_BUTTON = (By.ID, 'add-dept-contact-btn')
@@ -142,10 +146,10 @@ class DeptDetailsAdminPage(CourseDashboards):
         self.wait_for_element_and_click(DeptDetailsAdminPage.DEPT_NOTE_SAVE_BUTTON)
         self.when_not_present(DeptDetailsAdminPage.DEPT_NOTE_TEXTAREA, utils.get_short_timeout())
 
-    def verify_dept_note(self, dept):
-        if dept.note:
+    def verify_dept_note(self, note=None):
+        if note:
             Wait(self.driver, utils.get_short_timeout()).until(ec.presence_of_element_located(DeptDetailsAdminPage.DEPT_NOTE))
-            assert self.element(DeptDetailsAdminPage.DEPT_NOTE).text == f'{dept.note}'
+            assert self.element(DeptDetailsAdminPage.DEPT_NOTE).text == f'{note}'
         else:
             self.when_not_present(DeptDetailsAdminPage.DEPT_NOTE, utils.get_short_timeout())
 

@@ -99,6 +99,18 @@ def get_current_term():
     )
 
 
+def get_previous_term_code(current_term_id):
+    d1 = '2'
+    d2_3 = str(int(current_term_id[1:3]) - 1) if (current_term_id[-1] == '2') else current_term_id[1:2]
+    if current_term_id[3] == '8':
+        d4 = '5'
+    elif current_term_id[3] == '5':
+        d4 = '2'
+    else:
+        d4 = '8'
+    return d1 + d2_3 + d4
+
+
 # DATABASE - USERS
 
 
@@ -297,12 +309,22 @@ def get_test_dept_2():
     return get_dept(name)
 
 
+def create_dept_note(term, dept, note):
+    delete_dept_note(term, dept)
+    sql = f"""
+        INSERT INTO department_notes (dept_id, term_id, note, created_at, updated_at)
+             SELECT ('{dept.dept_id}', '{term.term_id}', '{note}', now(), now())
+    """
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+
+
 def delete_dept_note(term, dept):
     sql = f"""
-        UPDATE department_notes
-           SET note = NULL
-         WHERE department_id = {dept.dept_id}
-           AND term_id = '{term.term_id}';
+        DELETE FROM department_notes
+              WHERE department_id = {dept.dept_id}
+                AND term_id = '{term.term_id}'
     """
     app.logger.info(sql)
     db.session.execute(text(sql))
