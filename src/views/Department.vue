@@ -26,11 +26,10 @@
           :items="availableTerms"
           label="Select..."
           solo
-          @change="refresh(null)"
+          @change="refresh"
         >
           <span :id="`term-option-${data.item.id}`" slot="item" slot-scope="data">{{ data.item.name }}</span>
         </v-select>
-        <v-btn class="ma-2" :disabled="!selectedTerm" @click="refresh">Apply</v-btn>
       </v-col>
     </v-row>
     <v-container v-if="$currentUser.isAdmin" class="mx-0 px-0 pb-6">
