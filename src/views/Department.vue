@@ -82,7 +82,7 @@
     <v-row>
       <v-col cols="12" md="4" class="mb-4">
         <v-select
-          id="select-term"
+          id="select-course-actions"
           v-model="selectedCourseAction"
           item-text="text"
           item-value="value"
