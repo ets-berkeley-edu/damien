@@ -103,11 +103,70 @@ class DamienPages(Page):
 
     def look_up_contact_uid(self, uid):
         app.logger.info(f'Looking up UID {uid}')
-        self.wait_for_element_and_type(DamienPages.ADD_CONTACT_LOOKUP_INPUT, uid)
+        self.remove_and_enter_chars(DamienPages.ADD_CONTACT_LOOKUP_INPUT, uid)
 
     def look_up_contact_name(self, name):
         app.logger.info(f'Looking up {name}')
-        self.wait_for_element_and_type(DamienPages.ADD_CONTACT_LOOKUP_INPUT, name)
+        self.remove_and_enter_chars(DamienPages.ADD_CONTACT_LOOKUP_INPUT, name)
 
     def click_look_up_result(self, user):
         self.wait_for_page_and_click(self.add_contact_lookup_result(user))
+
+    NOTIF_FORM_BUTTON = (By.ID, 'open-notification-form-btn')
+    NOTIF_SUBJ_INPUT = (By.ID, 'input-notification-subject')
+    NOTIF_BODY_INPUT = (By.ID, 'input-notification-message')
+    NOTIF_SEND_BUTTON = (By.ID, 'send-notification-btn')
+    NOTIF_CXL_BUTTON = (By.ID, 'cancel-send-notification-btn')
+    NOTIF_DEPT_RECIPIENT = (By.XPATH, '//h4[contains(@id, "dept-head-")]')
+
+    def open_notif_form(self):
+        self.wait_for_page_and_click_js(DamienPages.NOTIF_FORM_BUTTON)
+        Wait(self.driver, 1).until(ec.visibility_of_element_located(DamienPages.NOTIF_SEND_BUTTON))
+
+    def notif_dept_recipients(self):
+        return list(map(lambda el: el.text, self.elements(DamienPages.NOTIF_DEPT_RECIPIENT)))
+
+    @staticmethod
+    def notif_expand_dept_xpath(dept):
+        return f'//h4[contains(@id, "dept-head-")][text()="{dept.name}"]/..'
+
+    def notif_expand_dept_recipient_members(self, dept):
+        app.logger.info(f'Expanding notification department {dept.name}')
+        if self.element((By.XPATH, DamienPages.notif_expand_dept_xpath(dept))).get_attribute('aria-expanded'):
+            app.logger.info('Recipient list is already expanded')
+        else:
+            app.logger.info('Expanding recipient list')
+            self.wait_for_element_and_click((By.XPATH, DamienPages.notif_expand_dept_xpath(dept)))
+
+    def notif_dept_recipient_emails(self, dept):
+        time.sleep(1)
+        els = self.elements((By.XPATH, f'{DamienPages.notif_expand_dept_xpath(dept)}/following-sibling::div//button/..'))
+        return list(map(lambda e: e.text.strip().replace(')', '').split(' (')[-1], els))
+
+    @staticmethod
+    def notif_dept_recipient_remove_btn(dept, user):
+        xpath = f'{DamienPages.notif_expand_dept_xpath(dept)}/following-sibling::div//span[contains(text(), "{user.email}")]/button'
+        return By.XPATH, xpath
+
+    def notif_remove_recipient(self, dept, user):
+        app.logger.info(f'Removing {user.email} from {dept.name} recipient list')
+        self.wait_for_element_and_click(DamienPages.notif_dept_recipient_remove_btn(dept, user))
+        self.when_not_present(DamienPages.notif_dept_recipient_remove_btn(dept, user), 1)
+
+    def enter_notif_subj(self, subj):
+        app.logger.info(f'Entering subject {subj}')
+        self.remove_and_enter_chars(DamienPages.NOTIF_SUBJ_INPUT, subj)
+
+    def enter_notif_body(self, body):
+        app.logger.info(f'Entering body {body}')
+        self.remove_and_enter_chars(DamienPages.NOTIF_BODY_INPUT, body)
+
+    def click_notif_send(self):
+        app.logger.info('Clicking send button')
+        self.wait_for_element_and_click(DamienPages.NOTIF_SEND_BUTTON)
+        time.sleep(2)  # TODO - wait for confirmation
+
+    def click_notif_cxl(self):
+        app.logger.info('Clicking cancel button')
+        self.wait_for_element_and_click(DamienPages.NOTIF_CXL_BUTTON)
+        self.when_not_present(DamienPages.NOTIF_SUBJ_INPUT, utils.get_short_timeout())

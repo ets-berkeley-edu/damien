@@ -26,8 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 class Email(object):
 
-    def __init__(self, msg_type, sender, subject, body=None):
-        self.msg_type = msg_type
-        self.sender = sender
+    def __init__(self, subject, body, recipients=None):
         self.subject = subject
         self.body = body
+        self.recipients = recipients

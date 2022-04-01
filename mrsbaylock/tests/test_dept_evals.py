@@ -31,6 +31,8 @@ import pytest
 
 term = utils.get_current_term()
 depts = utils.get_participating_depts()
+dep = next(filter(lambda d: (d.dept_id == 12), depts))
+depts = [dep]
 all_users = utils.get_all_users()
 
 
@@ -55,7 +57,7 @@ class TestDeptEvaluations:
             eval_type = '' if e.eval_type is None else e.eval_type
             expected.append(f'{e.ccn}-{uid}-{eval_type}')
         expected = list(dict.fromkeys(expected))
-        self.dept_details_admin_page.click_ignored_filter()
+        self.dept_details_admin_page.select_ignored_filter()
         actual = self.dept_details_admin_page.visible_eval_identifiers()
         missing = [x for x in expected if x not in actual]
         unexpected = [x for x in actual if x not in expected]

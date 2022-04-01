@@ -23,7 +23,10 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from mrsbaylock.models.email import Email
 from mrsbaylock.models.term import Term
+from mrsbaylock.models.user_dept_role import UserDeptRole
+from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.pages.dept_details_admin_page import DeptDetailsAdminPage
 from mrsbaylock.test_utils import utils
 import pytest
@@ -33,17 +36,22 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 term = utils.get_current_term()
 previous_term = Term(utils.get_previous_term_code(term.term_id), None)
 depts = utils.get_participating_depts()
-utils.get_all_users()
+all_users = utils.get_all_users()
 
 test_dept = utils.get_dept('Astronomy')
-test_user = utils.get_test_user()
+role = UserDeptRole(test_dept.dept_id, receives_comms=True)
+test_user = utils.get_test_user(role)
+test_email = Email(subject=None, body=None)
 utils.hard_delete_user(test_user)
 utils.delete_dept_note(term, test_dept)
-utils.create_dept_note(previous_term, test_dept, 'Test note')
+test_dept.users = utils.get_dept_users(test_dept)
 
 
 @pytest.mark.usefixtures('page_objects')
 class TestDeptMgmt:
+
+    def test_create_old_note(self):
+        utils.create_dept_note(previous_term, test_dept, f'Past note {self.test_id}')
 
     def test_status_page(self):
         self.login_page.load_page()
@@ -56,7 +64,7 @@ class TestDeptMgmt:
     # NOTE
 
     def test_edit_note_cancel(self):
-        note = f'{test_dept.name} note {self.test_id}'
+        note = f'{test_dept.name} note {self.test_id} ' * 30
         self.dept_details_admin_page.edit_dept_note(note)
         self.dept_details_admin_page.cxl_dept_note()
         self.dept_details_admin_page.verify_dept_note()
@@ -72,7 +80,9 @@ class TestDeptMgmt:
 
     def test_previous_term_note(self):
         self.dept_details_admin_page.select_term(previous_term)
-        # TODO verify note not editable
+        self.dept_details_admin_page.wait_for_note()
+        disabled = self.dept_details_admin_page.element(DeptDetailsAdminPage.DEPT_NOTE_EDIT_BUTTON).get_attribute('disabled')
+        assert disabled == 'true'
 
     # CONTACTS
 
@@ -99,8 +109,9 @@ class TestDeptMgmt:
     def test_add_contact_name_lookup(self):
         self.dept_details_admin_page.click_cancel_contact()
         self.dept_details_admin_page.click_add_contact()
-        self.dept_details_admin_page.look_up_contact_name(f'{test_user.first_name} {test_user.last_name}')
-        # TODO (not implemented) self.dept_details_admin_page.click_look_up_result(test_user)
+        self.dept_details_admin_page.look_up_contact_name(test_user.first_name)
+        self.dept_details_admin_page.click_look_up_result(test_user)
+        assert self.dept_details_admin_page.value(DeptDetailsAdminPage.ADD_CONTACT_EMAIL) == test_user.email
 
     def test_add_contact_bad_email(self):
         self.dept_details_admin_page.click_cancel_contact()
@@ -124,3 +135,83 @@ class TestDeptMgmt:
         self.dept_details_admin_page.look_up_contact_uid(test_user.uid)
         self.dept_details_admin_page.click_look_up_result(test_user)
         self.dept_details_admin_page.enter_contact_email(utils.get_test_email_account())
+
+    def test_add_contact_save(self):
+        self.dept_details_admin_page.click_cancel_contact()
+        self.dept_details_admin_page.click_add_contact()
+        self.dept_details_admin_page.add_contact(test_user, test_dept)
+
+    # NOTIFICATIONS - DEPT
+
+    def test_send_notif_cancel(self):
+        self.dept_details_admin_page.open_notif_form()
+        self.dept_details_admin_page.click_notif_cxl()
+
+    def test_notif_no_subj_no_body(self):
+        self.dept_details_admin_page.open_notif_form()
+        assert not self.dept_details_admin_page.element(DamienPages.NOTIF_SEND_BUTTON).is_enabled()
+
+    def test_notif_subj_no_body(self):
+        self.dept_details_admin_page.enter_notif_subj('foo')
+        assert not self.dept_details_admin_page.element(DamienPages.NOTIF_SEND_BUTTON).is_enabled()
+
+    def test_notif_body_no_subj(self):
+        self.dept_details_admin_page.enter_notif_subj('')
+        self.dept_details_admin_page.enter_notif_body('foo')
+        assert not self.dept_details_admin_page.element(DamienPages.NOTIF_SEND_BUTTON).is_enabled()
+
+    def test_notif_default_recipients(self):
+        test_dept.users = utils.get_dept_users(test_dept)
+        test_email.recipients = []
+        for user in test_dept.users:
+            dept_role = next(filter(lambda r: (r.dept_id == test_dept.dept_id), user.dept_roles))
+            if dept_role.receives_comms:
+                test_email.recipients.append(user)
+        expected = list(map(lambda u: u.email, test_email.recipients))
+        expected.sort()
+        self.dept_details_admin_page.notif_expand_dept_recipient_members(test_dept)
+        visible = self.dept_details_admin_page.notif_dept_recipient_emails(test_dept)
+        visible.sort()
+        assert visible == expected
+
+    def test_notif_remove_all(self):
+        for u in test_email.recipients:
+            self.dept_details_admin_page.notif_remove_recipient(test_dept, u)
+        assert not self.dept_details_admin_page.element(DamienPages.NOTIF_SEND_BUTTON).is_enabled()
+
+    def test_notif_send_to_all(self):
+        test_email.subject = f'Test subject to all contacts {self.test_id}'
+        test_email.body = f'Test body to all contacts {self.test_id}'
+        self.dept_details_admin_page.click_notif_cxl()
+        self.dept_details_admin_page.send_notif_to_dept(test_dept, test_email)
+
+    def test_notif_send_to_some(self):
+        test_email.subject = f'Test subject to some contacts {self.test_id}'
+        test_email.body = f'Test body to some contacts {self.test_id}'
+        self.dept_details_admin_page.send_notif_to_dept(test_dept, test_email, test_email.recipients[0:1])
+
+    # NOTIFICATIONS - DEPT
+
+    def test_bulk_notif_send_to_all(self):
+        test_email.subject = f'Bulk test subject to all departments, all contacts {self.test_id}'
+        test_email.body = f'Bulk test body to all departments, all contacts {self.test_id}'
+        self.status_board_admin_page.load_page()
+        self.status_board_admin_page.check_all_dept_notif_cbx()
+        self.status_board_admin_page.send_notif_to_depts(test_email)
+
+    def test_bulk_notif_send_to_some(self):
+        test_email.subject = f'Bulk test subject to some departments, all contacts {self.test_id}'
+        test_email.body = f'Bulk test body to some departments, all contacts {self.test_id}'
+        for d in depts[3:4]:
+            self.status_board_admin_page.check_dept_notif_cbx(d)
+        self.status_board_admin_page.send_notif_to_depts(test_email)
+
+    def test_bulk_notif_remove_some(self):
+        test_email.subject = f'Bulk test subject to some departments, some contacts {self.test_id}'
+        test_email.body = f'Bulk test body to some departments, some contacts {self.test_id}'
+        recips_to_exclude = []
+        for d in depts[5:6]:
+            d.users = utils.get_dept_users(d)
+            recips_to_exclude.append({'user': d.users[-1], 'dept': d})
+            self.status_board_admin_page.check_dept_notif_cbx(d)
+        self.status_board_admin_page.send_notif_to_depts(test_email, recips_to_exclude)
