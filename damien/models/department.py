@@ -236,7 +236,6 @@ class Department(Base):
         self,
         include_contacts=False,
         include_evaluations=False,
-        include_notes=False,
         include_sections=False,
         term_id=None,
     ):
@@ -250,7 +249,7 @@ class Department(Base):
         }
         feed['notes'] = {note.term_id: note.to_api_json() for note in self.notes}
         if include_contacts:
-            feed['contacts'] = [user.to_api_json() for user in self.members]
+            feed['contacts'] = sorted([user.to_api_json() for user in self.members], key=lambda m: m['lastName'])
         if include_evaluations:
             feed['evaluations'] = self.evaluations_feed(term_id)
         if include_sections:
