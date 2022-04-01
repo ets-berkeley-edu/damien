@@ -48,6 +48,7 @@ class Section:
         self.instruction_format = loch_rows[0].instruction_format
         self.section_num = loch_rows[0].section_num
         self.course_title = loch_rows[0].course_title
+        self.is_primary = loch_rows[0].is_primary
 
         self.start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
         self.end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)
@@ -188,12 +189,15 @@ class Section:
         return feed
 
     def get_evaluation_exports(self, department, evaluation_ids):
-        exports = {'instructorUids': set()}
+        exports = {}
         merged_evaluations = self.merge_evaluations(department=department)
         for e in merged_evaluations:
             if e.get_id() not in evaluation_ids:
                 continue
-            exports['instructorUids'].add(e.instructor_uid)
+            export_key = e.to_export_key()
+            if export_key not in exports:
+                exports[export_key] = set()
+            exports[export_key].add(e.instructor_uid)
         return exports
 
     def get_evaluation_feed(self, department, evaluation_ids=None):

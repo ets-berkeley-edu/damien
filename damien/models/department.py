@@ -207,13 +207,24 @@ class Department(Base):
         return {'sections': sections, 'instructors': instructors}
 
     def get_evaluation_exports(self, term_id, evaluation_ids):
-        instructor_uids = set()
+        exports = {
+            'evaluations': {},
+            'instructors': {},
+            'sections': {},
+        }
+
         vs = self.get_visible_sections(term_id)
         for s in vs['sections']:
-            section_exports = s.get_evaluation_exports(department=self, evaluation_ids=evaluation_ids)
-            instructor_uids.update(section_exports['instructorUids'])
-        export_instructors = {uid: vs['instructors'].get(uid) for uid in instructor_uids if vs['instructors'].get(uid)}
-        return {'instructors': export_instructors}
+            section_evaluation_exports = s.get_evaluation_exports(department=self, evaluation_ids=evaluation_ids)
+            exports['evaluations'].update(section_evaluation_exports)
+            exports['sections'][s.course_number] = s
+
+            for instructor_uid_set in section_evaluation_exports.values():
+                for uid in instructor_uid_set:
+                    if uid not in exports['instructors']:
+                        exports['instructors'][uid] = vs['instructors'].get(uid)
+
+        return exports
 
     def evaluations_feed(self, term_id=None, evaluation_ids=None):
         feed = []

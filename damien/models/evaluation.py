@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from collections import namedtuple
 from itertools import groupby
 
 from damien import db, std_commit
@@ -45,6 +46,16 @@ evaluation_status_enum = ENUM(
     name='evaluation_status',
     create_type=False,
 )
+
+
+"""
+Department form, evaluation type, and end date are the three attributes that may be assigned multiple distinct values for
+the same course number. When it comes time to export, we avoid conflicts in Blue by generating additional dynamic course ids
+in cases where these attributes vary. To keep these multiple courses from getting confused, we key evaluations by a data structure
+derived from the course number plus variable attributes.
+"""
+
+EvaluationExportKey = namedtuple('EvaluationExportKey', ['course_number', 'department_form', 'evaluation_type', 'end_date'])
 
 
 class Evaluation(Base):
@@ -489,6 +500,14 @@ class Evaluation(Base):
             if v:
                 feed['conflicts'][k] = v
         return feed
+
+    def to_export_key(self):
+        return EvaluationExportKey(
+            course_number=self.course_number,
+            department_form=self.department_form.name,
+            evaluation_type=self.evaluation_type.name,
+            end_date=safe_strftime(self.end_date, '%m-%d-%Y'),
+        )
 
 
 def _parse_transient_id(transient_id):
