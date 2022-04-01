@@ -29,6 +29,7 @@ from damien.externals.s3 import put_csv_to_s3
 from damien.lib.berkeley import term_code_for_sis_id
 from damien.lib.util import safe_strftime
 from damien.models.department import Department
+from damien.models.user import User
 
 
 def generate_exports(evals, term_id, timestamp):
@@ -48,10 +49,12 @@ def generate_exports(evals, term_id, timestamp):
 
     course_rows, course_instructor_rows = _generate_course_rows(term_id, sections, evaluations)
     instructor_rows = [_export_instructor_row(instructors[k]) for k in sorted(instructors.keys())]
+    supervisor_rows = [_export_supervisor_row(u) for u in User.get_dept_contacts_with_blue_permissions()]
 
     put_csv_to_s3(term_id, timestamp, 'courses', course_headers, course_rows)
     put_csv_to_s3(term_id, timestamp, 'course_instructors', course_instructor_headers, course_instructor_rows)
     put_csv_to_s3(term_id, timestamp, 'instructors', instructor_headers, instructor_rows)
+    put_csv_to_s3(term_id, timestamp, 'supervisors', supervisor_headers, supervisor_rows)
 
     return True
 
@@ -123,6 +126,28 @@ instructor_headers = [
 ]
 
 
+supervisor_headers = [
+    'LDAP_UID',
+    'SIS_ID',
+    'FIRST_NAME',
+    'LAST_NAME',
+    'EMAIL_ADDRESS',
+    'SUPERVISOR_GROUP',
+    'PRIMARY_ADMIN',
+    'SECONDARY_ADMIN',
+    'DEPT_NAME_1',
+    'DEPT_NAME_2',
+    'DEPT_NAME_3',
+    'DEPT_NAME_4',
+    'DEPT_NAME_5',
+    'DEPT_NAME_6',
+    'DEPT_NAME_7',
+    'DEPT_NAME_8',
+    'DEPT_NAME_9',
+    'DEPT_NAME_10',
+]
+
+
 def _export_course_row(course_id, key, section):
     return {
         'COURSE_ID': course_id,
@@ -171,3 +196,20 @@ def _export_instructor_row(instructor):
         'EMAIL_ADDRESS': instructor['emailAddress'],
         'BLUE_ROLE': '23',
     }
+
+
+def _export_supervisor_row(user):
+    row = {
+        'LDAP_UID': user.uid,
+        'SIS_ID': user.csid or f'UID:{user.uid}',
+        'FIRST_NAME': user.first_name,
+        'LAST_NAME': user.last_name,
+        'EMAIL_ADDRESS': user.email,
+        'SUPERVISOR_GROUP': 'DEPT_ADMIN',
+        'PRIMARY_ADMIN': 'Y' if user.can_view_response_rates() else '',
+        'SECONDARY_ADMIN': '',
+    }
+    # TODO Fill in these values once users are associated with department forms (DAMIEN-208).
+    for i in range(0, 10):
+        row[f'DEPT_NAME_{i+1}'] = ''
+    return row

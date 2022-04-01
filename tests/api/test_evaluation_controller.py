@@ -154,7 +154,7 @@ class TestExportEvaluations:
         with mock_s3_bucket(app) as s3:
             _api_export_evaluations(client)
             exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
-            assert len(exported_objects) == 3
+            assert len(exported_objects) == 4
 
             courses = _read_csv(exported_objects, '/courses.csv')
             assert len(courses) == 1
@@ -179,7 +179,7 @@ class TestExportEvaluations:
         with mock_s3_bucket(app) as s3:
             _api_export_evaluations(client)
             exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
-            assert len(exported_objects) == 3
+            assert len(exported_objects) == 4
 
             courses = _read_csv(exported_objects, '/courses.csv')
             assert len(courses) == 2
@@ -198,3 +198,18 @@ class TestExportEvaluations:
             assert len(instructors) == 2
             assert instructors[0] == 'LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS,BLUE_ROLE'
             assert instructors[1] == '326054,4159446,Kjsyobkui,Nxvlusjof,ietkoqrg@berkeley.edu,23'
+
+    @mock_s3
+    def test_supervisors_export(self, client, app, fake_auth):
+        fake_auth.login(admin_uid)
+        with mock_s3_bucket(app) as s3:
+            _api_export_evaluations(client)
+            exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
+            supervisors = _read_csv(exported_objects, '/supervisors.csv')
+
+            assert supervisors[0] == ('LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS,SUPERVISOR_GROUP,PRIMARY_ADMIN,SECONDARY_ADMIN,'
+                                      'DEPT_NAME_1,DEPT_NAME_2,DEPT_NAME_3,DEPT_NAME_4,DEPT_NAME_5,DEPT_NAME_6,DEPT_NAME_7,DEPT_NAME_8,'
+                                      'DEPT_NAME_9,DEPT_NAME_10')
+            assert supervisors[1] == '5013530,931203945,Jazz,Gunn,jazz.gunn@berkeley.edu,DEPT_ADMIN,Y,,,,,,,,,,,'
+            assert supervisors[2] == '6982398,263809005,Alistair,Mctaggert,alistair.mctaggert@berkeley.edu,DEPT_ADMIN,,,,,,,,,,,,'
+            assert supervisors[3] == '8971283,294078726,Finn,Wolfhard,finn.wolfhard@berkeley.edu,DEPT_ADMIN,,,,,,,,,,,,'

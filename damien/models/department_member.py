@@ -24,6 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from damien import db, std_commit
+from damien.lib.util import utc_now
 from damien.models.base import Base
 from damien.models.department import Department
 
@@ -97,7 +98,12 @@ class DepartmentMember(Base):
 
     @classmethod
     def delete(cls, department_id, user_id):
-        db.session.delete(cls.query.filter_by(department_id=department_id, user_id=user_id).first())
+        dc = cls.query.filter_by(department_id=department_id, user_id=user_id).first()
+        db.session.delete(dc)
+        # Add a deleted_at timestamp to orphaned user objects.
+        if len(dc.user.department_memberships) == 1:
+            dc.user.deleted_at = utc_now()
+            db.session.add(dc.user)
         std_commit()
 
     def to_api_json(self):

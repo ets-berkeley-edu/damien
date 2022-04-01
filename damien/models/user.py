@@ -149,6 +149,18 @@ class User(Base):
         keys = results.keys()
         return [dict(zip(keys, row)) for row in results.fetchall()]
 
+    @classmethod
+    def get_dept_contacts_with_blue_permissions(cls):
+        query = cls.query.filter(
+            cls.is_admin.is_not(True),
+            cls.blue_permissions.is_not(None),
+            cls.deleted_at.is_(None),
+        ).order_by(cls.uid)
+        return query.all()
+
+    def can_view_response_rates(self):
+        return self.blue_permissions == 'response_rates'
+
     def to_api_json(self):
         return {
             'id': self.id,
@@ -159,7 +171,7 @@ class User(Base):
             'email': self.email,
             'isAdmin': self.is_admin,
             'canViewReports': self.blue_permissions is not None,
-            'canViewResponseRates': self.blue_permissions == 'response_rates',
+            'canViewResponseRates': self.can_view_response_rates(),
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
             'deletedAt': isoformat(self.deleted_at),

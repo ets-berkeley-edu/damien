@@ -200,6 +200,8 @@ class TestUpdateDepartmentContact:
         assert len(department.members) == original_count + 1
         new_user = User.find_by_uid('0')
         assert new_user
+        _api_delete_contact(client, user_id=new_user.id)
+        std_commit(allow_test_environment=True)
 
     def test_authorized(self, client, fake_auth, app):
         fake_auth.login(admin_uid)
