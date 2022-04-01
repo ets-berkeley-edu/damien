@@ -63,7 +63,7 @@
                   </router-link>
                 </td>
                 <td class="department-lastUpdated">
-                  {{ department.updatedAt }}
+                  {{ department.updatedAt | moment('MMM D, YYYY h:mma') }}
                 </td>
                 <td class="department-errors">
                   <span class="font-italic muted--text">TODO</span>
