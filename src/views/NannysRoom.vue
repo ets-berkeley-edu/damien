@@ -202,7 +202,6 @@
             </v-btn>
             <v-form
               v-if="isAddingInstructor"
-              v-model="validInstructor"
               class="px-4"
               @submit.prevent="onSubmitAddInstructor"
             >

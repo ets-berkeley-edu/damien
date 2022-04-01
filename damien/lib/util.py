@@ -26,7 +26,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from datetime import datetime
 import re
 
-from dateutil.tz import tzutc
 from flask import current_app as app
 import pytz
 
@@ -40,7 +39,7 @@ def get_eb_environment():
 
 
 def isoformat(value):
-    return value and value.astimezone(tzutc()).isoformat()
+    return value and value.astimezone(pytz.timezone(app.config['TIMEZONE'])).isoformat()
 
 
 def parse_search_snippet(snippet, uid_col='ldap_uid'):
