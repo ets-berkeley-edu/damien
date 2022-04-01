@@ -23,6 +23,9 @@
 .text-condensed {
   line-height: 1.2;
 }
+.text-nowrap {
+  white-space: nowrap;
+}
 a {
   text-decoration: none !important;
 }
