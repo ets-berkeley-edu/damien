@@ -95,12 +95,12 @@ class CourseDashboards(DamienPages):
     FILTER_IGNORE = (By.ID, 'evaluations-filter-ignore')
 
     def select_filter(self, filter_loc):
-        if 'filter-inactive' in self.element(filter_loc).attribute('class'):
+        if 'filter-inactive' in self.element(filter_loc).get_attribute('class'):
             self.wait_for_element_and_click(filter_loc)
             time.sleep(1)
 
     def deselect_filter(self, filter_loc):
-        if 'filter-inactive' not in self.element(filter_loc).attribute('class'):
+        if 'filter-inactive' not in self.element(filter_loc).get_attribute('class'):
             self.wait_for_element_and_click(filter_loc)
             time.sleep(1)
 

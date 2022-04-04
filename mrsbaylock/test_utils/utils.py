@@ -190,13 +190,17 @@ def get_user_dept_role(user, dept):
             return role
 
 
-def get_test_user():
-    return User({
+def get_test_user(dept_role=None, blue_permissions=None):
+    user = User({
         'uid': app.config['TEST_DEPT_CONTACT_UID'],
         'first_name': app.config['TEST_DEPT_CONTACT_FIRST_NAME'],
         'last_name': app.config['TEST_DEPT_CONTACT_LAST_NAME'],
         'email': app.config['TEST_DEPT_CONTACT_EMAIL'],
     })
+    user.blue_permissions = blue_permissions
+    if dept_role:
+        user.dept_roles.append(dept_role)
+    return user
 
 
 def create_admin_user(user):
@@ -309,11 +313,25 @@ def get_test_dept_2():
     return get_dept(name)
 
 
+def get_dept_sans_contacts():
+    sql = """SELECT name
+               FROM departments
+              WHERE is_enrolled IS True
+                AND id NOT IN (SELECT DISTINCT(department_id)
+                                 FROM department_members)
+              LIMIT 1
+    """
+    app.logger.info(sql)
+    result = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    return get_dept(result['name'])
+
+
 def create_dept_note(term, dept, note):
     delete_dept_note(term, dept)
     sql = f"""
-        INSERT INTO department_notes (dept_id, term_id, note, created_at, updated_at)
-             SELECT ('{dept.dept_id}', '{term.term_id}', '{note}', now(), now())
+        INSERT INTO department_notes (department_id, term_id, note, created_at, updated_at)
+             VALUES ('{dept.dept_id}', '{term.term_id}', '{note}', now(), now())
     """
     app.logger.info(sql)
     db.session.execute(text(sql))

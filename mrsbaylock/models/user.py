@@ -28,7 +28,7 @@ from mrsbaylock.models.blue_perm import BluePerm
 
 class User(object):
 
-    def __init__(self, data, dept_roles=None):
+    def __init__(self, data, dept_roles=[]):
         self.data = data
         self.dept_roles = dept_roles
 
@@ -85,3 +85,7 @@ class User(object):
             return BluePerm.BLUE_REPORTS_RESPONSES
         else:
             return BluePerm.NO_BLUE
+
+    @blue_permissions.setter
+    def blue_permissions(self, value):
+        self.data['blue_permissions'] = value

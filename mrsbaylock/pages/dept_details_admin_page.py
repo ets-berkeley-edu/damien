@@ -22,6 +22,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
 ENHANCEMENTS, OR MODIFICATIONS.
 """
+import time
 
 from flask import current_app as app
 from mrsbaylock.models.blue_perm import BluePerm
@@ -35,7 +36,6 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 class DeptDetailsAdminPage(CourseDashboards):
 
     TERM_SELECT = (By.ID, 'select-term')
-    APPLY_TERM_BUTTON = (By.XPATH, '//label[text()=" Previous terms: "]/following-sibling::button[contains(., "Apply")]')
 
     @staticmethod
     def term_option_locator(term):
@@ -43,18 +43,18 @@ class DeptDetailsAdminPage(CourseDashboards):
 
     def select_term(self, term):
         app.logger.info(f'Selecting term {term.name}')
-        self.wait_for_element_and_click(DeptDetailsAdminPage.TERM_SELECT)
+        self.wait_for_page_and_click_js(DeptDetailsAdminPage.TERM_SELECT)
         self.wait_for_element_and_click(DeptDetailsAdminPage.term_option_locator(term))
-        self.wait_for_element_and_click(DeptDetailsAdminPage.APPLY_TERM_BUTTON)
+        time.sleep(1)
 
     ADD_CONTACT_BUTTON = (By.ID, 'add-dept-contact-btn')
     ADD_CONTACT_EMAIL = (By.ID, 'input-email-add-contact')
-    EMAIL_REQUIRED_MSG = (By.XPATH, '//div[@text()="E-mail is required"]')
+    EMAIL_REQUIRED_MSG = (By.XPATH, '//div[text()="E-mail is required"]')
     EMAIL_INVALID_MSG = (By.XPATH, '//div[text()="E-mail must be valid"]')
     CONTACT_COMMS_CBX = (By.XPATH, '//input[contains(@id, "checkbox-communications-")]')
-    CONTACT_NO_BLUE_RADIO = (By.XPATH, '//input[contains(@id, "radio-no-blue-")]')
-    CONTACT_REPORTS_RADIO = (By.XPATH, '//input[contains(@id, "radio-reports-only-")]')
-    CONTACT_RESPONSES_RADIO = (By.XPATH, '//input[contains(@id, "radio-response-rates-")]')
+    CONTACT_NO_BLUE_RADIO = (By.XPATH, '//input[contains(@id, "radio-no-blue-")]/..')
+    CONTACT_REPORTS_RADIO = (By.XPATH, '//input[contains(@id, "radio-reports-only-")]/..')
+    CONTACT_RESPONSES_RADIO = (By.XPATH, '//input[contains(@id, "radio-response-rates-")]/..')
     ADD_CONTACT_SAVE_BUTTON = (By.ID, 'save-dept-contact-add-contact-btn')
     ADD_CONTACT_CANCEL_BUTTON = (By.ID, 'cancel-dept-contact-add-contact-btn')
     DELETE_CONFIRM_BUTTON = (By.ID, 'confirm-dialog-btn')
@@ -96,24 +96,25 @@ class DeptDetailsAdminPage(CourseDashboards):
 
     def enter_contact_email(self, email):
         app.logger.info(f'Entering email {email}')
-        self.wait_for_element_and_type(DeptDetailsAdminPage.ADD_CONTACT_EMAIL, email)
+        self.remove_and_enter_chars(DeptDetailsAdminPage.ADD_CONTACT_EMAIL, email)
 
-    def enter_user_flags(self, user):
-        if not user.receives_comms:
+    def enter_user_flags(self, user, dept):
+        role = next(filter(lambda r: (r.dept_id == dept.dept_id), user.dept_roles))
+        if not role.receives_comms:
             self.wait_for_element_and_click(DeptDetailsAdminPage.CONTACT_COMMS_CBX)
         if user.blue_permissions == BluePerm.NO_BLUE:
-            self.wait_for_element_and_click(DeptDetailsAdminPage.CONTACT_NO_BLUE_RADIO)
+            self.element(DeptDetailsAdminPage.CONTACT_NO_BLUE_RADIO).click()
         elif user.blue_permissions == BluePerm.BLUE_REPORTS:
-            self.wait_for_element_and_click(DeptDetailsAdminPage.CONTACT_REPORTS_RADIO)
+            self.element(DeptDetailsAdminPage.CONTACT_REPORTS_RADIO).click()
         elif user.blue_permissions == BluePerm.BLUE_REPORTS_RESPONSES:
-            self.wait_for_element_and_click(DeptDetailsAdminPage.CONTACT_RESPONSES_RADIO)
+            self.element(DeptDetailsAdminPage.CONTACT_RESPONSES_RADIO).click()
 
-    def add_contact(self, user):
+    def add_contact(self, user, dept):
         app.logger.info(f'Adding UID {user.uid} as a contact')
         self.look_up_contact_uid(user.uid)
         self.click_look_up_result(user)
         self.enter_contact_email(user.email)
-        self.enter_user_flags(user)
+        self.enter_user_flags(user, dept)
         self.click_save_new_contact()
         self.wait_for_contact(user)
 
@@ -146,9 +147,14 @@ class DeptDetailsAdminPage(CourseDashboards):
         self.wait_for_element_and_click(DeptDetailsAdminPage.DEPT_NOTE_SAVE_BUTTON)
         self.when_not_present(DeptDetailsAdminPage.DEPT_NOTE_TEXTAREA, utils.get_short_timeout())
 
+    def wait_for_note(self):
+        Wait(self.driver, utils.get_short_timeout()).until(
+            ec.presence_of_element_located(DeptDetailsAdminPage.DEPT_NOTE),
+        )
+
     def verify_dept_note(self, note=None):
         if note:
-            Wait(self.driver, utils.get_short_timeout()).until(ec.presence_of_element_located(DeptDetailsAdminPage.DEPT_NOTE))
+            self.wait_for_note()
             assert self.element(DeptDetailsAdminPage.DEPT_NOTE).text == f'{note}'
         else:
             self.when_not_present(DeptDetailsAdminPage.DEPT_NOTE, utils.get_short_timeout())
@@ -164,3 +170,16 @@ class DeptDetailsAdminPage(CourseDashboards):
         self.wait_for_element_and_click(DeptDetailsAdminPage.DELETE_CONFIRM_BUTTON)
         self.when_not_present(DeptDetailsAdminPage.DEPT_NOTE_DELETE_BUTTON, utils.get_short_timeout())
         assert not self.is_present(DeptDetailsAdminPage.DEPT_NOTE)
+
+    def send_notif_to_dept(self, dept, email, recipients_to_exclude=None):
+        app.logger.info(f'Sending notification to {dept.name}')
+        self.open_notif_form()
+        self.enter_notif_subj(email.subject)
+        self.enter_notif_body(email.body)
+        if recipients_to_exclude:
+            self.notif_expand_dept_recipient_members(dept)
+            for recip in recipients_to_exclude:
+                self.notif_remove_recipient(dept, recip)
+        self.click_notif_send()
+        time.sleep(3)
+        # TODO - wait for confirmation

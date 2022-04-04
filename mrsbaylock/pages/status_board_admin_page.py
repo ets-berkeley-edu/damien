@@ -23,8 +23,11 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import re
+
 from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
+from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
 
 
@@ -35,3 +38,32 @@ class StatusBoardAdminPage(DamienPages):
     def load_page(self):
         app.logger.info('Loading the dept status page')
         self.driver.get(f'{app.config["BASE_URL"]}/status')
+
+    NOTIF_SELECT_ALL_CBX = (By.ID, "'checkbox-select-dept-all'")
+    NOTIF_APPLY_BUTTON = (By.ID, 'open-notification-form-btn')
+
+    @staticmethod
+    def notif_select_dept_cbx(dept):
+        dept_str = re.sub('[& ]', '-', dept.name.lower().replace(',', ''))
+        return By.ID, f'checkbox-select-dept-{dept_str}'
+
+    def check_dept_notif_cbx(self, dept):
+        app.logger.info(f'Clicking the notification checkbox for {dept.name}')
+        self.wait_for_element_and_click(StatusBoardAdminPage.notif_select_dept_cbx(dept))
+
+    def check_all_dept_notif_cbx(self):
+        app.logger.info('Clicking the select-all notification checkbox')
+        self.wait_for_element_and_click(StatusBoardAdminPage.NOTIF_SELECT_ALL_CBX)
+
+    def send_notif_to_depts(self, email, recipients_to_exclude=None):
+        self.open_notif_form()
+        self.enter_notif_subj(email.subject)
+        self.enter_notif_body(email.body)
+        if recipients_to_exclude:
+            for recip in recipients_to_exclude:
+                user = recip['user']
+                dept = recip['dept']
+                self.notif_expand_dept_recipient_members(dept)
+                self.notif_remove_recipient(dept, user)
+        self.click_notif_send()
+        self.when_not_present(DamienPages.NOTIF_SEND_BUTTON, utils.get_medium_timeout())

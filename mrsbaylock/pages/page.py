@@ -175,6 +175,14 @@ class Page(object):
         self.wait_for_page_and_click_js((By.ID, element_id), addl_pause)
         self.driver.execute_script(f"document.getElementById('{element_id}').value='{string}'")
 
+    def remove_and_enter_chars(self, locator, string):
+        self.wait_for_element_and_click(locator)
+        repeat = 100
+        for x in range(repeat):
+            self.hit_delete()
+            self.hit_backspace()
+        self.element(locator).send_keys(string)
+
     def wait_for_select_and_click_option(self, select_el_loc, option_str):
         self.wait_for_element(select_el_loc, utils.get_short_timeout())
         select_el = Select(self.element(select_el_loc))
@@ -219,6 +227,9 @@ class Page(object):
 
     def hit_delete(self):
         ActionChains(self.driver).send_keys(Keys.DELETE).perform()
+
+    def hit_backspace(self):
+        ActionChains(self.driver).send_keys(Keys.BACKSPACE).perform()
 
     def hit_enter(self):
         ActionChains(self.driver).send_keys(Keys.ENTER).perform()
