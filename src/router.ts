@@ -19,25 +19,19 @@ const router = new Router({
   routes: [
     {
       path: '/',
-      beforeEnter: (to: any, from: any, next: any) => {
-        if (!_.get(Vue.prototype.$currentUser, 'isAuthenticated')) {
-          next('/login')
-        } if (_.get(Vue.prototype.$currentUser, 'isAdmin')) {
-          next('/status')
-        } else if (_.get(Vue.prototype.$currentUser, 'departments[0]')) {
-          next(`/department/${Vue.prototype.$currentUser.departments[0]}`)
-        } else {
-          //TODO: where to send a non-admin user who doesn't belong to a department?
-          next()
-        }
-      }
+      redirect: '/home'
     },
     {
       path: '/login',
       component: Login,
       beforeEnter: (to: any, from: any, next: any) => {
-        if (_.get(Vue.prototype.$currentUser, 'isAuthenticated')) {
-          next('/')
+        const currentUser = Vue.prototype.$currentUser
+        if (currentUser.isAuthenticated) {
+          if (_.trim(to.query.redirect)) {
+            next(to.query.redirect)
+          } else {
+            next('/home')
+          }
         } else {
           next()
         }
@@ -52,12 +46,38 @@ const router = new Router({
       beforeEnter: auth.requiresAuthenticated,
       children: [
         {
+          beforeEnter: (to: any, from: any, next: any) => {
+            const currentUser = Vue.prototype.$currentUser
+            if (currentUser.isAdmin) {
+              next('/status')
+            } else if (_.size(currentUser.departments)) {
+              next(`/department/${currentUser.departments[0]}`)
+            } else {
+              next({
+                path: '/error',
+                query: {
+                  m: 'Sorry, we could not find any departments that you belong to.'
+                }
+              })
+            }
+          },
+          path: '/home',
+          name: 'home'
+        },
+        {
           path: '/department/:departmentId',
           component: Department,
           meta: {
             title: 'Department'
           }
+        }
+      ]
         },
+    {
+      path: '/',
+      component: BaseView,
+      beforeEnter: auth.requiresAdmin,
+      children: [
         {
           path: '/departments',
           component: TheMonastery,
@@ -82,11 +102,10 @@ const router = new Router({
         {
           path: '/status',
           component: StatusBoard,
-          beforeEnter: auth.requiresAdmin,
           meta: {
             title: 'Status Board'
           }
-        },
+        }
       ]
     },
     {
