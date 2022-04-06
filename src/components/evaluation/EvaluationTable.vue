@@ -222,7 +222,7 @@
                       class="ma-1"
                       color="primary"
                       :disabled="!rowValid"
-                      @click="saveEvaluation(evaluation)"
+                      @click.prevent="saveEvaluation(evaluation)"
                     >
                       Save
                     </v-btn>
@@ -284,6 +284,7 @@ export default {
     readonly: false,
     rules: {
       currentTermDate: null,
+      instructorUid: null
     },
     searchFilter: '',
     selectedDepartmentForm: null,
@@ -293,6 +294,7 @@ export default {
   computed: {
     rowValid() {
       return this.rules.currentTermDate(this.selectedStartDate) === true
+          && this.rules.instructorUid(this.pendingInstructor) === true
     }
   },
   methods: {
@@ -345,7 +347,7 @@ export default {
         'departmentFormId': this.$_.get(this.selectedDepartmentForm, 'id'),
         'endDate': this.$moment(this.selectedStartDate).add((evaluation.modular ? 14 : 21), 'days').format('YYYY-MM-DD'),
         'evaluationTypeId': this.selectedEvaluationType,
-        'instructorUid': this.pendingInstructor.uid
+        'instructorUid': this.$_.get(this.pendingInstructor, 'uid')
       }
       this.updateEvaluation(evaluation.id, fields)
     },
@@ -388,6 +390,8 @@ export default {
       }
       return 'Date must be within current term.'
     }
+    this.rules.instructorUid = () => {
+      return this.$_.get(this.pendingInstructor, 'uid') ? true : 'Instructor is required.'}
   },
 }
 </script>

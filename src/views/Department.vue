@@ -274,7 +274,11 @@ export default {
       })
     },
     updateEvaluation(evaluationId, fields) {
-      updateEvaluations(this.department.id, 'edit', [evaluationId], fields).then(this.refresh)
+      this.$loading()
+      this.alertScreenReader('Saving evaluation row.')
+      updateEvaluations(this.department.id, 'edit', [evaluationId], fields).then(() => {
+        this.refresh()
+      })
     },
     updateEvaluationsSelected() {
       this.selectedEvaluationIds = this.$_.reduce(this.evaluations, (ids, e) => {
