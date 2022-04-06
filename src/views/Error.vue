@@ -8,13 +8,14 @@
       mdi-alert
     </v-icon>
     <div>
-      <div class="pb-2">
-        <h1 class="sr-only">Error</h1>
-        <span id="error-message" aria-live="polite" role="alert">{{ message || 'Uh oh, there was a problem.' }}</span>
-      </div>
-      <div>
-        Problem? Question?
-        Email us at <a id="help-mailto" :href="`mailto:${$config.emailSupport}`" target="_blank">{{ $config.emailSupport }}</a>.
+      <h2>Error</h2>
+      <div
+        id="error-message"
+        class="pt-4"
+        aria-live="polite"
+        role="alert"
+      >
+        {{ message || 'Uh oh, there was a problem.' }}
       </div>
     </div>
   </v-banner>
