@@ -81,6 +81,10 @@ class DamienPages(Page):
         app.logger.info('Clicking link to the Status Board')
         self.wait_for_element_and_click(DamienPages.STATUS_LINK)
 
+    def click_course_errors(self):
+        app.logger.info('Clicking link to Courser Errors')
+        self.wait_for_element_and_click(DamienPages.COURSE_ERRORS_BOARD_LINK)
+
     def click_group_mgmt(self):
         app.logger.info('Clicking link to Group Mgmt')
         self.wait_for_element_and_click(DamienPages.GRP_MGMT_LINK)

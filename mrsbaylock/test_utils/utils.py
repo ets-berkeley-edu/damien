@@ -474,14 +474,14 @@ def row_data(row, field):
 
 def row_x_listings(row):
     try:
-        return row['listings'].split(',')
+        return list(filter(lambda i: i != '', row['listings'].split(',')))
     except NoSuchColumnError:
         return []
 
 
 def row_room_shares(row):
     try:
-        return row['shares'].split(',')
+        return list(filter(lambda i: i != '', row['shares'].split(',')))
     except NoSuchColumnError:
         return []
 
@@ -687,7 +687,7 @@ def merge_edited_evals(evaluations, edited_evals):
             evaluations.append(edit)
 
 
-def get_dept_forms():
+def get_all_dept_forms():
     sql = 'SELECT name FROM department_forms WHERE deleted_at IS NULL'
     app.logger.info(sql)
     results = db.session.execute(text(sql))
@@ -773,6 +773,22 @@ def get_instructors(evals):
                 e.instructor.last_name = i.last_name
                 e.instructor.email = i.email
                 e.instructor.affiliations = i.affiliations
+
+
+def get_section_dept(ccn):
+    sql = f"""
+        SELECT dept_name
+          FROM departments
+          JOIN department_catalog_listings
+            ON department_catalog_listings.department_id = departments.id
+          JOIN unholy_loch.sis_sections
+            ON unholy_loch.sis_sections.subject_area = department_catalog_listings.subject_area
+         WHERE unholy_loch.sis_sections.course_number = '{ccn}'
+    """
+    app.logger.info(sql)
+    result = db.session.execute(text(sql)).first()
+    std_commit(allow_test_environment=True)
+    return get_dept(result['dept_name'])
 
 
 def get_eval_types(evals):

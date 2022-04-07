@@ -39,7 +39,7 @@ class TestEvaluationManagement:
     dept_1.evaluations = utils.get_evaluations(term, dept_1)
 
     instructor = utils.get_test_user()
-    dept_forms = utils.get_dept_forms()
+    dept_forms = utils.get_all_dept_forms()
     midterm_form = next(filter(lambda form: (form.name.endswith('_MID')), dept_forms))
     eval_types = utils.get_all_eval_types()
 
@@ -49,7 +49,6 @@ class TestEvaluationManagement:
     utils.reset_test_data(term, dept_1)
 
     def test_list_mgmt_page(self):
-        self.homepage.load_page()
         self.login_page.load_page()
         self.login_page.dev_auth()
         self.status_board_admin_page.click_list_mgmt()

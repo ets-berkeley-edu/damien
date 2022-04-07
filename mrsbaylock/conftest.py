@@ -28,6 +28,8 @@ import os
 
 from damien.factory import create_app
 from mrsbaylock.pages.calnet_page import CalNetPage
+from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
+from mrsbaylock.pages.course_errors_page import CourseErrorsPage
 from mrsbaylock.pages.dept_details_admin_page import DeptDetailsAdminPage
 from mrsbaylock.pages.group_mgmt_page import GroupMgmtPage
 from mrsbaylock.pages.homepage import Homepage
@@ -53,7 +55,9 @@ def page_objects(request):
 
     # Define page objects
     calnet_page = CalNetPage(driver)
+    course_errors_page = CourseErrorsPage(driver)
     dept_details_admin_page = DeptDetailsAdminPage(driver)
+    dept_details_dept_page = CourseDashboardEditsPage(driver)
     group_mgmt_page = GroupMgmtPage(driver)
     homepage = Homepage(driver)
     list_mgmt_page = ListMgmtPage(driver)
@@ -67,7 +71,9 @@ def page_objects(request):
             setattr(cls.obj, 'driver', driver)
             setattr(cls.obj, 'test_id', test_id)
             setattr(cls.obj, 'calnet_page', calnet_page)
+            setattr(cls.obj, 'course_errors_page', course_errors_page)
             setattr(cls.obj, 'dept_details_admin_page', dept_details_admin_page)
+            setattr(cls.obj, 'dept_details_dept_page', dept_details_dept_page)
             setattr(cls.obj, 'group_mgmt_page', group_mgmt_page)
             setattr(cls.obj, 'homepage', homepage)
             setattr(cls.obj, 'list_mgmt_page', list_mgmt_page)

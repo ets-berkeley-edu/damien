@@ -24,36 +24,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from flask import current_app as app
-from mrsbaylock.pages.page import Page
-from mrsbaylock.test_utils import utils
-from selenium.webdriver.common.by import By
+from mrsbaylock.pages.course_dashboards import CourseDashboards
 
 
-class LoginPage(Page):
-
-    SIGN_IN_BUTTON = (By.ID, 'log-in')
-    USERNAME_INPUT = (By.ID, 'dev-auth-uid')
-    PASSWORD_INPUT = (By.ID, 'dev-auth-password')
-    DEV_AUTH_LOGIN_BUTTON = (By.ID, 'btn-dev-auth-login')
-
-    @staticmethod
-    def dept_link(dept):
-        return By.XPATH, f'//a[contains(., "{dept.name}")]'
+class CourseErrorsPage(CourseDashboards):
 
     def load_page(self):
-        app.logger.info('Loading the Damien login page')
-        self.driver.get(app.config['BASE_URL'])
-        self.wait_for_title('Welcome | Course Evaluations')
-
-    def click_sign_in(self):
-        self.wait_for_page_and_click(LoginPage.SIGN_IN_BUTTON)
-
-    def dev_auth(self, user=None, dept=None):
-        uid = user.uid if user else utils.get_admin_uid()
-        app.logger.info(f'Logging in to Damien as UID {uid}')
-        self.wait_for_element_and_type(LoginPage.USERNAME_INPUT, uid)
-        self.wait_for_element_and_type(LoginPage.PASSWORD_INPUT, app.config['DEVELOPER_AUTH_PASSWORD'])
-        self.wait_for_element_and_click(LoginPage.DEV_AUTH_LOGIN_BUTTON)
-        if user and dept and len(user.dept_roles) > 1:
-            self.wait_for_element_and_click(LoginPage.dept_link(dept))
-            self.wait_for_title_contains(dept.name)
+        app.logger.info('Loading the course errors page')
+        self.driver.get(f'{app.config["BASE_URL"]}/errors')

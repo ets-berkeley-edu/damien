@@ -26,14 +26,14 @@ import time
 
 from flask import current_app as app
 from mrsbaylock.models.blue_perm import BluePerm
-from mrsbaylock.pages.course_dashboards import CourseDashboards
+from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
-class DeptDetailsAdminPage(CourseDashboards):
+class DeptDetailsAdminPage(CourseDashboardEditsPage):
 
     TERM_SELECT = (By.ID, 'select-term')
 
