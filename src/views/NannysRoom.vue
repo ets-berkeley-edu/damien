@@ -364,7 +364,7 @@ export default {
   created() {
     this.resetNewInstructor()
     this.init().then(() => {
-      this.$ready('List management')
+      this.$ready('List Management')
     })
   },
   methods: {

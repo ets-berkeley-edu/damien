@@ -137,7 +137,7 @@ export default {
     this.$loading()
     getDepartmentsEnrolled(true, true).then(data => {
       this.departments = data
-      this.$ready('Group management')
+      this.$ready('Group Management')
     })
   },
   methods: {

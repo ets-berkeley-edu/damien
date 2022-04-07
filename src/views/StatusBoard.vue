@@ -140,7 +140,7 @@ export default {
     this.$loading()
     getDepartmentsEnrolled().then(data => {
       this.departments = data
-      this.$ready()
+      this.$ready('Status Board')
     })
   },
   methods: {
