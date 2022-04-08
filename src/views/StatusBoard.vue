@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="pb-2">
-      <h1>Evaluation Status Dashboard - Spring 2022</h1>
+      <h1 id="page-title">Evaluation Status Dashboard - Spring 2022</h1>
     </div>
     <v-btn
       id="publish-btn"

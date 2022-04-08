@@ -48,6 +48,7 @@ class TestMyProfile:
         api_json = _api_my_profile(client)
         assert api_json['uid'] == non_admin_uid
         assert len(api_json['departments']) == 1
+        assert api_json['departments'][0]['name'] == 'Philosophy'
 
 
 def _api_search(client, snippet='123', expected_status_code=200):

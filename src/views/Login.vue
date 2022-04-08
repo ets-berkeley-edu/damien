@@ -3,9 +3,12 @@
     <v-snackbar
       v-model="snackbarShow"
       :color="snackbar.color"
-      :timeout="snackbar.timeout"
       content-class="align-center"
+      outlined
+      :timeout="snackbar.timeout"
+      text
       :top="true"
+      max-width="unset"
     >
       <div class="d-flex align-center justify-space-between">
         <div
@@ -13,8 +16,8 @@
           aria-live="polite"
           class="ml-4 mr-4 title"
           role="alert"
+          v-html="snackbar.text"
         >
-          {{ snackbar.text }}
         </div>
         <div>
           <v-btn
@@ -91,26 +94,6 @@ export default {
 </script>
 
 <style scoped>
-.accent-border {
-  border: 1px solid #F04A00 !important;
-}
-.background-lecture-hall {
-  background: url('~@/assets/lecture_hall_background.jpg') no-repeat center;
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
-}
-.copyright {
-  height: 40px;
-  width: 320px;
-  padding-top: 10px;
-  text-align: center;
-  white-space: nowrap;
-}
-.frosted {
-  background-color: rgba(255, 255, 255, 0.8) !important;
-}
 h1 strong {
   display: block;
   font-size: 65%;

@@ -5,6 +5,7 @@ import CourseErrors from '@/views/CourseErrors.vue'
 import Department from '@/views/Department.vue'
 import Error from '@/views/Error.vue'
 import Login from '@/views/Login.vue'
+import MyDepartments from '@/views/MyDepartments.vue'
 import NannysRoom from '@/views/NannysRoom.vue'
 import NotFound from '@/views/NotFound.vue'
 import StatusBoard from '@/views/StatusBoard.vue'
@@ -41,6 +42,11 @@ const router = new Router({
       }
     },
     {
+      path: '/departments',
+      component: MyDepartments,
+      beforeEnter: auth.requiresAuthenticated
+    },
+    {
       path: '/',
       component: BaseView,
       beforeEnter: auth.requiresAuthenticated,
@@ -50,8 +56,10 @@ const router = new Router({
             const currentUser = Vue.prototype.$currentUser
             if (currentUser.isAdmin) {
               next('/status')
-            } else if (_.size(currentUser.departments)) {
-              next(`/department/${currentUser.departments[0]}`)
+            } else if (_.size(currentUser.departments) === 1) {
+              next(`/department/${currentUser.departments[0].id}`)
+            } else if (_.size(currentUser.departments) > 1) {
+              next('/departments')
             } else {
               next({
                 path: '/error',

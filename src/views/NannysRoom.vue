@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="pb-2 d-flex">
-      <h1>List Management</h1>
+      <h1 id="page-title">List Management</h1>
       <v-spacer class="d-flex justify-center"></v-spacer>
       <v-banner
         v-if="$config.isVueAppDebugMode && $config.easterEggMonastery && $vuetify.theme.dark"

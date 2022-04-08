@@ -62,6 +62,12 @@ class UserSession(UserMixin):
             **(self.user.to_api_json() if self.user else {}),
             'isAuthenticated': self.is_authenticated,
         }
+
+        def _department(department_membership):
+            return {
+                'id': department_membership.department_id,
+                'name': department_membership.department.dept_name,
+            }
         if self.user:
-            api_json['departments'] = [d.department_id for d in self.user.department_memberships]
+            api_json['departments'] = [_department(dm) for dm in self.user.department_memberships]
         return api_json
