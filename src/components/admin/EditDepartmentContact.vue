@@ -14,9 +14,6 @@
         :on-select-result="onSelectSearchResult"
       />
     </div>
-    <div v-if="fullName" class="mb-4">
-      <strong>{{ fullName }}</strong>
-    </div>
     <div v-if="uid">
       <label :for="`input-email-${contactId}`" class="form-label">
         Email Address
@@ -85,7 +82,7 @@
       color="secondary"
       :disabled="disableControls || !valid || !uid"
       elevation="2"
-      @click="onSave"
+      @click.prevent="onSave"
     >
       Save
     </v-btn>
@@ -97,7 +94,7 @@
       elevation="2"
       outlined
       text
-      @click="onCancel"
+      @click.prevent="onCancel"
     >
       Cancel
     </v-btn>

@@ -188,7 +188,7 @@
                   </select>
                 </td>
                 <td :id="`evaluation-${evaluationId}-period`">
-                  <span v-if="evaluation.period.start && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.endDate}">
+                  <span v-if="$_.get(evaluation, 'period.start') && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.endDate}">
                     <div>{{ evaluation.period.start | moment('MM/DD/YY') }} - {{ evaluation.period.end | moment('MM/DD/YY') }}</div>
                     <div>{{ evaluation.modular ? 2 : 3 }} weeks</div>
                     <div v-for="(conflict, index) in evaluation.conflicts.endDate" :key="index" class="evaluation-error error--text">

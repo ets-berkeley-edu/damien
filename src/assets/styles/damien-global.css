@@ -1,6 +1,9 @@
 .borderless {
   border: none !important;
 }
+.flip-horizontally {
+  transform: scaleX(-1);
+}
 .form-label {
   font-size: 15px;
   font-weight: 700;
@@ -8,6 +11,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.height-unset {
+  min-height: unset !important;
 }
 .separator {
   border-color: rgba(128, 128, 128, .75) !important;
