@@ -14,7 +14,7 @@
             v-for="(department, deptIndex) in selectedRecipients"
             :key="deptIndex"
           >
-            <v-expansion-panel-header class="pa-2 dept-expand">
+            <v-expansion-panel-header class="pa-2 height-unset">
               <h4 :id="`dept-head-${deptIndex}`">{{ department.deptName }}</h4>
             </v-expansion-panel-header>
             <v-expansion-panel-content>
@@ -160,9 +160,6 @@ export default {
 </script>
 
 <style scoped>
-.dept-expand {
-  min-height: unset !important;
-}
 .recipient {
   height: fit-content;
   white-space: break-spaces;

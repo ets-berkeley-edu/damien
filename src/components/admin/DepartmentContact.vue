@@ -1,88 +1,91 @@
 <template>
-  <v-card
+  <v-expansion-panel
     :id="`department-contact-${index}`"
-    class="my-1 px-3 py-2"
-    :flat="!isEditing"
-    :outlined="isEditing"
+    class="text-condensed my-1"
+    :class="{'theme--light v-sheet--outlined': isEditing && !this.$vuetify.theme.dark, 'theme--dark v-sheet--outlined': isEditing && this.$vuetify.theme.dark}"
   >
-    <div v-if="!isEditing" class="text-condensed">
+    <v-expansion-panel-header class="py-1 mb-1 rounded-b-0 height-unset">
       <strong>{{ fullName }}</strong>
-      <div>{{ contact.email }}</div>
-      <div :id="`dept-contact-${contact.id}-notifications`" class="font-italic">
-        <v-icon
-          class="pb-1"
-          :class="contact.canReceiveCommunications ? 'success--text' : 'muted--text'"
-          small
-        >
-          {{ contact.canReceiveCommunications ? 'mdi-check-circle' : 'mdi-minus-circle' }}
-        </v-icon>
-        {{ `${contact.canReceiveCommunications ? 'Does' : 'Does not'} receive notifications` }}
-      </div>
-      <div :id="`dept-contact-${contact.id}-permissions`" class="font-italic">
-        <v-icon
-          class="pb-1"
-          :class="contact.canViewReports ? 'success--text' : 'muted--text'"
-          small
-        >
-          {{ contact.canViewReports ? 'mdi-check-circle' : 'mdi-minus-circle' }}
-        </v-icon>
-        <span v-if="!contact.canViewReports">Does not have access to Blue</span>
-        <span v-if="contact.canViewReports">
-          {{ `Can view reports ${contact.canViewResponseRates ? 'and response rates ' : ''}in Blue` }}
-        </span>
-      </div>
-      <v-toolbar
-        :id="`dept-contact-${contact.id}-actions`"
-        flat
-        height="unset"
-        tag="div"
-      >
-        <v-btn
-          :id="`edit-dept-contact-${contact.id}-btn`"
-          class="text-capitalize pa-0"
-          color="tertiary"
-          :disabled="disableControls"
+    </v-expansion-panel-header>
+    <v-expansion-panel-content>
+      <div v-if="!isEditing">
+        <div>{{ contact.email }}</div>
+        <div :id="`dept-contact-${contact.id}-notifications`" class="font-italic">
+          <v-icon
+            class="pb-1"
+            :class="contact.canReceiveCommunications ? 'success--text' : 'muted--text'"
+            small
+          >
+            {{ contact.canReceiveCommunications ? 'mdi-check-circle' : 'mdi-minus-circle' }}
+          </v-icon>
+          {{ `${contact.canReceiveCommunications ? 'Does' : 'Does not'} receive notifications` }}
+        </div>
+        <div :id="`dept-contact-${contact.id}-permissions`" class="font-italic">
+          <v-icon
+            class="pb-1"
+            :class="contact.canViewReports ? 'success--text' : 'muted--text'"
+            small
+          >
+            {{ contact.canViewReports ? 'mdi-check-circle' : 'mdi-minus-circle' }}
+          </v-icon>
+          <span v-if="!contact.canViewReports">Does not have access to Blue</span>
+          <span v-if="contact.canViewReports">
+            {{ `Can view reports ${contact.canViewResponseRates ? 'and response rates ' : ''}in Blue` }}
+          </span>
+        </div>
+        <v-toolbar
+          :id="`dept-contact-${contact.id}-actions`"
+          flat
           height="unset"
-          min-width="unset"
-          text
-          @click="() => isEditing = true"
+          tag="div"
         >
-          Edit
-        </v-btn>
-        <v-divider
-          class="separator mx-2"
-          role="presentation"
-          vertical
-        ></v-divider>
-        <v-btn
-          :id="`delete-dept-contact-${contact.id}-btn`"
-          class="text-capitalize pa-0"
-          color="tertiary"
-          :disabled="disableControls"
-          height="unset"
-          min-width="unset"
-          text
-          @click="() => isConfirming = true"
-        >
-          Delete
-        </v-btn>
-        <ConfirmDialog
-          :model="isConfirming"
-          :cancel-action="() => isConfirming = false"
-          :perform-action="onDelete"
-          :text="`Are you sure you want to remove ${fullName}?`"
-          :title="'Delete contact?'"
-        />
-      </v-toolbar>
-    </div>
-    <EditDepartmentContact
-      v-if="isEditing"
-      :id="`edit-department-contact-${contact.id}`"
-      :after-save="afterSave"
-      :contact="contact"
-      :on-cancel="onCancelEdit"
-    />
-  </v-card>
+          <v-btn
+            :id="`edit-dept-contact-${contact.id}-btn`"
+            class="text-capitalize pa-0"
+            color="tertiary"
+            :disabled="disableControls"
+            height="unset"
+            min-width="unset"
+            text
+            @click="() => isEditing = true"
+          >
+            Edit
+          </v-btn>
+          <v-divider
+            class="separator mx-2"
+            role="presentation"
+            vertical
+          ></v-divider>
+          <v-btn
+            :id="`delete-dept-contact-${contact.id}-btn`"
+            class="text-capitalize pa-0"
+            color="tertiary"
+            :disabled="disableControls"
+            height="unset"
+            min-width="unset"
+            text
+            @click="() => isConfirming = true"
+          >
+            Delete
+          </v-btn>
+          <ConfirmDialog
+            :model="isConfirming"
+            :cancel-action="() => isConfirming = false"
+            :perform-action="onDelete"
+            :text="`Are you sure you want to remove ${fullName}?`"
+            :title="'Delete contact?'"
+          />
+        </v-toolbar>
+      </div>
+      <EditDepartmentContact
+        v-if="isEditing"
+        :id="`edit-department-contact-${contact.id}`"
+        :after-save="afterSave"
+        :contact="contact"
+        :on-cancel="onCancelEdit"
+      />
+    </v-expansion-panel-content>
+  </v-expansion-panel>
 </template>
 
 <script>
@@ -136,3 +139,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.v-expansion-panel::before {
+   box-shadow: none !important;
+}
+</style>

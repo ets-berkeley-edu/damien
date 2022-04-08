@@ -26,7 +26,7 @@ const router = new Router({
       component: Login,
       beforeEnter: (to: any, from: any, next: any) => {
         const currentUser = Vue.prototype.$currentUser
-        if (currentUser.isAuthenticated) {
+        if (_.get(currentUser, 'isAuthenticated')) {
           if (_.trim(to.query.redirect)) {
             next(to.query.redirect)
           } else {
@@ -137,7 +137,7 @@ const router = new Router({
 
 router.beforeEach((to: any, from: any, next: any) => {
   const redirect = _.trim(to.query.redirect)
-  if (Vue.prototype.$currentUser.isAuthenticated && redirect) {
+  if (_.get(Vue.prototype.$currentUser, 'isAuthenticated') && redirect) {
     next(redirect)
   } else {
     next()

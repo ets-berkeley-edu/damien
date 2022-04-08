@@ -32,12 +32,12 @@
         </v-select>
       </v-col>
     </v-row>
-    <v-container v-if="$currentUser.isAdmin" class="mx-0 px-0 pb-6">
+    <v-container class="mx-0 px-0 pb-6">
       <v-row justify="start">
         <v-col cols="12" md="5">
           <h2 class="pb-1 px-2">Department Contacts</h2>
           <v-btn
-            v-if="!isCreatingNotification"
+            v-if="$currentUser.isAdmin && !isCreatingNotification"
             id="open-notification-form-btn"
             class="ma-2 secondary text-capitalize"
             :disabled="disableControls"
@@ -46,19 +46,36 @@
             Send notification
           </v-btn>
           <NotificationForm
-            v-if="isCreatingNotification"
+            v-if="$currentUser.isAdmin && isCreatingNotification"
             :after-send="afterSendNotification"
             :on-cancel="cancelSendNotification"
             :recipients="[notificationRecipients]"
           />
-          <DepartmentContact
-            v-for="(contact, index) in contacts"
-            :key="contact.id"
-            :contact="contact"
-            :index="index"
-          />
           <v-btn
-            v-if="!isAddingContact"
+            class="float-right text-capitalize mt-2 mr-4"
+            color="primary--text"
+            text
+            @click="() => contactsPanel = []"
+          >
+            Collapse All
+            <v-icon class="flip-horizontally ml-1">mdi-collapse-all-outline</v-icon>
+          </v-btn>
+          <v-expansion-panels
+            v-model="contactsPanel"
+            flat
+            focusable
+            hover
+            multiple
+          >
+            <DepartmentContact
+              v-for="(contact, index) in contacts"
+              :key="contact.id"
+              :contact="contact"
+              :index="index"
+            />
+          </v-expansion-panels>
+          <v-btn
+            v-if="$currentUser.isAdmin && !isAddingContact"
             id="add-dept-contact-btn"
             class="text-capitalize pl-2 mt-1"
             color="tertiary"
@@ -69,7 +86,7 @@
             Add Contact
           </v-btn>
           <EditDepartmentContact
-            v-if="isAddingContact"
+            v-if="$currentUser.isAdmin && isAddingContact"
             :id="`add-department-contact`"
             :after-save="afterSaveContact"
             :on-cancel="onCancelAddContact"
@@ -175,6 +192,7 @@ export default {
       endDateEnabled: false,
       midtermFormEnabled: false
     },
+    contactsPanel: [],
     courseActions: [
       {'text': 'Mark for review', 'value': 'mark'},
       {'text': 'Mark as confirmed', 'value': 'confirm'},
