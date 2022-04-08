@@ -76,7 +76,7 @@ def dev_auth_login():
         uid = params.get('uid')
         user = _authorized_user(uid)
         if user is None:
-            return tolerant_jsonify({'message': f'Sorry, user with UID {uid} is not registered to use BOA.'}, 403)
+            return tolerant_jsonify({'message': f'Sorry, user with UID {uid} is not registered to use Damien.'}, 403)
         else:
             app.logger.info(f'Dev-auth used to log in as UID {uid}')
             authenticated = _login(user) and current_user.is_authenticated

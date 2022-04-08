@@ -2,7 +2,7 @@
   <div v-if="!loading">
     <v-row>
       <v-col cols="12" md="7" class="d-flex justify-start">
-        <h1>
+        <h1 id="page-title">
           {{ department.deptName }}
           ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})
           - {{ $_.get(selectedTerm, 'name') }}
