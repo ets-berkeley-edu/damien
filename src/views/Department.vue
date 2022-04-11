@@ -40,7 +40,7 @@
             v-if="$currentUser.isAdmin && !isCreatingNotification"
             id="open-notification-form-btn"
             class="ma-2 secondary text-capitalize"
-            :disabled="disableControls"
+            :disabled="disableControls || $_.isEmpty(contacts)"
             @click="() => isCreatingNotification = true"
           >
             Send notification
@@ -77,7 +77,7 @@
           <v-btn
             v-if="$currentUser.isAdmin && !isAddingContact"
             id="add-dept-contact-btn"
-            class="text-capitalize pl-2 mt-1"
+            class="text-capitalize pl-2 my-1 mx-2"
             color="tertiary"
             text
             @click="() => isAddingContact = true"
