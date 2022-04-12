@@ -29,6 +29,7 @@ from damien import db, std_commit
 from damien.lib.util import isoformat, parse_search_snippet
 from damien.models.base import Base
 from damien.models.department_member import DepartmentMember
+from damien.models.user_department_form import UserDepartmentForm
 from sqlalchemy.dialects.postgresql import ENUM
 
 
@@ -54,6 +55,11 @@ class User(Base):
     deleted_at = db.Column(db.DateTime)
     login_at = db.Column(db.DateTime)
 
+    department_forms = db.relationship(
+        UserDepartmentForm.__name__,
+        back_populates='user',
+        lazy='joined',
+    )
     department_memberships = db.relationship(
         DepartmentMember.__name__,
         back_populates='user',

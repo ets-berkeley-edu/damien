@@ -41,6 +41,10 @@ class DepartmentForm(Base):
         back_populates='default_form',
         lazy='dynamic',
     )
+    users = db.relationship(
+        'UserDepartmentForm',
+        back_populates='department_form',
+    )
 
     def __init__(
         self,
