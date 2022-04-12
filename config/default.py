@@ -26,8 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import logging
 import os
 
-AWS_ACCESS_KEY_ID = 'some id'
-AWS_SECRET_ACCESS_KEY = 'some secret'
+AWS_PROFILE = None
 AWS_S3_BUCKET = 'some-bucket'
 AWS_S3_REGION = 'us-west-2'
 
