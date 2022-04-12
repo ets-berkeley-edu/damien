@@ -29,6 +29,7 @@ from damien.externals.s3 import put_csv_to_s3
 from damien.lib.berkeley import term_code_for_sis_id
 from damien.lib.util import safe_strftime
 from damien.models.department import Department
+from damien.models.evaluation import is_modular
 from damien.models.user import User
 
 
@@ -163,9 +164,9 @@ def _export_course_row(course_id, key, section):
         'EVALUATE': 'Y',
         'DEPT_FORM': key.department_form,
         'EVALUATION_TYPE': key.evaluation_type,
-        'MODULAR_COURSE': 'Y' if section.modular else '',
+        'MODULAR_COURSE': 'Y' if is_modular(section.start_date, key.end_date) else '',
         'START_DATE': safe_strftime(section.start_date, '%m-%d-%Y'),
-        'END_DATE': key.end_date,
+        'END_DATE': safe_strftime(key.end_date, '%m-%d-%Y'),
         'CANVAS_COURSE_ID': '',
         'QB_MAPPING': '-'.join([key.department_form, key.evaluation_type]),
     }

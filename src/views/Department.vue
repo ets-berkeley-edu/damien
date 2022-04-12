@@ -116,23 +116,32 @@
           />
           <div class="d-flex">
             <v-checkbox
-              v-model="bulkUpdateOptions.endDateEnabled"
-              label="Set end date:"
+              v-model="bulkUpdateOptions.evalDatesEnabled"
+              label="Set evaluation start date:"
               hide-details="auto"
             />
-            <v-text-field
-              v-model="bulkUpdateOptions.endDate"
-              class="pl-3"
-              type="date"
-              hide-details="auto"
-              :disabled="!bulkUpdateOptions.endDateEnabled"
-              solo
-            />
+            <c-date-picker
+              v-model="bulkUpdateOptions.startDate"
+              :min-date="$moment($config.currentTermDates.begin).toDate()"
+              :max-date="$moment($config.currentTermDates.end).subtract(20, 'days').toDate()"
+              title-position="left"
+            >
+              <template v-slot="{ inputValue, inputEvents }">
+                <input
+                  class="input-override"
+                  :value="inputValue"
+                  v-on="inputEvents"
+                /> 
+              </template>
+            </c-date-picker>
           </div>
         </div>
       </v-col>
       <v-col cols="12" md="4">
-        <v-btn :disabled="!selectedCourseAction || !selectedEvaluationIds.length" @click="applyCourseAction">
+        <v-btn
+          :disabled="!selectedCourseAction || !selectedEvaluationIds.length || (bulkUpdateOptions.evalDatesEnabled && !bulkUpdateOptions.startDate)"
+          @click="applyCourseAction"
+        >
           Apply
         </v-btn>
       </v-col>
@@ -188,9 +197,9 @@ export default {
   data: () => ({
     availableTerms: undefined,
     bulkUpdateOptions: {
-      endDate: null,
-      endDateEnabled: false,
-      midtermFormEnabled: false
+      evalDatesEnabled: false,
+      midtermFormEnabled: false,
+      startDate: null,
     },
     contactsPanel: [],
     courseActions: [
@@ -246,8 +255,9 @@ export default {
         if (this.bulkUpdateOptions.midtermFormEnabled) {
           fields.midterm = 'true'
         }
-        if (this.bulkUpdateOptions.endDateEnabled) {
-          fields.endDate = this.bulkUpdateOptions.endDate
+        if (this.bulkUpdateOptions.evalDatesEnabled) {
+          const duration = (this.$config.currentTermDates.begin + 77) > this.bulkUpdateOptions.startDate ? 13 : 20
+          fields.endDate = this.$moment(this.bulkUpdateOptions.startDate).add(duration, 'days').format('YYYY-MM-DD')
         }
       }
       updateEvaluations(
