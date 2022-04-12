@@ -44,7 +44,7 @@ CREATE TABLE department_catalog_listings (
     catalog_id VARCHAR(255),
     default_form_id integer,    
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL  
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE SEQUENCE department_catalog_listings_id_seq
@@ -243,6 +243,31 @@ CREATE INDEX supplemental_sections_department_id_idx ON supplemental_sections US
 
 --
 
+CREATE TABLE user_department_forms (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    department_form_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL  
+);
+
+CREATE SEQUENCE user_department_forms_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE user_department_forms_id_seq OWNED BY user_department_forms.id;
+ALTER TABLE ONLY user_department_forms ALTER COLUMN id SET DEFAULT nextval('user_department_forms_id_seq'::regclass);
+
+ALTER TABLE ONLY user_department_forms
+    ADD CONSTRAINT user_department_forms_pkey PRIMARY KEY (id);
+
+CREATE INDEX user_department_forms_user_id_idx ON user_department_forms USING btree (user_id);
+CREATE INDEX user_department_forms_department_form_id_idx ON user_department_forms USING btree (department_form_id);
+
+--
+
 CREATE TYPE user_blue_permissions AS ENUM ('reports_only', 'response_rates');
 
 CREATE TABLE users (
@@ -296,3 +321,8 @@ ALTER TABLE ONLY evaluations
 
 ALTER TABLE ONLY supplemental_sections
     ADD CONSTRAINT supplemental_sections_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY user_department_forms
+    ADD CONSTRAINT user_department_forms_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE ONLY user_department_forms
+    ADD CONSTRAINT user_department_forms_department_form_id_fkey FOREIGN KEY (department_form_id) REFERENCES department_forms(id) ON DELETE CASCADE;
