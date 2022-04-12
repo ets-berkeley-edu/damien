@@ -68,7 +68,4 @@ def _get_s3_client():
 
 
 def _get_session():
-    return boto3.Session(
-        aws_access_key_id=app.config['AWS_ACCESS_KEY_ID'],
-        aws_secret_access_key=app.config['AWS_SECRET_ACCESS_KEY'],
-    )
+    return boto3.Session(profile_name=app.config['AWS_PROFILE'])
