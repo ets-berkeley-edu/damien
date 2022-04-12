@@ -150,6 +150,12 @@ def _validate_evaluation_fields(fields):  # noqa C901
             if not department_form:
                 raise BadRequestError(f'Invalid department form id {v}.')
             validated_fields['departmentForm'] = department_form
+        elif k == 'endDate':
+            try:
+                validated_fields[k] = date.fromisoformat(v)
+            except (TypeError, ValueError):
+                raise BadRequestError(f'Invalid date format {v}.')
+            _validate_current_term_date(validated_fields[k])
         elif k == 'evaluationTypeId':
             try:
                 evaluation_type = EvaluationType.find_by_id(int(v))
@@ -158,12 +164,6 @@ def _validate_evaluation_fields(fields):  # noqa C901
             if not evaluation_type:
                 raise BadRequestError(f'Invalid evaluation type id {v}.')
             validated_fields['evaluationType'] = evaluation_type
-        elif k in {'startDate', 'endDate'}:
-            try:
-                validated_fields[k] = date.fromisoformat(v)
-            except (TypeError, ValueError):
-                raise BadRequestError(f'Invalid date format {v}.')
-            _validate_current_term_date(validated_fields[k])
         elif k == 'instructorUid':
             try:
                 validated_fields['instructorUid'] = str(int(v))
@@ -178,8 +178,6 @@ def _validate_evaluation_fields(fields):  # noqa C901
                 raise BadRequestError(f'Invalid midterm value {v}')
         else:
             raise BadRequestError(f"Evaluation field '{k}' not recognized.")
-    if 'startDate' in validated_fields and 'endDate' in validated_fields and validated_fields['startDate'] >= validated_fields['endDate']:
-        raise BadRequestError('Start date must be before end date.')
     return validated_fields
 
 

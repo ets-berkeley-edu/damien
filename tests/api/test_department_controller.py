@@ -400,28 +400,21 @@ class TestEditEvaluation:
         fake_auth.login(non_admin_uid)
         _api_update_evaluation(client, params={
             'evaluationIds': ['_2222_30659_637739'],
-            'fields': {'startDate': 'ill', 'endDate': 'communication'},
+            'fields': {'endDate': 'ill communication'},
         }, expected_status_code=400)
 
     def test_date_before_term(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         _api_update_evaluation(client, params={
             'evaluationIds': ['_2222_30659_637739'],
-            'fields': {'startDate': '2021-12-25'},
+            'fields': {'endDate': '2021-12-25'},
         }, expected_status_code=400)
 
     def test_date_after_term(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         _api_update_evaluation(client, params={
             'evaluationIds': ['_2222_30659_637739'],
-            'fields': {'startDate': '2022-07-14'},
-        }, expected_status_code=400)
-
-    def test_start_after_end(self, client, fake_auth):
-        fake_auth.login(non_admin_uid)
-        _api_update_evaluation(client, params={
-            'evaluationIds': ['_2222_30659_637739'],
-            'fields': {'startDate': '2022-05-01', 'endDate': '2022-02-14'},
+            'fields': {'endDate': '2022-07-14'},
         }, expected_status_code=400)
 
     def test_edit_dates(self, client, fake_auth):
@@ -429,12 +422,12 @@ class TestEditEvaluation:
         response = _api_update_evaluation(client, params={
             'evaluationIds': ['_2222_30659_637739'],
             'action': 'edit',
-            'fields': {'startDate': '2022-02-14', 'endDate': '2022-05-01'},
+            'fields': {'endDate': '2022-05-01'},
         })
         assert len(response) == 1
         assert response[0]['id'] == int(response[0]['id'])
         assert response[0]['transientId'] == '_2222_30659_637739'
-        assert response[0]['startDate'] == '2022-02-14'
+        assert response[0]['startDate'] == '2022-01-18'
         assert response[0]['endDate'] == '2022-05-01'
 
 
@@ -444,7 +437,7 @@ def _api_get_evaluation(client, dept_id, course_number, instructor_uid):
 
 
 def _api_update_history_evaluation(client, history_id, dept_form_id, eval_type_id):
-    fields = {'startDate': '2022-02-13', 'endDate': '2022-05-02'}
+    fields = {'endDate': '2022-05-02'}
     if dept_form_id:
         fields['departmentFormId'] = dept_form_id
     if eval_type_id:
@@ -457,7 +450,7 @@ def _api_update_history_evaluation(client, history_id, dept_form_id, eval_type_i
 
 
 def _api_update_melc_evaluation(client, melc_id, dept_form_id, eval_type_id):
-    fields = {'startDate': '2022-02-14', 'endDate': '2022-05-01'}
+    fields = {'endDate': '2022-05-01'}
     if dept_form_id:
         fields['departmentFormId'] = dept_form_id
     if eval_type_id:
@@ -488,26 +481,23 @@ class TestEditEvaluationMultipleDepartments:
         _api_update_evaluation(client, melc_id, params={
             'evaluationIds': ['_2222_30643_326054'],
             'action': 'edit',
-            'fields': {'departmentFormId': '13', 'evaluationTypeId': '3', 'startDate': '2022-02-14', 'endDate': '2022-05-01'},
+            'fields': {'departmentFormId': '13', 'evaluationTypeId': '3', 'endDate': '2022-05-01'},
         })
         melc_eval = _api_get_evaluation(client, melc_id, '30643', '326054')
         assert melc_eval['status'] is None
         assert melc_eval['departmentForm']['id'] == 13
         assert melc_eval['evaluationType']['id'] == 3
-        assert melc_eval['startDate'] == '2022-02-14'
         assert melc_eval['endDate'] == '2022-05-01'
         history_eval = _api_get_evaluation(client, history_id, '30643', '326054')
         assert history_eval['status'] is None
         assert history_eval['departmentForm'] is None
         assert history_eval['evaluationType']['id'] != 3
-        assert history_eval['startDate'] != '2022-02-14'
         assert history_eval['endDate'] != '2022-05-01'
         _api_update_evaluation(client, melc_id, params={'evaluationIds': [melc_eval['id']], 'action': 'mark'})
         history_eval = _api_get_evaluation(client, history_id, '30643', '326054')
         assert history_eval['status'] == 'review'
         assert history_eval['departmentForm']['id'] == 13
         assert history_eval['evaluationType']['id'] == 3
-        assert history_eval['startDate'] == '2022-02-14'
         assert history_eval['endDate'] == '2022-05-01'
 
     def test_evaluation_edits_show_conflicts_if_conflicting_eval_marked(
@@ -539,13 +529,10 @@ class TestEditEvaluationMultipleDepartments:
         assert history_eval['status'] == 'review'
         assert melc_eval['conflicts']['departmentForm'] == [{'department': 'History', 'value': 'HISTORY'}]
         assert melc_eval['conflicts']['evaluationType'] == [{'department': 'History', 'value': 'G'}]
-        # TODO remove back end for setting start dates
-        # assert melc_eval['conflicts']['startDate'] == [{'department': 'History', 'value': '2022-02-13'}]
-        assert melc_eval['conflicts']['endDate'] == [{'department': 'History', 'value': '2022-05-02'}]
+        assert melc_eval['conflicts']['evaluationPeriod'] == [{'department': 'History', 'value': '2022-04-12'}]
         assert history_eval['conflicts']['departmentForm'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': 'MELC'}]
         assert history_eval['conflicts']['evaluationType'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': 'F'}]
-        # assert history_eval['conflicts']['startDate'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': '2022-02-14'}]
-        assert history_eval['conflicts']['endDate'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': '2022-05-01'}]
+        assert history_eval['conflicts']['evaluationPeriod'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': '2022-04-11'}]
 
 
 def _api_add_section(client, dept_id=None, params={}, expected_status_code=200):

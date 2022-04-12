@@ -24,9 +24,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from collections import namedtuple
+from datetime import timedelta
 from itertools import groupby
 
 from damien import db, std_commit
+from damien.lib.berkeley import current_term_dates
 from damien.lib.queries import refresh_additional_instructors
 from damien.lib.util import safe_strftime
 from damien.models.base import Base
@@ -118,8 +120,7 @@ class Evaluation(Base):
         self.conflicts = {
             'departmentForm': [],
             'evaluationType': [],
-            'startDate': [],
-            'endDate': [],
+            'evaluationPeriod': [],
         }
 
     def __repr__(self):
@@ -197,7 +198,7 @@ class Evaluation(Base):
 
         transient_evaluation.set_department_form(saved_evaluation, foreign_dept_evaluations, default_form)
         transient_evaluation.set_evaluation_type(saved_evaluation, foreign_dept_evaluations, instructor, all_eval_types)
-        transient_evaluation.set_start_date(loch_rows, foreign_dept_evaluations, saved_evaluation)
+        transient_evaluation.set_start_date(loch_rows)
         transient_evaluation.set_end_date(loch_rows, foreign_dept_evaluations, saved_evaluation)
         transient_evaluation.set_last_updated(loch_rows, saved_evaluation)
 
@@ -331,8 +332,6 @@ class Evaluation(Base):
         if 'instructorUid' in fields:
             self.instructor_uid = fields['instructorUid']
             refresh_additional_instructors([self.instructor_uid])
-        if 'startDate' in fields:
-            self.start_date = fields['startDate']
         if 'status' in fields:
             self.status = fields['status']
             if fields['status'] in ('marked', 'confirmed', None):
@@ -378,20 +377,11 @@ class Evaluation(Base):
             elif instructor and 'ACADEMIC' in instructor.get('affiliations', []):
                 self.evaluation_type = all_eval_types.get('F')
 
-    def set_start_date(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
-        if saved_evaluation and saved_evaluation.start_date:
-            self.start_date = saved_evaluation.start_date
-            # TODO remove start date as independently tracked value
-            # for fde in foreign_dept_evaluations:
-            #    if fde.start_date and fde.start_date != self.start_date:
-            #         self.mark_conflict(fde, 'startDate', safe_strftime(fde.start_date, '%Y-%m-%d'))
-        else:
-            for fde in foreign_dept_evaluations:
-                if fde.start_date:
-                    self.start_date = fde.start_date
-                    break
+    def set_start_date(self, loch_rows):
+        self.start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
         if not self.start_date:
-            self.start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
+            term_begin, term_end = current_term_dates()
+            self.start_date = term_begin
 
     def set_end_date(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
         if saved_evaluation and saved_evaluation.end_date:
@@ -400,10 +390,10 @@ class Evaluation(Base):
                 if fde.end_date and fde.end_date != self.end_date:
                     self.mark_conflict(
                         fde,
-                        'endDate',
+                        'evaluationPeriod',
                         saved_evaluation,
-                        safe_strftime(self.end_date, '%Y-%m-%d'),
-                        safe_strftime(fde.end_date, '%Y-%m-%d'),
+                        self.get_evaluation_period(self.start_date)['start'],
+                        fde.get_evaluation_period(self.start_date)['start'],
                     )
         else:
             for fde in foreign_dept_evaluations:
@@ -412,6 +402,9 @@ class Evaluation(Base):
                     break
         if not self.end_date:
             self.end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)
+        if not self.end_date:
+            term_begin, term_end = current_term_dates()
+            self.end_date = term_end
 
     def set_status(self, saved_evaluation, foreign_dept_evaluations):
         if saved_evaluation and saved_evaluation.status:
@@ -467,14 +460,20 @@ class Evaluation(Base):
     def get_id(self):
         return self.id or self.transient_id()
 
+    def get_evaluation_period(self, default_start_date=None):
+        start_date = self.start_date or default_start_date
+        duration = 13 if is_modular(start_date, self.end_date) else 20
+        evaluation_start = self.end_date - timedelta(days=duration)
+        return {
+            'start': safe_strftime(evaluation_start, '%Y-%m-%d'),
+            'end': safe_strftime(self.end_date, '%Y-%m-%d'),
+        }
+
     def to_api_json(self, section):
         dept_form_feed = self.department_form.to_api_json() if self.department_form else None
         eval_type_feed = self.evaluation_type.to_api_json() if self.evaluation_type else None
 
-        if self.status == 'marked':
-            feed_status = 'review'
-        else:
-            feed_status = self.status
+        feed_status = 'review' if self.status == 'marked' else self.status
 
         feed = section.to_api_json()
         feed.update({
@@ -486,6 +485,8 @@ class Evaluation(Base):
             'evaluationType': eval_type_feed,
             'startDate': safe_strftime(self.start_date, '%Y-%m-%d'),
             'endDate': safe_strftime(self.end_date, '%Y-%m-%d'),
+            'evaluationPeriod': self.get_evaluation_period(),
+            'modular': is_modular(self.start_date, self.end_date),
             'lastUpdated': safe_strftime(self.last_updated, '%Y-%m-%d'),
             'conflicts': {},
             'valid': self.valid,
@@ -506,8 +507,12 @@ class Evaluation(Base):
             course_number=self.course_number,
             department_form=self.department_form.name,
             evaluation_type=self.evaluation_type.name,
-            end_date=safe_strftime(self.end_date, '%m-%d-%Y'),
+            end_date=self.end_date,
         )
+
+
+def is_modular(start_date, end_date):
+    return True if start_date and end_date and end_date - start_date < timedelta(days=90) else False
 
 
 def _parse_transient_id(transient_id):

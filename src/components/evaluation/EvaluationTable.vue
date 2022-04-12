@@ -188,22 +188,27 @@
                   </select>
                 </td>
                 <td :id="`evaluation-${evaluationId}-period`">
-                  <span v-if="$_.get(evaluation, 'period.start') && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.endDate}">
-                    <div>{{ evaluation.period.start | moment('MM/DD/YY') }} - {{ evaluation.period.end | moment('MM/DD/YY') }}</div>
+                  <span v-if="$_.get(evaluation, 'evaluationPeriod.start') && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationPeriod}">
+                    <div>{{ evaluation.evaluationPeriod.start | moment('MM/DD/YY') }} - {{ evaluation.evaluationPeriod.end | moment('MM/DD/YY') }}</div>
                     <div>{{ evaluation.modular ? 2 : 3 }} weeks</div>
-                    <div v-for="(conflict, index) in evaluation.conflicts.endDate" :key="index" class="evaluation-error error--text">
+                    <div v-for="(conflict, index) in evaluation.conflicts.evaluationPeriod" :key="index" class="evaluation-error error--text">
                       <v-icon small color="error">mdi-alert-circle</v-icon>
                       Conflicts with period starting
-                      {{ $moment(conflict.value).subtract(evaluation.modular ? 14 : 21, 'days').format('MM/DD/YY') }}
+                      {{ $moment(conflict.value).format('MM/DD/YY') }}
                       from {{ conflict.department }} department
                     </div>
                   </span>
                   <div v-if="isEditing(evaluation)">
-                    {{ evaluation.modular ? 2 : 3 }} weeks starting:
+                    <div v-if="selectedStartDate">
+                      {{ evaluation.evaluationPeriod.modularCutoff > selectedStartDate ? 2 : 3 }} weeks starting:
+                    </div>
+                    <div v-if="!selectedStartDate" class="evaluation-error">
+                      <v-icon small color="white">mdi-alert-circle</v-icon> Start date required
+                    </div>
                     <c-date-picker
                       v-model="selectedStartDate"
-                      :min-date="new Date($config.currentTermDates.begin)"
-                      :max-date="new Date($config.currentTermDates.end)"
+                      :min-date="new Date(evaluation.startDate)"
+                      :max-date="$moment($config.currentTermDates.end).subtract(20, 'days').toDate()"
                       title-position="left"
                     >
                       <template v-slot="{ inputValue, inputEvents }">
@@ -277,7 +282,7 @@ export default {
       {text: 'Instructor', value: 'sortableInstructor'},
       {text: 'Department Form', value: 'departmentForm.name', width: '180px'},
       {text: 'Evaluation Type', value: 'evaluationType.name'},
-      {text: 'Evaluation Period', value: 'period.start', width: '200px'},
+      {text: 'Evaluation Period', value: 'evaluationPeriod.start', width: '200px'},
       {text: ''}
     ],
     pendingInstructor: null,
@@ -313,7 +318,7 @@ export default {
       this.pendingInstructor = evaluation.instructor
       this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm')
       this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
-      this.selectedStartDate = evaluation.period.start
+      this.selectedStartDate = evaluation.evaluationPeriod.start
     },
     evaluationClass(evaluation, hover) {
       return {
@@ -333,6 +338,8 @@ export default {
       }
     },
     isEditing(evaluation) {
+      console.log(evaluation.courseNumber)
+      console.log(evaluation.evaluationPeriod.modularCutoff)
       return this.editRowId === evaluation.id
     },
     filterEnabled(evaluation) {
@@ -345,9 +352,12 @@ export default {
     saveEvaluation(evaluation) {
       const fields = {
         'departmentFormId': this.$_.get(this.selectedDepartmentForm, 'id'),
-        'endDate': this.$moment(this.selectedStartDate).add((evaluation.modular ? 14 : 21), 'days').format('YYYY-MM-DD'),
         'evaluationTypeId': this.selectedEvaluationType,
         'instructorUid': this.$_.get(this.pendingInstructor, 'uid')
+      }
+      if (this.selectedStartDate) {
+        const duration = evaluation.evaluationPeriod.modularCutoff > this.selectedStartDate ? 13 : 20
+        fields.endDate = this.$moment(this.selectedStartDate).add(duration, 'days').format('YYYY-MM-DD')
       }
       this.updateEvaluation(evaluation.id, fields)
     },
@@ -375,11 +385,9 @@ export default {
       } else {
         e.sortableInstructor = ''
       }
-      e.period = {start: null, end: null}
-      if (e.endDate) {
-        e.period.end = this.$moment(e.endDate).toDate()
-        e.period.start = this.$moment(e.endDate).subtract((e.modular ? 14 : 21), 'days').toDate()
-      }
+      e.evaluationPeriod.start = this.$moment(e.evaluationPeriod.start).toDate()
+      e.evaluationPeriod.end = this.$moment(e.endDate).toDate()
+      e.evaluationPeriod.modularCutoff = this.$moment(e.startDate).add(76, 'days').toDate()
     })
     getDepartmentForms().then(data => this.departmentForms = data)
     getEvaluationTypes().then(data => this.evaluationTypes = data)
