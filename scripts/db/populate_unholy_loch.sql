@@ -226,3 +226,10 @@ INSERT INTO unholy_loch.cross_listings (term_id, course_number, cross_listing_nu
 VALUES
 ('2222', '30643', '30470'),
 ('2222', '30470', '30643');
+
+TRUNCATE TABLE unholy_loch.sis_enrollments;
+INSERT INTO unholy_loch.sis_enrollments (term_id, course_number, ldap_uid)
+VALUES
+('2222', '30643', '77777'),
+('2222', '30643', '88888'),
+('2222', '30643', '99999');

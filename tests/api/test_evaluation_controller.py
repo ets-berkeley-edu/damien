@@ -154,7 +154,7 @@ class TestExportEvaluations:
         with mock_s3_bucket(app) as s3:
             _api_export_evaluations(client)
             exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
-            assert len(exported_objects) == 4
+            assert len(exported_objects) == 6
 
             courses = _read_csv(exported_objects, '/courses.csv')
             assert len(courses) == 1
@@ -166,9 +166,17 @@ class TestExportEvaluations:
             assert len(course_instructors) == 1
             assert course_instructors[0] == 'COURSE_ID,LDAP_UID'
 
+            course_students = _read_csv(exported_objects, '/course_students.csv')
+            assert len(course_students) == 1
+            assert course_students[0] == 'COURSE_ID,LDAP_UID'
+
             instructors = _read_csv(exported_objects, '/instructors.csv')
             assert len(instructors) == 1
             assert instructors[0] == 'LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS,BLUE_ROLE'
+
+            students = _read_csv(exported_objects, '/students.csv')
+            assert len(students) == 1
+            assert students[0] == 'LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS'
 
     @mock_s3
     def test_confirmed_course(self, client, app, fake_auth, history_id, form_history_id, type_f_id):
@@ -176,10 +184,11 @@ class TestExportEvaluations:
         _api_update_history_evaluation(client, history_id, form_history_id, type_f_id)
         evaluation = _api_get_evaluation(client, history_id, '30643', '326054')
         _api_update_evaluation(client, history_id, params={'evaluationIds': [evaluation['id']], 'action': 'confirm'})
+
         with mock_s3_bucket(app) as s3:
             _api_export_evaluations(client)
             exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
-            assert len(exported_objects) == 4
+            assert len(exported_objects) == 6
 
             courses = _read_csv(exported_objects, '/courses.csv')
             assert len(courses) == 2
@@ -198,6 +207,20 @@ class TestExportEvaluations:
             assert len(instructors) == 2
             assert instructors[0] == 'LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS,BLUE_ROLE'
             assert instructors[1] == '326054,4159446,Kjsyobkui,Nxvlusjof,ietkoqrg@berkeley.edu,23'
+
+            course_students = _read_csv(exported_objects, '/course_students.csv')
+            assert len(course_students) == 4
+            assert course_students[0] == 'COURSE_ID,LDAP_UID'
+            assert course_students[1] == '2022-B-30643,77777'
+            assert course_students[2] == '2022-B-30643,88888'
+            assert course_students[3] == '2022-B-30643,99999'
+
+            students = _read_csv(exported_objects, '/students.csv')
+            assert len(students) == 4
+            assert students[0] == 'LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS'
+            assert students[1] == '77777,12377777,Sutherland,Northen,snorthen@berkeley.edu'
+            assert students[2] == '88888,12388888,Archy,Goforth,agoforth1@berkeley.edu'
+            assert students[3] == '99999,12399999,Georgi,Prudence,gprudence2@berkeley.edu'
 
     @mock_s3
     def test_supervisors_export(self, client, app, fake_auth):
