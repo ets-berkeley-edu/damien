@@ -1,0 +1,23 @@
+[
+  {
+    "uid": "77777",
+    "csid": "12377777",
+    "first_name": "Sutherland",
+    "last_name": "Northen",
+    "email": "snorthen@berkeley.edu"
+  },
+  {
+    "uid": "88888",
+    "csid": "12388888",
+    "first_name": "Archy",
+    "last_name": "Goforth",
+    "email": "agoforth1@berkeley.edu"
+  },
+  {
+    "uid": "99999",
+    "csid": "12399999",
+    "first_name": "Georgi",
+    "last_name": "Prudence",
+    "email": "gprudence2@berkeley.edu"
+  }
+]

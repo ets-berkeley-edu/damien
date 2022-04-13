@@ -80,16 +80,55 @@ def refresh_additional_instructors(uids=None):
         return False
 
 
+def get_confirmed_enrollments(term_id):
+    query = """SELECT enr.course_number, enr.ldap_uid
+               FROM unholy_loch.sis_enrollments enr
+               JOIN evaluations eval
+               ON enr.term_id = :term_id AND eval.term_id = :term_id
+               AND enr.course_number = eval.course_number
+               AND eval.status = 'confirmed'
+               ORDER BY enr.course_number, enr.ldap_uid"""
+    results = db.session().execute(
+        text(query),
+        {'term_id': term_id},
+    ).all()
+    app.logger.info(f'Unholy loch confirmed enrollments query returned {len(results)} results')
+    return results
+
+
+def get_loch_basic_attributes(uids):
+    if os.environ.get('DAMIEN_ENV') == 'test':
+        return _read_fixture(f"{app.config['FIXTURES_PATH']}/loch_ness/basic_attributes_for_uids.json") if uids else []
+
+    query = f"""SELECT * FROM dblink('{app.config['DBLINK_NESSIE_RDS']}',$NESSIE$
+                SELECT ldap_uid, sid, first_name, last_name, email_address
+                  FROM sis_data.basic_attributes
+                  WHERE ldap_uid = ANY(:uids)
+            $NESSIE$)
+            AS nessie_basic_attributes (
+                uid VARCHAR,
+                csid VARCHAR,
+                first_name VARCHAR,
+                last_name VARCHAR,
+                email VARCHAR
+            )
+            """
+    try:
+        results = db.session().execute(
+            text(query),
+            {'uids': uids},
+        ).all()
+        app.logger.info(f'Loch Ness basic attributes query returned {len(results)} results for {len(uids)} uids.')
+        return results
+    except Exception as e:
+        app.logger.exception(e)
+
+
 def get_loch_basic_attributes_by_uid_or_name(snippet, limit=20, exclude_uids=None):
     if not snippet:
         return []
     if os.environ.get('DAMIEN_ENV') == 'test':
-        fixture_path = f"{app.config['FIXTURES_PATH']}/loch_ness/basic_attributes_for_snippet_{snippet}.json"
-        results = []
-        if os.path.isfile(fixture_path):
-            with open(fixture_path) as f:
-                results = json.load(f)
-        return results
+        return _read_fixture(f"{app.config['FIXTURES_PATH']}/loch_ness/basic_attributes_for_snippet_{snippet}.json")
 
     query_filter, params = parse_search_snippet(snippet)
     params['limit'] = limit
@@ -229,4 +268,12 @@ def get_loch_sections_by_ids(term_id, course_numbers):
         {'term_id': term_id, 'course_numbers': course_numbers},
     ).all()
     app.logger.info(f'Unholy loch course query returned {len(results)} results: {query}')
+    return results
+
+
+def _read_fixture(fixture_path):
+    results = []
+    if os.path.isfile(fixture_path):
+        with open(fixture_path) as f:
+            results = json.load(f)
     return results
