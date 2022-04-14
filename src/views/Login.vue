@@ -94,6 +94,19 @@ export default {
 </script>
 
 <style scoped>
+.accent-border {
+  border: 1px solid #F04A00 !important;
+}
+.background-lecture-hall {
+  background: url('~@/assets/lecture_hall_background.jpg') no-repeat center;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+.frosted {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
 h1 strong {
   display: block;
   font-size: 65%;

@@ -92,7 +92,9 @@
             :on-cancel="onCancelAddContact"
           />
         </v-col>
-        <v-col cols="12" md="7"><DepartmentNote /></v-col>
+        <v-col cols="12" md="7">
+          <DepartmentNote v-if="$currentUser.isAdmin" />
+        </v-col>
       </v-row>
     </v-container>
     <v-row>
@@ -131,7 +133,7 @@
                   class="input-override"
                   :value="inputValue"
                   v-on="inputEvents"
-                /> 
+                />
               </template>
             </c-date-picker>
           </div>
@@ -292,7 +294,7 @@ export default {
           if (e.crossListedWith && e.foreignDepartmentCourse) {
             e.sortableCourseNumber = `${e.crossListedWith}-${e.courseNumber}`
           } else if (e.roomSharedWith && e.foreignDepartmentCourse) {
-            e.sortableCourseNumber = `${e.roomSharedWith}-${e.courseNumber}`          
+            e.sortableCourseNumber = `${e.roomSharedWith}-${e.courseNumber}`
           } else {
             e.sortableCourseNumber = e.courseNumber
           }

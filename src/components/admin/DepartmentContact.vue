@@ -46,6 +46,7 @@
           </v-chip>
         </div>
         <v-toolbar
+          v-if="$currentUser.isAdmin"
           :id="`dept-contact-${contact.id}-actions`"
           flat
           height="unset"
