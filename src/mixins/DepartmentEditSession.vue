@@ -5,6 +5,7 @@ export default {
   name: 'DepartmentEditSession',
   computed: {
     ...mapGetters('departmentEditSession', [
+      'allDepartmentForms',
       'contacts',
       'departmentId',
       'disableControls',

@@ -182,4 +182,5 @@ class User(Base):
             'updatedAt': isoformat(self.updated_at),
             'deletedAt': isoformat(self.deleted_at),
             'lastLoginAt': isoformat(self.login_at),
+            'departmentForms': [udf.to_api_json() for udf in self.department_forms],
         }

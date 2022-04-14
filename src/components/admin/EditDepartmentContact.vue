@@ -75,6 +75,52 @@
           label="View reports and response rates"
         ></v-radio>
       </v-radio-group>
+      <legend :for="`autocomplete-select-deptForms-${contactId}`" class="form-label">
+        Department Forms
+      </legend>
+      <div :id="`deptForms-${contactId}`">
+        <v-autocomplete
+          :id="`autocomplete-select-deptForms-${contactId}`"
+          v-model="contactDepartmentForms"
+          :auto-select-first="true"
+          chips
+          class="mt-2 v-list-item-group"
+          color="tertiary"
+          deletable-chips
+          dense
+          :hide-no-data="true"
+          hide-selected
+          item-text="name"
+          item-value="id"
+          :items="allDepartmentForms"
+          :menu-props="{contentClass: `menu-deptForms-${contactId} v-sheet--outlined`}"
+          multiple
+          no-data-text="No results found."
+          no-filter
+          outlined
+          return-object
+        >
+          <template v-slot:selection="data">
+            <v-chip
+              :id="`selected-deptForm-${data.item.id}-${contactId}`"
+              class="px-4 my-1"
+              close
+              :close-label="`Remove ${data.item.name} from ${fullName}'s department forms`"
+              :ripple="false"
+              @click:close="remove(data.item)"
+            >
+              {{ data.item.name }}
+            </v-chip>
+          </template>
+          <template v-slot:item="data">
+            <v-list-item-content
+              :id="`deptForm-${data.item.id}-${contactId}`"
+              class="pa-0"
+              v-text="data.item.name"
+            />
+          </template>
+        </v-autocomplete>
+      </div>
     </div>
     <v-btn
       :id="`save-dept-contact-${contactId}-btn`"
@@ -128,6 +174,7 @@ export default {
   data: () => ({
     canReceiveCommunications: true,
     csid: undefined,
+    contactDepartmentForms: undefined,
     email: undefined,
     emailRules: [
       v => !!v || 'E-mail is required',
@@ -151,6 +198,11 @@ export default {
   created() {
     this.populateForm(this.contact)
     this.alertScreenReader(`${this.contact ? 'Edit' : 'Add'} department contact form is ready`)
+    if (this.contact) {
+      this.$putFocusNextTick(`input-email-${this.contactId}`)
+    } else {
+      this.$putFocusNextTick('input-person-lookup-autocomplete')
+    }
   },
   methods: {
     onSave() {
@@ -160,6 +212,7 @@ export default {
         'canViewReports': this.permissions === 'reports_only',
         'canViewResponseRates': this.permissions === 'response_rates',
         'csid': this.csid,
+        'departmentForms': this.contactDepartmentForms,
         'email': this.email,
         'firstName': this.firstName,
         'lastName': this.lastName,
@@ -173,6 +226,7 @@ export default {
     populateForm(contact) {
       if (contact) {
         this.csid = contact.csid
+        this.contactDepartmentForms = this.$_.cloneDeep(contact.departmentForms)
         this.email = contact.email
         this.firstName = contact.firstName
         this.lastName = contact.lastName
@@ -188,6 +242,12 @@ export default {
       } else {
         this.$putFocusNextTick('input-person-lookup-autocomplete')
       }
+    },
+    remove(departmentForm) {
+      const formName = departmentForm.name
+      const indexOf = this.$_.indexOf(this.contactDepartmentForms, departmentForm)
+      this.contactDepartmentForms.splice(indexOf, 1)
+      this.alertScreenReader(`Removed ${formName} from ${this.fullName} department forms.`)
     }
   }
 }

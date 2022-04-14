@@ -5,11 +5,11 @@
     :class="{'theme--light v-sheet--outlined': isEditing && !this.$vuetify.theme.dark, 'theme--dark v-sheet--outlined': isEditing && this.$vuetify.theme.dark}"
   >
     <v-expansion-panel-header class="py-1 mb-1 rounded-b-0 height-unset">
-      <strong>{{ fullName }}</strong>
+      <strong :id="`dept-contact-${contact.id}-name`">{{ fullName }}</strong>
     </v-expansion-panel-header>
     <v-expansion-panel-content>
       <div v-if="!isEditing">
-        <div>{{ contact.email }}</div>
+        <div :id="`dept-contact-${contact.id}-email`">{{ contact.email }}</div>
         <div :id="`dept-contact-${contact.id}-notifications`" class="font-italic">
           <v-icon
             class="pb-1"
@@ -32,6 +32,18 @@
           <span v-if="contact.canViewReports">
             {{ `Can view reports ${contact.canViewResponseRates ? 'and response rates ' : ''}in Blue` }}
           </span>
+        </div>
+        <div :id="`dept-contact-${contact.id}-deptForms`">
+          <v-chip
+            v-for="(form, formIndex) in contact.departmentForms"
+            :id="`dept-contact-${contact.id}-form-${formIndex}`"
+            :key="form.id"
+            class="px-4 mr-1 mb-1"
+            disabled
+            :ripple="false"
+          >
+            {{ form.name }}
+          </v-chip>
         </div>
         <v-toolbar
           :id="`dept-contact-${contact.id}-actions`"
