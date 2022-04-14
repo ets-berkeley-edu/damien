@@ -15,20 +15,29 @@
       <v-list nav>
         <v-list-item
           v-for="(item, index) in navItems"
-          :id="`sidebar-link-${item.title}`"
+          :id="`sidebar-link-${index}`"
           :key="index"
           class="primary-contrast--text"
           link
           @click="toRoute(item.path)"
         >
           <v-list-item-icon>
-            <component :is="item.icon" />
+            <template v-if="typeof item.icon === 'string'">
+              <v-icon color="primary-contrast">{{ item.icon }}</v-icon>
+            </template>
+            <template v-else>
+              <component :is="item.icon" />
+            </template>
           </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
+          <v-list-item-content class="sidebar-link-content">
+            <v-list-item-title class="text-wrap">{{ item.title }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item class="primary-contrast--text" @click="toggleColorScheme">
+        <v-list-item
+          :id="`sidebar-link-${$_.size(navItems)}`"
+          class="primary-contrast--text"
+          @click="toggleColorScheme"
+        >
           <v-list-item-icon>
             <DarkModeIcon />
           </v-list-item-icon>
@@ -121,6 +130,15 @@
           { title: 'Group Management', icon: GroupIcon, path: '/departments' },
           { title: 'List Management', icon: ListIcon, path: '/lists' }
         ]
+      } else if (this.$_.size(this.$currentUser.departments)) {
+        this.navItems = this.$_.map(this.$currentUser.departments, department => {
+          const firstInitial = department.name.charAt(0).toLowerCase()
+          return {
+            title: department.name,
+            icon: `mdi-alpha-${firstInitial}-circle`,
+            path: `/department/${department.id}`
+          }
+        })
       }
     },
     methods: {
@@ -145,6 +163,9 @@
 <style scoped>
 .nav {
   z-index: 9 !important;
+}
+.sidebar-link-content {
+  height: 56px;
 }
 .sr-debug {
   width: fit-content;

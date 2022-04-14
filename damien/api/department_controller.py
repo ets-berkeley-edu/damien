@@ -38,7 +38,7 @@ from damien.models.evaluation import Evaluation
 from damien.models.evaluation_type import EvaluationType
 from damien.models.supplemental_section import SupplementalSection
 from flask import current_app as app, request
-from flask_login import current_user, login_required
+from flask_login import login_required
 
 
 @app.route('/api/department/<department_id>/section', methods=['POST'])
@@ -76,7 +76,7 @@ def get_department(department_id):
     if term_id not in available_term_ids():
         raise BadRequestError('Invalid term id.')
     feed = department.to_api_json(
-        include_contacts=current_user.is_admin,
+        include_contacts=True,
         include_evaluations=True,
         term_id=term_id,
     )

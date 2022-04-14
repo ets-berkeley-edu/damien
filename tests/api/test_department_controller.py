@@ -115,7 +115,7 @@ class TestGetDepartment:
         assert department['deptName'] == 'Philosophy'
         assert department['isEnrolled'] is True
         assert department['notes'] == {}
-        assert 'contacts' not in department
+        assert 'contacts' in department
 
     def test_admin_authorized(self, client, fake_auth):
         """Returns response including dept contacts to admin user."""
