@@ -17,6 +17,10 @@ export function getDepartmentsEnrolled(includeContacts: boolean, includeSections
   return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/departments/enrolled?c=${includeContacts ? 1 : 0}&s=${includeSections ? 1 : 0}`)
 }
 
+export function getSectionEvaluations(departmentId: number, courseNumber: string) {
+  return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/section_evaluations/${courseNumber}`)
+}
+
 export function notifyContacts(message: string, recipient: string[], subject: string) {
   return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/department/contacts/notify`, {message, recipient, subject}).then(response => response.data, () => null)
 }

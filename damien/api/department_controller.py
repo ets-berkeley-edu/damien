@@ -83,6 +83,21 @@ def get_department(department_id):
     return tolerant_jsonify(feed)
 
 
+@app.route('/api/department/<department_id>/section_evaluations/<section_id>')
+@login_required
+def get_section_evaluations(department_id, section_id):
+    department = Department.find_by_id(int(department_id))
+    if not department:
+        raise ResourceNotFoundError(f'Department {department_id} not found.')
+    term_id = get_param(request.args, 'term_id', app.config['CURRENT_TERM_ID'])
+    if term_id not in available_term_ids():
+        raise BadRequestError('Invalid term id.')
+    if not section_id or not re.match(r'\d{5}\Z', section_id):
+        raise BadRequestError('Missing or invalid course number.')
+    feed = department.evaluations_feed(term_id, section_id=section_id)
+    return tolerant_jsonify(feed)
+
+
 @app.route('/api/department/<department_id>/note', methods=['POST'])
 @admin_required
 def update_note(department_id):
@@ -133,7 +148,7 @@ def update_evaluations(department_id):
         raise BadRequestError('Invalid update action.')
     if not updated_ids:
         raise BadRequestError('Evaluation ids could not be updated.')
-    response = department.evaluations_feed(app.config['CURRENT_TERM_ID'], updated_ids)
+    response = department.evaluations_feed(app.config['CURRENT_TERM_ID'], evaluation_ids=updated_ids)
     return tolerant_jsonify(response)
 
 

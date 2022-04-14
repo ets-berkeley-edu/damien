@@ -226,12 +226,20 @@
                     <v-btn
                       class="ma-1"
                       color="primary"
-                      :disabled="!rowValid"
+                      :disabled="!rowValid || saving"
                       @click.prevent="saveEvaluation(evaluation)"
                     >
-                      Save
+                      <span v-if="!saving">Save</span>
+                      <v-progress-circular
+                        v-if="saving"
+                        :indeterminate="true"
+                        color="white"
+                        rotate="5"
+                        size="20"
+                        width="3"
+                      ></v-progress-circular>
                     </v-btn>
-                    <v-btn class="ma-1" @click="cancelEdit">Cancel</v-btn>
+                    <v-btn class="ma-1" :disabled="saving" @click="clearEdit">Cancel</v-btn>
                   </div>
                 </td>
               </tr>
@@ -291,6 +299,7 @@ export default {
       currentTermDate: null,
       instructorUid: null
     },
+    saving: false,
     searchFilter: '',
     selectedDepartmentForm: null,
     selectedEvaluationType: null,
@@ -303,9 +312,10 @@ export default {
     }
   },
   methods: {
-    cancelEdit() {
+    clearEdit() {
       this.editRowId = null
       this.pendingInstructor = null
+      this.saving = false
       this.selectedDepartmentForm = null
       this.selectedEvaluationType = null
       this.selectedStartDate = null
@@ -338,8 +348,6 @@ export default {
       }
     },
     isEditing(evaluation) {
-      console.log(evaluation.courseNumber)
-      console.log(evaluation.evaluationPeriod.modularCutoff)
       return this.editRowId === evaluation.id
     },
     filterEnabled(evaluation) {
@@ -350,6 +358,7 @@ export default {
       this.pendingInstructor = instructor
     },
     saveEvaluation(evaluation) {
+      this.saving = true
       const fields = {
         'departmentFormId': this.$_.get(this.selectedDepartmentForm, 'id'),
         'evaluationTypeId': this.selectedEvaluationType,
@@ -359,7 +368,7 @@ export default {
         const duration = evaluation.evaluationPeriod.modularCutoff > this.selectedStartDate ? 13 : 20
         fields.endDate = this.$moment(this.selectedStartDate).add(duration, 'days').format('YYYY-MM-DD')
       }
-      this.updateEvaluation(evaluation.id, fields)
+      this.updateEvaluation(evaluation.id, evaluation.courseNumber, fields).then(this.clearEdit)
     },
     toggleFilter(type) {
       const filter = this.filterTypes[type]

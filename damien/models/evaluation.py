@@ -239,7 +239,7 @@ class Evaluation(Base):
     def duplicate_bulk(cls, department_id, evaluation_ids, department, fields=None):
         original_feed = []
         if fields:
-            original_feed = department.evaluations_feed(app.config['CURRENT_TERM_ID'], evaluation_ids)
+            original_feed = department.evaluations_feed(app.config['CURRENT_TERM_ID'], evaluation_ids=evaluation_ids)
 
         evaluations = []
         for evaluation_id in evaluation_ids:

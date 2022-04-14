@@ -145,14 +145,19 @@ class Department(Base):
         sections.extend(get_room_shares(term_id, course_numbers))
         sections.extend(get_cross_listings(term_id, course_numbers))
 
-    def get_visible_sections(self, term_id=None):
+    def get_visible_sections(self, term_id=None, section_id=None):
         sections = []
         term_id = term_id or app.config['CURRENT_TERM_ID']
 
-        # Sections included in the department by default.
-        default_loch_sections = self.get_department_sections(term_id)
-        # Sections that have been manually added.
-        supplemental_loch_sections = self.get_supplemental_sections(term_id)
+        if section_id:
+            # If we're fetching a feed for a specific section only, grab matching rows.
+            default_loch_sections = get_loch_sections_by_ids(term_id, [section_id])
+            supplemental_loch_sections = []
+        else:
+            # Otherwise grab everything in the department. First, sections included in the department by default.
+            default_loch_sections = self.get_department_sections(term_id)
+            # Next, sections that have been manually added.
+            supplemental_loch_sections = self.get_supplemental_sections(term_id)
 
         supplemental_section_ids = set()
         sections_by_number = {k: list(v) for k, v in groupby(default_loch_sections, key=lambda r: r['course_number'])}
@@ -189,10 +194,12 @@ class Department(Base):
 
         all_eval_types = {et.name: et for et in EvaluationType.query.all()}
 
+        def _is_loch_row_visible(row):
+            return Section.is_visible_by_default(row) or row['course_number'] in supplemental_section_ids or row['course_number'] == section_id
+
         for course_number in sorted(sections_by_number.keys()):
             section_evaluations = evaluations.get(course_number, [])
-            visible_loch_rows = [
-                r for r in sections_by_number[course_number] if Section.is_visible_by_default(r) or course_number in supplemental_section_ids]
+            visible_loch_rows = [r for r in sections_by_number[course_number] if _is_loch_row_visible(r)]
             if len(visible_loch_rows):
                 sections.append(Section(
                     visible_loch_rows,
@@ -201,9 +208,12 @@ class Department(Base):
                     catalog_listings=self.catalog_listings,
                     evaluation_type_cache=all_eval_types,
                 ))
-        self.row_count = len(sections)
-        db.session.add(self)
-        std_commit()
+
+        if not section_id:
+            self.row_count = len(sections)
+            db.session.add(self)
+            std_commit()
+
         return {'sections': sections, 'instructors': instructors}
 
     def get_evaluation_exports(self, term_id, evaluation_ids):
@@ -212,7 +222,6 @@ class Department(Base):
             'instructors': {},
             'sections': {},
         }
-
         vs = self.get_visible_sections(term_id)
         for s in vs['sections']:
             section_evaluation_exports = s.get_evaluation_exports(department=self, evaluation_ids=evaluation_ids)
@@ -226,9 +235,9 @@ class Department(Base):
 
         return exports
 
-    def evaluations_feed(self, term_id=None, evaluation_ids=None):
+    def evaluations_feed(self, term_id=None, section_id=None, evaluation_ids=None):
         feed = []
-        for s in self.get_visible_sections(term_id)['sections']:
+        for s in self.get_visible_sections(term_id, section_id)['sections']:
             feed.extend(s.get_evaluation_feed(department=self, evaluation_ids=evaluation_ids))
         return feed
 

@@ -175,7 +175,7 @@
 </template>
 
 <script>
-import {addSection, updateEvaluations} from '@/api/departments'
+import {addSection, getSectionEvaluations, updateEvaluations} from '@/api/departments'
 import AddCourseSection from '@/components/evaluation/AddCourseSection.vue'
 import Context from '@/mixins/Context.vue'
 import DepartmentContact from '@/components/admin/DepartmentContact'
@@ -303,11 +303,21 @@ export default {
         this.$ready(`${this.department.deptName} ${this.$_.get(this.selectedTerm, 'name')}`, screenreaderAlert)
       })
     },
-    updateEvaluation(evaluationId, fields) {
-      this.$loading()
+    updateEvaluation(evaluationId, sectionId, fields) {
       this.alertScreenReader('Saving evaluation row.')
-      updateEvaluations(this.department.id, 'edit', [evaluationId], fields).then(() => {
-        this.refresh()
+      return new Promise(resolve => {
+        updateEvaluations(this.department.id, 'edit', [evaluationId], fields).then(() => {
+          getSectionEvaluations(this.department.id, sectionId).then(data => {
+            let sectionIndex = this.$_.findIndex(this.evaluations, ['courseNumber', sectionId])
+            if (sectionIndex === -1) {
+              sectionIndex = this.evaluations.length
+            }
+            const sectionCount = this.$_.filter(this.evaluations, ['courseNumber', sectionId]).length
+            this.evaluations.splice(sectionIndex, sectionCount, ...data)
+            this.alertScreenReader('Changes saved.')
+            resolve()
+          })
+        })
       })
     },
     updateEvaluationsSelected() {
