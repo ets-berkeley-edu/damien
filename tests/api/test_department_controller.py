@@ -193,6 +193,14 @@ class TestGetDepartment:
         assert home_dept_row['roomSharedWith'] == '32159'
         assert home_dept_row['departmentForm'] is None
 
+    def test_single_section_feed(self, client, fake_auth, melc_id):
+        fake_auth.login(non_admin_uid)
+        response = client.get(f'/api/department/{melc_id}/section_evaluations/30470')
+        assert response.status_code == 200
+        assert len(response.json) == 2
+        for e in response.json:
+            assert e['courseNumber'] == '30470'
+
 
 def _api_update_evaluation(client, dept_id=None, params={}, expected_status_code=200):
     if dept_id is None:
