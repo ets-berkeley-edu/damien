@@ -1,6 +1,13 @@
 import _ from 'lodash'
 import {deleteContact, getDepartment, updateContact, updateDepartmentNote} from '@/api/departments'
+import {getDepartmentForms} from '@/api/departmentForms'
 import Vue from 'vue'
+
+const $_getDepartmentForms = async function(commit) {
+  getDepartmentForms().then((departmentForms: any) => {
+    commit('setAllDepartmentForms', departmentForms)
+  })
+}
 
 const $_refresh = (commit, {departmentId, termId}) => {
   return new Promise<void>(resolve => {
@@ -12,6 +19,7 @@ const $_refresh = (commit, {departmentId, termId}) => {
 }
 
 const state = {
+  allDepartmentForms: [],
   contacts: [],
   departmentId: undefined,
   disableControls: false,
@@ -20,6 +28,7 @@ const state = {
 }
 
 const getters = {
+  allDepartmentForms: (state: any): any[] => state.allDepartmentForms,
   contacts: (state: any): any[] => state.contacts,
   departmentId: (state: any): number => state.departmentId,
   disableControls: (state: any): boolean => state.disableControls,
@@ -35,6 +44,7 @@ const actions = {
     })
   },
   init: ({commit}, {departmentId: departmentId, termId: termId}) => {
+    $_getDepartmentForms(commit)
     return new Promise<void>(resolve => {
       $_refresh(commit, {departmentId, termId}).then(department => resolve(department))
     })
@@ -67,6 +77,7 @@ const mutations = {
     state.selectedTerm = _.find(Vue.prototype.$config.availableTerms, {'id': termId})
     state.disableControls = false
   },
+  setAllDepartmentForms: (state: any, departmentForms: any[]) => state.allDepartmentForms = departmentForms,
   setDisableControls: (state: any, disable: boolean) => state.disableControls = disable
 }
 

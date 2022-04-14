@@ -39,10 +39,10 @@ class UserDepartmentForm(Base):
 
     def __init__(
         self,
-        department_id,
+        department_form_id,
         user_id,
     ):
-        self.department_id = department_id
+        self.department_form_id = department_form_id
         self.user_id = user_id
 
     def __repr__(self):
@@ -75,9 +75,18 @@ class UserDepartmentForm(Base):
     def find_by_user_id(cls, user_id):
         return cls.query.filter_by(user_id=user_id).all()
 
+    @classmethod
+    def update(cls, department_forms, user_id):
+        department_form_ids = set(df['id'] for df in department_forms) if department_forms else set()
+        existing_department_form_ids = set(udf.department_form_id for udf in cls.find_by_user_id(user_id))
+        department_form_ids_to_delete = existing_department_form_ids - department_form_ids
+        department_form_ids_to_add = department_form_ids - existing_department_form_ids
+
+        for department_form_id in department_form_ids_to_delete:
+            cls.delete(department_form_id, user_id)
+
+        for department_form_id in department_form_ids_to_add:
+            cls.create(department_form_id, user_id)
+
     def to_api_json(self):
-        return {
-            'userId': self.user_id,
-            'departmentFormId': self.department_form_id,
-            **self.departmentForm.to_api_json(),
-        }
+        return self.department_form.to_api_json()
