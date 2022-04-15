@@ -67,6 +67,7 @@ const router = new Router({
         {
           path: '/department/:departmentId',
           component: Department,
+          beforeEnter: auth.requiresDepartmentMembership,
           meta: {
             title: 'Department'
           }

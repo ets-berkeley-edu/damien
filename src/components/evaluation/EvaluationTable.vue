@@ -43,7 +43,7 @@
         <tbody>
           <template v-for="(evaluation, evaluationId) in items">
             <v-hover v-if="filterEnabled(evaluation)" v-slot="{ hover }" :key="evaluation.id">
-              <tr 
+              <tr
                 class="evaluation-row"
                 :class="evaluationClass(evaluation, hover)"
               >
@@ -98,7 +98,7 @@
                 </td>
                 <td>
                   <div :id="`evaluation-${evaluationId}-courseName`">
-                    {{ evaluation.subjectArea }} 
+                    {{ evaluation.subjectArea }}
                     {{ evaluation.catalogId }}
                     {{ evaluation.instructionFormat }}
                     {{ evaluation.sectionNumber }}
@@ -216,7 +216,7 @@
                           class="input-override"
                           :value="inputValue"
                           v-on="inputEvents"
-                        /> 
+                        />
                       </template>
                     </c-date-picker>
                   </div>
@@ -338,8 +338,6 @@ export default {
       }
     },
     isEditing(evaluation) {
-      console.log(evaluation.courseNumber)
-      console.log(evaluation.evaluationPeriod.modularCutoff)
       return this.editRowId === evaluation.id
     },
     filterEnabled(evaluation) {
