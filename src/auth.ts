@@ -29,5 +29,15 @@ export default {
     } else {
       $_goToLogin(to, next)
     }
+  },
+  requiresDepartmentMembership: (to: any, from: any, next: any) => {
+    const departmentId = _.get(to, 'params.departmentId')
+    if (Vue.prototype.$currentUser.isAdmin || _.some(Vue.prototype.$currentUser.departments, department => {
+      return department.id === _.toInteger(departmentId)
+    })) {
+      next()
+    } else {
+      next('/404')
+    }
   }
 }
