@@ -163,6 +163,9 @@ def get_all_users():
             dept_roles.append(role)
         user = User(data, dept_roles)
         users.append(user)
+        app.logger.info(f'{vars(user)}')
+        for r in user.dept_roles:
+            app.logger.info(f'{vars(r)}')
     return users
 
 
@@ -181,6 +184,10 @@ def get_dept_users(dept, all_users=None):
         for r in u.dept_roles:
             if r.dept_id == dept.dept_id:
                 dept_users.append(u)
+    for u in dept_users:
+        app.logger.info(f'{vars(u)}')
+        for r in u.dept_roles:
+            app.logger.info(f'{vars(r)}')
     return dept_users
 
 
