@@ -1,11 +1,22 @@
 <template>
   <v-card class="my-1 pa-2" outlined>
-    <div class="pa-3">
+    <div v-if="isSending">
+      <v-progress-circular
+        class="spinner"
+        :indeterminate="true"
+        rotate="5"
+        size="64"
+        width="4"
+        color="secondary"
+      ></v-progress-circular>
+    </div>
+    <div class="pa-3" :class="isSending ? 'muted--text' : ''">
       <h3>Send Notification</h3>
       <div v-if="selectedRecipients">
         <div class="mt-2 mb-1">Message will be sent to:</div>
         <v-expansion-panels
           class="recipients-container"
+          :disabled="isSending"
           hover
           multiple
           tile
@@ -40,7 +51,7 @@
         </v-expansion-panels>
       </div>
     </div>
-    <v-form class="pa-3">
+    <v-form class="pa-3" :disabled="isSending" :class="isSending ? 'muted--text' : ''">
       <label for="input-notification-subject" class="form-label">
         Subject
       </label>
@@ -149,10 +160,15 @@ export default {
       return false
     },
     sendNotification() {
-      this.alertScreenReader('Sending')
       this.isSending = true
-      notifyContacts(this.message, this.selectedRecipients, this.subject).then(() => {
-        this.afterSend()
+      this.alertScreenReader('Sending')
+      notifyContacts(this.message, this.selectedRecipients, this.subject).then(response => {
+        if (response) {
+          this.afterSend()
+        } else {
+          this.isSending = false
+          this.reportError('Notification failed. Nothing sent.')
+        }
       })
     }
   }
@@ -167,5 +183,17 @@ export default {
 .recipients-container {
   max-height: 300px;
   overflow-y: auto;
+}
+.spinner {
+  bottom: 0;
+  height: 2em;
+  left: 0;
+  margin: auto;
+  overflow: visible;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 2em;
+  z-index: 999;
 }
 </style>
