@@ -35,10 +35,10 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 class DamienPages(Page):
 
-    STATUS_LINK = (By.ID, 'sidebar-link-Status Board')
-    COURSE_ERRORS_BOARD_LINK = (By.ID, 'sidebar-link-Course Errors Board')
-    GRP_MGMT_LINK = (By.ID, 'sidebar-link-Group Management')
-    LIST_MGMT_LINK = (By.ID, 'sidebar-link-List Management')
+    STATUS_LINK = (By.XPATH, '//div[contains(@id, "sidebar-link")][contains(., "Status Board")]')
+    COURSE_ERRORS_BOARD_LINK = (By.XPATH, '//div[contains(@id, "sidebar-link")][contains(., "Course Errors Board")]')
+    GRP_MGMT_LINK = (By.XPATH, '//div[contains(@id, "sidebar-link")][contains(., "Group Management")]')
+    LIST_MGMT_LINK = (By.XPATH, '//div[contains(@id, "sidebar-link")][contains(., "List Management")]')
 
     ADD_CONTACT_LOOKUP_INPUT = (By.ID, 'input-person-lookup-autocomplete')
 
@@ -92,6 +92,16 @@ class DamienPages(Page):
     def click_list_mgmt(self):
         app.logger.info('Clicking link to List Mgmt')
         self.wait_for_element_and_click(DamienPages.LIST_MGMT_LINK)
+
+    @staticmethod
+    def contact_dept_link(dept):
+        return By.XPATH, f'//div[contains(@id, "sidebar-link-")][contains(., "{dept.name}")]'
+
+    def click_contact_dept_link(self, dept):
+        app.logger.info(f'Clicking link for {dept.name}')
+        self.wait_for_element_and_click(DamienPages.contact_dept_link(dept))
+        time.sleep(0.5)
+        self.mouseover(self.element(DamienPages.MENU_BUTTON))
 
     @staticmethod
     def dept_link_loc(dept):

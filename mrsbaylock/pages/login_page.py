@@ -24,12 +24,12 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from flask import current_app as app
-from mrsbaylock.pages.page import Page
+from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
 
 
-class LoginPage(Page):
+class LoginPage(DamienPages):
 
     SIGN_IN_BUTTON = (By.ID, 'log-in')
     USERNAME_INPUT = (By.ID, 'dev-auth-uid')
@@ -54,6 +54,5 @@ class LoginPage(Page):
         self.wait_for_element_and_type(LoginPage.USERNAME_INPUT, uid)
         self.wait_for_element_and_type(LoginPage.PASSWORD_INPUT, app.config['DEVELOPER_AUTH_PASSWORD'])
         self.wait_for_element_and_click(LoginPage.DEV_AUTH_LOGIN_BUTTON)
-        if user and dept and len(user.dept_roles) > 1:
-            self.wait_for_element_and_click(LoginPage.dept_link(dept))
-            self.wait_for_title_contains(dept.name)
+        if dept:
+            self.click_contact_dept_link(dept)

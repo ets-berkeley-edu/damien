@@ -186,7 +186,7 @@ class CourseDashboardEditsPage(CourseDashboards):
     EVAL_CHANGE_DEPT_FORM_OPTION = (By.XPATH, '//div[@id="select-department-form"]//li')
     EVAL_CHANGE_DEPT_FORM_NO_OPTION = (By.XPATH, '//li[contains(text(), "Sorry, no matching options.")]')
     EVAL_CHANGE_EVAL_TYPE_SELECT = (By.ID, 'select-evaluation-type')
-    EVAL_CHANGE_START_DATE_INPUT = (By.XPATH, '//div[contains(text(), "3 weeks starting")]//input')
+    EVAL_CHANGE_START_DATE_INPUT = (By.XPATH, '//div[contains(text(), "3 weeks starting")]/following-sibling::span/input')
 
     def click_eval_checkbox(self, evaluation):
         xpath = f'{self.eval_row_xpath(evaluation)}//input[contains(@id, "checkbox")]'
