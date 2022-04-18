@@ -22,7 +22,10 @@ export function getSectionEvaluations(departmentId: number, courseNumber: string
 }
 
 export function notifyContacts(message: string, recipient: string[], subject: string) {
-  return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/department/contacts/notify`, {message, recipient, subject}).then(response => response.data, () => null)
+  return axios
+    .post(`${Vue.prototype.$config.apiBaseUrl}/api/department/contacts/notify`, {message, recipient, subject})
+    .then(response => response)
+    .catch(() => null)
 }
 
 export function updateContact(departmentId: number, contact: any) {
