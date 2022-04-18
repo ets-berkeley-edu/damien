@@ -24,7 +24,7 @@
         <template #header.data-table-select>
           <div class="d-flex flex-row notify-all">
             <v-simple-checkbox
-              id="'checkbox-select-dept-all'"
+              id="checkbox-select-dept-all"
               :indeterminate="someDepartmentsSelected"
               :ripple="false"
               :value="allDepartmentsSelected"
