@@ -191,6 +191,17 @@ def _validate_evaluation_fields(fields):  # noqa C901
                 validated_fields[k] = False
             else:
                 raise BadRequestError(f'Invalid midterm value {v}')
+        elif k == 'status':
+            if v is None:
+                validated_fields[k] = None
+            elif v == 'review':
+                validated_fields[k] = 'marked'
+            elif v == 'confirmed':
+                validated_fields[k] = 'confirmed'
+            elif v == 'ignore':
+                validated_fields[k] = 'ignore'
+            else:
+                raise BadRequestError(f'Invalid status value {v}')
         else:
             raise BadRequestError(f"Evaluation field '{k}' not recognized.")
     return validated_fields

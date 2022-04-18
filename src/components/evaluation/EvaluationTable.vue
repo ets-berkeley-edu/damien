@@ -33,6 +33,7 @@
     </v-row>
     <v-data-table
       id="evaluation-table"
+      class="scrollable-table"
       disable-pagination
       :headers="headers"
       :search="searchFilter"
@@ -54,6 +55,7 @@
                 </td>
                 <td v-if="!readonly">
                   <v-checkbox
+                    v-if="!isEditing(evaluation)"
                     :id="`evaluation-${evaluationId}-checkbox`"
                     v-model="evaluation.isSelected"
                     :disabled="editRowId === evaluation.id"
@@ -63,14 +65,14 @@
                 </td>
                 <td :id="`evaluation-${evaluationId}-status`">
                   <div
-                    v-if="(!hover || readonly || isEditing(evaluation)) && evaluation.status"
+                    v-if="!isEditing(evaluation) && (!hover || readonly) && evaluation.status"
                     class="pill"
                     :class="evaluationPillClass(evaluation)"
                   >
                     {{ evaluation.status }}
                   </div>
                   <div
-                    v-if="(hover && !readonly && !isEditing(evaluation)) || !evaluation.status"
+                    v-if="!isEditing(evaluation) && ((hover && !readonly) || !evaluation.status)"
                     class="pill pill-invisible"
                   >
                     <v-btn
@@ -83,6 +85,14 @@
                       Edit
                     </v-btn>
                   </div>
+                  <select
+                    v-if="isEditing(evaluation)"
+                    id="select-evaluation-status"
+                    v-model="selectedEvaluationStatus"
+                    class="native-select-override"
+                  >
+                    <option v-for="s in evaluationStatuses" :key="s.text" :value="s.value">{{ s.text }}</option>
+                  </select>
                 </td>
                 <td :id="`evaluation-${evaluationId}-lastUpdated`">
                   {{ evaluation.lastUpdated | moment('MM/DD/YYYY') }}
@@ -221,29 +231,42 @@
                     </c-date-picker>
                   </div>
                 </td>
-                <td v-if="!readonly">
-                  <div class="d-flex align-center" :class="{'hidden': !isEditing(evaluation)}">
-                    <v-btn
-                      class="ma-1"
-                      color="primary"
-                      :disabled="!rowValid || saving"
-                      @click.prevent="saveEvaluation(evaluation)"
-                    >
-                      <span v-if="!saving">Save</span>
-                      <v-progress-circular
-                        v-if="saving"
-                        :indeterminate="true"
-                        color="white"
-                        rotate="5"
-                        size="20"
-                        width="3"
-                      ></v-progress-circular>
-                    </v-btn>
-                    <v-btn class="ma-1" :disabled="saving" @click="clearEdit">Cancel</v-btn>
-                  </div>
-                </td>
               </tr>
             </v-hover>
+            <tr v-if="isEditing(evaluation)" :key="`${evaluation.id}-edit`" class="secondary white--text border-top-none">
+              <td></td>
+              <td colspan="8">
+                <div class="d-flex justify-end">
+                  <v-btn
+                    id="save-evaluation-edit-btn"
+                    class="ma-2 evaluation-edit-btn"
+                    color="primary"
+                    width="150px"
+                    :disabled="!rowValid || saving"
+                    @click.prevent="saveEvaluation(evaluation)"
+                  >
+                    <span v-if="!saving">Save</span>
+                    <v-progress-circular
+                      v-if="saving"
+                      :indeterminate="true"
+                      color="white"
+                      rotate="5"
+                      size="20"
+                      width="3"
+                    ></v-progress-circular>
+                  </v-btn>
+                  <v-btn
+                    id="cancel-evaluation-edit-btn"
+                    class="ma-2 evaluation-edit-btn"
+                    :disabled="saving"
+                    width="150px"
+                    @click="clearEdit"
+                  >
+                    Cancel
+                  </v-btn>
+                </div>
+              </td>
+            </tr>
           </template>
         </tbody>
       </template>
@@ -275,6 +298,12 @@ export default {
   data: () => ({
     departmentForms: [],
     editRowId: null,
+    evaluationStatuses: [
+      {text: 'Unmarked', value: null},
+      {text: 'Review', value: 'review'},
+      {text: 'Confirmed', value: 'confirmed'},
+      {text: 'Ignore', value: 'ignore'}
+    ],
     evaluationTypes: [],
     filterTypes: {
       'unmarked': {label: 'Unmarked', enabled: true},
@@ -285,13 +314,12 @@ export default {
     headers: [
       {text: 'Status', value: 'status'},
       {text: 'Last Updated', value: 'lastUpdated'},
-      {text: 'Course Number', value: 'sortableCourseNumber', width: '100px'},
+      {text: 'Course Number', value: 'sortableCourseNumber', width: '90px'},
       {text: 'Course Name', value: 'sortableCourseName', width: '200px'},
       {text: 'Instructor', value: 'sortableInstructor'},
-      {text: 'Department Form', value: 'departmentForm.name', width: '180px'},
-      {text: 'Evaluation Type', value: 'evaluationType.name'},
-      {text: 'Evaluation Period', value: 'evaluationPeriod.start', width: '200px'},
-      {text: ''}
+      {text: 'Department Form', value: 'departmentForm.name', width: '170px'},
+      {text: 'Evaluation Type', value: 'evaluationType.name', width: '100px'},
+      {text: 'Evaluation Period', value: 'evaluationPeriod.start', width: '200px'}
     ],
     pendingInstructor: null,
     readonly: false,
@@ -302,6 +330,7 @@ export default {
     saving: false,
     searchFilter: '',
     selectedDepartmentForm: null,
+    selectedEvaluationStatus: null,
     selectedEvaluationType: null,
     selectedStartDate: null
   }),
@@ -317,6 +346,7 @@ export default {
       this.pendingInstructor = null
       this.saving = false
       this.selectedDepartmentForm = null
+      this.selectedEvaluationStatus = null
       this.selectedEvaluationType = null
       this.selectedStartDate = null
     },
@@ -327,6 +357,7 @@ export default {
       this.editRowId = evaluation.id
       this.pendingInstructor = evaluation.instructor
       this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm')
+      this.selectedEvaluationStatus = this.$_.get(evaluation, 'status')
       this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
       this.selectedStartDate = evaluation.evaluationPeriod.start
     },
@@ -334,7 +365,7 @@ export default {
       return {
         'evaluation-row-confirmed': evaluation.id !== this.editRowId && evaluation.status === 'confirmed',
         'evaluation-row-ignore muted--text': evaluation.id !== this.editRowId && evaluation.status === 'ignore',
-        'secondary white--text': evaluation.id === this.editRowId,
+        'secondary white--text border-bottom-none': evaluation.id === this.editRowId,
         'evaluation-row-review': evaluation.id !== this.editRowId && evaluation.status === 'review',
         'evaluation-row-xlisting': evaluation.id !== this.editRowId && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith),
         'primary-contrast primary--text': hover && !this.readonly && !this.isEditing(evaluation)
@@ -362,7 +393,8 @@ export default {
       const fields = {
         'departmentFormId': this.$_.get(this.selectedDepartmentForm, 'id'),
         'evaluationTypeId': this.selectedEvaluationType,
-        'instructorUid': this.$_.get(this.pendingInstructor, 'uid')
+        'instructorUid': this.$_.get(this.pendingInstructor, 'uid'),
+        'status': this.selectedEvaluationStatus
       }
       if (this.selectedStartDate) {
         const duration = evaluation.evaluationPeriod.modularCutoff > this.selectedStartDate ? 13 : 20
@@ -414,6 +446,14 @@ export default {
 </script>
 
 <style>
+tr.border-bottom-none td {
+  border-bottom: none !important;  
+}
+
+tr.border-top-none td {
+  border-top: none !important;  
+}
+
 .evaluation-input .v-messages__message {
   color: #fff !important;
 }
@@ -451,6 +491,9 @@ export default {
 </style>
 
 <style scoped>
+.evaluation-edit-btn {
+  width: 150px;
+}
 .evaluation-error {
   font-size: 0.8em;
   font-style: italic;
@@ -489,6 +532,10 @@ export default {
 }
 .pill-review {
   background-color: #595;
+}
+.scrollable-table {
+  max-height: 500px;
+  overflow-y: scroll;
 }
 .xlisting-note {
   font-size: 0.8em;
