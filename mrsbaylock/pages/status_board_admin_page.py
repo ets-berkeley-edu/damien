@@ -39,7 +39,7 @@ class StatusBoardAdminPage(DamienPages):
         app.logger.info('Loading the dept status page')
         self.driver.get(f'{app.config["BASE_URL"]}/status')
 
-    NOTIF_SELECT_ALL_CBX = (By.ID, "'checkbox-select-dept-all'")
+    NOTIF_SELECT_ALL_CBX = (By.ID, 'checkbox-select-dept-all')
     NOTIF_APPLY_BUTTON = (By.ID, 'open-notification-form-btn')
 
     @staticmethod
