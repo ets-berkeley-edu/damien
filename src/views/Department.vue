@@ -247,7 +247,7 @@ export default {
     },
     afterSendNotification() {
       this.isCreatingNotification = false
-      this.alertScreenReader('Notification sent.')
+      this.snackbarOpen('Notification sent.')
       this.$putFocusNextTick('open-notification-form-btn')
     },
     applyCourseAction() {

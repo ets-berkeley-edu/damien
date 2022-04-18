@@ -21,7 +21,7 @@
               <v-chip
                 v-for="(recipient, index) in department.recipients"
                 :key="index"
-                class="recipient my-1 py-1"
+                class="recipient my-1 mr-1 py-1"
                 :ripple="false"
               >
                 {{ recipientLabel(recipient) }}

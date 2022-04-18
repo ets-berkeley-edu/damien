@@ -1,36 +1,6 @@
 <template>
   <v-app>
-    <v-snackbar
-      v-model="snackbarShow"
-      :color="snackbar.color"
-      content-class="align-center"
-      outlined
-      :timeout="snackbar.timeout"
-      text
-      :top="true"
-      max-width="unset"
-    >
-      <div class="d-flex align-center justify-space-between">
-        <div
-          id="alert-text"
-          aria-live="polite"
-          class="ml-4 mr-4 title"
-          role="alert"
-          v-html="snackbar.text"
-        >
-        </div>
-        <div>
-          <v-btn
-            id="btn-close-alert"
-            aria-label="Close this dialog box."
-            text
-            @click="snackbarClose"
-          >
-            Close
-          </v-btn>
-        </div>
-      </div>
-    </v-snackbar>
+    <Snackbar />
     <v-container class="background-lecture-hall" fill-height fluid>
       <v-main>
         <v-card
@@ -68,12 +38,14 @@
 import Context from '@/mixins/Context'
 import DevAuth from '@/components/admin/DevAuth'
 import {getCasLoginURL} from '@/api/auth'
+import Snackbar from '@/components/util/Snackbar'
 
 export default {
   name: 'Login',
   mixins: [Context],
   components: {
-    DevAuth
+    DevAuth,
+    Snackbar
   },
   created() {
     this.$putFocusNextTick('page-title')

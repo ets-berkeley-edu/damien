@@ -96,6 +96,7 @@
       </v-menu>
     </v-app-bar>
     <v-main id="content" class="ma-3">
+      <Snackbar />
       <Spinner v-if="loading" />
       <router-view :key="stripAnchorRef($route.fullPath)" class="px-4"></router-view>
     </v-main>
@@ -110,13 +111,23 @@
   import Footer from '@/components/util/Footer'
   import GroupIcon from '../assets/account-group.svg'
   import ListIcon from '../assets/playlist-edit.svg'
+  import Snackbar from '@/components/util/Snackbar'
   import Spinner from '@/components/util/Spinner'
   import StatusIcon from '../assets/list-status.svg'
   import Util from '@/mixins/Util'
   import {getCasLogoutUrl} from '@/api/auth'
   export default {
     name: 'BaseView',
-    components: {DarkModeIcon, ErrorIcon, Footer, GroupIcon, ListIcon, Spinner, StatusIcon},
+    components: {
+      DarkModeIcon,
+      ErrorIcon,
+      Footer,
+      GroupIcon,
+      ListIcon,
+      Snackbar,
+      Spinner,
+      StatusIcon
+     },
     mixins: [Context, Util],
     data: () => ({
       navItems: undefined,
