@@ -38,7 +38,7 @@ const mutations = {
   },
   snackbarOpen: (state: any, text) => {
     state.snackbar.text = text
-    state.snackbar.color = 'primary'
+    state.snackbar.color = 'secondary'
     state.snackbarShow = true
   },
   snackbarReportError: (state: any, text) => {
