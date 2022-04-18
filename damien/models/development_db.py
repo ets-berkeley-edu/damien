@@ -26,7 +26,9 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import re
 
 from damien import db, std_commit
+from damien.models.department_form import DepartmentForm
 from damien.models.user import User
+from damien.models.user_department_form import UserDepartmentForm
 from flask import current_app as app
 from sqlalchemy.sql import text
 
@@ -54,6 +56,7 @@ def clear():
 def load():
     _load_schemas()
     _create_users()
+    _set_associations()
     return db
 
 
@@ -70,6 +73,14 @@ def _load_schemas():
     for schema in ['schema', 'unholy_loch', 'populate_departments', 'populate_unholy_loch']:
         with open(app.config['BASE_DIR'] + f'/scripts/db/{schema}.sql', 'r') as ddlfile:
             _execute(ddlfile)
+
+
+def _set_associations():
+    history_id = DepartmentForm.find_by_name('HISTORY').id
+    for uid in ['5013530', '6982398']:
+        user = User.find_by_uid(uid)
+        UserDepartmentForm.create(history_id, user.id)
+    std_commit(allow_test_environment=True)
 
 
 def _execute(ddlfile):

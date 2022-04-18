@@ -154,7 +154,7 @@ class TestExportEvaluations:
         with mock_s3_bucket(app) as s3:
             _api_export_evaluations(client)
             exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
-            assert len(exported_objects) == 6
+            assert len(exported_objects) == 7
 
             courses = _read_csv(exported_objects, '/courses.csv')
             assert len(courses) == 1
@@ -188,7 +188,7 @@ class TestExportEvaluations:
         with mock_s3_bucket(app) as s3:
             _api_export_evaluations(client)
             exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
-            assert len(exported_objects) == 6
+            assert len(exported_objects) == 7
 
             courses = _read_csv(exported_objects, '/courses.csv')
             assert len(courses) == 2
@@ -223,8 +223,12 @@ class TestExportEvaluations:
             assert students[3] == '99999,12399999,Georgi,Prudence,gprudence2@berkeley.edu'
 
     @mock_s3
-    def test_supervisors_export(self, client, app, fake_auth):
+    def test_supervisors_export(self, client, app, fake_auth, history_id, form_history_id, type_f_id):
         fake_auth.login(admin_uid)
+        _api_update_history_evaluation(client, history_id, form_history_id, type_f_id)
+        evaluation = _api_get_evaluation(client, history_id, '30643', '326054')
+        _api_update_evaluation(client, history_id, params={'evaluationIds': [evaluation['id']], 'action': 'confirm'})
+
         with mock_s3_bucket(app) as s3:
             _api_export_evaluations(client)
             exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
@@ -233,6 +237,12 @@ class TestExportEvaluations:
             assert supervisors[0] == ('LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS,SUPERVISOR_GROUP,PRIMARY_ADMIN,SECONDARY_ADMIN,'
                                       'DEPT_NAME_1,DEPT_NAME_2,DEPT_NAME_3,DEPT_NAME_4,DEPT_NAME_5,DEPT_NAME_6,DEPT_NAME_7,DEPT_NAME_8,'
                                       'DEPT_NAME_9,DEPT_NAME_10')
-            assert supervisors[1] == '5013530,931203945,Jazz,Gunn,jazz.gunn@berkeley.edu,DEPT_ADMIN,Y,,,,,,,,,,,'
-            assert supervisors[2] == '6982398,263809005,Alistair,Mctaggert,alistair.mctaggert@berkeley.edu,DEPT_ADMIN,,,,,,,,,,,,'
+            assert supervisors[1] == '5013530,931203945,Jazz,Gunn,jazz.gunn@berkeley.edu,DEPT_ADMIN,Y,,HISTORY,,,,,,,,,'
+            assert supervisors[2] == '6982398,263809005,Alistair,Mctaggert,alistair.mctaggert@berkeley.edu,DEPT_ADMIN,,,HISTORY,,,,,,,,,'
             assert supervisors[3] == '8971283,294078726,Finn,Wolfhard,finn.wolfhard@berkeley.edu,DEPT_ADMIN,,,,,,,,,,,,'
+
+            course_supervisors = _read_csv(exported_objects, '/course_supervisors.csv')
+            assert len(course_supervisors) == 3
+            assert course_supervisors[0] == 'COURSE_ID,LDAP_UID,DEPT_NAME'
+            assert course_supervisors[1] == '2022-B-30643,5013530,HISTORY'
+            assert course_supervisors[2] == '2022-B-30643,6982398,HISTORY'
