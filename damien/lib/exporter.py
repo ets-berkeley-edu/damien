@@ -50,22 +50,28 @@ def generate_exports(evals, term_id, timestamp):
                 evaluations[export_key] = set()
             evaluations[export_key].update(instructor_uid_set)
 
-    courses, course_instructors, course_students, course_supervisors, students = _generate_course_rows(term_id, sections, evaluations)
+    dept_forms_to_uids = {df.name: [udf.user.uid for udf in df.users] for df in DepartmentForm.query.filter_by(deleted_at=None).all()}
+
+    courses, course_instructors, course_students, course_supervisors, students =\
+        _generate_course_rows(term_id, sections, evaluations, dept_forms_to_uids)
     instructors = [_export_instructor_row(instructors[k]) for k in sorted(instructors.keys())]
     supervisors = [_export_supervisor_row(u) for u in User.get_dept_contacts_with_blue_permissions()]
+    department_hierarchy, report_viewer_hierarchy = _generate_hierarchy_rows(dept_forms_to_uids)
 
     put_csv_to_s3(term_id, timestamp, 'courses', course_headers, courses)
     put_csv_to_s3(term_id, timestamp, 'course_instructors', course_instructor_headers, course_instructors)
     put_csv_to_s3(term_id, timestamp, 'course_students', course_student_headers, course_students)
     put_csv_to_s3(term_id, timestamp, 'course_supervisors', course_supervisor_headers, course_supervisors)
+    put_csv_to_s3(term_id, timestamp, 'department_hierarchy', department_hierarchy_headers, department_hierarchy)
     put_csv_to_s3(term_id, timestamp, 'instructors', instructor_headers, instructors)
+    put_csv_to_s3(term_id, timestamp, 'report_viewer_hierarchy', report_viewer_hierarchy_headers, report_viewer_hierarchy)
     put_csv_to_s3(term_id, timestamp, 'students', student_headers, students)
     put_csv_to_s3(term_id, timestamp, 'supervisors', supervisor_headers, supervisors)
 
     return True
 
 
-def _generate_course_rows(term_id, sections, keys_to_instructor_uids):
+def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms_to_uids):
     course_rows = []
     course_instructor_rows = []
     course_student_rows = []
@@ -73,8 +79,6 @@ def _generate_course_rows(term_id, sections, keys_to_instructor_uids):
 
     enrollments = get_confirmed_enrollments(term_id)
     students_by_uid = {r['uid']: r for r in get_loch_basic_attributes(list({e['ldap_uid'] for e in enrollments}))}
-
-    dept_forms_to_uids = {df.name: [udf.user.uid for udf in df.users] for df in DepartmentForm.query.filter_by(deleted_at=None).all()}
 
     course_numbers_to_uids = {}
     for k, v in groupby(enrollments, key=lambda e: e['course_number']):
@@ -110,6 +114,34 @@ def _generate_course_rows(term_id, sections, keys_to_instructor_uids):
     student_rows = [_export_student_row(v) for v in students_by_uid.values()]
 
     return course_rows, course_instructor_rows, course_student_rows, course_supervisor_rows, student_rows
+
+
+def _generate_hierarchy_rows(dept_forms_to_uids):
+    department_hierarchy_rows = [{
+        'NODE_ID': 'UC Berkeley',
+        'NODE_CAPTION': 'UC Berkeley',
+        'PARENT_NODE_ID': None,
+        'PARENT_NODE_CAPTION': None,
+        'LEVEL': 1,
+    }]
+    report_viewer_hierarchy_rows = []
+
+    for dept_form, uids in dept_forms_to_uids.items():
+        department_hierarchy_rows.append({
+            'NODE_ID': dept_form,
+            'NODE_CAPTION': dept_form,
+            'PARENT_NODE_ID': 'UC Berkeley',
+            'PARENT_NODE_CAPTION': 'UC Berkeley',
+            'LEVEL': 2,
+        })
+        for uid in uids:
+            report_viewer_hierarchy_rows.append({
+                'SOURCE': dept_form,
+                'TARGET': uid,
+                'ROLE_ID': 'DEPT_ADMIN',
+            })
+
+    return department_hierarchy_rows, report_viewer_hierarchy_rows
 
 
 course_headers = [
@@ -153,6 +185,15 @@ course_supervisor_headers = [
 ]
 
 
+department_hierarchy_headers = [
+    'NODE_ID',
+    'NODE_CAPTION',
+    'PARENT_NODE_ID',
+    'PARENT_NODE_CAPTION',
+    'LEVEL',
+]
+
+
 instructor_headers = [
     'LDAP_UID',
     'SIS_ID',
@@ -160,6 +201,13 @@ instructor_headers = [
     'LAST_NAME',
     'EMAIL_ADDRESS',
     'BLUE_ROLE',
+]
+
+
+report_viewer_hierarchy_headers = [
+    'SOURCE',
+    'TARGET',
+    'ROLE_ID',
 ]
 
 
