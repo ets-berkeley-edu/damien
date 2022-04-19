@@ -30,6 +30,7 @@ from damien.lib.berkeley import term_code_for_sis_id
 from damien.lib.queries import get_confirmed_enrollments, get_loch_basic_attributes
 from damien.lib.util import safe_strftime
 from damien.models.department import Department
+from damien.models.department_form import DepartmentForm
 from damien.models.evaluation import is_modular
 from damien.models.user import User
 
@@ -49,16 +50,17 @@ def generate_exports(evals, term_id, timestamp):
                 evaluations[export_key] = set()
             evaluations[export_key].update(instructor_uid_set)
 
-    course_rows, course_instructor_rows, course_student_rows, student_rows = _generate_course_rows(term_id, sections, evaluations)
-    instructor_rows = [_export_instructor_row(instructors[k]) for k in sorted(instructors.keys())]
-    supervisor_rows = [_export_supervisor_row(u) for u in User.get_dept_contacts_with_blue_permissions()]
+    courses, course_instructors, course_students, course_supervisors, students = _generate_course_rows(term_id, sections, evaluations)
+    instructors = [_export_instructor_row(instructors[k]) for k in sorted(instructors.keys())]
+    supervisors = [_export_supervisor_row(u) for u in User.get_dept_contacts_with_blue_permissions()]
 
-    put_csv_to_s3(term_id, timestamp, 'courses', course_headers, course_rows)
-    put_csv_to_s3(term_id, timestamp, 'course_instructors', course_instructor_headers, course_instructor_rows)
-    put_csv_to_s3(term_id, timestamp, 'course_students', course_student_headers, course_student_rows)
-    put_csv_to_s3(term_id, timestamp, 'instructors', instructor_headers, instructor_rows)
-    put_csv_to_s3(term_id, timestamp, 'students', student_headers, student_rows)
-    put_csv_to_s3(term_id, timestamp, 'supervisors', supervisor_headers, supervisor_rows)
+    put_csv_to_s3(term_id, timestamp, 'courses', course_headers, courses)
+    put_csv_to_s3(term_id, timestamp, 'course_instructors', course_instructor_headers, course_instructors)
+    put_csv_to_s3(term_id, timestamp, 'course_students', course_student_headers, course_students)
+    put_csv_to_s3(term_id, timestamp, 'course_supervisors', course_supervisor_headers, course_supervisors)
+    put_csv_to_s3(term_id, timestamp, 'instructors', instructor_headers, instructors)
+    put_csv_to_s3(term_id, timestamp, 'students', student_headers, students)
+    put_csv_to_s3(term_id, timestamp, 'supervisors', supervisor_headers, supervisors)
 
     return True
 
@@ -67,15 +69,19 @@ def _generate_course_rows(term_id, sections, keys_to_instructor_uids):
     course_rows = []
     course_instructor_rows = []
     course_student_rows = []
+    course_supervisor_rows = []
 
     enrollments = get_confirmed_enrollments(term_id)
     students_by_uid = {r['uid']: r for r in get_loch_basic_attributes(list({e['ldap_uid'] for e in enrollments}))}
+
+    dept_forms_to_uids = {df.name: [udf.user.uid for udf in df.users] for df in DepartmentForm.query.filter_by(deleted_at=None).all()}
 
     course_numbers_to_uids = {}
     for k, v in groupby(enrollments, key=lambda e: e['course_number']):
         course_numbers_to_uids[k] = [e['ldap_uid'] for e in v if e['ldap_uid'] in students_by_uid]
 
     sorted_keys = sorted(keys_to_instructor_uids.keys(), key=lambda k: (k.course_number, k.department_form, k.evaluation_type))
+
     for course_number, keys in groupby(sorted_keys, lambda k: k.course_number):
         course_id_prefix = f'{term_code_for_sis_id(term_id)}-{course_number}'
         keys = list(keys)
@@ -98,10 +104,12 @@ def _generate_course_rows(term_id, sections, keys_to_instructor_uids):
                 course_instructor_rows.append({'COURSE_ID': course_ids[key], 'LDAP_UID': instructor_uid})
             for student_uid in course_numbers_to_uids.get(course_number, []):
                 course_student_rows.append({'COURSE_ID': course_ids[key], 'LDAP_UID': student_uid})
+            for supervisor_uid in dept_forms_to_uids.get(key.department_form, []):
+                course_supervisor_rows.append({'COURSE_ID': course_ids[key], 'LDAP_UID': supervisor_uid, 'DEPT_NAME': key.department_form})
 
     student_rows = [_export_student_row(v) for v in students_by_uid.values()]
 
-    return course_rows, course_instructor_rows, course_student_rows, student_rows
+    return course_rows, course_instructor_rows, course_student_rows, course_supervisor_rows, student_rows
 
 
 course_headers = [
@@ -135,6 +143,13 @@ course_instructor_headers = [
 course_student_headers = [
     'COURSE_ID',
     'LDAP_UID',
+]
+
+
+course_supervisor_headers = [
+    'COURSE_ID',
+    'LDAP_UID',
+    'DEPT_NAME',
 ]
 
 
@@ -250,7 +265,11 @@ def _export_supervisor_row(user):
         'PRIMARY_ADMIN': 'Y' if user.can_view_response_rates() else '',
         'SECONDARY_ADMIN': '',
     }
-    # TODO Fill in these values once users are associated with department forms (DAMIEN-208).
-    for i in range(0, 10):
-        row[f'DEPT_NAME_{i+1}'] = ''
+    dept_index = 1
+    for udf in user.department_forms:
+        row[f'DEPT_NAME_{dept_index}'] = udf.department_form.name
+        dept_index += 1
+    while dept_index <= 10:
+        row[f'DEPT_NAME_{dept_index}'] = ''
+        dept_index += 1
     return row
