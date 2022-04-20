@@ -161,13 +161,16 @@ def get_loch_basic_attributes_by_uid_or_name(snippet, limit=20, exclude_uids=Non
 def get_cross_listings(term_id, course_numbers):
     query = """SELECT
                 ss.*,
-                cl.course_number AS cross_listed_with,
+                cl2.course_number AS cross_listed_with,
                 TRUE AS foreign_department_course
             FROM unholy_loch.sis_sections ss
-            JOIN unholy_loch.cross_listings cl
-            ON cl.term_id = :term_id AND ss.term_id = :term_id
-            AND ss.course_number = cl.cross_listing_number
-            AND cl.course_number = ANY(:course_numbers)
+            JOIN unholy_loch.cross_listings cl1
+            ON cl1.term_id = :term_id AND ss.term_id = :term_id
+            AND ss.course_number = cl1.cross_listing_number
+            AND cl1.course_number = ANY(:course_numbers)
+            JOIN unholy_loch.cross_listings cl2
+            ON cl2.term_id = :term_id AND ss.term_id = :term_id
+            AND ss.course_number = cl2.cross_listing_number
             ORDER BY ss.course_number, ss.instructor_uid
         """
     results = db.session().execute(
@@ -181,13 +184,16 @@ def get_cross_listings(term_id, course_numbers):
 def get_room_shares(term_id, course_numbers):
     query = """SELECT
                 ss.*,
-                cs.course_number AS room_shared_with,
+                cs2.course_number AS room_shared_with,
                 TRUE AS foreign_department_course
             FROM unholy_loch.sis_sections ss
-            JOIN unholy_loch.co_schedulings cs
-            ON cs.term_id = :term_id AND ss.term_id = :term_id
-            AND ss.course_number = cs.room_share_number
-            AND cs.course_number = ANY(:course_numbers)
+            JOIN unholy_loch.co_schedulings cs1
+            ON cs1.term_id = :term_id AND ss.term_id = :term_id
+            AND ss.course_number = cs1.room_share_number
+            AND cs1.course_number = ANY(:course_numbers)
+            JOIN unholy_loch.co_schedulings cs2
+            ON cs2.term_id = :term_id AND ss.term_id = :term_id
+            AND ss.course_number = cs2.room_share_number
             ORDER BY ss.course_number, ss.instructor_uid
         """
     results = db.session().execute(

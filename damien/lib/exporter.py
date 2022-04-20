@@ -276,7 +276,10 @@ def _cross_listed_flag(section):
 
 def _cross_listed_name(section):
     if section.cross_listed_with or section.room_shared_with:
-        return '-'.join(sorted(s for s in {section.course_number, section.cross_listed_with, section.room_shared_with} if s))
+        course_numbers = {section.course_number}
+        course_numbers.update(section.cross_listed_with)
+        course_numbers.update(section.room_shared_with)
+        return '-'.join(sorted(s for s in course_numbers if s))
     else:
         return ''
 

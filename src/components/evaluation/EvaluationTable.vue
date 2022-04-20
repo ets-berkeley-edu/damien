@@ -100,10 +100,12 @@
                 <td :id="`evaluation-${evaluationId}-courseNumber`">
                   {{ evaluation.courseNumber }}
                   <div v-if="evaluation.crossListedWith" class="xlisting-note">
-                    (Cross-listed with section {{ evaluation.crossListedWith }})
+                    (Cross-listed with {{ evaluation.crossListedWith.length > 1 ? 'sections' : 'section' }}
+                    {{ evaluation.crossListedWith.join(', ') }})
                   </div>
                   <div v-if="evaluation.roomSharedWith" class="xlisting-note">
-                    (Room shared with section {{ evaluation.roomSharedWith }})
+                    (Room shared with {{ evaluation.roomSharedWith.length > 1 ? 'sections' : 'section' }}
+                    {{ evaluation.roomSharedWith.join(', ') }})
                   </div>
                 </td>
                 <td>
