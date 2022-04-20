@@ -158,13 +158,16 @@ def _validate_evaluation_fields(fields):  # noqa C901
         raise BadRequestError('No fields supplied for evaluation edit.')
     for k, v in fields.items():
         if k == 'departmentFormId':
-            try:
-                department_form = DepartmentForm.find_by_id(int(v))
-            except (TypeError, ValueError):
-                department_form = None
-            if not department_form:
-                raise BadRequestError(f'Invalid department form id {v}.')
-            validated_fields['departmentForm'] = department_form
+            if not v:
+                validated_fields['departmentForm'] = None
+            else:
+                try:
+                    department_form = DepartmentForm.find_by_id(int(v))
+                except (TypeError, ValueError):
+                    department_form = None
+                if not department_form:
+                    raise BadRequestError(f'Invalid department form id {v}.')
+                validated_fields['departmentForm'] = department_form
         elif k == 'endDate':
             try:
                 validated_fields[k] = date.fromisoformat(v)
@@ -172,13 +175,16 @@ def _validate_evaluation_fields(fields):  # noqa C901
                 raise BadRequestError(f'Invalid date format {v}.')
             _validate_current_term_date(validated_fields[k])
         elif k == 'evaluationTypeId':
-            try:
-                evaluation_type = EvaluationType.find_by_id(int(v))
-            except (TypeError, ValueError):
-                evaluation_type = None
-            if not evaluation_type:
-                raise BadRequestError(f'Invalid evaluation type id {v}.')
-            validated_fields['evaluationType'] = evaluation_type
+            if not v:
+                validated_fields['evaluationType'] = None
+            else:
+                try:
+                    evaluation_type = EvaluationType.find_by_id(int(v))
+                except (TypeError, ValueError):
+                    evaluation_type = None
+                if not evaluation_type:
+                    raise BadRequestError(f'Invalid evaluation type id {v}.')
+                validated_fields['evaluationType'] = evaluation_type
         elif k == 'instructorUid':
             try:
                 validated_fields['instructorUid'] = str(int(v))
