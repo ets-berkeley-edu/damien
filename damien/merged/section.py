@@ -78,21 +78,23 @@ class Section:
             return section.to_api_json()
 
     def set_cross_listed_status(self, loch_rows):
-        self.cross_listed_with = None
-        self.room_shared_with = None
+        self.cross_listed_with = set()
+        self.room_shared_with = set()
         self.foreign_department_course = True
         for r in loch_rows:
             # Any row with a room-share or cross-listing notation applies to the whole section.
             clw = getattr(r, 'cross_listed_with', None)
-            if clw and not self.cross_listed_with:
-                self.cross_listed_with = clw
+            if clw:
+                self.cross_listed_with.add(clw)
             rsw = getattr(r, 'room_shared_with', None)
-            if rsw and not self.room_shared_with:
-                self.room_shared_with = rsw
+            if rsw:
+                self.room_shared_with.add(rsw)
             # But a section is treated as belonging to a foreign department only if all rows have the notation.
             fdc = getattr(r, 'foreign_department_course', None)
             if not fdc:
                 self.foreign_department_course = False
+        self.cross_listed_with = sorted(self.cross_listed_with)
+        self.room_shared_with = sorted(self.room_shared_with)
 
     def set_default_form(self, catalog_listings):
         # Apply a default form value to courses not cross-listed or room shared.
