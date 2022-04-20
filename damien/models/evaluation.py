@@ -249,8 +249,9 @@ class Evaluation(Base):
 
             duplicate = evaluation.duplicate()
             if fields:
+                filtered_fields = {k: v for k, v in fields.items() if k != 'status'}
                 original_evaluation_feed = next((f for f in original_feed if f['id'] == evaluation_id), None)
-                duplicate.set_fields(fields, original_evaluation_feed)
+                duplicate.set_fields(filtered_fields, original_evaluation_feed)
 
             if not evaluation.department_id:
                 evaluation.department_id = department_id
@@ -315,7 +316,7 @@ class Evaluation(Base):
             course_number=self.course_number,
             department_id=self.department_id,
             instructor_uid=self.instructor_uid,
-            status=self.status,
+            status=None,
             department_form_id=self.department_form_id,
             evaluation_type_id=self.evaluation_type_id,
             start_date=self.start_date,
