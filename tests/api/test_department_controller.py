@@ -345,15 +345,29 @@ class TestEditEvaluation:
 
     def test_edit_department_form(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
+        department = _api_get_melc(client)
+        # Department form for crosslisted course starts at None
+        evaluation = next(e for e in department['evaluations'] if e['courseNumber'] == '30643' and e['instructor']['uid'] == '326054')
+        assert evaluation['departmentForm'] is None
         response = _api_update_evaluation(client, params={
-            'evaluationIds': ['_2222_30659_637739'],
+            'evaluationIds': ['_2222_30643_326054'],
             'action': 'edit',
             'fields': {'departmentFormId': '13'},
         })
         assert len(response) == 1
         assert response[0]['id'] == int(response[0]['id'])
-        assert response[0]['transientId'] == '_2222_30659_637739'
+        assert response[0]['transientId'] == '_2222_30643_326054'
         assert response[0]['departmentForm']['id'] == 13
+        # Unset department form, reverting to None
+        response = _api_update_evaluation(client, params={
+            'evaluationIds': [response[0]['id']],
+            'action': 'edit',
+            'fields': {'departmentFormId': None},
+        })
+        assert len(response) == 1
+        assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['transientId'] == '_2222_30643_326054'
+        assert response[0]['departmentForm'] is None
 
     def test_bad_eval_type(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
@@ -371,6 +385,12 @@ class TestEditEvaluation:
 
     def test_edit_evaluation_type(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
+        department = _api_get_melc(client)
+        # Initial id for evaluation type F
+        evaluation = next(e for e in department['evaluations'] if e['courseNumber'] == '30659' and e['instructor']['uid'] == '637739')
+        assert evaluation['evaluationType']['name'] == 'F'
+        initial_evaluation_type_id = evaluation['evaluationType']['id']
+        # Update evaluation type
         response = _api_update_evaluation(client, params={
             'evaluationIds': ['_2222_30659_637739'],
             'action': 'edit',
@@ -380,6 +400,16 @@ class TestEditEvaluation:
         assert response[0]['id'] == int(response[0]['id'])
         assert response[0]['transientId'] == '_2222_30659_637739'
         assert response[0]['evaluationType']['id'] == 3
+        # Unset evaluation type, reverting to initial value
+        response = _api_update_evaluation(client, params={
+            'evaluationIds': [response[0]['id']],
+            'action': 'edit',
+            'fields': {'evaluationTypeId': None},
+        })
+        assert len(response) == 1
+        assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['transientId'] == '_2222_30659_637739'
+        assert response[0]['evaluationType']['id'] == initial_evaluation_type_id
 
     def test_bad_instructor_uid(self, client, fake_auth):
         fake_auth.login(non_admin_uid)

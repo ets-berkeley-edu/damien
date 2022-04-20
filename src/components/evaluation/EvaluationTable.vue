@@ -430,8 +430,12 @@ export default {
       e.evaluationPeriod.end = this.$moment(e.endDate).toDate()
       e.evaluationPeriod.modularCutoff = this.$moment(e.startDate).add(76, 'days').toDate()
     })
-    getDepartmentForms().then(data => this.departmentForms = data)
-    getEvaluationTypes().then(data => this.evaluationTypes = data)
+    getDepartmentForms().then(data => {
+        this.departmentForms = [{id: null, name: 'None'}].concat(data)
+    })
+    getEvaluationTypes().then(data => {
+      this.evaluationTypes = [{id: null, name: 'None'}].concat(data)
+    })
     this.rules.currentTermDate = v => {
       const formatted = this.$moment(v).format('YYYY-MM-DD')
       if (formatted > this.$config.currentTermDates.begin && formatted < this.$config.currentTermDates.end) {
