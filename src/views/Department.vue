@@ -1,38 +1,46 @@
 <template>
-  <div v-if="!loading">
-    <v-row>
-      <v-col cols="12" md="7" class="d-flex justify-start">
-        <h1 id="page-title">
-          {{ department.deptName }}
+  <div>
+    <div v-if="department.deptName" class="d-flex flex-row flex-wrap justify-space-between">
+      <h1 id="page-title" class="mr-5">
+        {{ department.deptName }}
+        <span v-if="department.catalogListings">
           ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})
+        </span>
+        <span v-if="selectedTerm">
           - {{ $_.get(selectedTerm, 'name') }}
-        </h1>
-      </v-col>
-      <v-col
+        </span>
+      </h1>
+      <div
         v-if="$currentUser.isAdmin"
-        cols="12"
-        md="5"
-        class="d-flex justify-end"
+        class="d-flex align-baseline flex-grow-1 justify-end"
       >
-        <label id="select-term-label" for="select-term" class="pa-3">
+        <label
+          id="select-term-label"
+          for="select-term"
+          class="align-self-baseline text-nowrap pr-3"
+        >
           Previous terms:
         </label>
-        <v-select
+        <select
           id="select-term"
           v-model="selectedTermId"
-          :disabled="disableControls"
-          item-text="name"
-          item-value="id"
-          :items="availableTerms"
-          label="Select..."
-          solo
-          @change="refresh"
+          class="native-select-override select-term my-2 px-3"
+          :class="this.$vuetify.theme.dark ? 'dark' : 'light'"
+          :disabled="disableControls || loading"
+          @change="onChangeTerm"
         >
-          <span :id="`term-option-${data.item.id}`" slot="item" slot-scope="data">{{ data.item.name }}</span>
-        </v-select>
-      </v-col>
-    </v-row>
-    <v-container class="mx-0 px-0 pb-6">
+          <option
+            v-for="term in availableTerms"
+            :id="`term-option-${term.id}`"
+            :key="term.id"
+            :value="term.id"
+          >
+            {{ term.name }}
+          </option>
+        </select>
+      </div>
+    </div>
+    <v-container v-if="!loading" class="mx-0 px-0 pb-6">
       <v-row justify="start">
         <v-col cols="12" md="5">
           <h2 class="pb-1 px-2">Department Contacts</h2>
@@ -97,80 +105,107 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-row>
-      <v-col cols="12" md="4" class="mb-4">
-        <v-select
-          id="select-course-actions"
-          v-model="selectedCourseAction"
-          item-text="text"
-          item-value="value"
-          :items="courseActions"
-          label="Course Actions"
-          hide-details="auto"
-          solo
-        >
-        </v-select>
-        <div v-if="selectedCourseAction === 'duplicate'" class="my-4">
-          <v-checkbox
-            v-model="bulkUpdateOptions.midtermFormEnabled"
-            hide-details="auto"
-            label="Use midterm department forms"
-          />
-          <div class="d-flex">
-            <v-checkbox
-              v-model="bulkUpdateOptions.evalDatesEnabled"
-              label="Set evaluation start date:"
-              hide-details="auto"
-            />
-            <c-date-picker
-              v-model="bulkUpdateOptions.startDate"
-              :min-date="$moment($config.currentTermDates.begin).toDate()"
-              :max-date="$moment($config.currentTermDates.end).subtract(20, 'days').toDate()"
-              title-position="left"
+    <v-container v-if="!loading" class="mx-0 px-0 pb-6">
+      <v-row>
+        <v-col cols="12" sm="6">
+          <div class="d-flex flex-row flex-grow-1 align-baseline mb-4">
+            <select
+              id="select-course-actions"
+              v-model="selectedCourseAction"
+              aria-labelledby="action-option-label"
+              class="native-select-override"
+              :class="this.$vuetify.theme.dark ? 'dark' : 'light'"
+              :disabled="disableControls"
             >
-              <template v-slot="{ inputValue, inputEvents }">
-                <input
-                  class="input-override"
-                  :value="inputValue"
-                  v-on="inputEvents"
-                />
-              </template>
-            </c-date-picker>
+              <option
+                id="action-option-label"
+                :key="0"
+                disabled
+                :value="undefined"
+              >
+                Course Actions
+              </option>
+              <option
+                v-for="(action, index) in courseActions"
+                :id="`action-option-${action.value}`"
+                :key="index + 1"
+                :value="action.value"
+              >
+                {{ action.text }}
+              </option>
+            </select>
+            <v-btn
+              id="apply-course-action-btn"
+              class="mx-2"
+              color="secondary"
+              :disabled="!selectedCourseAction || !selectedEvaluationIds.length || (bulkUpdateOptions.evalDatesEnabled && !bulkUpdateOptions.startDate)"
+              @click="applyCourseAction"
+            >
+              Apply
+            </v-btn>
           </div>
-        </div>
-      </v-col>
-      <v-col cols="12" md="4">
-        <v-btn
-          :disabled="!selectedCourseAction || !selectedEvaluationIds.length || (bulkUpdateOptions.evalDatesEnabled && !bulkUpdateOptions.startDate)"
-          @click="applyCourseAction"
-        >
-          Apply
-        </v-btn>
-      </v-col>
-      <v-col cols="12" md="4">
-        <v-btn
-          v-if="!isAddingSection"
-          id="add-course-section-btn"
-          class="text-capitalize pl-2 mt-1"
-          color="tertiary"
-          text
-          @click="() => isAddingSection = true"
-        >
-          <v-icon>mdi-plus-thick</v-icon>
-          Add Course Section
-        </v-btn>
-        <AddCourseSection
-          v-if="isAddingSection"
-          id="add-course-section"
-          :evaluations="evaluations"
-          :on-submit="addCourseSection"
-          :on-cancel="cancelAddSection"
-        />
-      </v-col>
-    </v-row>
-    <v-card outlined class="elevation-1">
-      <EvaluationTable :evaluations="evaluations" :update-evaluation="updateEvaluation" />
-    </v-card>
+          <div v-if="selectedCourseAction === 'duplicate'" class="mb-4">
+            <v-checkbox
+              v-model="bulkUpdateOptions.midtermFormEnabled"
+              class="text-nowrap"
+              color="tertiary"
+              hide-details="auto"
+              label="Use midterm department forms"
+            />
+            <div class="d-flex align-center mt-2">
+              <v-checkbox
+                v-model="bulkUpdateOptions.evalDatesEnabled"
+                class="text-nowrap mt-0 pt-0"
+                color="tertiary"
+                label="Set evaluation start date:"
+                hide-details="auto"
+              />
+              <c-date-picker
+                v-model="bulkUpdateOptions.startDate"
+                class="mx-3"
+                :min-date="$moment($config.currentTermDates.begin).toDate()"
+                :max-date="$moment($config.currentTermDates.end).subtract(20, 'days').toDate()"
+                title-position="left"
+              >
+                <template v-slot="{ inputValue, inputEvents }">
+                  <input
+                    class="input-override my-0"
+                    :class="$vuetify.theme.dark ? 'dark' : 'light'"
+                    :value="inputValue"
+                    v-on="inputEvents"
+                  />
+                </template>
+              </c-date-picker>
+            </div>
+          </div>
+        </v-col>
+        <v-col cols="12" sm="6">
+          <div class="d-flex flex-grow-1 align-baseline justify-end mb-4">
+            <v-btn
+              v-if="!isAddingSection"
+              id="add-course-section-btn"
+              class="text-capitalize pl-2 mt-1"
+              color="tertiary"
+              text
+              @click="() => isAddingSection = true"
+            >
+              <v-icon>mdi-plus-thick</v-icon>
+              Add Course Section
+            </v-btn>
+            <AddCourseSection
+              v-if="isAddingSection"
+              id="add-course-section"
+              :evaluations="evaluations"
+              :on-submit="addCourseSection"
+              :on-cancel="cancelAddSection"
+            />
+          </div>
+        </v-col>
+      </v-row>
+      <v-card outlined class="elevation-1">
+        <EvaluationTable :evaluations="evaluations" :update-evaluation="updateEvaluation" />
+      </v-card>
+    </v-container>
   </div>
 </template>
 
@@ -272,6 +307,7 @@ export default {
     cancelAddSection() {
       this.isAddingSection = false
       this.alertScreenReader('Section lookup canceled.')
+      this.$putFocusNextTick('add-course-section-btn')
     },
     cancelSendNotification() {
       this.isCreatingNotification = false
@@ -281,6 +317,12 @@ export default {
       this.isAddingContact = false
       this.alertScreenReader('Canceled. Nothing saved.')
       this.$putFocusNextTick('add-dept-contact-btn')
+    },
+    onChangeTerm(event) {
+      const term = this.$_.find(this.availableTerms, ['id', event.target.value])
+      this.alertScreenReader(`Loading ${this.$_.get(term, 'name', 'term')}`)
+      this.refresh()
+      this.$putFocusNextTick('select-term')
     },
     refresh(screenreaderAlert) {
       this.$loading()
@@ -331,3 +373,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.select-term {
+  max-width: 200px;
+}
+</style>
