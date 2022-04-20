@@ -58,6 +58,7 @@
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${evaluationId}-checkbox`"
                     v-model="evaluation.isSelected"
+                    color="secondary"
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
                     @change="updateEvaluationsSelected"
@@ -89,7 +90,7 @@
                     v-if="isEditing(evaluation)"
                     id="select-evaluation-status"
                     v-model="selectedEvaluationStatus"
-                    class="native-select-override"
+                    class="native-select-override light"
                   >
                     <option v-for="s in evaluationStatuses" :key="s.text" :value="s.value">{{ s.text }}</option>
                   </select>
@@ -137,6 +138,7 @@
                     <div class="pb-2">
                       <v-btn
                         :id="`evaluation-${evaluationId}-change-instructor`"
+                        color="primary"
                         @click="clearPendingInstructor"
                         @keydown.enter="clearPendingInstructor"
                       >
@@ -194,7 +196,7 @@
                     v-if="isEditing(evaluation)"
                     id="select-evaluation-type"
                     v-model="selectedEvaluationType"
-                    class="native-select-override"
+                    class="native-select-override light"
                   >
                     <option v-for="et in evaluationTypes" :key="et.id" :value="et.id">{{ et.name }}</option>
                   </select>
@@ -225,7 +227,7 @@
                     >
                       <template v-slot="{ inputValue, inputEvents }">
                         <input
-                          class="input-override"
+                          class="input-override light"
                           :value="inputValue"
                           v-on="inputEvents"
                         />
@@ -453,34 +455,15 @@ export default {
 
 <style>
 tr.border-bottom-none td {
-  border-bottom: none !important;  
+  border-bottom: none !important;
 }
 
 tr.border-top-none td {
-  border-top: none !important;  
+  border-top: none !important;
 }
 
 .evaluation-input .v-messages__message {
   color: #fff !important;
-}
-
-.input-override {
-  background-color: #fff !important;
-  border-radius: 5px;
-  border: 1px solid #333333;
-  margin: 5px 0;
-  padding: 5px;
-}
-
-.native-select-override {
-  border-radius: 5px;
-  border: 1px solid #333333;
-  padding: 10px;
-  -webkit-appearance: menulist !important; /* override vuetify style */
-  -moze-appearance: menulist !important; /* override vuetify style */
-  appearance: menulist !important; /* override vuetify style */
-  background-color: #fff !important;
-  margin-bottom: 0;
 }
 
 .vue-select-override {

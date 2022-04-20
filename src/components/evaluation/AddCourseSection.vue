@@ -1,5 +1,5 @@
 <template>
-  <v-form class="pa-3 mb-4">
+  <div class="full-width px-4">
     <div v-if="!section">
       <div v-if="sectionError" class="d-flex justify-start mb-3">
         <div class="pr-2">
@@ -17,11 +17,13 @@
           id="lookup-course-number-input"
           v-model="courseNumber"
           class="mt-1"
+          color="tertiary"
           maxlength="5"
           :rules="[rules.courseNumber, rules.notPresent]"
           dense
           outlined
           required
+          @keypress.enter.prevent="lookupSection"
         ></v-text-field>
         <v-btn
           id="lookup-course-number-submit"
@@ -30,6 +32,7 @@
           elevation="2"
           :disabled="!courseNumberReady"
           @click="lookupSection"
+          @keypress.enter.prevent="lookupSection"
         >
           Look Up
         </v-btn>
@@ -41,6 +44,7 @@
           outlined
           text
           @click="onCancel"
+          @keypress.enter.prevent="onCancel"
         >
           Cancel
         </v-btn>
@@ -48,7 +52,7 @@
     </div>
     <div v-if="section">
       <h3 id="add-section-title">
-        {{ section.subjectArea }} 
+        {{ section.subjectArea }}
         {{ section.catalogId }}
         {{ section.instructionFormat }}
         {{ section.sectionNumber }}
@@ -61,6 +65,7 @@
         color="secondary"
         elevation="2"
         @click="onSubmit(section.courseNumber)"
+        @keypress.enter.prevent="onSubmit(section.courseNumber)"
       >
         Confirm
       </v-btn>
@@ -72,11 +77,12 @@
         outlined
         text
         @click="cancelSection"
+        @keypress.enter.prevent="cancelSection"
       >
         Cancel
       </v-btn>
     </div>
-  </v-form>
+  </div>
 </template>
 
 <script>
@@ -117,11 +123,13 @@ export default {
       notPresent: value => !this.$_.find(this.evaluations, {courseNumber: value}) || `Course number ${value} already present on page.`
     }
     this.alertScreenReader('Add course section form is ready.')
+    this.$putFocusNextTick('lookup-course-number-input')
   },
   methods: {
     cancelSection() {
       this.section = null
       this.alertScreenReader('Canceled. Add course section form is ready.')
+      this.$putFocusNextTick('lookup-course-number-input')
     },
     lookupSection() {
       getSection(this.courseNumber).then(data => {
@@ -133,7 +141,8 @@ export default {
       }, () => {
         this.sectionError = `Section ${this.courseNumber} not found.`
         this.courseNumber = null
-        this.alertScreenReader(this.sectionError)    
+        this.alertScreenReader(this.sectionError)
+        this.$putFocusNextTick('lookup-course-number-input')
       })
     }
   }
@@ -148,5 +157,11 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.full-width {
+  width: 100%;
+  width: -moz-available;
+  width: -webkit-fill-available;
+  width: fill-available;
 }
 </style>
