@@ -39,5 +39,5 @@ export function updateDepartmentNote(departmentId: number, note: string, termId?
 export function updateEvaluations(departmentId: number, action: string, evaluationIds: any[], fields?: Object) {
   return axios
     .post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/evaluations`, {action, evaluationIds, fields})
-    .then(response => response.data, () => null)
+    .then(response => response.data)
 }

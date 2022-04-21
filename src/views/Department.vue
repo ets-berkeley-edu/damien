@@ -40,7 +40,7 @@
         </select>
       </div>
     </div>
-    <v-container v-if="!loading" class="mx-0 px-0 pb-6">
+    <v-container v-if="!loading" class="mx-0 px-0 pb-6" fluid>
       <v-row justify="start">
         <v-col cols="12" md="5">
           <h2 class="pb-1 px-2">Department Contacts</h2>
@@ -105,7 +105,7 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-container v-if="!loading" class="mx-0 px-0 pb-6">
+    <v-container v-if="!loading" class="mx-0 px-0 pb-6" fluid>
       <v-row>
         <v-col cols="12" sm="6">
           <div class="d-flex flex-row flex-grow-1 align-baseline mb-4">
@@ -178,6 +178,31 @@
               </c-date-picker>
             </div>
           </div>
+          <v-dialog
+            id="error-dialog"
+            v-model="errorDialog"
+            width="400"
+            role="alertdialog"
+            aria-labelledby="error-dialog-title"
+            aria-describedby="error-dialog-text"
+          >
+            <v-card>
+              <v-card-title id="error-dialog-title" tabindex="-1">Error</v-card-title>
+              <v-card-text id="error-dialog-text" class="pt-3">{{ errorDialogText }}</v-card-text>
+              <div class="d-flex pa-2">
+                <div class="mr-2">
+                  <v-btn
+                    id="error-dialog-ok-btn"
+                    color="primary"
+                    @click="dismissErrorDialog"
+                    @keypress.enter.prevent="dismissErrorDialog"
+                  >
+                    OK
+                  </v-btn>
+                </div>
+              </div>
+            </v-card>
+          </v-dialog>
         </v-col>
         <v-col cols="12" sm="6">
           <div class="d-flex flex-grow-1 align-baseline justify-end mb-4">
@@ -247,6 +272,8 @@ export default {
       {'text': 'Ignore', 'value': 'ignore'}
     ],
     department: {},
+    errorDialog: false,
+    errorDialogText: null,
     evaluations: [],
     isAddingContact: false,
     isAddingSection: false,
@@ -297,12 +324,14 @@ export default {
           fields.endDate = this.$moment(this.bulkUpdateOptions.startDate).add(duration, 'days').format('YYYY-MM-DD')
         }
       }
-      updateEvaluations(
-        this.department.id,
-        this.selectedCourseAction,
-        this.selectedEvaluationIds,
-        fields
-      ).then(this.refresh)
+      if (this.selectedCourseAction !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds, fields.departmentFormId, fields.evaluationTypeId)) {
+        updateEvaluations(
+          this.department.id,
+          this.selectedCourseAction,
+          this.selectedEvaluationIds,
+          fields
+        ).then(() => this.refresh(), error => this.showErrorDialog(error.response.data.message))
+      }
     },
     cancelAddSection() {
       this.isAddingSection = false
@@ -312,6 +341,10 @@ export default {
     cancelSendNotification() {
       this.isCreatingNotification = false
       this.alertScreenReader('Notification canceled.')
+    },
+    dismissErrorDialog() {
+      this.errorDialog = false
+      this.errorDialogText = null
     },
     onCancelAddContact() {
       this.isAddingContact = false
@@ -345,21 +378,32 @@ export default {
         this.$ready(`${this.department.deptName} ${this.$_.get(this.selectedTerm, 'name')}`, screenreaderAlert)
       })
     },
+    showErrorDialog(text) {
+      this.errorDialog = true
+      this.errorDialogText = text
+    },
     updateEvaluation(evaluationId, sectionId, fields) {
       this.alertScreenReader('Saving evaluation row.')
       return new Promise(resolve => {
-        updateEvaluations(this.department.id, 'edit', [evaluationId], fields).then(() => {
-          getSectionEvaluations(this.department.id, sectionId).then(data => {
-            let sectionIndex = this.$_.findIndex(this.evaluations, ['courseNumber', sectionId])
-            if (sectionIndex === -1) {
-              sectionIndex = this.evaluations.length
-            }
-            const sectionCount = this.$_.filter(this.evaluations, ['courseNumber', sectionId]).length
-            this.evaluations.splice(sectionIndex, sectionCount, ...data)
-            this.alertScreenReader('Changes saved.')
+        if (fields.status === 'confirmed' && !this.validateConfirmable([evaluationId], fields.departmentFormId, fields.evaluationTypeId)) {
+          resolve()
+        } else {
+          updateEvaluations(this.department.id, 'edit', [evaluationId], fields).then(() => {
+            getSectionEvaluations(this.department.id, sectionId).then(data => {
+              let sectionIndex = this.$_.findIndex(this.evaluations, ['courseNumber', sectionId])
+              if (sectionIndex === -1) {
+                sectionIndex = this.evaluations.length
+              }
+              const sectionCount = this.$_.filter(this.evaluations, ['courseNumber', sectionId]).length
+              this.evaluations.splice(sectionIndex, sectionCount, ...data)
+              this.alertScreenReader('Changes saved.')
+              resolve()
+            })
+          }, error => {
+            this.showErrorDialog(error.response.data.message)
             resolve()
           })
-        })
+        }
       })
     },
     updateEvaluationsSelected() {
@@ -369,6 +413,13 @@ export default {
         }
         return ids
       }, [])
+    },
+    validateConfirmable(evaluationIds, departmentFormId, evaluationTypeId) {
+      if (this.$_.some(this.evaluations, e => this.$_.includes(evaluationIds, e.id) && (!(departmentFormId && e.departmentForm) || !(evaluationTypeId && e.evaluationType)))) {
+        this.showErrorDialog('Cannot confirm evaluations with missing fields.')
+        return false
+      }
+      return true
     }
   }
 }

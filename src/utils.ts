@@ -17,6 +17,8 @@ export default {
             m: message
           }
         })
+      } else if (errorStatus === 400) {
+        console.error(error)
       }
     } else {
       router.push({

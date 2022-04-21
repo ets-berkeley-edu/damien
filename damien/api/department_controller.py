@@ -116,7 +116,7 @@ def update_note(department_id):
 
 @app.route('/api/department/<department_id>/evaluations', methods=['POST'])
 @login_required
-def update_evaluations(department_id):
+def update_evaluations(department_id):  # noqa C901
     department = Department.find_by_id(department_id)
     if not department:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
@@ -127,6 +127,7 @@ def update_evaluations(department_id):
         raise BadRequestError('No evaluation ids supplied.')
     updated_ids = []
     if action == 'confirm':
+        _validate_confirmable(evaluation_ids)
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'confirmed'})
     elif action == 'delete':
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'deleted'})
@@ -137,6 +138,8 @@ def update_evaluations(department_id):
         updated_ids = Evaluation.duplicate_bulk(department_id=department_id, evaluation_ids=evaluation_ids, department=department, fields=fields)
     elif action == 'edit':
         fields = _validate_evaluation_fields(params.get('fields'))
+        if fields.get('status') == 'confirmed':
+            _validate_confirmable(evaluation_ids)
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields=fields)
     elif action == 'mark':
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'marked'})
@@ -150,6 +153,14 @@ def update_evaluations(department_id):
         raise BadRequestError('Evaluation ids could not be updated.')
     response = department.evaluations_feed(app.config['CURRENT_TERM_ID'], evaluation_ids=updated_ids)
     return tolerant_jsonify(response)
+
+
+def _validate_confirmable(evaluation_ids):
+    numeric_ids = [int(eid) for eid in evaluation_ids if re.match(r'\d+\Z', str(eid))]
+    if numeric_ids:
+        validation_errors = Evaluation.get_invalid(app.config['CURRENT_TERM_ID'], evaluation_ids=evaluation_ids)
+        if validation_errors:
+            raise BadRequestError('Could not confirm evaluations with errors.')
 
 
 def _validate_evaluation_fields(fields):  # noqa C901

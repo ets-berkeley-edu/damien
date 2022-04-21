@@ -42,8 +42,8 @@ axios.interceptors.response.use(
       })
     } else {
       const errorUrl = _.get(error, 'response.config.url')
-      // 400 and 404 from the section API should be handled by the individual component.
-      if (!(errorUrl && errorUrl.includes('/api/section'))) {
+      // 400 and 404 from the section or department evaluations API should be handled by the individual component.
+      if (!(errorUrl && (errorUrl.includes('/api/section') || (errorUrl.includes('/api/department') && errorUrl.includes('/evaluations'))))) {
         utils.axiosErrorHandler(error)
       }
       return Promise.reject(error)
