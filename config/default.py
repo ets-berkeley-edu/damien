@@ -62,7 +62,7 @@ EMAIL_TEST_MODE = True
 FIXTURES_PATH = None
 
 # Minutes of inactivity before session cookie is destroyed
-INACTIVE_SESSION_LIFETIME = 20
+INACTIVE_SESSION_LIFETIME = 240
 
 INDEX_HTML = 'dist/static/index.html'
 
