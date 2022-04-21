@@ -298,10 +298,12 @@ class Evaluation(Base):
         return cls.query.where(and_(*filters)).all()
 
     @classmethod
-    def get_invalid(cls, term_id, status=None):
+    def get_invalid(cls, term_id, status=None, evaluation_ids=None):
         filters = [cls.term_id == term_id, cls.valid == False]  # noqa: E712
         if status:
             filters.append(cls.status == status)
+        if evaluation_ids:
+            filters.append(cls.id.in_(evaluation_ids))
         return cls.query.where(and_(*filters)).all()
 
     def is_transient(self):
