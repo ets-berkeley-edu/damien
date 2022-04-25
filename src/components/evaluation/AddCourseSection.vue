@@ -162,6 +162,6 @@ export default {
   width: 100%;
   width: -moz-available;
   width: -webkit-fill-available;
-  width: fill-available;
+  width: stretch;
 }
 </style>

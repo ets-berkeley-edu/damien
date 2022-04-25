@@ -196,7 +196,7 @@ VALUES
 ('2222','30666','MELC','11','DIS','103','Middle Eastern Worlds: The Modern Middle East',FALSE,'370699','TNIC','Wheeler 124','W','15:00','15:59','2022-01-18','2022-05-06',22,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30669','MELC','18','DIS','102','Introduction to Ancient Egypt',FALSE,'624490','TNIC','Social Sciences Building 185','MO','15:00','15:59','2022-01-18','2022-05-06',9,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30672','MELC','18','DIS','105','Introduction to Ancient Egypt',FALSE,'713836','TNIC','Social Sciences Building 104','FR','12:00','12:59','2022-01-18','2022-05-06',13,'2022-01-19 17:01:10.324583-08',NULL),
-('2222','30455','MELC','R1B','LEC','001','Reading and Composition in Middle Eastern Languages and Cultures',TRUE,'42420','TNIC','Social Sciences Building 180','MOWEFR','14:00','14:59','2022-01-18','2022-05-06',18,'2022-01-19 17:01:10.324583-08',NULL),
+('2222','30455','MELC','R1B','LEC','001','Reading and Composition in Middle Eastern Languages and Cultures',TRUE,'999999','TNIC','Social Sciences Building 180','MOWEFR','14:00','14:59','2022-01-18','2022-05-06',18,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30673','MELC','18','DIS','106','Introduction to Ancient Egypt',FALSE,'833298','TNIC','Wheeler 24','FR','13:00','13:59','2022-01-18','2022-05-06',17,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','33843','MELC','C188','DIS','107','Magic, Religion, and Science: The Ancient and Medieval Worlds',FALSE,'124194','TNIC','Dwinelle 106','W','16:00','16:59','2022-01-18','2022-05-06',5,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','32947','MELC','290F','IND','003','Special Studies: Persian',TRUE,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,'2022-01-19 17:01:10.324583-08',NULL),

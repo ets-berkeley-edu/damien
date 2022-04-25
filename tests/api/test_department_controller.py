@@ -168,6 +168,19 @@ class TestGetDepartment:
         }
         assert elementary_sumerian['id'] == '_2222_30659_637739'
 
+    def test_uid_not_in_sis_instructors(self, client, fake_auth):
+        """When a sis_section has no matching sis_instructor, returns only the instructor UID."""
+        fake_auth.login(non_admin_uid)
+        department = _api_get_melc(client)
+        persian = next(e for e in department['evaluations'] if e['subjectArea'] == 'MELC' and e['catalogId'] == 'R1B')
+        assert persian['instructor'] == {
+            'uid': '999999',
+            'sisId': None,
+            'firstName': None,
+            'lastName': None,
+            'emailAddress': None,
+        }
+
     def test_include_cross_listing(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         department = _api_get_melc(client)
