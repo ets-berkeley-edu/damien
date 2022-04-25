@@ -38,7 +38,7 @@ class TestEvalErrors:
 
     term = utils.get_current_term()
     all_contacts = utils.get_all_users()
-    dept = utils.get_dept('Economics')
+    dept = utils.get_dept('Economics', all_contacts)
     evals = utils.get_evaluations(term, dept)
     instructor = utils.get_test_user()
     types = utils.get_all_eval_types()
@@ -54,17 +54,17 @@ class TestEvalErrors:
 
     # Test data for cross-listing tests
     x_listing_eval = next(filter(lambda x1: x1.x_listing_ccns, evals))
-    x_listing_dept_1 = utils.get_section_dept(x_listing_eval.ccn)
-    x_listing_contact_1 = utils.get_dept_users(x_listing_dept_1, all_contacts)[0]
-    x_listing_dept_2 = utils.get_section_dept(x_listing_eval.x_listing_ccns[0])
-    x_listing_contact_2 = utils.get_dept_users(x_listing_dept_2, all_contacts)[0]
+    x_listing_dept_1 = utils.get_section_dept(x_listing_eval.ccn, all_contacts)
+    x_listing_contact_1 = x_listing_dept_1.users[0]
+    x_listing_dept_2 = utils.get_section_dept(x_listing_eval.x_listing_ccns[0], all_contacts)
+    x_listing_contact_2 = x_listing_dept_2.users[0]
 
     # Test data for room share tests
     share_eval = next(filter(lambda s1: s1.room_share_ccns, evals))
-    share_dept_1 = utils.get_section_dept(share_eval.ccn)
-    share_contact_1 = utils.get_dept_users(share_dept_1, all_contacts)[0]
-    share_dept_2 = utils.get_section_dept(share_eval.room_share_ccns[0])
-    share_contact_2 = utils.get_dept_users(share_dept_2, all_contacts)[0]
+    share_dept_1 = utils.get_section_dept(share_eval.ccn, all_contacts)
+    share_contact_1 = share_dept_1.users[0]
+    share_dept_2 = utils.get_section_dept(share_eval.room_share_ccns[0], all_contacts)
+    share_contact_2 = share_dept_2.users[0]
 
     def test_reset_test_data(self):
         for d in [self.x_listing_dept_1, self.x_listing_dept_2, self.share_dept_1, self.share_dept_2]:

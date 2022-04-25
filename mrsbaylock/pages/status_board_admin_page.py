@@ -53,7 +53,7 @@ class StatusBoardAdminPage(DamienPages):
 
     def check_all_dept_notif_cbx(self):
         app.logger.info('Clicking the select-all notification checkbox')
-        self.wait_for_element_and_click(StatusBoardAdminPage.NOTIF_SELECT_ALL_CBX)
+        self.wait_for_page_and_click_js(StatusBoardAdminPage.NOTIF_SELECT_ALL_CBX)
 
     def send_notif_to_depts(self, email, recipients_to_exclude=None):
         self.open_notif_form()

@@ -135,7 +135,6 @@ class DamienPages(Page):
 
     def open_notif_form(self):
         self.wait_for_page_and_click_js(DamienPages.NOTIF_FORM_BUTTON)
-        Wait(self.driver, 1).until(ec.visibility_of_element_located(DamienPages.NOTIF_SEND_BUTTON))
 
     def notif_dept_recipients(self):
         return list(map(lambda el: el.text, self.elements(DamienPages.NOTIF_DEPT_RECIPIENT)))

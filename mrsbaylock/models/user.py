@@ -34,7 +34,11 @@ class User(object):
 
     @property
     def user_id(self):
-        return self.data['id']
+        return self.data['user_id']
+
+    @user_id.setter
+    def user_id(self, value):
+        self.data['user_id'] = value
 
     @property
     def uid(self):
@@ -89,3 +93,11 @@ class User(object):
     @blue_permissions.setter
     def blue_permissions(self, value):
         self.data['blue_permissions'] = value
+
+    @property
+    def dept_forms(self):
+        return self.data['dept_forms']
+
+    @dept_forms.setter
+    def dept_forms(self, value):
+        self.data['dept_forms'] = value

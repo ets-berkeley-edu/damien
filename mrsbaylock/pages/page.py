@@ -84,6 +84,7 @@ class Page(object):
         return self.element(locator).get_attribute('value')
 
     def is_present(self, locator):
+        app.logger.info(f'Checking for presence of element at {locator}')
         try:
             self.element(locator)
             return True
@@ -220,6 +221,9 @@ class Page(object):
 
     def scroll_to_bottom(self):
         self.driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
+
+    def scroll_to_element(self, element):
+        self.driver.execute_script('arguments[0].scrollIntoView(true);', element)
 
     def mouseover(self, element):
         ActionChains(self.driver).move_to_element(element).perform()
