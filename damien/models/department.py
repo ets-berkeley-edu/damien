@@ -166,32 +166,8 @@ class Department(Base):
             supplemental_section_ids.add(k)
 
         all_sections = default_loch_sections + supplemental_loch_sections
-
         evaluations = Evaluation.fetch_by_course_numbers(term_id, sections_by_number.keys())
-
-        instructor_uids = set(s['instructor_uid'] for s in all_sections if s['instructor_uid'])
-        for v in evaluations.values():
-            instructor_uids.update(e.instructor_uid for e in v if e.instructor_uid)
-        instructors = {}
-        for i in SupplementalInstructor.find_by_uids(list(instructor_uids)):
-            instructor_uids.remove(i.ldap_uid)
-            instructors[i.ldap_uid] = {
-                'uid': i.ldap_uid,
-                'sisId': i.sis_id,
-                'firstName': i.first_name,
-                'lastName': i.last_name,
-                'emailAddress': i.email_address,
-            }
-        for row in get_loch_instructors(list(instructor_uids)):
-            instructors[row['ldap_uid']] = {
-                'uid': row['ldap_uid'],
-                'sisId': row['sis_id'],
-                'firstName': row['first_name'],
-                'lastName': row['last_name'],
-                'emailAddress': row['email_address'],
-                'affiliations': row['affiliations'],
-            }
-
+        instructors = _get_instructors(all_sections, evaluations)
         all_eval_types = {et.name: et for et in EvaluationType.query.all()}
 
         def _is_loch_row_visible(row):
@@ -266,3 +242,39 @@ class Department(Base):
                 self.get_visible_sections()['sections']
             feed['totalSections'] = self.row_count
         return feed
+
+
+def _get_instructors(all_sections, evaluations):
+    instructor_uids = set(s['instructor_uid'] for s in all_sections if s['instructor_uid'])
+    for v in evaluations.values():
+        instructor_uids.update(e.instructor_uid for e in v if e.instructor_uid)
+    instructors = {}
+    for i in SupplementalInstructor.find_by_uids(list(instructor_uids)):
+        instructor_uids.remove(i.ldap_uid)
+        instructors[i.ldap_uid] = {
+            'uid': i.ldap_uid,
+            'sisId': i.sis_id,
+            'firstName': i.first_name,
+            'lastName': i.last_name,
+            'emailAddress': i.email_address,
+        }
+    loch_instructors = get_loch_instructors(list(instructor_uids))
+    for row in loch_instructors:
+        instructors[row['ldap_uid']] = {
+            'uid': row['ldap_uid'],
+            'sisId': row['sis_id'],
+            'firstName': row['first_name'],
+            'lastName': row['last_name'],
+            'emailAddress': row['email_address'],
+            'affiliations': row['affiliations'],
+        }
+        instructor_uids.remove(row['ldap_uid'])
+    for uid in instructor_uids:
+        instructors[uid] = {
+            'uid': uid,
+            'sisId': None,
+            'firstName': None,
+            'lastName': None,
+            'emailAddress': None,
+        }
+    return instructors
