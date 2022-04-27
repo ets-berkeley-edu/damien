@@ -42,6 +42,7 @@
           min-width="unset"
           text
           @click="onEdit"
+          @keypress.enter.prevent="onEdit"
         >
           Edit
         </v-btn>
@@ -61,6 +62,7 @@
           min-width="unset"
           text
           @click="() => isConfirming = true"
+          @keypress.enter.prevent="() => isConfirming = true"
         >
           Delete
         </v-btn>
@@ -80,6 +82,7 @@
           :disabled="disableControls || !isEditable"
           elevation="2"
           @click="onSave"
+          @keypress.enter.prevent="onSave"
         >
           Save Note
         </v-btn>
@@ -92,6 +95,7 @@
           outlined
           text
           @click="onCancelSave"
+          @keypress.enter.prevent="onCancelSave"
         >
           Cancel
         </v-btn>

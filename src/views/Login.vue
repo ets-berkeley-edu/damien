@@ -22,6 +22,7 @@
               color="accent"
               large
               @click.stop="logIn"
+              @keypress.enter.prevent.stop="logIn"
             >
               Sign In
               <v-icon class="pl-2">mdi-arrow-right-circle-outline</v-icon>

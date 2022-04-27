@@ -61,6 +61,7 @@
               :disabled="$_.isEmpty(selectedDepartmentIds)"
               small
               @click="() => isCreatingNotification = true"
+              @keypress.enter.prevent="() => isCreatingNotification = true"
             >
               Apply
             </v-btn>
