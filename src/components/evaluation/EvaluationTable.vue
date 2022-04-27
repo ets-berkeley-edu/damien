@@ -202,8 +202,8 @@
                   </select>
                 </td>
                 <td :id="`evaluation-${evaluationId}-period`">
-                  <span v-if="$_.get(evaluation, 'evaluationPeriod.start') && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationPeriod}">
-                    <div>{{ evaluation.evaluationPeriod.start | moment('MM/DD/YY') }} - {{ evaluation.evaluationPeriod.end | moment('MM/DD/YY') }}</div>
+                  <span v-if="evaluation.startDate && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationPeriod}">
+                    <div>{{ evaluation.startDate | moment('MM/DD/YY') }} - {{ evaluation.endDate | moment('MM/DD/YY') }}</div>
                     <div>{{ evaluation.modular ? 2 : 3 }} weeks</div>
                     <div v-for="(conflict, index) in evaluation.conflicts.evaluationPeriod" :key="index" class="evaluation-error error--text">
                       <v-icon small color="error">mdi-alert-circle</v-icon>
@@ -214,14 +214,14 @@
                   </span>
                   <div v-if="isEditing(evaluation)">
                     <div v-if="selectedStartDate">
-                      {{ evaluation.evaluationPeriod.modularCutoff > selectedStartDate ? 2 : 3 }} weeks starting:
+                      Start date:
                     </div>
                     <div v-if="!selectedStartDate" class="evaluation-error">
                       <v-icon small color="white">mdi-alert-circle</v-icon> Start date required
                     </div>
                     <c-date-picker
                       v-model="selectedStartDate"
-                      :min-date="new Date(evaluation.startDate)"
+                      :min-date="new Date(evaluation.meetingDates.start)"
                       :max-date="$moment($config.currentTermDates.end).subtract(20, 'days').toDate()"
                       title-position="left"
                     >
@@ -323,7 +323,7 @@ export default {
       {text: 'Instructor', value: 'sortableInstructor'},
       {text: 'Department Form', value: 'departmentForm.name', width: '170px'},
       {text: 'Evaluation Type', value: 'evaluationType.name', width: '100px'},
-      {text: 'Evaluation Period', value: 'evaluationPeriod.start', width: '200px'}
+      {text: 'Evaluation Period', value: 'startDate', width: '200px'}
     ],
     pendingInstructor: null,
     readonly: false,
@@ -363,7 +363,7 @@ export default {
       this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm')
       this.selectedEvaluationStatus = this.$_.get(evaluation, 'status')
       this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
-      this.selectedStartDate = evaluation.evaluationPeriod.start
+      this.selectedStartDate = evaluation.startDate
     },
     evaluationClass(evaluation, hover) {
       return {
@@ -401,8 +401,7 @@ export default {
         'status': this.selectedEvaluationStatus
       }
       if (this.selectedStartDate) {
-        const duration = evaluation.evaluationPeriod.modularCutoff > this.selectedStartDate ? 13 : 20
-        fields.endDate = this.$moment(this.selectedStartDate).add(duration, 'days').format('YYYY-MM-DD')
+        fields.startDate = this.$moment(this.selectedStartDate).format('YYYY-MM-DD')
       }
       this.updateEvaluation(evaluation.id, evaluation.courseNumber, fields).then(this.clearEdit)
     },
@@ -422,18 +421,6 @@ export default {
     } else {
       this.headers = [{text: 'Select'}].concat(this.headers)
     }
-    this.$_.each(this.evaluations, e => {
-      e.sortableCourseName = `${e.subjectArea} ${e.catalogId} ${e.instructionFormat} ${e.sectionNumber} ${e.courseTitle}`
-      e.sortableCourseNumber = e.sortableCourseNumber || e.courseNumber
-      if (e.instructor) {
-        e.sortableInstructor = `${e.instructor.lastName} ${e.instructor.firstName} ${e.instructor.uid} ${e.instructor.emailAddress}`
-      } else {
-        e.sortableInstructor = ''
-      }
-      e.evaluationPeriod.start = this.$moment(e.evaluationPeriod.start).toDate()
-      e.evaluationPeriod.end = this.$moment(e.endDate).toDate()
-      e.evaluationPeriod.modularCutoff = this.$moment(e.startDate).add(76, 'days').toDate()
-    })
     getDepartmentForms().then(data => {
         this.departmentForms = [{id: null, name: 'None'}].concat(data)
     })

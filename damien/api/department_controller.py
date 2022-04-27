@@ -179,7 +179,7 @@ def _validate_evaluation_fields(fields):  # noqa C901
                 if not department_form:
                     raise BadRequestError(f'Invalid department form id {v}.')
                 validated_fields['departmentForm'] = department_form
-        elif k == 'endDate':
+        elif k == 'startDate':
             try:
                 validated_fields[k] = date.fromisoformat(v)
             except (TypeError, ValueError):

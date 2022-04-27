@@ -342,6 +342,27 @@ export default {
       this.isCreatingNotification = false
       this.alertScreenReader('Notification canceled.')
     },
+    decorateEvaluation(e) {
+      e.isSelected = false
+      // When sorting by course number, keep cross-listings with home sections.
+      if (e.crossListedWith && e.foreignDepartmentCourse) {
+        e.sortableCourseNumber = `${e.crossListedWith}-${e.courseNumber}`
+      } else if (e.roomSharedWith && e.foreignDepartmentCourse) {
+        e.sortableCourseNumber = `${e.roomSharedWith}-${e.courseNumber}`
+      } else {
+        e.sortableCourseNumber = e.courseNumber
+      }
+      e.sortableCourseName = `${e.subjectArea} ${e.catalogId} ${e.instructionFormat} ${e.sectionNumber} ${e.courseTitle}`
+      if (e.instructor) {
+        e.sortableInstructor = `${e.instructor.lastName} ${e.instructor.firstName} ${e.instructor.uid} ${e.instructor.emailAddress}`
+      } else {
+        e.sortableInstructor = ''
+      }
+      e.startDate = this.$moment(e.startDate).toDate()
+      e.endDate = this.$moment(e.endDate).toDate()
+      e.meetingDates.start = this.$moment(e.meetingDates.start).toDate()
+      e.meetingDates.end = this.$moment(e.meetingDates.end).toDate()
+    },
     dismissErrorDialog() {
       this.errorDialog = false
       this.errorDialogText = null
@@ -363,17 +384,7 @@ export default {
       const termId = this.selectedTermId
       this.init({departmentId, termId}).then(department => {
         this.department = department
-        this.$_.each(department.evaluations, e => {
-          e.isSelected = false
-          // When sorting by course number, keep cross-listings with home sections.
-          if (e.crossListedWith && e.foreignDepartmentCourse) {
-            e.sortableCourseNumber = `${e.crossListedWith}-${e.courseNumber}`
-          } else if (e.roomSharedWith && e.foreignDepartmentCourse) {
-            e.sortableCourseNumber = `${e.roomSharedWith}-${e.courseNumber}`
-          } else {
-            e.sortableCourseNumber = e.courseNumber
-          }
-        })
+        this.$_.each(department.evaluations, this.decorateEvaluation)
         this.evaluations = this.$_.sortBy(department.evaluations, 'sortableCourseNumber')
         this.$ready(`${this.department.deptName} ${this.$_.get(this.selectedTerm, 'name')}`, screenreaderAlert)
       })
@@ -389,13 +400,14 @@ export default {
           resolve()
         } else {
           updateEvaluations(this.department.id, 'edit', [evaluationId], fields).then(() => {
-            getSectionEvaluations(this.department.id, sectionId).then(data => {
+            getSectionEvaluations(this.department.id, sectionId).then(updatedEvaluations => {
               let sectionIndex = this.$_.findIndex(this.evaluations, ['courseNumber', sectionId])
               if (sectionIndex === -1) {
                 sectionIndex = this.evaluations.length
               }
               const sectionCount = this.$_.filter(this.evaluations, ['courseNumber', sectionId]).length
-              this.evaluations.splice(sectionIndex, sectionCount, ...data)
+              this.$_.each(updatedEvaluations, this.decorateEvaluation)
+              this.evaluations.splice(sectionIndex, sectionCount, ...updatedEvaluations)
               this.alertScreenReader('Changes saved.')
               resolve()
             })

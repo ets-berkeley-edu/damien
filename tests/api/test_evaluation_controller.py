@@ -200,7 +200,7 @@ class TestExportEvaluations:
                                   'SECTION_NUM,PRIMARY_SECONDARY_CD,EVALUATE,DEPT_FORM,EVALUATION_TYPE,MODULAR_COURSE,START_DATE,END_DATE,'
                                   'CANVAS_COURSE_ID,QB_MAPPING')
             assert courses[1] == ('2022-B-30643,2022-B-30643,"Magic, Religion, and Science: The Ancient and Medieval Worlds",Y,30470-30643,HISTORY,'
-                                  'C188C,LEC,001,P,Y,HISTORY,F,,01-18-2022,05-02-2022,,HISTORY-F')
+                                  'C188C,LEC,001,P,Y,HISTORY,F,,04-27-2022,05-17-2022,,HISTORY-F')
 
             course_instructors = _read_csv(exported_objects, '/course_instructors.csv')
             assert len(course_instructors) == 2
