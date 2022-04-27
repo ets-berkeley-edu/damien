@@ -123,17 +123,27 @@ def get_all_users():
                     users.email,
                     users.blue_permissions,
                     department_members.department_id,
-                    department_members.can_receive_communications
+                    department_members.can_receive_communications,
+                    ARRAY_TO_STRING(ARRAY_AGG(department_forms.name), ',') AS forms
                FROM users
           LEFT JOIN department_members ON department_members.user_id = users.id
           LEFT JOIN departments ON departments.id = department_members.department_id
+          LEFT JOIN user_department_forms ON user_department_forms.user_id = users.id
+          LEFT JOIN department_forms ON department_forms.id = user_department_forms.department_form_id
+           GROUP BY users.id, users.uid, users.csid, users.first_name, users.last_name, users.blue_permissions,
+                    department_members.department_id,
+                    department_members.can_receive_communications
     """
     app.logger.info(sql)
     results = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     users_data = []
     for row in results:
+        form_names = row['forms'].split(',')
+        form_names.sort()
+        forms = list(map(lambda name: DepartmentForm(name), form_names))
         data = {
+            'user_id': row['id'],
             'uid': row['uid'],
             'csid': row['csid'],
             'first_name': row['first_name'].strip(),
@@ -142,6 +152,7 @@ def get_all_users():
             'blue_permissions': row['blue_permissions'],
             'dept_id': row['department_id'],
             'receives_comms': row['can_receive_communications'],
+            'dept_forms': forms,
         }
         users_data.append(data)
     users = []
@@ -150,12 +161,14 @@ def get_all_users():
     for k, g in grouped:
         grp = list(g)
         data = {
+            'user_id': grp[0]['user_id'],
             'uid': grp[0]['uid'],
             'csid': grp[0]['csid'],
             'first_name': grp[0]['first_name'],
             'last_name': grp[0]['last_name'],
             'email': grp[0]['email'],
             'blue_permissions': grp[0]['blue_permissions'],
+            'dept_forms': grp[0]['dept_forms'],
         }
         dept_roles = []
         for i in grp:
@@ -163,7 +176,6 @@ def get_all_users():
             dept_roles.append(role)
         user = User(data, dept_roles)
         users.append(user)
-        app.logger.info(f'{vars(user)}')
         for r in user.dept_roles:
             app.logger.info(f'{vars(r)}')
     return users
@@ -175,6 +187,14 @@ def get_user(uid):
         if u.uid == uid:
             user = u
     return user
+
+
+def get_user_id(user):
+    sql = f"SELECT id FROM users WHERE users.uid = '{user.uid}'"
+    app.logger.info(sql)
+    result = db.session.execute(text(sql)).first()
+    std_commit(allow_test_environment=True)
+    return result['id']
 
 
 def get_dept_users(dept, all_users=None):
@@ -203,6 +223,7 @@ def get_test_user(dept_role=None, blue_permissions=None):
         'first_name': app.config['TEST_DEPT_CONTACT_FIRST_NAME'],
         'last_name': app.config['TEST_DEPT_CONTACT_LAST_NAME'],
         'email': app.config['TEST_DEPT_CONTACT_EMAIL'],
+        'dept_forms': list(map(lambda f: DepartmentForm(f), (app.config['TEST_DEPT_CONTACT_FORMS'].split(',')))),
     })
     user.blue_permissions = blue_permissions
     if dept_role:
@@ -265,7 +286,7 @@ def get_participating_depts():
     return depts
 
 
-def get_dept(name):
+def get_dept(name, all_users=None):
     sql = f"""
         SELECT departments.id AS dept_id,
                departments.is_enrolled,
@@ -306,7 +327,7 @@ def get_dept(name):
     app.logger.info(f'Department object: {vars(dept)}')
     for n in dept.notes:
         app.logger.info(f'Department note: {vars(n)}')
-    dept.users = get_dept_users(dept)
+    dept.users = get_dept_users(dept, all_users)
     return dept
 
 
@@ -782,7 +803,7 @@ def get_instructors(evals):
                 e.instructor.affiliations = i.affiliations
 
 
-def get_section_dept(ccn):
+def get_section_dept(ccn, all_users=None):
     sql = f"""
         SELECT dept_name
           FROM departments
@@ -795,7 +816,7 @@ def get_section_dept(ccn):
     app.logger.info(sql)
     result = db.session.execute(text(sql)).first()
     std_commit(allow_test_environment=True)
-    return get_dept(result['dept_name'])
+    return get_dept(result['dept_name'], all_users)
 
 
 def get_eval_types(evals):

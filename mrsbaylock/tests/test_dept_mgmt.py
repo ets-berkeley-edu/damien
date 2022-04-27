@@ -38,7 +38,7 @@ previous_term = Term(utils.get_previous_term_code(term.term_id), None)
 depts = utils.get_participating_depts()
 all_users = utils.get_all_users()
 
-test_dept = utils.get_dept('Astronomy')
+test_dept = utils.get_dept('Astronomy', all_users)
 role = UserDeptRole(test_dept.dept_id, receives_comms=True)
 test_user = utils.get_test_user(role)
 test_email = Email(subject=None, body=None)
@@ -89,12 +89,15 @@ class TestDeptMgmt:
     @pytest.mark.parametrize('user', test_dept.users, scope='function', ids=[user.uid for user in test_dept.users])
     def test_dept_user_details(self, user):
         dept_role = utils.get_user_dept_role(user, test_dept)
+        self.dept_details_admin_page.expand_dept_contact(user)
         self.dept_details_admin_page.wait_for_contact(user)
-        assert self.dept_details_admin_page.dept_contact_name(user) == f'{user.first_name} {user.last_name}'
         expected_comms = 'Does receive notifications' if dept_role.receives_comms else 'Does not receive notifications'
         assert self.dept_details_admin_page.dept_contact_comms_perms(user) == expected_comms
         expected_blue = user.blue_permissions.value['description']
         assert self.dept_details_admin_page.dept_contact_blue_perms(user) == expected_blue
+        expected_forms = list(map(lambda f: f.name, user.dept_forms))
+        actual_forms = list(map(lambda f: f.name, self.dept_details_admin_page.dept_contact_dept_forms(user)))
+        assert actual_forms == expected_forms
 
     def test_add_contact_cancel(self):
         self.dept_details_admin_page.click_add_contact()
@@ -118,7 +121,7 @@ class TestDeptMgmt:
         self.dept_details_admin_page.click_add_contact()
         self.dept_details_admin_page.look_up_contact_uid(test_user.uid)
         self.dept_details_admin_page.click_look_up_result(test_user)
-        self.dept_details_admin_page.enter_contact_email('foo.com')
+        self.dept_details_admin_page.enter_new_contact_email('foo.com')
         Wait(self.driver, 2).until(ec.visibility_of_element_located(DeptDetailsAdminPage.EMAIL_INVALID_MSG))
 
     def test_add_contact_no_email(self):
@@ -126,7 +129,7 @@ class TestDeptMgmt:
         self.dept_details_admin_page.click_add_contact()
         self.dept_details_admin_page.look_up_contact_uid(test_user.uid)
         self.dept_details_admin_page.click_look_up_result(test_user)
-        self.dept_details_admin_page.enter_contact_email('')
+        self.dept_details_admin_page.enter_new_contact_email('')
         Wait(self.driver, 2).until(ec.visibility_of_element_located(DeptDetailsAdminPage.EMAIL_REQUIRED_MSG))
 
     def test_add_contact_modify_email(self):
@@ -134,12 +137,40 @@ class TestDeptMgmt:
         self.dept_details_admin_page.click_add_contact()
         self.dept_details_admin_page.look_up_contact_uid(test_user.uid)
         self.dept_details_admin_page.click_look_up_result(test_user)
-        self.dept_details_admin_page.enter_contact_email(utils.get_test_email_account())
+        self.dept_details_admin_page.enter_new_contact_email(utils.get_test_email_account())
+
+    def test_add_contact_add_dept_forms(self):
+        self.dept_details_admin_page.click_cancel_contact()
+        self.dept_details_admin_page.click_add_contact()
+        self.dept_details_admin_page.look_up_contact_uid(test_user.uid)
+        self.dept_details_admin_page.click_look_up_result(test_user)
+        self.dept_details_admin_page.select_dept_forms(test_user.dept_forms)
+
+    def test_add_contact_remove_dept_forms(self):
+        self.dept_details_admin_page.remove_dept_forms(test_user.dept_forms)
 
     def test_add_contact_save(self):
+        self.dept_details_admin_page.hit_escape()
         self.dept_details_admin_page.click_cancel_contact()
         self.dept_details_admin_page.click_add_contact()
         self.dept_details_admin_page.add_contact(test_user, test_dept)
+
+    def test_edit_contact_bad_email(self):
+        self.dept_details_admin_page.expand_dept_contact(test_user)
+        self.dept_details_admin_page.click_edit_contact(test_user)
+        self.dept_details_admin_page.enter_dept_contact_email_edit(test_user, 'foo.com')
+        Wait(self.driver, 2).until(ec.visibility_of_element_located(DeptDetailsAdminPage.EMAIL_INVALID_MSG))
+
+    def test_edit_contact_no_email(self):
+        self.dept_details_admin_page.enter_dept_contact_email_edit(test_user, '')
+        Wait(self.driver, 2).until(ec.visibility_of_element_located(DeptDetailsAdminPage.EMAIL_REQUIRED_MSG))
+
+    def test_edit_contact_save(self):
+        new_role = UserDeptRole(test_dept.dept_id, receives_comms=False)
+        test_user.dept_roles = [new_role]
+        test_user.blue_permissions = 'response_rates'
+        self.dept_details_admin_page.click_cancel_contact_edits(test_user)
+        self.dept_details_admin_page.edit_contact(test_user, test_dept)
 
     # NOTIFICATIONS - DEPT
 
@@ -161,7 +192,7 @@ class TestDeptMgmt:
         assert not self.dept_details_admin_page.element(DamienPages.NOTIF_SEND_BUTTON).is_enabled()
 
     def test_notif_default_recipients(self):
-        test_dept.users = utils.get_dept_users(test_dept)
+        test_dept.users = utils.get_dept_users(test_dept, all_users)
         test_email.recipients = []
         for user in test_dept.users:
             dept_role = next(filter(lambda r: (r.dept_id == test_dept.dept_id), user.dept_roles))
@@ -192,14 +223,8 @@ class TestDeptMgmt:
 
     # NOTIFICATIONS - DEPT
 
-    def test_bulk_notif_send_to_all(self):
-        test_email.subject = f'Bulk test subject to all departments, all contacts {self.test_id}'
-        test_email.body = f'Bulk test body to all departments, all contacts {self.test_id}'
-        self.status_board_admin_page.load_page()
-        self.status_board_admin_page.check_all_dept_notif_cbx()
-        self.status_board_admin_page.send_notif_to_depts(test_email)
-
     def test_bulk_notif_send_to_some(self):
+        self.status_board_admin_page.load_page()
         test_email.subject = f'Bulk test subject to some departments, all contacts {self.test_id}'
         test_email.body = f'Bulk test body to some departments, all contacts {self.test_id}'
         for d in depts[3:4]:
@@ -211,7 +236,27 @@ class TestDeptMgmt:
         test_email.body = f'Bulk test body to some departments, some contacts {self.test_id}'
         recips_to_exclude = []
         for d in depts[5:6]:
-            d.users = utils.get_dept_users(d)
+            d.users = utils.get_dept_users(d, all_users)
             recips_to_exclude.append({'user': d.users[-1], 'dept': d})
             self.status_board_admin_page.check_dept_notif_cbx(d)
         self.status_board_admin_page.send_notif_to_depts(test_email, recips_to_exclude)
+
+    def test_bulk_notif_send_to_all(self):
+        test_email.subject = f'Bulk test subject to all departments, all contacts {self.test_id}'
+        test_email.body = f'Bulk test body to all departments, all contacts {self.test_id}'
+        self.status_board_admin_page.check_all_dept_notif_cbx()
+        self.status_board_admin_page.send_notif_to_depts(test_email)
+
+    # CONTACT - DELETE
+
+    def test_delete_contact_cancel(self):
+        self.status_board_admin_page.click_dept_link(test_dept)
+        self.dept_details_admin_page.wait_for_contact(test_user)
+        self.dept_details_admin_page.expand_dept_contact(test_user)
+        self.dept_details_admin_page.click_delete_contact(test_user)
+        self.dept_details_admin_page.cancel_delete_contact()
+
+    def test_delete_contact_confirm(self):
+        self.dept_details_admin_page.click_delete_contact(test_user)
+        self.dept_details_admin_page.confirm_delete_contact(test_user)
+        test_dept.users.remove(test_user)

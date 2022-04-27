@@ -26,6 +26,7 @@ import time
 
 from flask import current_app as app
 from mrsbaylock.models.blue_perm import BluePerm
+from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
@@ -39,13 +40,15 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
 
     @staticmethod
     def term_option_locator(term):
-        return By.XPATH, f'//span[@id="term-option-{term.term_id}"]/..'
+        return By.XPATH, f'//option[@id="term-option-{term.term_id}"]'
 
     def select_term(self, term):
         app.logger.info(f'Selecting term {term.name}')
         self.wait_for_page_and_click_js(DeptDetailsAdminPage.TERM_SELECT)
         self.wait_for_element_and_click(DeptDetailsAdminPage.term_option_locator(term))
         time.sleep(1)
+
+    # Add contact
 
     ADD_CONTACT_BUTTON = (By.ID, 'add-dept-contact-btn')
     ADD_CONTACT_EMAIL = (By.ID, 'input-email-add-contact')
@@ -55,31 +58,18 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
     CONTACT_NO_BLUE_RADIO = (By.XPATH, '//input[contains(@id, "radio-no-blue-")]/..')
     CONTACT_REPORTS_RADIO = (By.XPATH, '//input[contains(@id, "radio-reports-only-")]/..')
     CONTACT_RESPONSES_RADIO = (By.XPATH, '//input[contains(@id, "radio-response-rates-")]/..')
+    ADD_CONTACT_DEPT_FORM_INPUT = (By.ID, 'autocomplete-select-deptForms-add-contact')
+    ADD_CONTACT_DEPT_FORM_OPTION = (By.XPATH, '//div[@role="option"]')
     ADD_CONTACT_SAVE_BUTTON = (By.ID, 'save-dept-contact-add-contact-btn')
     ADD_CONTACT_CANCEL_BUTTON = (By.ID, 'cancel-dept-contact-add-contact-btn')
-    DELETE_CONFIRM_BUTTON = (By.ID, 'confirm-dialog-btn')
-    DELETE_CANCEL_BUTTON = (By.ID, 'cancel-dialog-btn')
 
     @staticmethod
-    def dept_contact_xpath(user):
-        return f'//div[contains(@id, "department-contact-")][contains(., "{user.email}")]/div'
+    def dept_contact_form_option(form):
+        return By.XPATH, f'//div[starts-with(@id, "deptForm-")][text()="{form.name}"]/..'
 
     @staticmethod
-    def dept_contact_edit_button(user):
-        return By.ID, f'edit-dept-contact-{user.user_id}-btn'
-
-    @staticmethod
-    def dept_contact_delete_button(user):
-        return By.ID, f'delete-dept-contact-{user.user_id}-btn'
-
-    def dept_contact_name(self, user):
-        return self.element((By.XPATH, f'{self.dept_contact_xpath(user)}/strong')).text
-
-    def dept_contact_comms_perms(self, user):
-        return self.element((By.XPATH, f'{self.dept_contact_xpath(user)}/div[2]')).text.strip()
-
-    def dept_contact_blue_perms(self, user):
-        return self.element((By.XPATH, f'{self.dept_contact_xpath(user)}/div[3]')).text.strip()
+    def dept_contact_form_remove_button(form):
+        return By.XPATH, f'//button[contains(@aria-label, "Remove {form.name}")]'
 
     def click_add_contact(self):
         self.wait_for_element_and_click(DeptDetailsAdminPage.ADD_CONTACT_BUTTON)
@@ -88,15 +78,29 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         self.wait_for_element_and_click(DeptDetailsAdminPage.ADD_CONTACT_CANCEL_BUTTON)
         self.when_not_present(DeptDetailsAdminPage.ADD_CONTACT_CANCEL_BUTTON, 1)
 
-    def click_edit_contact(self, user):
-        self.wait_for_element_and_click(self.dept_contact_edit_button(user))
-
-    def click_delete_contact(self, user):
-        self.wait_for_element_and_click(self.dept_contact_delete_button(user))
-
-    def enter_contact_email(self, email):
+    def enter_new_contact_email(self, email):
         app.logger.info(f'Entering email {email}')
         self.remove_and_enter_chars(DeptDetailsAdminPage.ADD_CONTACT_EMAIL, email)
+
+    def select_dept_forms(self, dept_forms, user=None):
+        if user:
+            self.wait_for_page_and_click_js(DeptDetailsAdminPage.dept_contact_form_edit_input(user))
+        else:
+            self.wait_for_page_and_click_js(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
+        last_form = DepartmentForm('YIDDISH')
+        while not self.is_present(DeptDetailsAdminPage.dept_contact_form_option(last_form)):
+            self.scroll_to_element(self.elements(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_OPTION)[-1])
+            time.sleep(1)
+        for form in dept_forms:
+            self.click_element_js(DeptDetailsAdminPage.dept_contact_form_option(form))
+            Wait(self.driver, utils.get_short_timeout()).until(
+                ec.presence_of_element_located(DeptDetailsAdminPage.dept_contact_form_remove_button(form)),
+            )
+
+    def remove_dept_forms(self, dept_forms):
+        for form in dept_forms:
+            self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_remove_button(form))
+            self.when_not_present(DeptDetailsAdminPage.dept_contact_form_remove_button(form), 1)
 
     def enter_user_flags(self, user, dept):
         role = next(filter(lambda r: (r.dept_id == dept.dept_id), user.dept_roles))
@@ -109,26 +113,84 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         elif user.blue_permissions == BluePerm.BLUE_REPORTS_RESPONSES:
             self.element(DeptDetailsAdminPage.CONTACT_RESPONSES_RADIO).click()
 
-    def add_contact(self, user, dept):
-        app.logger.info(f'Adding UID {user.uid} as a contact')
-        self.look_up_contact_uid(user.uid)
-        self.click_look_up_result(user)
-        self.enter_contact_email(user.email)
-        self.enter_user_flags(user, dept)
-        self.click_save_new_contact()
-        self.wait_for_contact(user)
-
     def click_save_new_contact(self):
         self.wait_for_element_and_click(DeptDetailsAdminPage.ADD_CONTACT_SAVE_BUTTON)
 
     def cancel_new_contact(self):
         self.wait_for_element_and_click(DeptDetailsAdminPage.ADD_CONTACT_CANCEL_BUTTON)
 
-    def wait_for_contact(self, user):
-        app.logger.info(f'Waiting for UID {user.uid} to appear')
-        Wait(self.driver, utils.get_short_timeout()).until(
-            ec.presence_of_element_located((By.XPATH, self.dept_contact_xpath(user))),
-        )
+    def add_contact(self, user, dept):
+        app.logger.info(f'Adding UID {user.uid} as a contact')
+        self.look_up_contact_uid(user.uid)
+        self.click_look_up_result(user)
+        self.enter_new_contact_email(user.email)
+        self.enter_user_flags(user, dept)
+        self.select_dept_forms(user.dept_forms)
+        self.hit_escape()
+        self.click_save_new_contact()
+        user.user_id = utils.get_user_id(user)
+        self.wait_for_contact(user)
+        dept.users.append(user)
+
+    # Edit contact
+
+    @staticmethod
+    def dept_contact_edit_button(user):
+        return By.ID, f'edit-dept-contact-{user.user_id}-btn'
+
+    @staticmethod
+    def dept_contact_delete_button(user):
+        return By.ID, f'delete-dept-contact-{user.user_id}-btn'
+
+    @staticmethod
+    def dept_contact_save_edit_button(user):
+        return By.ID, f'save-dept-contact-{user.uid}-btn'
+
+    @staticmethod
+    def dept_contact_cancel_edit_button(user):
+        return By.ID, f'cancel-dept-contact-{user.uid}-btn'
+
+    @staticmethod
+    def dept_contact_email_edit_input(user):
+        return By.ID, f'input-email-{user.uid}'
+
+    @staticmethod
+    def dept_contact_form_edit_input(user):
+        return By.ID, f'autocomplete-select-deptForms-{user.uid}'
+
+    def click_edit_contact(self, user):
+        self.wait_for_page_and_click_js(self.dept_contact_edit_button(user))
+
+    def enter_dept_contact_email_edit(self, user, email):
+        app.logger.info(f'Entering email {email} for UID {user.uid}')
+        self.remove_and_enter_chars(DeptDetailsAdminPage.dept_contact_email_edit_input(user), email)
+
+    def edit_contact(self, user, dept):
+        app.logger.info(f'Editing contact UID {user.uid}')
+        self.click_edit_contact(user)
+        self.enter_new_contact_email(user.email)
+        self.enter_user_flags(user, dept)
+        self.select_dept_forms(user.dept_forms)
+        self.hit_escape()
+        self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_save_edit_button(user))
+
+    def click_cancel_contact_edits(self, user):
+        self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_cancel_edit_button(user))
+
+    # Delete contact
+
+    DELETE_CONFIRM_BUTTON = (By.ID, 'confirm-dialog-btn')
+    DELETE_CANCEL_BUTTON = (By.ID, 'cancel-dialog-btn')
+
+    def click_delete_contact(self, user):
+        self.wait_for_element_and_click(self.dept_contact_delete_button(user))
+
+    def confirm_delete_contact(self, user):
+        self.wait_for_element_and_click(DeptDetailsAdminPage.DELETE_CONFIRM_BUTTON)
+        self.when_not_present(DeptDetailsAdminPage.dept_contact_xpath(user), utils.get_short_timeout())
+
+    def cancel_delete_contact(self):
+        self.wait_for_element_and_click(DeptDetailsAdminPage.DELETE_CANCEL_BUTTON)
 
     DEPT_NOTE = (By.ID, 'dept-note')
     DEPT_NOTE_EDIT_BUTTON = (By.ID, 'edit-dept-note-btn')

@@ -28,6 +28,7 @@ import datetime
 import time
 
 from flask import current_app as app
+from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.pages.course_dashboards import CourseDashboards
 from mrsbaylock.test_utils import utils
@@ -39,6 +40,42 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class CourseDashboardEditsPage(CourseDashboards):
+
+    @staticmethod
+    def dept_contact_xpath(user):
+        return f'//div[contains(@id, "department-contact-")][contains(., "{user.first_name} {user.last_name}")]'
+
+    def wait_for_contact(self, user):
+        app.logger.info(f'Waiting for UID {user.uid} to appear')
+        Wait(self.driver, utils.get_short_timeout()).until(
+            ec.presence_of_element_located((By.XPATH, self.dept_contact_xpath(user))),
+        )
+
+    def dept_contact_name(self, user):
+        return self.element((By.XPATH, f'{self.dept_contact_xpath(user)}//strong')).text
+
+    def expand_dept_contact(self, user):
+        el = self.dept_contact_email_loc(user)
+        if not self.is_present(el) or not self.element(el).is_displayed():
+            self.wait_for_page_and_click_js((By.XPATH, f'//button[contains(., "{user.first_name} {user.last_name}")]'))
+
+    def dept_contact_email_loc(self, user):
+        return By.XPATH, f'{self.dept_contact_xpath(user)}//div[contains(@id, "email")]'
+
+    def dept_contact_email(self, user):
+        return self.element(self.dept_contact_email_loc(user)).text.strip()
+
+    def dept_contact_comms_perms(self, user):
+        return self.element((By.XPATH, f'{self.dept_contact_xpath(user)}//div[contains(@id, "notifications")]')).text.strip()
+
+    def dept_contact_blue_perms(self, user):
+        return self.element((By.XPATH, f'{self.dept_contact_xpath(user)}//div[contains(@id, "permissions")]')).text.strip()
+
+    def dept_contact_dept_forms(self, user):
+        els = self.elements((By.XPATH, f'{self.dept_contact_xpath(user)}//span[contains(@id, "-form-")]'))
+        forms = list(map(lambda el: DepartmentForm(el.text.strip()), els))
+        forms.sort(key=lambda f: f.name)
+        return forms
 
     # COURSE ACTIONS
 
