@@ -57,7 +57,7 @@ in cases where these attributes vary. To keep these multiple courses from gettin
 derived from the course number plus variable attributes.
 """
 
-EvaluationExportKey = namedtuple('EvaluationExportKey', ['course_number', 'department_form', 'evaluation_type', 'end_date'])
+EvaluationExportKey = namedtuple('EvaluationExportKey', ['course_number', 'department_form', 'evaluation_type', 'start_date', 'end_date'])
 
 
 class Evaluation(Base):
@@ -122,6 +122,8 @@ class Evaluation(Base):
             'evaluationType': [],
             'evaluationPeriod': [],
         }
+        self.meeting_start_date = None
+        self.meeting_end_date = None
 
     def __repr__(self):
         return f"""<Evaluation id={self.id},
@@ -198,8 +200,7 @@ class Evaluation(Base):
 
         transient_evaluation.set_department_form(saved_evaluation, foreign_dept_evaluations, default_form)
         transient_evaluation.set_evaluation_type(saved_evaluation, foreign_dept_evaluations, instructor, all_eval_types)
-        transient_evaluation.set_start_date(loch_rows)
-        transient_evaluation.set_end_date(loch_rows, foreign_dept_evaluations, saved_evaluation)
+        transient_evaluation.set_dates(loch_rows, foreign_dept_evaluations, saved_evaluation)
         transient_evaluation.set_last_updated(loch_rows, saved_evaluation)
 
         transient_evaluation.update_validity(saved_evaluation, foreign_dept_evaluations)
@@ -328,8 +329,8 @@ class Evaluation(Base):
     def set_fields(self, fields, original_evaluation_feed=None):
         if 'departmentForm' in fields:
             self.department_form = fields['departmentForm']
-        if 'endDate' in fields:
-            self.end_date = fields['endDate']
+        if 'startDate' in fields:
+            self.start_date = fields['startDate']
         if 'evaluationType' in fields:
             self.evaluation_type = fields['evaluationType']
         if 'instructorUid' in fields:
@@ -380,34 +381,43 @@ class Evaluation(Base):
             elif instructor and 'ACADEMIC' in instructor.get('affiliations', []):
                 self.evaluation_type = all_eval_types.get('F')
 
-    def set_start_date(self, loch_rows):
-        self.start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
-        if not self.start_date:
-            term_begin, term_end = current_term_dates()
-            self.start_date = term_begin
+    def set_dates(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
+        self.meeting_start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
+        self.meeting_end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)
+        term_begin, term_end = current_term_dates()
+        if not self.meeting_start_date:
+            self.meeting_start_date = term_begin
+        if not self.meeting_end_date:
+            self.meeting_end_date = term_end
 
-    def set_end_date(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
-        if saved_evaluation and saved_evaluation.end_date:
-            self.end_date = saved_evaluation.end_date
+        if saved_evaluation and saved_evaluation.start_date:
+            self.start_date = saved_evaluation.start_date
             for fde in foreign_dept_evaluations:
-                if fde.end_date and fde.end_date != self.end_date:
+                if fde.start_date and fde.start_date != self.start_date:
                     self.mark_conflict(
                         fde,
                         'evaluationPeriod',
                         saved_evaluation,
-                        self.get_evaluation_period(self.start_date)['start'],
-                        fde.get_evaluation_period(self.start_date)['start'],
+                        safe_strftime(self.start_date, '%Y-%m-%d'),
+                        safe_strftime(fde.start_date, '%Y-%m-%d'),
                     )
         else:
             for fde in foreign_dept_evaluations:
-                if fde.end_date:
-                    self.end_date = fde.end_date
+                if fde.start_date:
+                    self.start_date = fde.start_date
                     break
-        if not self.end_date:
-            self.end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)
-        if not self.end_date:
-            term_begin, term_end = current_term_dates()
-            self.end_date = term_end
+
+        if self.start_date:
+            if (self.start_date - self.meeting_start_date < timedelta(days=76)):
+                self.end_date = self.start_date + timedelta(days=13)
+            else:
+                self.end_date = self.start_date + timedelta(days=20)
+        else:
+            self.end_date = self.meeting_end_date
+            if (self.end_date - self.meeting_start_date) < timedelta(days=90):
+                self.start_date = self.end_date - timedelta(days=13)
+            else:
+                self.start_date = self.end_date - timedelta(days=20)
 
     def set_status(self, saved_evaluation, foreign_dept_evaluations):
         if saved_evaluation and saved_evaluation.status:
@@ -463,15 +473,6 @@ class Evaluation(Base):
     def get_id(self):
         return self.id or self.transient_id()
 
-    def get_evaluation_period(self, default_start_date=None):
-        start_date = self.start_date or default_start_date
-        duration = 13 if is_modular(start_date, self.end_date) else 20
-        evaluation_start = self.end_date - timedelta(days=duration)
-        return {
-            'start': safe_strftime(evaluation_start, '%Y-%m-%d'),
-            'end': safe_strftime(self.end_date, '%Y-%m-%d'),
-        }
-
     def to_api_json(self, section):
         dept_form_feed = self.department_form.to_api_json() if self.department_form else None
         eval_type_feed = self.evaluation_type.to_api_json() if self.evaluation_type else None
@@ -488,7 +489,10 @@ class Evaluation(Base):
             'evaluationType': eval_type_feed,
             'startDate': safe_strftime(self.start_date, '%Y-%m-%d'),
             'endDate': safe_strftime(self.end_date, '%Y-%m-%d'),
-            'evaluationPeriod': self.get_evaluation_period(),
+            'meetingDates': {
+                'start': safe_strftime(self.meeting_start_date, '%Y-%m-%d'),
+                'end': safe_strftime(self.meeting_end_date, '%Y-%m-%d'),
+            },
             'modular': is_modular(self.start_date, self.end_date),
             'lastUpdated': safe_strftime(self.last_updated, '%Y-%m-%d'),
             'conflicts': {},
@@ -510,12 +514,13 @@ class Evaluation(Base):
             course_number=self.course_number,
             department_form=self.department_form.name,
             evaluation_type=self.evaluation_type.name,
+            start_date=self.start_date,
             end_date=self.end_date,
         )
 
 
 def is_modular(start_date, end_date):
-    return True if start_date and end_date and end_date - start_date < timedelta(days=90) else False
+    return True if start_date and end_date and end_date - start_date < timedelta(days=20) else False
 
 
 def _parse_transient_id(transient_id):
