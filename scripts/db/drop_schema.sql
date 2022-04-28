@@ -87,6 +87,8 @@ ALTER TABLE IF EXISTS public.user_department_forms ALTER COLUMN id DROP DEFAULT;
 
 --
 
+DROP TABLE IF EXISTS public.exports CASCADE;
+
 DROP SEQUENCE IF EXISTS public.department_catalog_listings_id_seq;
 DROP TABLE IF EXISTS public.department_catalog_listings CASCADE;
 

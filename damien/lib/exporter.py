@@ -25,13 +25,14 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from itertools import groupby
 
-from damien.externals.s3 import put_csv_to_s3
+from damien.externals.s3 import get_s3_path, put_csv_to_s3
 from damien.lib.berkeley import term_code_for_sis_id
 from damien.lib.queries import get_confirmed_enrollments, get_loch_basic_attributes
 from damien.lib.util import safe_strftime
 from damien.models.department import Department
 from damien.models.department_form import DepartmentForm
 from damien.models.evaluation import is_modular
+from damien.models.export import Export
 from damien.models.user import User
 
 
@@ -68,7 +69,9 @@ def generate_exports(evals, term_id, timestamp):
     put_csv_to_s3(term_id, timestamp, 'students', student_headers, students)
     put_csv_to_s3(term_id, timestamp, 'supervisors', supervisor_headers, supervisors)
 
-    return True
+    s3_path = get_s3_path(term_id, timestamp)
+    export = Export.create(term_id, s3_path)
+    return export.to_api_json()
 
 
 def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms_to_uids):

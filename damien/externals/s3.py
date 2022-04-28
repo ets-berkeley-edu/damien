@@ -29,6 +29,14 @@ import tempfile
 import boto3
 from flask import current_app as app
 import smart_open
+import zipstream
+
+
+def get_s3_path(term_id, timestamp, filename=None):
+    key = f"exports/{term_id}/{timestamp.strftime('%Y_%m_%d_%H_%M_%S')}"
+    if filename:
+        key += f'/{filename}.csv'
+    return key
 
 
 def put_binary_data_to_s3(key, binary_data, content_type):
@@ -44,7 +52,7 @@ def put_binary_data_to_s3(key, binary_data, content_type):
 
 
 def put_csv_to_s3(term_id, timestamp, filename, headers, rows):
-    key = f"exports/{term_id}/{timestamp.strftime('%Y-%m-%d %H:%M:%S')}/{filename}.csv"
+    key = get_s3_path(term_id, timestamp, filename)
     tmpfile = tempfile.NamedTemporaryFile()
     with open(tmpfile.name, mode='wt', encoding='utf-8') as f:
         csv_writer = csv.DictWriter(f, fieldnames=headers)
@@ -59,6 +67,30 @@ def stream_object(s3_url):
         return smart_open.open(s3_url, 'rb', transport_params={'session': _get_session()})
     except Exception as e:
         app.logger.error(f'S3 stream operation failed (s3_url={s3_url})')
+        app.logger.exception(e)
+        return None
+
+
+def stream_folder_zipped(folder_key):
+    bucket = app.config['AWS_S3_BUCKET']
+    z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
+    session = _get_session()
+    s3 = session.client('s3')
+
+    try:
+        paginator = s3.get_paginator('list_objects')
+        page_iterator = paginator.paginate(Bucket=bucket, Prefix=folder_key)
+        for page in page_iterator:
+            if 'Contents' in page:
+                for o in page['Contents']:
+                    object_key = o.get('Key')
+                    s3_url = f's3://{bucket}/{object_key}'
+                    s3_stream = smart_open.open(s3_url, 'rb', transport_params={'session': session})
+                    filename = object_key.replace(f'{folder_key}/', '')
+                    z.write_iter(filename, s3_stream)
+        return z
+    except Exception as e:
+        app.logger.error(f'Zip stream of S3 folder failed (s3://{bucket}/{folder_key})')
         app.logger.exception(e)
         return None
 
