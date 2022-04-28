@@ -3,14 +3,36 @@
     <div class="pb-2">
       <h1 id="page-title">Evaluation Status Dashboard - Spring 2022</h1>
     </div>
-    <v-btn
-      id="publish-btn"
-      class="my-4"
-      @click="downloadEvaluations"
-      @keypress.enter.prevent="downloadEvaluations"
-    >
-      Publish
-    </v-btn>
+    <v-row>
+      <v-col>
+        <v-btn
+          id="publish-btn"
+          class="my-4"
+          color="primary"
+          :disabled="isExporting"
+          @click="publish"
+          @keypress.enter.prevent="publish"
+        >
+          <span v-if="!isExporting">Publish</span>
+          <v-progress-circular
+            v-if="isExporting"
+            :indeterminate="true"
+            color="white"
+            rotate="5"
+            size="20"
+            width="3"
+          ></v-progress-circular>
+        </v-btn>
+      </v-col>
+      <v-col>
+        <h2>Term Exports</h2>
+        <ul id="term-exports-list">
+          <li v-for="e in exports" :key="e.createdAt">
+            <a :href="`${$config.apiBaseUrl}/api/export/${encodeURIComponent(e.s3Path)}`">{{ e.createdAt | moment('M/DD/YYYY HH:mm:SS') }}</a>
+          </li>
+        </ul>
+      </v-col>
+    </v-row>
     <v-card outlined class="elevation-1">
       <v-data-table
         id="department-table"
@@ -93,6 +115,7 @@
 
 <script>
 import {getDepartmentsEnrolled} from '@/api/departments'
+import {exportEvaluations, getExports} from '@/api/evaluations'
 import Context from '@/mixins/Context.vue'
 import NotificationForm from '@/components/admin/NotificationForm'
 
@@ -102,6 +125,7 @@ export default {
   mixins: [Context],
   data: () => ({
     departments: [],
+    exports: [],
     headers: [
       {class: 'pt-12 pb-3', text: 'Department', value: 'deptName'},
       {class: 'pt-12 pb-3', text: 'Last Updated', value: 'updatedAt'},
@@ -110,6 +134,7 @@ export default {
       {class: 'pt-12 pb-3', text: 'Notes', value: 'notes'},
     ],
     isCreatingNotification: false,
+    isExporting: false,
     selectedDepartmentIds: []
   }),
   computed: {
@@ -142,6 +167,9 @@ export default {
       this.departments = data
       this.$ready('Status Board')
     })
+    getExports().then(data => {
+      this.exports = data
+    })
   },
   methods: {
     afterSendNotification() {
@@ -155,11 +183,17 @@ export default {
       this.alertScreenReader('Notification canceled.')
       this.$putFocusNextTick('open-notification-form-btn')
     },
-    downloadEvaluations() {
-      window.location.href = `${this.$config.apiBaseUrl}/api/evaluations/export`
-    },
     isSelected(department) {
       return this.$_.includes(this.selectedDepartmentIds, department.id)
+    },
+    publish() {
+      this.isExporting = true
+      this.alertScreenReader('Publishing.')
+      exportEvaluations().then(data => {
+        this.exports.unshift(data)
+        this.isExporting = false
+        this.alertScreenReader('Publication complete.')
+      })
     },
     toggleSelect(department) {
       const index = this.$_.indexOf(this.selectedDepartmentIds, department.id)

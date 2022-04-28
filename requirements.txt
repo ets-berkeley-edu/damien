@@ -13,6 +13,7 @@ simplejson==3.17.5
 SQLAlchemy==1.4.27
 smart-open==4.2.0
 Werkzeug==2.0.1
+zipstream-new==1.1.8
 https://github.com/python-cas/python-cas/archive/master.zip
 
 # For testing

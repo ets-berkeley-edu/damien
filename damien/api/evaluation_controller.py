@@ -28,27 +28,41 @@ from itertools import groupby
 
 from damien.api.errors import BadRequestError, InternalServerError
 from damien.api.util import admin_required
+from damien.externals.s3 import stream_folder_zipped
+from damien.lib.berkeley import available_term_ids
 from damien.lib.exporter import generate_exports
 from damien.lib.http import tolerant_jsonify
+from damien.lib.util import get as get_param
 from damien.models.department import Department
 from damien.models.evaluation import Evaluation
-from flask import current_app as app
+from damien.models.export import Export
+from flask import current_app as app, request, Response, stream_with_context
 
 
-@app.route('/api/evaluations/export')
+@app.route('/api/evaluations/export', methods=['POST'])
 @admin_required
 def export_evaluations():
     term_id = app.config['CURRENT_TERM_ID']
     validation_errors = Evaluation.get_invalid(term_id, status='confirmed')
     if len(validation_errors):
         raise BadRequestError(f'Cannot export evaluations: {len(validation_errors)} validation errors')
-
     evals = Evaluation.get_confirmed(term_id)
     timestamp = datetime.now()
-    if generate_exports(evals, term_id, timestamp):
-        return tolerant_jsonify({'result': 'success'})
+    result = generate_exports(evals, term_id, timestamp)
+    if result:
+        return tolerant_jsonify(result)
     else:
         raise InternalServerError('Something went wrong.')
+
+
+@app.route('/api/evaluations/exports')
+@admin_required
+def get_term_evaluation_exports():
+    term_id = get_param(request.args, 'term_id', app.config['CURRENT_TERM_ID'])
+    if term_id not in available_term_ids():
+        raise BadRequestError('Invalid term id.')
+    exports = Export.get_for_term(term_id)
+    return tolerant_jsonify([e.to_api_json() for e in exports])
 
 
 @app.route('/api/evaluations/validate')
@@ -60,3 +74,15 @@ def get_validation():
     for dept_id, dept_evals in groupby(evals, key=lambda e: e.department_id):
         feed.extend(Department.find_by_id(dept_id).evaluations_feed(term_id, evaluation_ids=[e.id for e in dept_evals]))
     return tolerant_jsonify(feed)
+
+
+@app.route('/api/export/<path:key>')
+@admin_required
+def download_evaluation_export(key):
+    def generator():
+        for chunk in stream_folder_zipped(key):
+            yield chunk
+    response = Response(stream_with_context(generator()), mimetype='application/zip')
+    timestamp = key[-19:]
+    response.headers['Content-Disposition'] = f'attachment; filename=export_{timestamp}.zip'
+    return response

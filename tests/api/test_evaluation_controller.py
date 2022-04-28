@@ -23,6 +23,8 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import re
+
 from moto import mock_s3
 from tests.api.test_department_controller import \
     _api_get_evaluation, _api_update_evaluation, _api_update_history_evaluation, _api_update_melc_evaluation
@@ -119,8 +121,15 @@ class TestGetValidations:
 
 
 def _api_export_evaluations(client, expected_status_code=200):
-    response = client.get('/api/evaluations/export')
+    response = client.post('/api/evaluations/export')
     assert response.status_code == expected_status_code
+    return response.json
+
+
+def _api_get_exports(client, expected_status_code=200):
+    response = client.get('/api/evaluations/exports')
+    assert response.status_code == expected_status_code
+    return response.json
 
 
 def _read_csv(objects, key):
@@ -136,10 +145,12 @@ class TestExportEvaluations:
 
     def test_anonymous(self, client):
         _api_export_evaluations(client, expected_status_code=401)
+        _api_get_exports(client, expected_status_code=401)
 
     def test_unauthorized(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         _api_export_evaluations(client, expected_status_code=401)
+        _api_get_exports(client, expected_status_code=401)
 
     def test_validation_errors(self, client, fake_auth, history_id, type_f_id):
         fake_auth.login(admin_uid)
@@ -147,12 +158,19 @@ class TestExportEvaluations:
         evaluation = _api_get_evaluation(client, history_id, '30643', '326054')
         _api_update_evaluation(client, history_id, params={'evaluationIds': [evaluation['id']], 'action': 'confirm'})
         _api_export_evaluations(client, expected_status_code=400)
+        assert _api_get_exports(client) == []
 
     @mock_s3
     def test_nothing_confirmed_headers_only(self, client, app, fake_auth):
         fake_auth.login(admin_uid)
+        assert _api_get_exports(client) == []
+
         with mock_s3_bucket(app) as s3:
-            _api_export_evaluations(client)
+            eval_response = _api_export_evaluations(client)
+            assert eval_response['termId'] == '2222'
+            assert re.match('^exports/2222/\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2}$', eval_response['s3Path'])
+            assert eval_response['createdAt']
+
             exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
             assert len(exported_objects) == 9
 
@@ -181,6 +199,10 @@ class TestExportEvaluations:
             students = _read_csv(exported_objects, '/students.csv')
             assert len(students) == 1
             assert students[0] == 'LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS'
+
+            export_response = _api_get_exports(client)
+            assert len(export_response) == 1
+            assert export_response[0] == eval_response
 
     @mock_s3
     def test_confirmed_course(self, client, app, fake_auth, history_id, form_history_id, type_f_id):
