@@ -7,8 +7,11 @@ export default {
     ...mapGetters('departmentEditSession', [
       'allDepartmentForms',
       'contacts',
-      'departmentId',
+      'department',
       'disableControls',
+      'errorDialog',
+      'errorDialogText',
+      'evaluations',
       'note',
       'selectedTerm'
     ])
@@ -16,9 +19,14 @@ export default {
   methods: {
     ...mapActions('departmentEditSession', [
       'deleteContact',
+      'dismissErrorDialog',
+      'editEvaluation',
       'init',
-      'updateNote',
-      'updateContact'
+      'setDisableControls',
+      'showErrorDialog',
+      'toggleSelectEvaluation',
+      'updateContact',
+      'updateNote'
     ])
   }
 }

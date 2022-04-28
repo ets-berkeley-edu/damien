@@ -63,6 +63,7 @@
         id="add-course-section-submit"
         class="text-capitalize mr-2"
         color="secondary"
+        :disabled="disableControls"
         elevation="2"
         @click="onSubmit(section.courseNumber)"
         @keypress.enter.prevent="onSubmit(section.courseNumber)"
@@ -88,15 +89,12 @@
 <script>
 import {getSection} from '@/api/sections'
 import Context from '@/mixins/Context.vue'
+import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 
 export default {
   name: 'AddCourseSection',
-  mixins: [Context],
+  mixins: [Context, DepartmentEditSession],
   props: {
-    evaluations: {
-      required: true,
-      type: Array
-    },
     onSubmit: {
       required: true,
       type: Function

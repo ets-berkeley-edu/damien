@@ -42,6 +42,7 @@
                   icon
                   small
                   @click.stop="removeRecipient(department, recipient, index)"
+                  @keypress.enter.prevent.stop="removeRecipient(department, recipient, index)"
                 >
                   <v-icon>mdi-close-circle</v-icon>
                 </v-btn>
@@ -87,6 +88,7 @@
           :disabled="disabled"
           elevation="2"
           @click="sendNotification"
+          @keypress.enter.prevent="sendNotification"
         >
           Send
         </v-btn>
@@ -99,6 +101,7 @@
           outlined
           text
           @click="onCancel"
+          @keypress.enter.prevent="onCancel"
         >
           Cancel
         </v-btn>

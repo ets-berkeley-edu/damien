@@ -14,7 +14,7 @@
     no-data-text="No results found."
     no-filter
     outlined
-    placeholder="Name or UID"
+    :placeholder="placeholder"
     return-object
     :search-input.sync="search"
     hide-details="auto"
@@ -23,7 +23,7 @@
       <span>{{ toLabel(selected) }}</span>
     </template>
     <template #item="data">
-      <v-list-item-content>
+      <v-list-item-content class="tertiary--text">
         <span v-html="suggest(data.item)" />
       </v-list-item-content>
     </template>
@@ -55,6 +55,11 @@ export default {
       default: () => {},
       required: false,
       type: Function
+    },
+    placeholder: {
+      default: 'Name or UID',
+      required: false,
+      type: String
     }
   },
   data: () => ({

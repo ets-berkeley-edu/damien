@@ -34,6 +34,7 @@
       :disabled="!uid || !password"
       large
       @click="logIn"
+      @keypress.enter.prevent="logIn"
     >
       Dev Auth
       <Damien class="ml-2 damien-icon" />

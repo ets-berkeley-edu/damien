@@ -20,6 +20,7 @@
           class="primary-contrast--text"
           link
           @click="toRoute(item.path)"
+          @keypress.enter.prevent="toRoute(item.path)"
         >
           <v-list-item-icon>
             <template v-if="typeof item.icon === 'string'">
@@ -37,6 +38,7 @@
           :id="`sidebar-link-${$_.size(navItems)}`"
           class="primary-contrast--text"
           @click="toggleColorScheme"
+          @keypress.enter.prevent="toggleColorScheme"
         >
           <v-list-item-icon>
             <DarkModeIcon />

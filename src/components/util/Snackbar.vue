@@ -26,6 +26,7 @@
           aria-label="Close this dialog box."
           text
           @click="snackbarClose"
+          @keypress.enter.prevent="snackbarClose"
         >
           Close
         </v-btn>

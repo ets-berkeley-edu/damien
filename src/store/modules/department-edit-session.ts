@@ -1,7 +1,36 @@
 import _ from 'lodash'
-import {deleteContact, getDepartment, updateContact, updateDepartmentNote} from '@/api/departments'
+import {
+  deleteContact,
+  getDepartment,
+  getSectionEvaluations,
+  updateContact,
+  updateDepartmentNote,
+  updateEvaluations
+} from '@/api/departments'
 import {getDepartmentForms} from '@/api/departmentForms'
 import Vue from 'vue'
+
+const $_decorateEvaluation = e => {
+  e.isSelected = false
+  // When sorting by course number, keep cross-listings with home sections.
+  if (e.crossListedWith && e.foreignDepartmentCourse) {
+    e.sortableCourseNumber = `${e.crossListedWith}-${e.courseNumber}`
+  } else if (e.roomSharedWith && e.foreignDepartmentCourse) {
+    e.sortableCourseNumber = `${e.roomSharedWith}-${e.courseNumber}`
+  } else {
+    e.sortableCourseNumber = e.courseNumber
+  }
+  e.sortableCourseName = `${e.subjectArea} ${e.catalogId} ${e.instructionFormat} ${e.sectionNumber} ${e.courseTitle}`
+  if (e.instructor) {
+    e.sortableInstructor = `${e.instructor.lastName} ${e.instructor.firstName} ${e.instructor.uid} ${e.instructor.emailAddress}`
+  } else {
+    e.sortableInstructor = ''
+  }
+  e.startDate = Vue.prototype.$moment(e.startDate).toDate()
+  e.endDate = Vue.prototype.$moment(e.endDate).toDate()
+  e.meetingDates.start = Vue.prototype.$moment(e.meetingDates.start).toDate()
+  e.meetingDates.end = Vue.prototype.$moment(e.meetingDates.end).toDate()
+}
 
 const $_getDepartmentForms = async function(commit) {
   getDepartmentForms().then((departmentForms: any) => {
@@ -21,8 +50,11 @@ const $_refresh = (commit, {departmentId, termId}) => {
 const state = {
   allDepartmentForms: [],
   contacts: [],
-  departmentId: undefined,
+  department: undefined,
   disableControls: false,
+  errorDialog: false,
+  errorDialogText: null,
+  evaluations: [],
   note: undefined,
   selectedTerm: undefined
 }
@@ -30,8 +62,11 @@ const state = {
 const getters = {
   allDepartmentForms: (state: any): any[] => state.allDepartmentForms,
   contacts: (state: any): any[] => state.contacts,
-  departmentId: (state: any): number => state.departmentId,
+  department: (state: any): number => state.department,
   disableControls: (state: any): boolean => state.disableControls,
+  errorDialog: (state: any): boolean => state.errorDialog,
+  errorDialogText: (state: any): boolean => state.errorDialogText,
+  evaluations: (state: any): any[] => state.evaluations,
   note: (state: any): string => state.note,
   selectedTerm: (state: any): any => state.selectedTerm
 }
@@ -39,8 +74,32 @@ const getters = {
 const actions = {
   deleteContact: ({commit, state}, userId: number) => {
     commit('setDisableControls', true)
-    return deleteContact(state.departmentId, userId).then(() => {
-      $_refresh(commit, {departmentId: state.departmentId, termId: state.selectedTerm.id})
+    return deleteContact(state.department.id, userId).then(() => {
+      $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id})
+    })
+  },
+  dismissErrorDialog: ({commit}) => {
+    commit('setErrorDialog', false)
+    commit('setErrorDialogText', null)
+  },
+  editEvaluation: ({commit, state}, {evaluationId, sectionId, fields}) => {
+    commit('setDisableControls', true)
+    return new Promise((resolve: Function, reject) => {
+      updateEvaluations(state.department.id, 'edit', [evaluationId], fields)
+      .then(() => {
+        getSectionEvaluations(state.department.id, sectionId).then((data: any) => {
+          let sectionIndex = _.findIndex(state.evaluations, ['courseNumber', sectionId])
+          if (sectionIndex === -1) {
+            sectionIndex = state.evaluations.length
+          }
+          const sectionCount = _.filter(state.evaluations, ['courseNumber', sectionId]).length
+          const updatedEvaluations = _.each(data, $_decorateEvaluation)
+          commit('setEvaluations', {sectionIndex, sectionCount, updatedEvaluations})
+          resolve()
+        })
+      })
+      .catch(error => reject(error))
+      .finally(() => commit('setDisableControls', false))
     })
   },
   init: ({commit}, {departmentId: departmentId, termId: termId}) => {
@@ -49,19 +108,29 @@ const actions = {
       $_refresh(commit, {departmentId, termId}).then(department => resolve(department))
     })
   },
-  updateNote: ({commit, state}, note: string) => {
-    commit('setDisableControls', true)
-    return new Promise<void>(resolve => {
-      updateDepartmentNote(state.departmentId, note, state.selectedTerm.id).then(() => {
-        $_refresh(commit, {departmentId: state.departmentId, termId: state.selectedTerm.id}).then(dept => resolve(dept))
-      })
-    })
+  setDisableControls({commit}, disable: boolean) {
+    commit('setDisableControls', disable)
+  },
+  showErrorDialog({commit}, text: string) {
+    commit('setErrorDialog', true)
+    commit('setErrorDialogText', text)
+  },
+  toggleSelectEvaluation: ({commit}, index: number) => {
+    commit('setIsSelected', index)
   },
   updateContact: ({commit, state}, contact: any) => {
     commit('setDisableControls', true)
     return new Promise<void>(resolve => {
-      updateContact(state.departmentId, contact).then(() => {
-        $_refresh(commit, {departmentId: state.departmentId, termId: state.selectedTerm.id}).then(dept => resolve(dept))
+      updateContact(state.department.id, contact).then(() => {
+        $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id}).then(dept => resolve(dept))
+      })
+    })
+  },
+  updateNote: ({commit, state}, note: string) => {
+    commit('setDisableControls', true)
+    return new Promise<void>(resolve => {
+      updateDepartmentNote(state.department.id, note, state.selectedTerm.id).then(() => {
+        $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id}).then(dept => resolve(dept))
       })
     })
   }
@@ -71,14 +140,28 @@ const mutations = {
   reset: (state: any, {department, termId}) => {
     if (department) {
       state.contacts = department.contacts
-      state.departmentId = department.id
+      state.department = department
+      _.each(department.evaluations, $_decorateEvaluation)
+      state.evaluations = _.sortBy(department.evaluations, 'sortableCourseNumber')
       state.note = _.get(department.notes, [termId, 'note'])
     }
     state.selectedTerm = _.find(Vue.prototype.$config.availableTerms, {'id': termId})
     state.disableControls = false
   },
   setAllDepartmentForms: (state: any, departmentForms: any[]) => state.allDepartmentForms = departmentForms,
-  setDisableControls: (state: any, disable: boolean) => state.disableControls = disable
+  setDisableControls: (state: any, disable: boolean) => state.disableControls = disable,
+  setErrorDialog: (state: any, errorDialog: boolean) => state.errorDialog = errorDialog,
+  setErrorDialogText: (state: any, errorDialogText: string) => state.errorDialogText = errorDialogText,
+  setEvaluations: (state: any, {sectionIndex, sectionCount, updatedEvaluations}) => {
+    const evaluations = _.sortBy(updatedEvaluations, 'sortableCourseNumber')
+    state.evaluations.splice(sectionIndex, sectionCount, ...evaluations)
+  },
+  setIsSelected: (state: any, index: number) => {
+    const evaluation = _.get(state.evaluations, index)
+    if (evaluation) {
+      evaluation.isSelected = !evaluation.isSelected
+    }
+  }
 }
 
 export default {

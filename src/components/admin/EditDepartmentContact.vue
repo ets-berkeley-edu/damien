@@ -129,6 +129,7 @@
       :disabled="disableControls || !valid || !uid"
       elevation="2"
       @click.prevent="onSave"
+      @keypress.enter.prevent.prevent="onSave"
     >
       Save
     </v-btn>
@@ -141,6 +142,7 @@
       outlined
       text
       @click.prevent="onCancel"
+      @keypress.enter.prevent.prevent="onCancel"
     >
       Cancel
     </v-btn>

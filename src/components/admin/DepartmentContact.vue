@@ -61,6 +61,7 @@
             min-width="unset"
             text
             @click="() => isEditing = true"
+            @keypress.enter.prevent="() => isEditing = true"
           >
             Edit
           </v-btn>
@@ -78,6 +79,7 @@
             min-width="unset"
             text
             @click="() => isConfirming = true"
+            @keypress.enter.prevent="() => isConfirming = true"
           >
             Delete
           </v-btn>

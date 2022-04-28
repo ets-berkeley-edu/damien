@@ -18,7 +18,7 @@
           :id="`evaluations-filter-${type}`"
           :key="type"
           role="tablist"
-          class="filter ml-2 pl-2 pr-2 text-center"
+          class="filter ma-1 px-2 text-center"
           :class="{
             'secondary': filterTypes[type].enabled,
             'filter-inactive': !filterTypes[type].enabled
@@ -26,6 +26,7 @@
           aria-controls="timeline-messages"
           :aria-selected="filterTypes[type].enabled"
           @click="toggleFilter(type)"
+          @keypress.enter.prevent="toggleFilter(type)"
         >
           {{ filterTypes[type].label }}
         </v-btn>
@@ -42,13 +43,13 @@
     >
       <template #body="{items}">
         <tbody>
-          <template v-for="(evaluation, evaluationId) in items">
+          <template v-for="(evaluation, rowIndex) in items">
             <v-hover v-if="filterEnabled(evaluation)" v-slot="{ hover }" :key="evaluation.id">
               <tr
                 class="evaluation-row"
                 :class="evaluationClass(evaluation, hover)"
               >
-                <td v-if="readonly" :id="`evaluation-${evaluationId}-department`">
+                <td v-if="readonly" :id="`evaluation-${rowIndex}-department`">
                   <router-link :to="`/department/${evaluation.department.id}`">
                     {{ evaluation.department.name }}
                   </router-link>
@@ -56,15 +57,15 @@
                 <td v-if="!readonly">
                   <v-checkbox
                     v-if="!isEditing(evaluation)"
-                    :id="`evaluation-${evaluationId}-checkbox`"
-                    v-model="evaluation.isSelected"
+                    :id="`evaluation-${rowIndex}-checkbox`"
+                    :value="evaluation.isSelected"
                     color="secondary"
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
-                    @change="updateEvaluationsSelected"
+                    @change="updateEvaluationsSelected(rowIndex)"
                   ></v-checkbox>
                 </td>
-                <td :id="`evaluation-${evaluationId}-status`">
+                <td :id="`evaluation-${rowIndex}-status`" class="position-relative">
                   <div
                     v-if="!isEditing(evaluation) && (!hover || readonly) && evaluation.status"
                     class="pill"
@@ -81,7 +82,8 @@
                       :class="{'hidden': isEditing(evaluation) || !hover}"
                       block
                       text
-                      @click="editEvaluation(evaluation)"
+                      @click="onEditEvaluation(evaluation)"
+                      @keypress.enter.prevent="onEditEvaluation(evaluation)"
                     >
                       Edit
                     </v-btn>
@@ -90,15 +92,15 @@
                     v-if="isEditing(evaluation)"
                     id="select-evaluation-status"
                     v-model="selectedEvaluationStatus"
-                    class="native-select-override light"
+                    class="native-select-override light status-select"
                   >
                     <option v-for="s in evaluationStatuses" :key="s.text" :value="s.value">{{ s.text }}</option>
                   </select>
                 </td>
-                <td :id="`evaluation-${evaluationId}-lastUpdated`">
-                  {{ evaluation.lastUpdated | moment('MM/DD/YYYY') }}
+                <td :id="`evaluation-${rowIndex}-lastUpdated`">
+                  {{ $moment(evaluation.lastUpdated) | moment('MM/DD/YYYY') }}
                 </td>
-                <td :id="`evaluation-${evaluationId}-courseNumber`">
+                <td :id="`evaluation-${rowIndex}-courseNumber`">
                   {{ evaluation.courseNumber }}
                   <div v-if="evaluation.crossListedWith" class="xlisting-note">
                     (Cross-listed with {{ evaluation.crossListedWith.length > 1 ? 'sections' : 'section' }}
@@ -110,52 +112,44 @@
                   </div>
                 </td>
                 <td>
-                  <div :id="`evaluation-${evaluationId}-courseName`">
+                  <div :id="`evaluation-${rowIndex}-courseName`">
                     {{ evaluation.subjectArea }}
                     {{ evaluation.catalogId }}
                     {{ evaluation.instructionFormat }}
                     {{ evaluation.sectionNumber }}
                   </div>
-                  <div :id="`evaluation-${evaluationId}-courseTitle`">
+                  <div :id="`evaluation-${rowIndex}-courseTitle`">
                     {{ evaluation.courseTitle }}
                   </div>
                 </td>
-                <td :id="`evaluation-${evaluationId}-instructor`">
-                  <div v-if="!isEditing(evaluation) && evaluation.instructor">
+                <td :id="`evaluation-${rowIndex}-instructor`">
+                  <div v-if="evaluation.instructor">
                     {{ evaluation.instructor.firstName }}
                     {{ evaluation.instructor.lastName }}
                     ({{ evaluation.instructor.uid }})
                   </div>
-                  <div v-if="!isEditing(evaluation) && evaluation.instructor">
+                  <div v-if="evaluation.instructor">
                     {{ evaluation.instructor.emailAddress }}
                   </div>
-                  <div v-if="isEditing(evaluation) && pendingInstructor">
-                    <div class="py-2">
+                  <div v-if="!evaluation.instructor && isEditing(evaluation)">
+                    <div v-if="pendingInstructor" class="py-2">
                       {{ pendingInstructor.firstName }}
                       {{ pendingInstructor.lastName }}
                       ({{ pendingInstructor.uid }})
                     </div>
                     <div class="pb-2">
                       <v-btn
-                        :id="`evaluation-${evaluationId}-change-instructor`"
+                        :id="`evaluation-${rowIndex}-change-instructor`"
                         color="primary"
                         @click="clearPendingInstructor"
                         @keydown.enter="clearPendingInstructor"
                       >
-                        Change
+                        Change <span class="sr-only">Instructor</span>
                       </v-btn>
                     </div>
                   </div>
-                  <div v-if="isEditing(evaluation) && !pendingInstructor">
-                    <PersonLookup
-                      v-if="isEditing(evaluation)"
-                      :instructor-lookup="true"
-                      :on-select-result="setPendingInstructor"
-                      solo
-                    />
-                  </div>
                 </td>
-                <td :id="`evaluation-${evaluationId}-departmentForm`">
+                <td :id="`evaluation-${rowIndex}-departmentForm`">
                   <div v-if="evaluation.departmentForm && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.departmentForm}">
                     {{ evaluation.departmentForm.name }}
                     <div v-for="(conflict, index) in evaluation.conflicts.departmentForm" :key="index" class="evaluation-error error--text">
@@ -179,7 +173,7 @@
                   >
                   </vue-select>
                 </td>
-                <td :id="`evaluation-${evaluationId}-evaluationType`">
+                <td :id="`evaluation-${rowIndex}-evaluationType`">
                   <div v-if="evaluation.evaluationType && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationType}">
                     {{ evaluation.evaluationType.name }}
                     <div v-for="(conflict, index) in evaluation.conflicts.evaluationType" :key="index" class="evaluation-error error--text">
@@ -201,7 +195,7 @@
                     <option v-for="et in evaluationTypes" :key="et.id" :value="et.id">{{ et.name }}</option>
                   </select>
                 </td>
-                <td :id="`evaluation-${evaluationId}-period`">
+                <td :id="`evaluation-${rowIndex}-period`">
                   <span v-if="evaluation.startDate && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationPeriod}">
                     <div>{{ evaluation.startDate | moment('MM/DD/YY') }} - {{ evaluation.endDate | moment('MM/DD/YY') }}</div>
                     <div>{{ evaluation.modular ? 2 : 3 }} weeks</div>
@@ -246,8 +240,9 @@
                     class="ma-2 evaluation-edit-btn"
                     color="primary"
                     width="150px"
-                    :disabled="!rowValid || saving"
+                    :disabled="disableControls || !rowValid || saving"
                     @click.prevent="saveEvaluation(evaluation)"
+                    @keypress.enter.prevent="saveEvaluation(evaluation)"
                   >
                     <span v-if="!saving">Save</span>
                     <v-progress-circular
@@ -265,6 +260,7 @@
                     :disabled="saving"
                     width="150px"
                     @click="clearEdit"
+                    @keypress.enter.prevent="clearEdit"
                   >
                     Cancel
                   </v-btn>
@@ -282,17 +278,12 @@
 import {getDepartmentForms} from '@/api/departmentForms'
 import {getEvaluationTypes} from '@/api/evaluationTypes'
 import Context from '@/mixins/Context.vue'
-import PersonLookup from '@/components/admin/PersonLookup'
+import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 
 export default {
   name: 'EvaluationTable',
-  components: {PersonLookup},
-  mixins: [Context],
+  mixins: [Context, DepartmentEditSession],
   props: {
-    evaluations: {
-      required: true,
-      type: Array
-    },
     updateEvaluation: {
       required: false,
       default: null,
@@ -316,14 +307,14 @@ export default {
       'ignore': {label: 'Ignore', enabled: false}
     },
     headers: [
-      {text: 'Status', value: 'status'},
-      {text: 'Last Updated', value: 'lastUpdated'},
-      {text: 'Course Number', value: 'sortableCourseNumber', width: '90px'},
-      {text: 'Course Name', value: 'sortableCourseName', width: '200px'},
-      {text: 'Instructor', value: 'sortableInstructor'},
-      {text: 'Department Form', value: 'departmentForm.name', width: '170px'},
-      {text: 'Evaluation Type', value: 'evaluationType.name', width: '100px'},
-      {text: 'Evaluation Period', value: 'startDate', width: '200px'}
+      {class: 'text-nowrap', text: 'Status', value: 'status'},
+      {class: 'text-nowrap', text: 'Last Updated', value: 'lastUpdated'},
+      {class: 'text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '90px'},
+      {class: 'text-nowrap', text: 'Course Name', value: 'sortableCourseName', width: '200px'},
+      {class: 'text-nowrap', text: 'Instructor', value: 'sortableInstructor'},
+      {class: 'text-nowrap', text: 'Department Form', value: 'departmentForm.name', width: '170px'},
+      {class: 'text-nowrap', text: 'Evaluation Type', value: 'evaluationType.name', width: '100px'},
+      {class: 'text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '200px'}
     ],
     pendingInstructor: null,
     readonly: false,
@@ -357,7 +348,7 @@ export default {
     clearPendingInstructor() {
       this.pendingInstructor = null
     },
-    editEvaluation(evaluation) {
+    onEditEvaluation(evaluation) {
       this.editRowId = evaluation.id
       this.pendingInstructor = evaluation.instructor
       this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm')
@@ -410,16 +401,17 @@ export default {
       filter.enabled = !filter.enabled
       this.alertScreenReader(`Filter ${filter.label} ${filter.enabled ? 'enabled' : 'disabled'}.`)
     },
-    updateEvaluationsSelected() {
+    updateEvaluationsSelected(rowIndex) {
+      this.toggleSelectEvaluation(rowIndex)
       this.$root.$emit('update-evaluations-selected')
     }
   },
   created() {
     this.readonly = !this.updateEvaluation
     if (this.readonly) {
-      this.headers = [{text: 'Department', value: 'department.id'}].concat(this.headers)
+      this.headers = [{class: 'text-nowrap', text: 'Department', value: 'department.id'}].concat(this.headers)
     } else {
-      this.headers = [{text: 'Select'}].concat(this.headers)
+      this.headers = [{class: 'text-nowrap', text: 'Select'}].concat(this.headers)
     }
     getDepartmentForms().then(data => {
         this.departmentForms = [{id: null, name: 'None'}].concat(data)
@@ -509,9 +501,18 @@ tr.border-top-none td {
 .pill-review {
   background-color: #595;
 }
+.position-relative {
+  position: relative;
+}
 .scrollable-table {
   max-height: 500px;
   overflow-y: scroll;
+}
+.status-select {
+  left: 0;
+  max-width: fit-content;
+  position: absolute;
+  top: 14px;
 }
 .xlisting-note {
   font-size: 0.8em;
