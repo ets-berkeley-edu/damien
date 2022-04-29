@@ -35,7 +35,7 @@
         </div>
         <div :id="`dept-contact-${contact.id}-deptForms`">
           <v-chip
-            v-for="(form, formIndex) in contact.departmentForms"
+            v-for="(form, formIndex) in departmentForms"
             :id="`dept-contact-${contact.id}-form-${formIndex}`"
             :key="form.id"
             class="px-4 mr-1 mb-1"
@@ -128,6 +128,9 @@ export default {
     isEditing: false
   }),
   computed: {
+    departmentForms() {
+      return this.$_.sortBy(this.contact.departmentForms, 'name')
+    },
     fullName() {
       return `${this.contact.firstName} ${this.contact.lastName}`
     }

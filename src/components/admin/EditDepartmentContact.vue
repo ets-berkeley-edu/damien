@@ -228,7 +228,7 @@ export default {
     populateForm(contact) {
       if (contact) {
         this.csid = contact.csid
-        this.contactDepartmentForms = this.$_.cloneDeep(contact.departmentForms)
+        this.contactDepartmentForms = this.$_.cloneDeep(this.$_.sortBy(this.contact.departmentForms, 'name'))
         this.email = contact.email
         this.firstName = contact.firstName
         this.lastName = contact.lastName
@@ -247,7 +247,7 @@ export default {
     },
     remove(departmentForm) {
       const formName = departmentForm.name
-      const indexOf = this.$_.indexOf(this.contactDepartmentForms, departmentForm)
+      const indexOf = this.$_.findIndex(this.contactDepartmentForms, {'name': formName})
       this.contactDepartmentForms.splice(indexOf, 1)
       this.alertScreenReader(`Removed ${formName} from ${this.fullName} department forms.`)
     }
