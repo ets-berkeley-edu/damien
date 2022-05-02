@@ -332,7 +332,6 @@ export default {
   computed: {
     rowValid() {
       return this.rules.currentTermDate(this.selectedStartDate) === true
-          && this.rules.instructorUid(this.pendingInstructor) === true
     }
   },
   methods: {
