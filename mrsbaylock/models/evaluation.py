@@ -65,45 +65,61 @@ class Evaluation(object):
     def instructor(self):
         return self.data['instructor']
 
-    @instructor.setter
-    def instructor(self, value):
-        self.data['instructor'] = value
+    @property
+    def course_start_date(self):
+        return self.data['course_start_date']
 
     @property
-    def start_date(self):
-        return self.data['start_date']
-
-    @start_date.setter
-    def start_date(self, value):
-        self.data['start_date'] = value
+    def course_end_date(self):
+        return self.data['course_end_date']
 
     @property
-    def end_date(self):
-        return self.data['end_date']
+    def eval_start_date(self):
+        return self.data['eval_start_date']
 
-    @end_date.setter
-    def end_date(self, value):
-        self.data['end_date'] = value
+    @property
+    def eval_end_date(self):
+        return self.data['eval_end_date']
 
     @property
     def dept_form(self):
         return self.data['dept_form']
 
-    @dept_form.setter
-    def dept_form(self, value):
-        self.data['dept_form'] = value
-
     @property
     def eval_type(self):
         return self.data['eval_type']
 
-    @eval_type.setter
-    def eval_type(self, value):
-        self.data['eval_type'] = value
-
     @property
     def status(self):
         return self.data['status']
+
+    @instructor.setter
+    def instructor(self, value):
+        self.data['instructor'] = value
+
+    @course_start_date.setter
+    def course_start_date(self, value):
+        self.data['course_start_date'] = value
+
+    @course_end_date.setter
+    def course_end_date(self, value):
+        self.data['course_end_date'] = value
+
+    @eval_start_date.setter
+    def eval_start_date(self, value):
+        self.data['eval_start_date'] = value
+
+    @eval_end_date.setter
+    def eval_end_date(self, value):
+        self.data['eval_end_date'] = value
+
+    @dept_form.setter
+    def dept_form(self, value):
+        self.data['dept_form'] = value
+
+    @eval_type.setter
+    def eval_type(self, value):
+        self.data['eval_type'] = value
 
     @status.setter
     def status(self, value):

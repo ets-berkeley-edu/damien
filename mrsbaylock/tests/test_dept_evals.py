@@ -58,7 +58,7 @@ class TestDeptEvaluations:
             expected.append(f'{e.ccn}-{uid}-{eval_type}')
         expected = list(dict.fromkeys(expected))
         self.dept_details_admin_page.select_ignored_filter()
-        actual = self.dept_details_admin_page.visible_eval_identifiers()
+        actual = self.dept_details_admin_page.visible_eval_identifiers() if expected else []
         missing = [x for x in expected if x not in actual]
         unexpected = [x for x in actual if x not in expected]
         app.logger.info(f'Missing {missing} Unexpected {unexpected}')

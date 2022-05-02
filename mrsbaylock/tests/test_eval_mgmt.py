@@ -36,6 +36,7 @@ import pytest
 class TestEvaluationManagement:
     term = utils.get_current_term()
     dept_1 = utils.get_test_dept_1()
+    utils.reset_test_data(term, dept_1)
     dept_1.evaluations = utils.get_evaluations(term, dept_1)
 
     instructor = utils.get_test_user()
@@ -45,8 +46,6 @@ class TestEvaluationManagement:
 
     dept_2 = utils.get_test_dept_2()
     dept_2.evaluations = utils.get_evaluations(term, dept_2)
-
-    utils.reset_test_data(term, dept_1)
 
     def test_list_mgmt_page(self):
         self.login_page.load_page()
@@ -62,31 +61,16 @@ class TestEvaluationManagement:
         self.list_mgmt_page.click_status_board()
         self.status_board_admin_page.click_dept_link(self.dept_1)
 
-    def test_add_instructor(self):
-        e = next(filter(lambda row: (row.instructor.uid is None), self.dept_1.evaluations))
-        self.dept_details_admin_page.click_edit_evaluation(e)
-        self.dept_details_admin_page.change_instructor(e, self.instructor)
-        self.dept_details_admin_page.click_save_eval_changes(e)
-        self.dept_details_admin_page.wait_for_eval_rows()
-        assert self.instructor.uid in self.dept_details_admin_page.eval_instructor(e)
-        assert f'{self.instructor.first_name} {self.instructor.last_name}' in self.dept_details_admin_page.eval_instructor(e)
-        assert self.instructor.email in self.dept_details_admin_page.eval_instructor(e)
-
-    def test_change_instructor(self):
+    def test_no_changing_instructor(self):
         e = next(filter(lambda row: row.instructor.uid, self.dept_1.evaluations))
         self.dept_details_admin_page.click_edit_evaluation(e)
-        self.dept_details_admin_page.change_instructor(e, self.instructor)
-        self.dept_details_admin_page.click_save_eval_changes(e)
-        self.dept_details_admin_page.wait_for_eval_rows()
-        assert self.instructor.uid in self.dept_details_admin_page.eval_instructor(e)
-        assert f'{self.instructor.first_name} {self.instructor.last_name}' in self.dept_details_admin_page.eval_instructor(e)
-        assert self.instructor.email in self.dept_details_admin_page.eval_instructor(e)
-
-    # TODO def test_remove_instructor(self):
+        # TODO verify no elements present to set or unset the instructor
 
     def test_add_dept_form(self):
         form = self.dept_forms[-1]
         e = next(filter(lambda row: (row.dept_form is None), self.dept_1.evaluations))
+        self.dept_details_admin_page.reload_page()
+        self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_dept_form(e, form)
         self.dept_details_admin_page.click_save_eval_changes(e)
@@ -113,14 +97,17 @@ class TestEvaluationManagement:
     # TODO def test_remove_dept_form(self):
 
     def test_eval_types_available(self):
-        eval_names = list(map(lambda e: e.name, self.eval_types))
+        e = next(filter(lambda row: row.dept_form, self.dept_1.evaluations))
+        self.dept_details_admin_page.click_edit_evaluation(e)
+        eval_names = list(map(lambda ev: ev.name, self.eval_types))
+        eval_names.append('None')
         eval_names.sort()
         visible = self.dept_details_admin_page.visible_eval_type_options()
         visible.sort()
         assert visible == eval_names
 
     def test_add_eval_type(self):
-        eval_type = self.eval_types[0]
+        eval_type = self.eval_types[-1]
         e = next(filter(lambda row: (row.eval_type is None), self.dept_1.evaluations))
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_eval_type(e, eval_type)
@@ -141,38 +128,36 @@ class TestEvaluationManagement:
 
     def test_change_start_date(self):
         e = self.dept_1.evaluations[0]
-        date = e.start_date + timedelta(days=1)
-        end = date + timedelta(days=21)
+        e.eval_start_date = e.eval_start_date + timedelta(days=1)
+        e.eval_end_date = utils.row_eval_end_from_eval_start(e)
         self.dept_details_admin_page.click_edit_evaluation(e)
-        self.dept_details_admin_page.change_eval_start_date(e, date)
+        self.dept_details_admin_page.change_eval_start_date(e, e.eval_start_date)
         self.dept_details_admin_page.click_save_eval_changes(e)
         self.dept_details_admin_page.wait_for_eval_rows()
-        expected = f"{date.strftime('%m/%d/%y')} - {end.strftime('%m/%d/%y')}"
+        expected = f"{e.eval_start_date.strftime('%m/%d/%y')} - {e.eval_end_date.strftime('%m/%d/%y')}"
         assert expected in self.dept_details_admin_page.eval_period_dates(e)
-        e.start_date = date
 
     def test_remove_start_date(self):
         e = self.dept_1.evaluations[0]
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_eval_start_date(e)
-        assert not self.dept_details_admin_page.save_eval_changes_button_enabled(e)
-        # TODO validation error?
+        assert self.dept_details_admin_page.save_eval_changes_button_disabled()
 
     def test_start_before_term(self):
         e = self.dept_1.evaluations[0]
         self.dept_details_admin_page.click_cancel_eval_changes(e)
-        date = self.term.start_date - timedelta(days=1)
+        date = e.course_start_date - timedelta(days=1)
         self.dept_details_admin_page.click_edit_evaluation(e)
-        self.dept_details_admin_page.change_eval_start_date(e, date)
-        # TODO validation error?
+        self.dept_details_admin_page.enter_eval_start_date(date)
+        assert self.dept_details_admin_page.save_eval_changes_button_disabled()
 
     def test_start_after_term(self):
         e = self.dept_1.evaluations[0]
         self.dept_details_admin_page.click_cancel_eval_changes(e)
-        start = self.term.end_date + timedelta(days=1)
+        date = e.course_end_date + timedelta(days=1)
         self.dept_details_admin_page.click_edit_evaluation(e)
-        self.dept_details_admin_page.change_eval_start_date(e, start)
-        # TODO validation error?
+        self.dept_details_admin_page.enter_eval_start_date(date)
+        assert self.dept_details_admin_page.save_eval_changes_button_disabled()
 
     def test_duplicate_section(self):
         e = self.dept_1.evaluations[0]
@@ -183,7 +168,7 @@ class TestEvaluationManagement:
 
     def test_duplicate_section_midterm(self):
         e = self.dept_1.evaluations[0]
-        date = e.end_date - timedelta(days=30)
+        date = e.course_end_date - timedelta(days=30)
         form = next(filter(lambda f: f.name == self.midterm_form.name.replace('_MID', ''), self.dept_forms))
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_dept_form(e, form)

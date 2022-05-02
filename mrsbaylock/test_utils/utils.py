@@ -24,6 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from datetime import datetime
+from datetime import timedelta
 import itertools
 import re
 
@@ -420,8 +421,8 @@ def get_evaluations(term, dept):
                unholy_loch.sis_sections.instruction_format AS instruction_format,
                unholy_loch.sis_sections.instructor_uid AS uid,
                unholy_loch.sis_sections.instructor_role_code AS instructor_role,
-               unholy_loch.sis_sections.meeting_start_date AS start_date,
-               unholy_loch.sis_sections.meeting_end_date AS end_date,
+               unholy_loch.sis_sections.meeting_start_date AS course_start_date,
+               unholy_loch.sis_sections.meeting_end_date AS course_end_date,
                department_forms.name AS dept_form
           FROM departments
           JOIN unholy_loch.sis_sections
@@ -486,11 +487,17 @@ def get_evaluations(term, dept):
     merge_edited_evals(evals_total, edits)
     get_instructors(evals_total)
     get_eval_types(evals_total)
+    calculate_eval_dates(evals_total)
 
-    return sorted(
+    sorted_evals = sorted(
         evals_total,
-        key=lambda x: (x.ccn, (float('-inf') if x.instructor and x.instructor.uid is None or 'None' or '' else float(x.uid))),
+        key=lambda x: (
+            x.ccn, (float('-inf') if x.instructor and x.instructor.uid is None or 'None' or '' else float(x.uid))),
     )
+    for e in sorted_evals:
+        app.logger.info(f'Evaluation: {vars(e)}')
+        app.logger.info(f'Instructor: {vars(e.instructor)}')
+    return sorted_evals
 
 
 def row_data(row, field):
@@ -519,10 +526,29 @@ def row_instructor(row):
         instructor_data = {
             'uid': row['uid'],
             'instructor_role': row['instructor_role'],
+            'affiliations': None,
         }
         return Instructor(instructor_data)
     except NoSuchColumnError:
         return None
+
+
+def row_eval_end_from_eval_start(evaluation):
+    course_start = evaluation.course_start_date
+    eval_start = evaluation.eval_start_date
+    return eval_start + timedelta(days=20) if (eval_start - course_start).days > 90 else eval_start + timedelta(days=13)
+
+
+def row_eval_start_from_course_end(evaluation):
+    course_end = evaluation.course_end_date
+    course_start = evaluation.course_start_date
+    return course_end - timedelta(days=20) if (course_end - course_start).days > 90 else course_end - timedelta(days=13)
+
+
+def calculate_eval_dates(evals):
+    for e in evals:
+        e.eval_end_date = row_eval_end_from_eval_start(e) if e.eval_start_date else e.course_end_date
+        e.eval_start_date = e.eval_start_date or row_eval_start_from_course_end(e)
 
 
 def result_row_to_eval(row, term, dept):
@@ -539,6 +565,11 @@ def result_row_to_eval(row, term, dept):
     if instructor.uid == 'None':
         instructor.uid = None
 
+    course_start = row_data(row, 'course_start_date')
+    course_end = row_data(row, 'course_end_date')
+    eval_start = row_data(row, 'eval_start_date')
+    eval_end = row_data(row, 'eval_end_date')
+
     eval_data = {
         'term': term,
         'dept': dept,
@@ -552,10 +583,11 @@ def result_row_to_eval(row, term, dept):
         'subject': row['subject'],
         'catalog_id': row['catalog_id'],
         'instruction_format': row['instruction_format'],
-        'start_date': row['start_date'],
-        'end_date': row['end_date'],
+        'course_start_date': course_start,
+        'course_end_date': course_end,
+        'eval_start_date': eval_start,
+        'eval_end_date': eval_end,
     }
-    app.logger.info(f"Start date is {eval_data['start_date']}")
     return Evaluation(eval_data)
 
 
@@ -609,8 +641,8 @@ def get_x_listings_and_shares(evals, term, dept):
                    unholy_loch.sis_sections.instruction_format AS instruction_format,
                    unholy_loch.sis_sections.instructor_uid AS uid,
                    unholy_loch.sis_sections.instructor_role_code AS instructor_role,
-                   unholy_loch.sis_sections.meeting_start_date AS start_date,
-                   unholy_loch.sis_sections.meeting_end_date AS end_date
+                   unholy_loch.sis_sections.meeting_start_date AS course_start_date,
+                   unholy_loch.sis_sections.meeting_end_date AS course_end_date
               FROM unholy_loch.sis_sections
          LEFT JOIN unholy_loch.cross_listings
                 ON unholy_loch.cross_listings.course_number = unholy_loch.sis_sections.course_number
@@ -619,6 +651,7 @@ def get_x_listings_and_shares(evals, term, dept):
                 ON unholy_loch.co_schedulings.course_number = unholy_loch.sis_sections.course_number
                AND unholy_loch.co_schedulings.term_id = unholy_loch.sis_sections.term_id
              WHERE unholy_loch.sis_sections.course_number IN({ccn_str})
+               AND unholy_loch.sis_sections.term_id = '{term.term_id}'
                AND unholy_loch.sis_sections.enrollment_count > 0
                AND (unholy_loch.sis_sections.instructor_role_code IS NULL
                 OR unholy_loch.sis_sections.instructor_role_code !='ICNT')
@@ -647,8 +680,8 @@ def get_manual_sections(evals, term, dept):
                unholy_loch.sis_sections.instruction_format AS instruction_format,
                unholy_loch.sis_sections.instructor_uid AS uid,
                unholy_loch.sis_sections.instructor_role_code AS instructor_role,
-               unholy_loch.sis_sections.meeting_start_date AS start_date,
-               unholy_loch.sis_sections.meeting_end_date AS end_date
+               unholy_loch.sis_sections.meeting_start_date AS course_start_date,
+               unholy_loch.sis_sections.meeting_end_date AS course_end_date
           FROM supplemental_sections
           JOIN unholy_loch.sis_sections
             ON unholy_loch.sis_sections.course_number = supplemental_sections.course_number
@@ -669,8 +702,8 @@ def get_edited_sections(term, dept):
                unholy_loch.sis_sections.instruction_format AS instruction_format,
                evaluations.instructor_uid AS uid,
                unholy_loch.sis_sections.instructor_role_code AS instructor_role,
-               evaluations.start_date AS start_date,
-               evaluations.end_date AS end_date,
+               evaluations.start_date AS eval_start_date,
+               evaluations.end_date AS eval_end_date,
                evaluations.status AS status,
                evaluations.department_form_id AS dept_form,
                evaluation_types.name AS eval_type
@@ -706,10 +739,10 @@ def merge_edited_evals(evaluations, edited_evals):
                     e.dept_form = edit.dept_form
                 if edit.eval_type:
                     e.eval_type = edit.eval_type
-                if edit.start_date:
-                    e.start_date = edit.start_date
-                if edit.end_date:
-                    e.end_date = edit.end_date
+                if edit.eval_start_date:
+                    e.eval_start_date = edit.eval_start_date
+                if edit.eval_end_date:
+                    e.eval_end_date = edit.eval_end_date
         if not match and edit.ccn in eval_ccns:
             app.logger.info(f'CCN match but no UID match, adding new eval for {edit.ccn}-{uid}')
             evaluations.append(edit)
@@ -744,63 +777,64 @@ def get_instructors(evals):
         if e.instructor and e.instructor.uid not in uids:
             uids.append(e.instructor.uid)
     uids = [u for u in uids if (u and u != 'None')]
-    uids_string = list_to_str(uids)
-    sql = f"""
-        SELECT ldap_uid,
-               first_name,
-               last_name,
-               email_address,
-               deleted_at
-          FROM supplemental_instructors
-         WHERE ldap_uid IN({uids_string})
-    """
-    app.logger.info(sql)
-    results = db.session.execute(text(sql))
-    std_commit(allow_test_environment=True)
-    for row in results:
-        app.logger.info(f"Checking UID {row['ldap_uid']}")
-        if not row['deleted_at']:
+    if uids:
+        uids_string = list_to_str(uids)
+        sql = f"""
+            SELECT ldap_uid,
+                   first_name,
+                   last_name,
+                   email_address,
+                   deleted_at
+              FROM supplemental_instructors
+             WHERE ldap_uid IN({uids_string})
+        """
+        app.logger.info(sql)
+        results = db.session.execute(text(sql))
+        std_commit(allow_test_environment=True)
+        for row in results:
+            app.logger.info(f"Checking UID {row['ldap_uid']}")
+            if not row['deleted_at']:
+                instructors.append(Instructor({
+                    'uid': row['ldap_uid'],
+                    'first_name': row['first_name'],
+                    'last_name': row['last_name'],
+                    'email': row['email_address'],
+                    'affiliations': None,
+                }))
+
+        for i in instructors:
+            uids.remove(i.uid)
+        uids_string = list_to_str(uids)
+        sql = f"""
+            SELECT ldap_uid,
+                   first_name,
+                   last_name,
+                   email_address,
+                   affiliations,
+                   deleted_at
+              FROM unholy_loch.sis_instructors
+             WHERE ldap_uid IN({uids_string})
+        """
+        app.logger.info(sql)
+        results = db.session.execute(text(sql))
+        std_commit(allow_test_environment=True)
+        for row in results:
+            # TODO if not row['deleted_at']:
             instructors.append(Instructor({
                 'uid': row['ldap_uid'],
                 'first_name': row['first_name'],
                 'last_name': row['last_name'],
                 'email': row['email_address'],
-                'affiliations': None,
+                'affiliations': row['affiliations'],
             }))
 
-    for i in instructors:
-        uids.remove(i.uid)
-    uids_string = list_to_str(uids)
-    sql = f"""
-        SELECT ldap_uid,
-               first_name,
-               last_name,
-               email_address,
-               affiliations,
-               deleted_at
-          FROM unholy_loch.sis_instructors
-         WHERE ldap_uid IN({uids_string})
-    """
-    app.logger.info(sql)
-    results = db.session.execute(text(sql))
-    std_commit(allow_test_environment=True)
-    for row in results:
-        # if not row['deleted_at']:
-        instructors.append(Instructor({
-            'uid': row['ldap_uid'],
-            'first_name': row['first_name'],
-            'last_name': row['last_name'],
-            'email': row['email_address'],
-            'affiliations': row['affiliations'],
-        }))
-
-    for e in evals:
-        for i in instructors:
-            if e.instructor and e.instructor.uid == i.uid:
-                e.instructor.first_name = i.first_name
-                e.instructor.last_name = i.last_name
-                e.instructor.email = i.email
-                e.instructor.affiliations = i.affiliations
+        for e in evals:
+            for i in instructors:
+                if e.instructor and e.instructor.uid == i.uid:
+                    e.instructor.first_name = i.first_name
+                    e.instructor.last_name = i.last_name
+                    e.instructor.email = i.email
+                    e.instructor.affiliations = i.affiliations
 
 
 def get_section_dept(ccn, all_users=None):
@@ -825,7 +859,7 @@ def get_eval_types(evals):
             app.logger.info('Skipping eval type')
         else:
             app.logger.info(f'Checking eval {vars(e)}')
-            app.logger.info(f'Instructor {vars(e.instructor)}')
+            app.logger.info(f'Instructor is {vars(e.instructor)}')
             if e.instructor.uid and e.instructor.affiliations:
                 affils = e.instructor.affiliations
                 if 'EMPLOYEE-TYPE-ACADEMIC' in affils:
