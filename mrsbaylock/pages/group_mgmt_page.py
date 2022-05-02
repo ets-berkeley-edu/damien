@@ -64,5 +64,5 @@ class GroupMgmtPage(DamienPages):
         return self.element((By.XPATH, xpath)).get_attribute('innerText')
 
     def dept_user_blue_perm(self, idx, user):
-        xpath = f'{GroupMgmtPage.dept_user_row_xpath(idx, user)}/td[contains(@id, "blue")]/span'
+        xpath = f'{GroupMgmtPage.dept_user_row_xpath(idx, user)}/td[contains(@id, "blue")]//span'
         return self.element((By.XPATH, xpath)).get_attribute('innerText').strip()
