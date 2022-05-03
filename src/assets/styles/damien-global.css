@@ -75,6 +75,67 @@
 .text-wrap {
   white-space: break-spaces;
 }
+.vs__actions button:enabled {
+  cursor: pointer;
+}
+.vs__dropdown-toggle {
+  border: none !important;
+  border-image: none !important;
+  padding: 3px 8px !important;
+}
+input.vs__search:enabled {
+  cursor: text !important;
+}
+.vue-select-override {
+  border-radius: 4px;
+  padding: 0;
+}
+.vue-select-override .vs__dropdown-menu {
+  padding-left: 0;
+}
+.vue-select-override .vs__dropdown-menu  .vs__dropdown-option{
+  padding-left: 10px;
+}
+.vue-select-override.vs--disabled .vs__clear,
+.vue-select-override.vs--disabled .vs__dropdown-toggle,
+.vs--disabled .vs__open-indicator,
+.vs--disabled .vs__search,
+.vs--disabled .vs__selected {
+  cursor: default !important;
+}
+.vue-select-override .vs__dropdown-toggle .vs__actions{
+  padding-right: 0px;
+}
+.vue-select-override.vs--disabled.dark .vs__dropdown-toggle,
+.vue-select-override.vs--disabled.dark .vs__dropdown-toggle input {
+  background: #1E1E1E !important;
+  color: #555555 !important;
+}
+.vue-select-override.dark,
+.vue-select-override.dark .vs__dropdown-menu {
+  background: #1E1E1E !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  color: #FFF !important;
+}
+.vue-select-override:not(.vs--disabled).dark:hover {
+  border-color: rgba(255, 255, 255) !important;
+}
+.vue-select-override.dark .vs__actions .vs__open-indicator {
+  fill: currentColor !important;
+  background: #1E1E1E !important;
+}
+.vue-select-override.light,
+.vue-select-override.light .vs__dropdown-menu {
+  background: #FFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.38) !important;
+  color: #000 !important;
+}
+.vue-select-override:not(.vs--disabled).light:hover {
+  border-color: rgba(0, 0, 0, 0.86) !important;
+}
+.vue-select-override.light .vs__actions .vs__open-indicator {
+  fill: rgba(0, 0, 0, 0.38) !important;
+}
 a {
   text-decoration: none !important;
 }

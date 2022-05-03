@@ -166,11 +166,23 @@
                     v-if="isEditing(evaluation)"
                     id="select-department-form"
                     v-model="selectedDepartmentForm"
-                    :options="departmentForms"
-                    label="name"
+                    class="vue-select-override light py-2"
                     :clearable="false"
-                    class="vue-select-override"
+                    label="name"
+                    :options="departmentForms"
+                    @option:selected="afterSelectDepartmentForm"
                   >
+                    <template #search="{attributes, events}">
+                      <input
+                        id="input-department-form"
+                        class="vs__search input-department-form"
+                        v-bind="attributes"
+                        v-on="events"
+                      />
+                    </template>
+                    <template #selected-option-container="{option}">
+                      <div>{{ option.name }}</div>
+                    </template>
                   </vue-select>
                 </td>
                 <td :id="`evaluation-${rowIndex}-evaluationType`">
@@ -312,8 +324,8 @@ export default {
       {class: 'text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '90px'},
       {class: 'text-nowrap', text: 'Course Name', value: 'sortableCourseName', width: '200px'},
       {class: 'text-nowrap', text: 'Instructor', value: 'sortableInstructor'},
-      {class: 'text-nowrap', text: 'Department Form', value: 'departmentForm.name', width: '170px'},
-      {class: 'text-nowrap', text: 'Evaluation Type', value: 'evaluationType.name', width: '100px'},
+      {class: 'text-nowrap', text: 'Department Form', value: 'departmentForm.name', width: '180px'},
+      {class: 'text-nowrap', text: 'Evaluation Type', value: 'evaluationType.name', width: '90px'},
       {class: 'text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '200px'}
     ],
     pendingInstructor: null,
@@ -335,6 +347,10 @@ export default {
     }
   },
   methods: {
+    afterSelectDepartmentForm(selected) {
+      this.alertScreenReader(`${selected.name} department form selected.`)
+      this.$putFocusNextTick('input-department-form')
+    },
     clearEdit() {
       this.editRowId = null
       this.pendingInstructor = null
@@ -443,18 +459,6 @@ tr.border-top-none td {
 .evaluation-input .v-messages__message {
   color: #fff !important;
 }
-
-.vue-select-override {
-  color: #000 !important;
-  background-color: #fff !important;
-  border-radius: 5px;
-  border: 1px solid #333333;
-  padding: 0;
-}
-
-.vs__dropdown-toggle {
-  padding: 5px !important;
-}
 </style>
 
 <style scoped>
@@ -476,6 +480,12 @@ tr.border-top-none td {
 }
 .hidden {
   visibility: hidden;
+}
+.input-department-form {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 .pill {
   border: 1px solid #999;

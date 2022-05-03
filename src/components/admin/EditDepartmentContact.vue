@@ -75,51 +75,45 @@
           label="View reports and response rates"
         ></v-radio>
       </v-radio-group>
-      <legend :for="`autocomplete-select-deptForms-${contactId}`" class="form-label">
+      <legend :for="`select-deptForms-${contactId}`" class="form-label">
         Department Forms
       </legend>
       <div :id="`deptForms-${contactId}`">
-        <v-autocomplete
-          :id="`autocomplete-select-deptForms-${contactId}`"
+        <vue-select
+          :id="`select-deptForms-${contactId}`"
           v-model="contactDepartmentForms"
-          :auto-select-first="true"
-          chips
-          class="mt-2 v-list-item-group"
-          color="tertiary"
-          deletable-chips
-          dense
-          :hide-no-data="true"
-          hide-selected
-          item-text="name"
-          item-value="id"
-          :items="allDepartmentForms"
-          :menu-props="{contentClass: `menu-deptForms-${contactId} v-sheet--outlined`}"
+          class="vue-select-override mt-2 mb-4"
+          :class="$vuetify.theme.dark ? 'dark' : 'light'"
+          :clearable="false"
+          :disabled="disableControls"
+          label="name"
           multiple
-          no-data-text="No results found."
-          no-filter
-          outlined
-          return-object
+          :options="availableDepartmentForms"
+          @option:selected="afterSelectDepartmentForm"
         >
-          <template v-slot:selection="data">
-            <v-chip
-              :id="`selected-deptForm-${data.item.id}-${contactId}`"
-              class="px-4 my-1"
-              close
-              :close-label="`Remove ${data.item.name} from ${fullName}'s department forms`"
-              :ripple="false"
-              @click:close="remove(data.item)"
-            >
-              {{ data.item.name }}
-            </v-chip>
-          </template>
-          <template v-slot:item="data">
-            <v-list-item-content
-              :id="`deptForm-${data.item.id}-${contactId}`"
-              class="pa-0"
-              v-text="data.item.name"
+          <template #search="{attributes, events}">
+            <input
+              :id="`input-deptForms-${contactId}`"
+              class="vs__search"
+              v-bind="attributes"
+              v-on="events"
             />
           </template>
-        </v-autocomplete>
+          <template #selected-option-container="{option}">
+            <v-chip
+              :id="`selected-deptForm-${option.id}-${contactId}`"
+              class="px-4 my-1"
+              :class="{'disabled': !disableControls}"
+              close
+              :close-label="`Remove ${option.name} from ${fullName}'s department forms`"
+              :disabled="disableControls"
+              :ripple="false"
+              @click:close="remove(option)"
+            >
+              {{ option.name }}
+            </v-chip>
+          </template>
+        </vue-select>
       </div>
     </div>
     <v-btn
@@ -190,6 +184,9 @@ export default {
     valid: true
   }),
   computed: {
+    availableDepartmentForms() {
+      return this.$_.differenceBy(this.allDepartmentForms, this.contactDepartmentForms, item => item.name)
+    },
     contactId() {
       return this.$_.get(this.contact, 'uid', 'add-contact')
     },
@@ -200,13 +197,13 @@ export default {
   created() {
     this.populateForm(this.contact)
     this.alertScreenReader(`${this.contact ? 'Edit' : 'Add'} department contact form is ready`)
-    if (this.contact) {
-      this.$putFocusNextTick(`input-email-${this.contactId}`)
-    } else {
-      this.$putFocusNextTick('input-person-lookup-autocomplete')
-    }
   },
   methods: {
+    afterSelectDepartmentForm(departmentForms) {
+      const selected = this.$_.last(departmentForms)
+      this.alertScreenReader(`Added ${selected.name}.`)
+      this.$putFocusNextTick(`input-deptForms-${this.contactId}`)
+    },
     onSave() {
       this.alertScreenReader('Saving')
       this.updateContact({
@@ -240,7 +237,7 @@ export default {
         if (contact.canViewReports) {
           this.permissions = contact.canViewResponseRates ? 'response_rates' : 'reports_only'
         }
-        this.$putFocusNextTick(`input-first-name-${this.contactId}`)
+        this.$putFocusNextTick(`input-email-${this.contactId}`)
       } else {
         this.$putFocusNextTick('input-person-lookup-autocomplete')
       }
@@ -250,6 +247,7 @@ export default {
       const indexOf = this.$_.findIndex(this.contactDepartmentForms, {'name': formName})
       this.contactDepartmentForms.splice(indexOf, 1)
       this.alertScreenReader(`Removed ${formName} from ${this.fullName} department forms.`)
+      this.$putFocusNextTick(`input-deptForms-${this.contactId}`)
     }
   }
 }
