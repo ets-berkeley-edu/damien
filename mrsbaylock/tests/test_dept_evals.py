@@ -31,8 +31,6 @@ import pytest
 
 term = utils.get_current_term()
 depts = utils.get_participating_depts()
-dep = next(filter(lambda d: (d.dept_id == 12), depts))
-depts = [dep]
 all_users = utils.get_all_users()
 
 
@@ -51,17 +49,17 @@ class TestDeptEvaluations:
 
     def test_evals(self, dept):
         dept.evaluations = utils.get_evaluations(term, dept)
-        expected = []
-        for e in dept.evaluations:
-            uid = '' if (e.instructor is None or e.instructor.uid is None) else e.instructor.uid.strip()
-            eval_type = '' if e.eval_type is None else e.eval_type
-            expected.append(f'{e.ccn}-{uid}-{eval_type}')
-        expected = list(dict.fromkeys(expected))
+        expected = self.dept_details_admin_page.expected_eval_data(dept.evaluations)
+
         self.dept_details_admin_page.select_ignored_filter()
-        actual = self.dept_details_admin_page.visible_eval_identifiers() if expected else []
+        actual = self.dept_details_admin_page.visible_eval_data() if expected else []
+
         missing = [x for x in expected if x not in actual]
+        app.logger.info(f'Missing {missing}')
+
         unexpected = [x for x in actual if x not in expected]
-        app.logger.info(f'Missing {missing} Unexpected {unexpected}')
+        app.logger.info(f'Unexpected {unexpected}')
+
         assert not missing
         assert not unexpected
 

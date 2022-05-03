@@ -62,6 +62,10 @@ class Evaluation(object):
         return self.data['instruction_format']
 
     @property
+    def section_num(self):
+        return self.data['section_num']
+
+    @property
     def instructor(self):
         return self.data['instructor']
 

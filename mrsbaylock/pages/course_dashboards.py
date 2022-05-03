@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import re
 import time
 
 from mrsbaylock.pages.damien_pages import DamienPages
@@ -33,7 +34,6 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class CourseDashboards(DamienPages):
-
     EVALUATION_ROW = (By.XPATH, '//tr[contains(@class, "evaluation-row")]')
 
     @staticmethod
@@ -51,21 +51,54 @@ class CourseDashboards(DamienPages):
             ec.presence_of_all_elements_located(CourseDashboards.EVALUATION_ROW),
         )
 
-    def visible_eval_identifiers(self):
+    @staticmethod
+    def expected_eval_data(evals):
+        data = []
+        for e in evals:
+            dates = ''
+            if e.eval_start_date:
+                dates = f"{e.eval_start_date.strftime('%m/%d/%y')} - {e.eval_end_date.strftime('%m/%d/%y')}"
+            data.append(
+                {
+                    'ccn': e.ccn,
+                    'listings': (e.x_listing_ccns or e.room_share_ccns or ''),
+                    'course': f'{e.subject} {e.catalog_id} {e.instruction_format} {e.section_num}',
+                    'uid': ('' if (e.instructor is None or e.instructor.uid is None) else e.instructor.uid.strip()),
+                    'form': (e.dept_form or ''),
+                    'type': (e.eval_type or ''),
+                    'dates': dates,
+                },
+            )
+        return data
+
+    def visible_eval_data(self):
         self.wait_for_eval_rows()
         time.sleep(1)
-        identifiers = []
+        data = []
         for index, value in enumerate(self.elements(CourseDashboards.EVALUATION_ROW)):
             cell = self.element((By.XPATH, f'//tr[contains(@class, "evaluation-row")][{index + 1}]/td[2]'))
             idx = cell.get_attribute('id').split('-')[1]
-            ccn = self.element((By.ID, f'evaluation-{idx}-courseNumber')).text.strip().split('\n')[0]
             uid_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-instructor"]/div')
             uid = ''
             if self.is_present(uid_loc):
                 uid = self.element(uid_loc).text.strip().split()[-1].replace('(', '').replace(')', '')
-            e_type = self.element((By.ID, f'evaluation-{idx}-evaluationType')).text.strip()
-            identifiers.append(f'{ccn}-{uid}-{e_type}')
-        return identifiers
+            listings_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-courseNumber"]/div[@class="xlisting-note"]')
+            listings = ''
+            if self.is_present(listings_loc):
+                listings = re.sub('[a-zA-Z()-]+', '', self.element(listings_loc).text).strip().split()
+
+            data.append(
+                {
+                    'ccn': self.element((By.ID, f'evaluation-{idx}-courseNumber')).text.strip().split('\n')[0],
+                    'listings': listings,
+                    'course': self.element((By.ID, f'evaluation-{index}-courseName')).text.strip(),
+                    'uid': uid,
+                    'form': self.element((By.ID, f'evaluation-{index}-departmentForm')).text.strip(),
+                    'type': self.element((By.ID, f'evaluation-{idx}-evaluationType')).text.strip(),
+                    'dates': self.element((By.ID, f'evaluation-{idx}-period')).text.split('\n')[0],
+                },
+            )
+        return data
 
     def eval_status_el(self, evaluation):
         xpath = f'{self.eval_row_xpath(evaluation)}/td[contains(@id, "status")]'
