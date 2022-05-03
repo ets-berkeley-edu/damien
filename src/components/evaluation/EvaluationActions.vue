@@ -7,7 +7,7 @@
           v-model="selectedCourseAction"
           aria-labelledby="action-option-label"
           class="native-select-override"
-          :class="this.$vuetify.theme.dark ? 'dark' : 'light'"
+          :class="$vuetify.theme.dark ? 'dark' : 'light'"
           :disabled="disableControls"
         >
           <option
