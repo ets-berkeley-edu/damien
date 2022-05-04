@@ -419,6 +419,7 @@ def get_evaluations(term, dept):
                unholy_loch.sis_sections.subject_area AS subject,
                unholy_loch.sis_sections.catalog_id AS catalog_id,
                unholy_loch.sis_sections.instruction_format AS instruction_format,
+               unholy_loch.sis_sections.section_num AS section_num,
                unholy_loch.sis_sections.instructor_uid AS uid,
                unholy_loch.sis_sections.instructor_role_code AS instructor_role,
                unholy_loch.sis_sections.meeting_start_date AS course_start_date,
@@ -447,6 +448,7 @@ def get_evaluations(term, dept):
                unholy_loch.sis_sections.subject_area,
                unholy_loch.sis_sections.catalog_id,
                unholy_loch.sis_sections.instruction_format,
+               unholy_loch.sis_sections.section_num,
                unholy_loch.sis_sections.instructor_uid,
                unholy_loch.sis_sections.instructor_role_code,
                unholy_loch.sis_sections.enrollment_count,
@@ -482,6 +484,7 @@ def get_evaluations(term, dept):
                 evals_total.remove(i)
 
     get_x_listings_and_shares(evals_total, term, dept)
+    remove_listing_dept_forms(evals_total)
     get_manual_sections(evals_total, term, dept)
     edits = get_edited_sections(term, dept)
     merge_edited_evals(evals_total, edits)
@@ -536,13 +539,25 @@ def row_instructor(row):
 def row_eval_end_from_eval_start(evaluation):
     course_start = evaluation.course_start_date
     eval_start = evaluation.eval_start_date
-    return eval_start + timedelta(days=20) if (eval_start - course_start).days > 90 else eval_start + timedelta(days=13)
+    if course_start:
+        return eval_start + timedelta(days=20) if (eval_start - course_start).days > 90 else eval_start + timedelta(days=13)
+    else:
+        return None
 
 
 def row_eval_start_from_course_end(evaluation):
     course_end = evaluation.course_end_date
     course_start = evaluation.course_start_date
-    return course_end - timedelta(days=20) if (course_end - course_start).days > 90 else course_end - timedelta(days=13)
+    if course_start:
+        return course_end - timedelta(days=20) if (course_end - course_start).days > 90 else course_end - timedelta(days=13)
+    else:
+        return None
+
+
+def remove_listing_dept_forms(evals):
+    for e in evals:
+        if e.x_listing_ccns or e.room_share_ccns:
+            e.dept_form = None
 
 
 def calculate_eval_dates(evals):
@@ -583,6 +598,7 @@ def result_row_to_eval(row, term, dept):
         'subject': row['subject'],
         'catalog_id': row['catalog_id'],
         'instruction_format': row['instruction_format'],
+        'section_num': row['section_num'],
         'course_start_date': course_start,
         'course_end_date': course_end,
         'eval_start_date': eval_start,
@@ -639,6 +655,7 @@ def get_x_listings_and_shares(evals, term, dept):
                    unholy_loch.sis_sections.subject_area AS subject,
                    unholy_loch.sis_sections.catalog_id AS catalog_id,
                    unholy_loch.sis_sections.instruction_format AS instruction_format,
+                   unholy_loch.sis_sections.section_num AS section_num,
                    unholy_loch.sis_sections.instructor_uid AS uid,
                    unholy_loch.sis_sections.instructor_role_code AS instructor_role,
                    unholy_loch.sis_sections.meeting_start_date AS course_start_date,
@@ -660,6 +677,7 @@ def get_x_listings_and_shares(evals, term, dept):
                    unholy_loch.sis_sections.subject_area,
                    unholy_loch.sis_sections.catalog_id,
                    unholy_loch.sis_sections.instruction_format,
+                   unholy_loch.sis_sections.section_num,
                    unholy_loch.sis_sections.instructor_uid,
                    unholy_loch.sis_sections.instructor_role_code,
                    unholy_loch.sis_sections.enrollment_count,
@@ -678,6 +696,7 @@ def get_manual_sections(evals, term, dept):
                unholy_loch.sis_sections.subject_area AS subject,
                unholy_loch.sis_sections.catalog_id AS catalog_id,
                unholy_loch.sis_sections.instruction_format AS instruction_format,
+               unholy_loch.sis_sections.section_num AS section_num,
                unholy_loch.sis_sections.instructor_uid AS uid,
                unholy_loch.sis_sections.instructor_role_code AS instructor_role,
                unholy_loch.sis_sections.meeting_start_date AS course_start_date,
@@ -700,16 +719,19 @@ def get_edited_sections(term, dept):
                unholy_loch.sis_sections.subject_area AS subject,
                unholy_loch.sis_sections.catalog_id AS catalog_id,
                unholy_loch.sis_sections.instruction_format AS instruction_format,
+               unholy_loch.sis_sections.section_num AS section_num,
                evaluations.instructor_uid AS uid,
                unholy_loch.sis_sections.instructor_role_code AS instructor_role,
                evaluations.start_date AS eval_start_date,
                evaluations.end_date AS eval_end_date,
                evaluations.status AS status,
-               evaluations.department_form_id AS dept_form,
+               department_forms.name AS dept_form,
                evaluation_types.name AS eval_type
           FROM evaluations
           JOIN unholy_loch.sis_sections
             ON unholy_loch.sis_sections.course_number = evaluations.course_number
+     LEFT JOIN department_forms
+            ON department_forms.id = evaluations.department_form_id
      LEFT JOIN evaluation_types
             ON evaluation_types.id = evaluations.evaluation_type_id
          WHERE evaluations.term_id = '{term.term_id}'
