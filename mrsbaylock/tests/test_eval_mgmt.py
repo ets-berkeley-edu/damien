@@ -28,6 +28,7 @@ from datetime import timedelta
 from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.pages.course_dashboards import CourseDashboards
+from mrsbaylock.test_utils import evaluation_utils
 from mrsbaylock.test_utils import utils
 import pytest
 
@@ -37,15 +38,15 @@ class TestEvaluationManagement:
     term = utils.get_current_term()
     dept_1 = utils.get_test_dept_1()
     utils.reset_test_data(term, dept_1)
-    dept_1.evaluations = utils.get_evaluations(term, dept_1)
+    dept_1.evaluations = evaluation_utils.get_evaluations(term, dept_1)
 
     instructor = utils.get_test_user()
-    dept_forms = utils.get_all_dept_forms()
+    dept_forms = evaluation_utils.get_all_dept_forms()
     midterm_form = next(filter(lambda form: (form.name.endswith('_MID')), dept_forms))
-    eval_types = utils.get_all_eval_types()
+    eval_types = evaluation_utils.get_all_eval_types()
 
     dept_2 = utils.get_test_dept_2()
-    dept_2.evaluations = utils.get_evaluations(term, dept_2)
+    dept_2.evaluations = evaluation_utils.get_evaluations(term, dept_2)
 
     def test_list_mgmt_page(self):
         self.login_page.load_page()
@@ -129,7 +130,7 @@ class TestEvaluationManagement:
     def test_change_start_date(self):
         e = self.dept_1.evaluations[0]
         e.eval_start_date = e.eval_start_date + timedelta(days=1)
-        e.eval_end_date = utils.row_eval_end_from_eval_start(e)
+        e.eval_end_date = evaluation_utils.row_eval_end_from_eval_start(e)
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_eval_start_date(e, e.eval_start_date)
         self.dept_details_admin_page.click_save_eval_changes(e)

@@ -26,6 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import time
 
 from flask import current_app as app
+from mrsbaylock.test_utils import evaluation_utils
 from mrsbaylock.test_utils import utils
 import pytest
 
@@ -48,7 +49,7 @@ class TestDeptEvaluations:
         self.status_board_admin_page.click_dept_link(dept)
 
     def test_evals(self, dept):
-        dept.evaluations = utils.get_evaluations(term, dept)
+        dept.evaluations = evaluation_utils.get_evaluations(term, dept)
         expected = self.dept_details_admin_page.expected_eval_data(dept.evaluations)
 
         self.dept_details_admin_page.select_ignored_filter()
