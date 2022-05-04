@@ -27,9 +27,7 @@ import time
 
 from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
-from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class ListMgmtPage(DamienPages):
@@ -53,11 +51,17 @@ class ListMgmtPage(DamienPages):
 
     def add_dept_form(self, dept_form):
         app.logger.info(f'Adding department form {dept_form.name}')
+        self.mouseover(self.element(ListMgmtPage.MENU_BUTTON))
         self.wait_for_element_and_click(ListMgmtPage.ADD_DEPT_FORM_BUTTON)
         self.wait_for_element_and_type(ListMgmtPage.ADD_DEPT_FORM_INPUT, dept_form.name)
         self.wait_for_element_and_click(ListMgmtPage.ADD_DEPT_FORM_SAVE_BUTTON)
         time.sleep(1)
-        Wait(self.driver, utils.get_short_timeout()).until(dept_form.name in self.visible_dept_form_names())
+
+    def delete_dept_form(self, dept_form):
+        app.logger.info(f'Deleting department form {dept_form.name}')
+        self.wait_for_page_and_click_js(ListMgmtPage.dept_form_delete_button(dept_form))
+        self.wait_for_element_and_click(ListMgmtPage.DELETE_CONFIRM_BUTTON)
+        time.sleep(1)
 
     ADD_EVAL_TYPE_BUTTON = (By.ID, 'add-eval-type-btn')
     ADD_EVAL_TYPE_INPUT = (By.ID, 'input-eval-type-name')
@@ -82,7 +86,12 @@ class ListMgmtPage(DamienPages):
         self.wait_for_element_and_type(ListMgmtPage.ADD_EVAL_TYPE_INPUT, eval_type.name)
         self.wait_for_element_and_click(ListMgmtPage.ADD_EVAL_TYPE_SAVE_BUTTON)
         time.sleep(1)
-        Wait(self.driver, utils.get_short_timeout()).until(eval_type.name in self.visible_eval_type_names())
+
+    def delete_eval_type(self, eval_type):
+        app.logger.info(f'Deleting evaluation type {eval_type.name}')
+        self.wait_for_page_and_click_js(ListMgmtPage.eval_type_delete_button(eval_type))
+        self.wait_for_element_and_click(ListMgmtPage.DELETE_CONFIRM_BUTTON)
+        time.sleep(1)
 
     ADD_INSTR_BUTTON = (By.ID, 'add-instructor-btn')
     ADD_INSTR_UID_INPUT = (By.ID, 'input-instructor-uid')
@@ -92,3 +101,8 @@ class ListMgmtPage(DamienPages):
     ADD_INSTR_EMAIL_INPUT = (By.ID, 'input-instructor-email')
     ADD_INSTR_SAVE_BUTTON = (By.ID, 'save-instructor-btn')
     ADD_INSTR_CXL_BUTTON = (By.ID, 'cancel-save-instructor-btn')
+
+    def add_instructor(self, user):
+        app.logger.info(f'Adding manual instructor UID {user.uid}')
+        self.wait_for_element_and_click(ListMgmtPage.ADD_INSTR_BUTTON)
+        # TODO

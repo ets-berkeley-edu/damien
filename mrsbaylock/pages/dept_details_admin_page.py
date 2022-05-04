@@ -179,9 +179,6 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
 
     # Delete contact
 
-    DELETE_CONFIRM_BUTTON = (By.ID, 'confirm-dialog-btn')
-    DELETE_CANCEL_BUTTON = (By.ID, 'cancel-dialog-btn')
-
     def click_delete_contact(self, user):
         self.wait_for_element_and_click(self.dept_contact_delete_button(user))
 

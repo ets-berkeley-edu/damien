@@ -41,6 +41,11 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 class CourseDashboardEditsPage(CourseDashboards):
 
+    def load_dept_page(self, dept):
+        app.logger.info(f'Loading page for {dept.name}')
+        self.driver.get(f"{app.config['BASE_URL']}/department/{dept.dept_id}")
+        self.wait_for_eval_rows()
+
     @staticmethod
     def dept_contact_xpath(user):
         return f'//div[contains(@id, "department-contact-")][contains(., "{user.first_name} {user.last_name}")]'
@@ -218,6 +223,7 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     # EVALUATION ROWS
 
+    EVAL_CHANGE_STATUS_SELECT = (By.ID, 'select-evaluation-status')
     EVAL_CHANGE_INSTR_BUTTON = (By.XPATH, '//button[contains(@id, "-change-instructor")]')
     EVAL_CHANGE_DEPT_FORM_INPUT = (By.XPATH, '//div[@id="select-department-form"]//input')
     EVAL_CHANGE_DEPT_FORM_OPTION = (By.XPATH, '//div[@id="select-department-form"]//li')
@@ -239,6 +245,11 @@ class CourseDashboardEditsPage(CourseDashboards):
         self.hide_damien_footer()
         self.mouseover(self.eval_status_el(evaluation))
         self.wait_for_element_and_click((By.XPATH, f'{self.eval_row_xpath(evaluation)}//button'))
+
+    def select_eval_status(self, evaluation, status):
+        app.logger.info(f"Setting CCN {evaluation.ccn} to {status.value['option']}")
+        el = Select(self.element(CourseDashboardEditsPage.EVAL_CHANGE_STATUS_SELECT))
+        el.select_by_visible_text(status.value['option'])
 
     def change_instructor(self, evaluation, instructor=None):
         if evaluation.instructor.uid:

@@ -1,0 +1,134 @@
+"""
+Copyright ©2022. The Regents of the University of California (Regents). All Rights Reserved.
+
+Permission to use, copy, modify, and distribute this software and its documentation
+for educational, research, and not-for-profit purposes, without fee and without a
+signed licensing agreement, is hereby granted, provided that the above copyright
+notice, this paragraph and the following two paragraphs appear in all copies,
+modifications, and distributions.
+
+Contact The Office of Technology Licensing, UC Berkeley, 2150 Shattuck Avenue,
+Suite 510, Berkeley, CA 94720-1620, (510) 643-7201, otl@berkeley.edu,
+http://ipira.berkeley.edu/industry-info for commercial licensing opportunities.
+
+IN NO EVENT SHALL REGENTS BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL,
+INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF
+THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF REGENTS HAS BEEN ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
+REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
+SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
+"AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ENHANCEMENTS, OR MODIFICATIONS.
+"""
+
+import time
+
+from mrsbaylock.models.department_form import DepartmentForm
+from mrsbaylock.models.evaluation_status import EvaluationStatus
+from mrsbaylock.models.evaluation_type import EvaluationType
+from mrsbaylock.models.user_dept_role import UserDeptRole
+from mrsbaylock.test_utils import utils
+import pytest
+
+
+@pytest.mark.usefixtures('page_objects')
+class TestListManagement:
+
+    # TODO - manual instructor
+
+    test_id = f'{int(time.mktime(time.gmtime()))}'
+    term = utils.get_current_term()
+    dept = utils.get_test_dept_1()
+    utils.reset_test_data(term, dept)
+    dept.evaluations = utils.get_evaluations(term, dept)
+    evaluations = list(map(lambda e: e.instructor.uid, dept.evaluations))
+    eval_unmarked = evaluations[0]
+    eval_to_review = evaluations[1]
+    eval_confirmed = evaluations[2]
+    form = DepartmentForm(f'Form {test_id}')
+    eval_type = EvaluationType(f'Type {test_id}')
+
+    role = UserDeptRole(dept.dept_id, receives_comms=True)
+    instructor = utils.get_test_user(role)
+    utils.hard_delete_user(instructor)
+
+    utils.reset_test_data(term, dept)
+
+    def test_list_mgmt_page(self):
+        self.login_page.load_page()
+        self.login_page.dev_auth()
+        self.status_board_admin_page.click_list_mgmt()
+
+    def test_add_dept_form(self):
+        self.list_mgmt_page.add_dept_form(self.form)
+        assert self.form.name in self.list_mgmt_page.visible_dept_form_names()
+
+    def test_add_eval_type(self):
+        self.list_mgmt_page.add_eval_type(self.eval_type)
+        assert self.eval_type.name in self.list_mgmt_page.visible_eval_type_names()
+
+    def test_unmarked_add_form_and_type(self):
+        self.dept_details_admin_page.load_dept_page(self.dept)
+        self.dept_details_admin_page.click_edit_evaluation(self.eval_unmarked)
+        self.dept_details_admin_page.select_eval_status(self.eval_unmarked, EvaluationStatus.UNMARKED)
+        self.dept_details_admin_page.change_dept_form(self.eval_unmarked, self.form)
+        self.dept_details_admin_page.change_eval_type(self.eval_unmarked, self.eval_type)
+        self.dept_details_admin_page.click_save_eval_changes(self.eval_unmarked)
+        self.dept_details_admin_page.wait_for_eval_rows()
+        assert EvaluationStatus.UNMARKED.value['ui'] in self.dept_details_admin_page.eval_status(self.eval_unmarked)
+        assert self.form.name in self.dept_details_admin_page.eval_dept_form(self.eval_unmarked)
+        assert self.eval_type.name in self.dept_details_admin_page.eval_type(self.eval_unmarked)
+
+    def test_for_review_add_form_and_type(self):
+        self.dept_details_admin_page.click_edit_evaluation(self.eval_to_review)
+        self.dept_details_admin_page.select_eval_status(self.eval_to_review, EvaluationStatus.FOR_REVIEW)
+        self.dept_details_admin_page.change_dept_form(self.eval_to_review, self.form)
+        self.dept_details_admin_page.change_eval_type(self.eval_to_review, self.eval_type)
+        self.dept_details_admin_page.click_save_eval_changes(self.eval_to_review)
+        self.dept_details_admin_page.wait_for_eval_rows()
+        assert EvaluationStatus.FOR_REVIEW.value['ui'] in self.dept_details_admin_page.eval_status(self.eval_to_review)
+        assert self.form.name in self.dept_details_admin_page.eval_dept_form(self.eval_to_review)
+        assert self.eval_type.name in self.dept_details_admin_page.eval_type(self.eval_to_review)
+
+    def test_confirmed_add_form_and_type(self):
+        self.dept_details_admin_page.click_edit_evaluation(self.eval_confirmed)
+        self.dept_details_admin_page.select_eval_status(self.eval_confirmed, EvaluationStatus.CONFIRMED)
+        self.dept_details_admin_page.change_dept_form(self.eval_confirmed, self.form)
+        self.dept_details_admin_page.change_eval_type(self.eval_confirmed, self.eval_type)
+        self.dept_details_admin_page.click_save_eval_changes(self.eval_confirmed)
+        self.dept_details_admin_page.wait_for_eval_rows()
+        assert EvaluationStatus.CONFIRMED.value['ui'] in self.dept_details_admin_page.eval_status(self.eval_confirmed)
+        assert self.form.name in self.dept_details_admin_page.eval_dept_form(self.eval_confirmed)
+        assert self.eval_type.name in self.dept_details_admin_page.eval_type(self.eval_confirmed)
+
+    def test_delete_dept_form(self):
+        self.dept_details_admin_page.click_list_mgmt()
+        self.list_mgmt_page.delete_dept_form(self.form)
+        assert self.form.name not in self.list_mgmt_page.visible_dept_form_names()
+
+    def test_delete_eval_type(self):
+        self.list_mgmt_page.delete_eval_type(self.eval_type)
+        assert self.eval_type.name not in self.list_mgmt_page.visible_eval_type_names()
+
+    def test_unmarked_form_and_type_deleted(self):
+        self.dept_details_admin_page.load_dept_page(self.dept)
+        assert self.dept_details_admin_page.eval_dept_form(self.eval_unmarked) == self.form.name
+        assert self.dept_details_admin_page.eval_type(self.eval_unmarked) == self.eval_type.name
+
+    def test_for_review_form_and_type_deleted(self):
+        assert self.dept_details_admin_page.eval_dept_form(self.eval_to_review) == self.form.name
+        assert self.dept_details_admin_page.eval_type(self.eval_to_review) == self.eval_type.name
+
+    def test_confirmed_form_and_type_deleted(self):
+        assert self.dept_details_admin_page.eval_dept_form(self.eval_confirmed) == self.form.name
+        assert self.dept_details_admin_page.eval_type(self.eval_confirmed) == self.eval_type.name
+
+    def test_deleted_form_not_available(self):
+        self.dept_details_admin_page.click_edit_evaluation(self.eval_unmarked)
+        self.dept_details_admin_page.click_dept_form_input()
+        assert self.form.name not in self.dept_details_admin_page.visible_dept_form_options()
+
+    def test_deleted_type_not_available(self):
+        assert self.eval_type.name not in self.dept_details_admin_page.visible_eval_type_options()
