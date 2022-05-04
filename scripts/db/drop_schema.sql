@@ -66,6 +66,8 @@ ALTER TABLE IF EXISTS ONLY public.department_notes DROP CONSTRAINT IF EXISTS dep
 ALTER TABLE IF EXISTS ONLY public.departments DROP CONSTRAINT IF EXISTS departments_pkey;
 ALTER TABLE IF EXISTS public.departments ALTER COLUMN id DROP DEFAULT;
 
+ALTER TABLE IF EXISTS ONLY public.evaluation_terms DROP CONSTRAINT IF EXISTS evaluation_terms_pkey;
+
 ALTER TABLE IF EXISTS ONLY public.evaluation_types DROP CONSTRAINT IF EXISTS evaluation_types_pkey;
 ALTER TABLE IF EXISTS public.evaluation_types ALTER COLUMN id DROP DEFAULT;
 
@@ -104,6 +106,8 @@ DROP TABLE IF EXISTS public.department_notes CASCADE;
 
 DROP SEQUENCE IF EXISTS public.departments_id_seq;
 DROP TABLE IF EXISTS public.departments CASCADE;
+
+DROP TABLE IF EXISTS public.evaluation_terms CASCADE;
 
 DROP SEQUENCE IF EXISTS public.evaluation_types_id_seq;
 DROP TABLE IF EXISTS public.evaluation_types CASCADE;

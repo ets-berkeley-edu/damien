@@ -42,7 +42,7 @@ CREATE TABLE department_catalog_listings (
     department_id integer NOT NULL,
     subject_area VARCHAR(255) NOT NULL,
     catalog_id VARCHAR(255),
-    default_form_id integer,    
+    default_form_id integer,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -208,6 +208,17 @@ CREATE INDEX evaluations_instructor_uid_idx ON evaluations USING btree (instruct
 
 --
 
+CREATE TABLE evaluation_terms (
+    term_id VARCHAR(4) NOT NULL,
+    is_locked boolean NOT NULL DEFAULT FALSE,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_by character varying(255)
+);
+
+ALTER TABLE ONLY evaluation_terms ADD CONSTRAINT evaluation_terms_pkey PRIMARY KEY (term_id);
+
+--
+
 CREATE TABLE supplemental_instructors (
     ldap_uid VARCHAR(80) NOT NULL,
     sis_id VARCHAR(80),
@@ -228,7 +239,7 @@ CREATE TABLE supplemental_sections (
     id integer NOT NULL,
     term_id VARCHAR(4) NOT NULL,
     course_number VARCHAR(5) NOT NULL,
-    department_id INTEGER NOT NULL,    
+    department_id INTEGER NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     deleted_at timestamp with time zone
@@ -257,7 +268,7 @@ CREATE TABLE user_department_forms (
     user_id integer NOT NULL,
     department_form_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL  
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE SEQUENCE user_department_forms_id_seq
