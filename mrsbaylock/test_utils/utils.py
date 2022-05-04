@@ -915,3 +915,13 @@ def reset_test_data(term, dept):
     app.logger.info(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
+
+    sql = "DELETE FROM department_forms WHERE name LIKE 'Form %'"
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+
+    sql = "DELETE FROM evaluation_types WHERE name LIKE 'Type %'"
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)

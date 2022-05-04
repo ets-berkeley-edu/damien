@@ -185,3 +185,6 @@ class DamienPages(Page):
         app.logger.info('Clicking cancel button')
         self.wait_for_element_and_click(DamienPages.NOTIF_CXL_BUTTON)
         self.when_not_present(DamienPages.NOTIF_SUBJ_INPUT, utils.get_short_timeout())
+
+    DELETE_CONFIRM_BUTTON = (By.ID, 'confirm-dialog-btn')
+    DELETE_CANCEL_BUTTON = (By.ID, 'cancel-dialog-btn')
