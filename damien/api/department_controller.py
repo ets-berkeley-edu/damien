@@ -35,6 +35,7 @@ from damien.models.department import Department
 from damien.models.department_form import DepartmentForm
 from damien.models.department_note import DepartmentNote
 from damien.models.evaluation import Evaluation
+from damien.models.evaluation_term import EvaluationTerm
 from damien.models.evaluation_type import EvaluationType
 from damien.models.supplemental_section import SupplementalSection
 from flask import current_app as app, request
@@ -80,6 +81,7 @@ def get_department(department_id):
         include_evaluations=True,
         term_id=term_id,
     )
+    feed['evaluationTerm'] = EvaluationTerm.find_or_create(term_id).to_api_json()
     return tolerant_jsonify(feed)
 
 

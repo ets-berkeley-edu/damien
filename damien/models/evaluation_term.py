@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien import db, std_commit
 from damien.lib.util import isoformat, utc_now
+from flask import current_app as app
 
 
 class EvaluationTerm(db.Model):
@@ -47,10 +48,18 @@ class EvaluationTerm(db.Model):
         return f"""<EvaluationTerm term_id={self.term_id}, is_locked={self.is_locked}>"""
 
     @classmethod
-    def lock(cls, term_id, updated_by):
+    def find_or_create(cls, term_id):
         evaluation_term = cls.query.filter_by(term_id=term_id).first()
         if not evaluation_term:
             evaluation_term = cls(term_id=term_id)
+            evaluation_term.is_locked = False if term_id == app.config['CURRENT_TERM_ID'] else True
+            db.session.add(evaluation_term)
+            std_commit()
+        return evaluation_term
+
+    @classmethod
+    def lock(cls, term_id, updated_by):
+        evaluation_term = cls.find_or_create(term_id)
         evaluation_term.is_locked = True
         evaluation_term.updated_by = updated_by
         db.session.add(evaluation_term)
@@ -59,9 +68,7 @@ class EvaluationTerm(db.Model):
 
     @classmethod
     def unlock(cls, term_id, updated_by):
-        evaluation_term = cls.query.filter_by(term_id=term_id).first()
-        if not evaluation_term:
-            evaluation_term = cls(term_id=term_id)
+        evaluation_term = cls.find_or_create(term_id)
         evaluation_term.is_locked = False
         evaluation_term.updated_by = updated_by
         db.session.add(evaluation_term)
