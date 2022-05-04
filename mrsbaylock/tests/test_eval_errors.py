@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import datetime
 from datetime import timedelta
 
+from mrsbaylock.test_utils import evaluation_utils
 from mrsbaylock.test_utils import utils
 import pytest
 
@@ -39,12 +40,12 @@ class TestEvalErrors:
     term = utils.get_current_term()
     all_contacts = utils.get_all_users()
     dept = utils.get_dept('Economics', all_contacts)
-    evals = utils.get_evaluations(term, dept)
+    evals = evaluation_utils.get_evaluations(term, dept)
     instructor = utils.get_test_user()
-    types = utils.get_all_eval_types()
+    types = evaluation_utils.get_all_eval_types()
     eval_type_1 = types[-1]
     eval_type_2 = types[-2]
-    forms = utils.get_all_dept_forms()
+    forms = evaluation_utils.get_all_dept_forms()
     dept_form_1 = forms[-1]
     dept_form_2 = forms[-2]
     period_start_1 = datetime.date.today()
@@ -54,16 +55,16 @@ class TestEvalErrors:
 
     # Test data for cross-listing tests
     x_listing_eval = next(filter(lambda x1: x1.x_listing_ccns, evals))
-    x_listing_dept_1 = utils.get_section_dept(x_listing_eval.ccn, all_contacts)
+    x_listing_dept_1 = evaluation_utils.get_section_dept(x_listing_eval.ccn, all_contacts)
     x_listing_contact_1 = x_listing_dept_1.users[0]
-    x_listing_dept_2 = utils.get_section_dept(x_listing_eval.x_listing_ccns[0], all_contacts)
+    x_listing_dept_2 = evaluation_utils.get_section_dept(x_listing_eval.x_listing_ccns[0], all_contacts)
     x_listing_contact_2 = x_listing_dept_2.users[0]
 
     # Test data for room share tests
     share_eval = next(filter(lambda s1: s1.room_share_ccns, evals))
-    share_dept_1 = utils.get_section_dept(share_eval.ccn, all_contacts)
+    share_dept_1 = evaluation_utils.get_section_dept(share_eval.ccn, all_contacts)
     share_contact_1 = share_dept_1.users[0]
-    share_dept_2 = utils.get_section_dept(share_eval.room_share_ccns[0], all_contacts)
+    share_dept_2 = evaluation_utils.get_section_dept(share_eval.room_share_ccns[0], all_contacts)
     share_contact_2 = share_dept_2.users[0]
 
     def test_reset_test_data(self):

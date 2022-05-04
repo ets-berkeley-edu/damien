@@ -29,6 +29,7 @@ from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.models.evaluation_type import EvaluationType
 from mrsbaylock.models.user_dept_role import UserDeptRole
+from mrsbaylock.test_utils import evaluation_utils
 from mrsbaylock.test_utils import utils
 import pytest
 
@@ -42,7 +43,7 @@ class TestListManagement:
     term = utils.get_current_term()
     dept = utils.get_test_dept_1()
     utils.reset_test_data(term, dept)
-    dept.evaluations = utils.get_evaluations(term, dept)
+    dept.evaluations = evaluation_utils.get_evaluations(term, dept)
     evaluations = list(map(lambda e: e.instructor.uid, dept.evaluations))
     eval_unmarked = evaluations[0]
     eval_to_review = evaluations[1]
