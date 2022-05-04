@@ -140,8 +140,10 @@ class TestGetDepartment:
     def test_good_term(self, client, fake_auth):
         """Accepts valid term ids."""
         fake_auth.login(admin_uid)
-        _api_get_philosophy(client, term_id='2218')
-        _api_get_philosophy(client, term_id='2222')
+        fall = _api_get_philosophy(client, term_id='2218')
+        assert fall['evaluationTerm']['isLocked'] is True
+        spring = _api_get_philosophy(client, term_id='2222')
+        assert spring['evaluationTerm']['isLocked'] is False
 
     def test_default_evaluations(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
