@@ -219,6 +219,7 @@ export default {
       const departmentId = this.$_.get(this.$route, 'params.departmentId')
       const termId = this.selectedTermId
       this.init({departmentId, termId}).then(department => {
+        this.updateEvaluationsSelected()
         this.$ready(`${department.deptName} ${this.$_.get(this.selectedTerm, 'name')}`, screenreaderAlert)
       })
     },
