@@ -31,7 +31,7 @@
           id="apply-course-action-btn"
           class="mx-2"
           color="secondary"
-          :disabled="disableControls || !selectedCourseAction || !evaluationIds.length || (bulkUpdateOptions.evalDatesEnabled && !bulkUpdateOptions.startDate)"
+          :disabled="disableControls || !selectedCourseAction || !evaluationIds.length"
           @click="applyCourseAction"
           @keypress.enter.prevent="applyCourseAction"
         >
@@ -41,7 +41,7 @@
       <div v-if="selectedCourseAction === 'duplicate'" class="mb-4">
         <div class="d-flex align-center mt-2">
           <PersonLookup
-            id="input-instructor-lookup-autocomplete"
+            id="bulk-duplicate-instructor-lookup-autocomplete"
             :instructor-lookup="true"
             placeholder="Instructor name or UID"
             :on-select-result="selectInstructor"
@@ -57,14 +57,13 @@
           label="Use midterm department forms"
         />
         <div class="d-flex align-center mt-2">
-          <v-checkbox
-            v-model="bulkUpdateOptions.evalDatesEnabled"
-            class="text-nowrap mt-0 pt-0"
-            color="tertiary"
-            :disabled="disableControls"
-            label="Set evaluation start date:"
-            hide-details="auto"
-          />
+          <label
+            for="bulk-duplicate-start-date"
+            class="v-label"
+            :class="$vuetify.theme.dark ? 'theme--dark' : 'theme--light'"
+          >
+            Evaluation start date:
+          </label>
           <c-date-picker
             v-model="bulkUpdateOptions.startDate"
             class="mx-3"
@@ -74,9 +73,12 @@
           >
             <template v-slot="{ inputValue, inputEvents }">
               <input
-                class="input-override my-0"
+                id="bulk-duplicate-start-date"
+                class="datepicker-input input-override my-0"
                 :class="$vuetify.theme.dark ? 'dark' : 'light'"
                 :disabled="disableControls"
+                maxlength="10"
+                minlength="10"
                 :value="inputValue"
                 v-on="inputEvents"
               />
@@ -162,7 +164,6 @@ export default {
   },
   data: () => ({
     bulkUpdateOptions: {
-      evalDatesEnabled: false,
       midtermFormEnabled: false,
       startDate: null,
     },
@@ -180,7 +181,7 @@ export default {
   watch: {
     selectedCourseAction(action) {
       if (action === 'duplicate') {
-        this.$putFocusNextTick('input-instructor-lookup-autocomplete')
+        this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
       }
     }
   },
@@ -198,9 +199,8 @@ export default {
         if (this.bulkUpdateOptions.midtermFormEnabled) {
           fields.midterm = 'true'
         }
-        if (this.bulkUpdateOptions.evalDatesEnabled) {
-          const duration = (this.$config.currentTermDates.begin + 77) > this.bulkUpdateOptions.startDate ? 13 : 20
-          fields.endDate = this.$moment(this.bulkUpdateOptions.startDate).add(duration, 'days').format('YYYY-MM-DD')
+        if (this.bulkUpdateOptions.startDate) {
+          fields.startDate = this.$moment(this.bulkUpdateOptions.startDate).format('YYYY-MM-DD')
         }
       }
       if (this.selectedCourseAction !== 'confirm' || this.validateConfirmable(this.evaluationIds, fields.departmentFormId, fields.evaluationTypeId)) {

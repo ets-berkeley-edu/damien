@@ -59,7 +59,7 @@
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${rowIndex}-checkbox`"
                     :value="evaluation.isSelected"
-                    color="secondary"
+                    :color="`${hover ? 'primary' : 'tertiary'}`"
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
                     @change="updateEvaluationsSelected(rowIndex)"
@@ -239,7 +239,7 @@
                     >
                       <template v-slot="{ inputValue, inputEvents }">
                         <input
-                          class="input-override light"
+                          class="datepicker-input input-override light"
                           :value="inputValue"
                           v-on="inputEvents"
                         />

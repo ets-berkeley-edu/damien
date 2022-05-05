@@ -1,6 +1,10 @@
 .borderless {
   border: none !important;
 }
+.datepicker-input {
+  max-width: 7rem;
+  padding-left: 12px !important;
+}
 .flip-horizontally {
   transform: scaleX(-1);
 }
