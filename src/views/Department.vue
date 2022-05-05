@@ -1,43 +1,52 @@
 <template>
   <div>
-    <div v-if="$_.get(department, 'deptName')" class="d-flex flex-row flex-wrap justify-space-between">
-      <h1 id="page-title" class="mr-5">
-        {{ department.deptName }}
+    <div v-if="$_.get(department, 'deptName')" class="d-flex align-center justify-space-between flex-wrap">
+      <h1 id="page-title" class="d-flex align-baseline flex-wrap mr-5">
+        {{ department.deptName }}&MediumSpace;
         <span v-if="department.catalogListings">
-          ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})
+          ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})&MediumSpace;
         </span>
-        <span v-if="selectedTerm">
-          - {{ $_.get(selectedTerm, 'name') }}
-        </span>
+        <span v-if="selectedTerm"> - {{ $_.get(selectedTerm, 'name') }}</span>
       </h1>
-      <div
-        v-if="$currentUser.isAdmin"
-        class="d-flex align-baseline flex-grow-1 justify-end"
-      >
-        <label
-          id="select-term-label"
-          for="select-term"
-          class="align-self-baseline text-nowrap pr-3"
-        >
-          Previous terms:
-        </label>
-        <select
-          id="select-term"
-          v-model="selectedTermId"
-          class="native-select-override select-term my-2 px-3"
-          :class="this.$vuetify.theme.dark ? 'dark' : 'light'"
-          :disabled="disableControls || loading"
-          @change="onChangeTerm"
-        >
-          <option
-            v-for="term in availableTerms"
-            :id="`term-option-${term.id}`"
-            :key="term.id"
-            :value="term.id"
+      <div class="d-flex align-baseline">
+        <div v-if="$currentUser.isAdmin" class="d-flex align-baseline mr-3">
+          <label
+            id="select-term-label"
+            for="select-term"
+            class="align-self-baseline text-nowrap pr-3"
           >
-            {{ term.name }}
-          </option>
-        </select>
+            Term:
+          </label>
+          <select
+            id="select-term"
+            v-model="selectedTermId"
+            class="native-select-override select-term my-2 px-3"
+            :class="this.$vuetify.theme.dark ? 'dark' : 'light'"
+            :disabled="disableControls || loading"
+            @change="onChangeTerm"
+          >
+            <option
+              v-for="term in availableTerms"
+              :id="`term-option-${term.id}`"
+              :key="term.id"
+              :value="term.id"
+            >
+              {{ term.name }}
+            </option>
+          </select>
+        </div>
+        <div v-if="!loading && false === $_.get(department, 'evaluationTerm.isLocked')">
+          <span class="sr-only">Unlocked</span>
+          <v-icon>
+            mdi-lock-open-variant-outline
+          </v-icon>
+        </div>
+        <div v-if="!loading && true === $_.get(department, 'evaluationTerm.isLocked')">
+          <span class="sr-only">Locked</span>
+          <v-icon>
+            mdi-lock
+          </v-icon>
+        </div>
       </div>
     </div>
     <v-container v-if="!loading" class="mx-0 px-0 pb-6" fluid>
