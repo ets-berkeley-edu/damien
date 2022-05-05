@@ -67,7 +67,7 @@ class Evaluation(Base):
     term_id = db.Column(db.String(4), nullable=False, primary_key=True)
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), primary_key=True)
     course_number = db.Column(db.String(5), nullable=False, primary_key=True)
-    instructor_uid = db.Column(db.String(80), primary_key=True)
+    instructor_uid = db.Column(db.String(80))
     status = db.Column(evaluation_status_enum)
     department_form_id = db.Column(db.Integer, db.ForeignKey('department_forms.id'))
     evaluation_type_id = db.Column(db.Integer, db.ForeignKey('evaluation_types.id'))
