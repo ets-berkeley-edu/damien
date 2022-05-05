@@ -137,15 +137,21 @@
                       {{ pendingInstructor.lastName }}
                       ({{ pendingInstructor.uid }})
                     </div>
+                    <div v-if="pendingInstructor">
+                      {{ pendingInstructor.emailAddress }}
+                    </div>
                     <div class="pb-2">
-                      <v-btn
-                        :id="`evaluation-${rowIndex}-change-instructor`"
-                        color="primary"
-                        @click="clearPendingInstructor"
-                        @keydown.enter="clearPendingInstructor"
-                      >
-                        Change <span class="sr-only">Instructor</span>
-                      </v-btn>
+                      <div>
+                        <div class="d-flex align-center mt-2">
+                          <PersonLookup
+                            id="input-instructor-lookup-autocomplete"
+                            :instructor-lookup="true"
+                            placeholder="Choose instructor name or UID"
+                            :on-select-result="selectInstructor"
+                            solo
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -291,10 +297,12 @@ import {getDepartmentForms} from '@/api/departmentForms'
 import {getEvaluationTypes} from '@/api/evaluationTypes'
 import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
+import PersonLookup from '@/components/admin/PersonLookup'
 
 export default {
   name: 'EvaluationTable',
   mixins: [Context, DepartmentEditSession],
+  components: { PersonLookup },
   props: {
     updateEvaluation: {
       required: false,
@@ -419,6 +427,10 @@ export default {
     updateEvaluationsSelected(rowIndex) {
       this.toggleSelectEvaluation(rowIndex)
       this.$root.$emit('update-evaluations-selected')
+    },
+    selectInstructor(instructor) {
+      instructor.emailAddress = instructor.email
+      this.setPendingInstructor(instructor)
     }
   },
   created() {
