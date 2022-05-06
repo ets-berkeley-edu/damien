@@ -31,7 +31,7 @@
           id="apply-course-action-btn"
           class="mx-2"
           color="secondary"
-          :disabled="disableControls || !selectedCourseAction || !evaluationIds.length"
+          :disabled="disableControls || !selectedCourseAction || !selectedEvaluationIds.length"
           @click="applyCourseAction"
           @keypress.enter.prevent="applyCourseAction"
         >
@@ -139,7 +139,7 @@
 </template>
 
 <script>
-import {addSection, updateEvaluations} from '@/api/departments'
+import {updateEvaluations} from '@/api/departments'
 import AddCourseSection from '@/components/evaluation/AddCourseSection.vue'
 import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
@@ -156,10 +156,6 @@ export default {
     afterApply: {
       required: true,
       type: Function
-    },
-    evaluationIds: {
-      required: true,
-      type: Array
     }
   },
   data: () => ({
@@ -187,8 +183,12 @@ export default {
   },
   methods: {
     addCourseSection(courseNumber) {
-      this.isAddingSection = false
-      addSection(this.department.id, courseNumber).then(this.refresh(`Section ${courseNumber} added.`))
+      this.alertScreenReader(`Adding section ${courseNumber}.`)
+      this.addSection(courseNumber).then(() => {
+        this.isAddingSection = false
+        this.alertScreenReader(`Section ${courseNumber} added.`)
+      }, error => this.showErrorDialog(error.response.data.message))
+      .finally(() => this.setDisableControls(false))
     },
     applyCourseAction() {
       let fields = null
@@ -203,12 +203,12 @@ export default {
           fields.startDate = this.$moment(this.bulkUpdateOptions.startDate).format('YYYY-MM-DD')
         }
       }
-      if (this.selectedCourseAction !== 'confirm' || this.validateConfirmable(this.evaluationIds, fields.departmentFormId, fields.evaluationTypeId)) {
+      if (this.selectedCourseAction !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds, fields.departmentFormId, fields.evaluationTypeId)) {
         this.setDisableControls(true)
         updateEvaluations(
           this.department.id,
           this.selectedCourseAction,
-          this.evaluationIds,
+          this.selectedEvaluationIds,
           fields
         ).then(() => this.afterApply(), error => this.showErrorDialog(error.response.data.message))
         .finally(() => this.setDisableControls(false))

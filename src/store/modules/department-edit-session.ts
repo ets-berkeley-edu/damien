@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import {
+  addSection,
   deleteContact,
   getDepartment,
   getSectionEvaluations,
@@ -56,6 +57,7 @@ const state = {
   errorDialogText: null,
   evaluations: [],
   note: undefined,
+  selectedEvaluationIds: [],
   selectedTerm: undefined
 }
 
@@ -68,10 +70,25 @@ const getters = {
   errorDialogText: (state: any): boolean => state.errorDialogText,
   evaluations: (state: any): any[] => state.evaluations,
   note: (state: any): string => state.note,
+  selectedEvaluationIds: (state: any): any[] => state.selectedEvaluationIds,
   selectedTerm: (state: any): any => state.selectedTerm
 }
 
 const actions = {
+  addSection: ({commit, state}, sectionId: string) => {
+    commit('setDisableControls', true)
+    return new Promise((resolve: Function, reject) => {
+      addSection(state.department.id, sectionId)
+      .then(() => {
+        getSectionEvaluations(state.department.id, sectionId).then((data: any) => {
+          const updatedEvaluations = _.each(data, $_decorateEvaluation)
+          commit('setEvaluations', {sectionIndex: 0, sectionCount: 0, updatedEvaluations})
+          resolve()
+        })
+      })
+      .catch(error => reject(error))
+    })
+  },
   deleteContact: ({commit, state}, userId: number) => {
     commit('setDisableControls', true)
     return deleteContact(state.department.id, userId).then(() => {
@@ -105,7 +122,9 @@ const actions = {
   init: ({commit}, {departmentId: departmentId, termId: termId}) => {
     $_getDepartmentForms(commit)
     return new Promise<void>(resolve => {
-      $_refresh(commit, {departmentId, termId}).then(department => resolve(department))
+      $_refresh(commit, {departmentId, termId})
+        .then(commit('updateSelectedEvaluationIds'))
+        .then(department => resolve(department))
     })
   },
   setDisableControls({commit}, disable: boolean) {
@@ -133,11 +152,14 @@ const actions = {
         $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id}).then(dept => resolve(dept))
       })
     })
+  },
+  updateSelectedEvaluationIds: ({commit}) => {
+    commit('updateSelectedEvaluationIds')
   }
 }
 
 const mutations = {
-  reset: (state: any, {department, termId}) => {
+  reset: (state, {department, termId}) => {
     if (department) {
       state.contacts = department.contacts
       state.department = department
@@ -161,6 +183,14 @@ const mutations = {
     if (evaluation) {
       evaluation.isSelected = !evaluation.isSelected
     }
+  },
+  updateSelectedEvaluationIds: (state: any) => {
+    state.selectedEvaluationIds = _.reduce(state.evaluations, (ids, e) => {
+      if (e.isSelected) {
+        ids.push(e.id)
+      }
+      return ids
+    }, [])
   }
 }
 

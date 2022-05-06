@@ -6,6 +6,7 @@
           v-model="searchFilter"
           class="ml-4"
           append-icon="mdi-magnify"
+          color="tertiary"
           label="Find"
           single-line
           hide-details
@@ -303,13 +304,6 @@ export default {
   name: 'EvaluationTable',
   mixins: [Context, DepartmentEditSession],
   components: { PersonLookup },
-  props: {
-    updateEvaluation: {
-      required: false,
-      default: null,
-      type: Function
-    }
-  },
   data: () => ({
     departmentForms: [],
     editRowId: null,
@@ -423,6 +417,23 @@ export default {
       const filter = this.filterTypes[type]
       filter.enabled = !filter.enabled
       this.alertScreenReader(`Filter ${filter.label} ${filter.enabled ? 'enabled' : 'disabled'}.`)
+    },
+    updateEvaluation(evaluationId, sectionId, fields) {
+      this.alertScreenReader('Saving evaluation row.')
+      return new Promise(resolve => {
+        if (fields.status === 'confirmed' && !this.validateConfirmable([evaluationId], fields.departmentFormId, fields.evaluationTypeId)) {
+          resolve()
+        } else {
+          this.editEvaluation({evaluationId, sectionId, fields}).then(() => {
+            this.alertScreenReader('Changes saved.')
+            this.updateSelectedEvaluationIds()
+            resolve()
+          }, error => {
+            this.showErrorDialog(error)
+            resolve()
+          })
+        }
+      })
     },
     updateEvaluationsSelected(rowIndex) {
       this.toggleSelectEvaluation(rowIndex)
