@@ -13,11 +13,13 @@ export default {
       'errorDialogText',
       'evaluations',
       'note',
+      'selectedEvaluationIds',
       'selectedTerm'
     ])
   },
   methods: {
     ...mapActions('departmentEditSession', [
+      'addSection',
       'deleteContact',
       'dismissErrorDialog',
       'editEvaluation',
@@ -26,7 +28,8 @@ export default {
       'showErrorDialog',
       'toggleSelectEvaluation',
       'updateContact',
-      'updateNote'
+      'updateNote',
+      'updateSelectedEvaluationIds'
     ])
   }
 }

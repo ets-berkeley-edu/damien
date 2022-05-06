@@ -117,9 +117,9 @@
       </v-row>
     </v-container>
     <v-container v-if="!loading" class="mx-0 px-0 pb-6" fluid>
-      <EvaluationActions :after-apply="refresh" :evaluation-ids="selectedEvaluationIds" />
+      <EvaluationActions :after-apply="refresh" />
       <v-card outlined class="elevation-1">
-        <EvaluationTable :update-evaluation="updateEvaluation" />
+        <EvaluationTable />
       </v-card>
     </v-container>
   </div>
@@ -165,7 +165,6 @@ export default {
     isAddingSection: false,
     isCreatingNotification: false,
     selectedCourseAction: undefined,
-    selectedEvaluationIds: [],
     selectedTermId: undefined
   }),
   computed: {
@@ -180,7 +179,7 @@ export default {
   created() {
     this.availableTerms = this.$config.availableTerms
     this.selectedTermId = this.$config.currentTermId
-    this.$root.$on('update-evaluations-selected', this.updateEvaluationsSelected)
+    this.$root.$on('update-evaluations-selected', this.updateSelectedEvaluationIds)
     this.refresh()
   },
   methods: {
@@ -219,34 +218,8 @@ export default {
       const departmentId = this.$_.get(this.$route, 'params.departmentId')
       const termId = this.selectedTermId
       this.init({departmentId, termId}).then(department => {
-        this.updateEvaluationsSelected()
         this.$ready(`${department.deptName} ${this.$_.get(this.selectedTerm, 'name')}`, screenreaderAlert)
       })
-    },
-    updateEvaluation(evaluationId, sectionId, fields) {
-      this.alertScreenReader('Saving evaluation row.')
-      return new Promise(resolve => {
-        if (fields.status === 'confirmed' && !this.validateConfirmable([evaluationId], fields.departmentFormId, fields.evaluationTypeId)) {
-          resolve()
-        } else {
-          this.editEvaluation({evaluationId, sectionId, fields}).then(() => {
-            this.alertScreenReader('Changes saved.')
-            this.updateEvaluationsSelected()
-            resolve()
-          }, error => {
-            this.showErrorDialog(error)
-            resolve()
-          })
-        }
-      })
-    },
-    updateEvaluationsSelected() {
-      this.selectedEvaluationIds = this.$_.reduce(this.evaluations, (ids, e) => {
-        if (e.isSelected) {
-          ids.push(e.id)
-        }
-        return ids
-      }, [])
     },
     validateConfirmable(evaluationIds, departmentFormId, evaluationTypeId) {
       if (this.$_.some(this.evaluations, e => this.$_.includes(evaluationIds, e.id) && (!(departmentFormId && e.departmentForm) || !(evaluationTypeId && e.evaluationType)))) {
