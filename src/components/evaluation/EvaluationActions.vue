@@ -140,10 +140,11 @@
 
 <script>
 import {updateEvaluations} from '@/api/departments'
-import AddCourseSection from '@/components/evaluation/AddCourseSection.vue'
-import Context from '@/mixins/Context.vue'
+import AddCourseSection from '@/components/evaluation/AddCourseSection'
+import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import PersonLookup from '@/components/admin/PersonLookup'
+import Util from '@/mixins/Util'
 
 export default {
   name: 'EvaluationActions',
@@ -151,7 +152,7 @@ export default {
     AddCourseSection,
     PersonLookup
   },
-  mixins: [Context, DepartmentEditSession],
+  mixins: [Context, DepartmentEditSession, Util],
   props: {
     afterApply: {
       required: true,
@@ -203,7 +204,7 @@ export default {
           fields.startDate = this.$moment(this.bulkUpdateOptions.startDate).format('YYYY-MM-DD')
         }
       }
-      if (this.selectedCourseAction !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds, fields.departmentFormId, fields.evaluationTypeId)) {
+      if (this.selectedCourseAction !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds, true, true)) {
         this.setDisableControls(true)
         updateEvaluations(
           this.department.id,
