@@ -299,13 +299,14 @@
 <script>
 import {getDepartmentForms} from '@/api/departmentForms'
 import {getEvaluationTypes} from '@/api/evaluationTypes'
-import Context from '@/mixins/Context.vue'
+import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import PersonLookup from '@/components/admin/PersonLookup'
+import Util from '@/mixins/Util'
 
 export default {
   name: 'EvaluationTable',
-  mixins: [Context, DepartmentEditSession],
+  mixins: [Context, DepartmentEditSession, Util],
   components: { PersonLookup },
   data: () => ({
     departmentForms: [],
