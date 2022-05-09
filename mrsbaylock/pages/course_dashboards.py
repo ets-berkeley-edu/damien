@@ -41,9 +41,16 @@ class CourseDashboards(DamienPages):
         uid = f'[contains(., "{evaluation.instructor.uid}")]' if evaluation.instructor.uid else ''
         return f'//tr[contains(., " {evaluation.ccn} ")]{uid}'
 
+    def rows_of_evaluation(self, evaluation):
+        return self.elements((By.XPATH, self.eval_row_xpath(evaluation)))
+
     @staticmethod
     def section_row(evaluation):
         return By.XPATH, f'//tr[contains(., "{evaluation.ccn}")]'
+
+    def wait_for_eval_row(self, evaluation):
+        time.sleep(1)
+        self.wait_for_element((By.XPATH, self.eval_row_xpath(evaluation)), utils.get_short_timeout())
 
     def wait_for_eval_rows(self):
         time.sleep(1)

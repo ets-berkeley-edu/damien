@@ -46,7 +46,7 @@ class EvaluationStatus(enum.Enum):
     IGNORED = {
         'db': 'ignore',
         'option': 'Ignore',
-        'ui': 'IGNORED',
+        'ui': 'IGNORE',
     }
     UNMARKED = {
         'db': None,

@@ -146,7 +146,7 @@ class TestEvalErrors:
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.x_listing_contact_1, self.x_listing_dept_1)
         self.dept_details_dept_page.wait_for_eval_rows()
-        self.dept_details_dept_page.mark_for_review(self.x_listing_eval)
+        self.dept_details_dept_page.bulk_mark_for_review(self.x_listing_eval)
 
     def test_x_list_review_dept_1_verify_form_conflict(self):
         self.dept_details_dept_page.wait_for_eval_rows()
@@ -235,7 +235,7 @@ class TestEvalErrors:
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.share_contact_2, self.share_dept_2)
         self.dept_details_dept_page.wait_for_eval_rows()
-        self.dept_details_dept_page.mark_as_confirmed(self.share_eval)
+        self.dept_details_dept_page.bulk_mark_as_confirmed(self.share_eval)
 
     def test_share_confirmed_dept_2_verify_edits(self):
         self.dept_details_dept_page.wait_for_eval_rows()
