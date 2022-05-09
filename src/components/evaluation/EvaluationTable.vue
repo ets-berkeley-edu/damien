@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="evaluations">
     <v-row>
       <v-col>
         <v-text-field
@@ -291,6 +291,9 @@
       </template>
     </v-data-table>
   </div>
+  <div v-else class="no-eligible-sections">
+    No eligible sections
+  </div>
 </template>
 
 <script>
@@ -548,5 +551,12 @@ tr.border-top-none td {
 }
 .xlisting-note {
   font-size: 0.8em;
+}
+.no-eligible-sections {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 50px;
 }
 </style>
