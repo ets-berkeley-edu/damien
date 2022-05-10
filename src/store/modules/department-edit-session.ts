@@ -82,7 +82,7 @@ const actions = {
       .then(() => {
         getSectionEvaluations(state.department.id, sectionId).then((data: any) => {
           const updatedEvaluations = _.each(data, $_decorateEvaluation)
-          commit('setEvaluations', {sectionIndex: 0, sectionCount: 0, updatedEvaluations})
+          commit('setEvaluationUpdate', {sectionIndex: 0, sectionCount: 0, updatedEvaluations})
           resolve()
         })
       })
@@ -111,7 +111,7 @@ const actions = {
           }
           const sectionCount = _.filter(state.evaluations, ['courseNumber', sectionId]).length
           const updatedEvaluations = _.each(data, $_decorateEvaluation)
-          commit('setEvaluations', {sectionIndex, sectionCount, updatedEvaluations})
+          commit('setEvaluationUpdate', {sectionIndex, sectionCount, updatedEvaluations})
           resolve()
         })
       })
@@ -127,10 +127,13 @@ const actions = {
         .then(department => resolve(department))
     })
   },
-  setDisableControls({commit}, disable: boolean) {
+  setEvaluations: ({commit}, evaluations: any[]) => {
+    commit('setEvaluations', evaluations)
+  },
+  setDisableControls: ({commit}, disable: boolean) => {
     commit('setDisableControls', disable)
   },
-  showErrorDialog({commit}, text: string) {
+  showErrorDialog: ({commit}, text: string) => {
     commit('setErrorDialog', true)
     commit('setErrorDialogText', text)
   },
@@ -174,7 +177,8 @@ const mutations = {
   setDisableControls: (state: any, disable: boolean) => state.disableControls = disable,
   setErrorDialog: (state: any, errorDialog: boolean) => state.errorDialog = errorDialog,
   setErrorDialogText: (state: any, errorDialogText: string) => state.errorDialogText = errorDialogText,
-  setEvaluations: (state: any, {sectionIndex, sectionCount, updatedEvaluations}) => {
+  setEvaluations: (state: any, evaluations: any[]) => state.evaluations = evaluations,
+  setEvaluationUpdate: (state: any, {sectionIndex, sectionCount, updatedEvaluations}) => {
     const evaluations = _.sortBy(updatedEvaluations, 'sortableCourseNumber')
     state.evaluations.splice(sectionIndex, sectionCount, ...evaluations)
   },

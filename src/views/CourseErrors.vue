@@ -8,7 +8,7 @@
       </v-col>
     </v-row>
     <v-card outlined class="elevation-1">
-      <EvaluationTable :evaluations="evaluations" />
+      <EvaluationTable :error-page="true" />
     </v-card>
   </div>
 </template>
@@ -16,6 +16,7 @@
 <script>
 import {getValidation} from '@/api/evaluations'
 import Context from '@/mixins/Context.vue'
+import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
 
 export default {
@@ -23,10 +24,7 @@ export default {
   components: {
     EvaluationTable
   },
-  mixins: [Context],
-  data: () => ({
-    evaluations: [],
-  }),
+  mixins: [Context, DepartmentEditSession],
   created() {
     this.refresh()
   },
@@ -34,7 +32,7 @@ export default {
     refresh() {
       this.$loading()
       getValidation().then(data => {
-        this.evaluations = this.$_.sortBy(data, 'sortableCourseNumber')
+        this.setEvaluations(this.$_.sortBy(data, 'sortableCourseNumber'))
         this.$ready('Course Errors')
       })
     }

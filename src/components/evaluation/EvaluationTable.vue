@@ -308,6 +308,12 @@ export default {
   name: 'EvaluationTable',
   mixins: [Context, DepartmentEditSession, Util],
   components: { PersonLookup },
+  props: {
+    errorPage: {
+      required: false,
+      type: Boolean
+    }
+  },
   data: () => ({
     departmentForms: [],
     editRowId: null,
@@ -449,7 +455,9 @@ export default {
     }
   },
   created() {
-    this.readonly = !this.updateEvaluation
+    if (this.errorPage) {
+      this.readonly = true
+    }
     if (this.readonly) {
       this.headers = [{class: 'text-nowrap', text: 'Department', value: 'department.id'}].concat(this.headers)
     } else {
