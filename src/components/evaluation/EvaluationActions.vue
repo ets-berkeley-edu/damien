@@ -8,7 +8,7 @@
           aria-labelledby="action-option-label"
           class="native-select-override"
           :class="$vuetify.theme.dark ? 'dark' : 'light'"
-          :disabled="disableControls"
+          :disabled="disableControls || !allowEdits"
         >
           <option
             id="action-option-label"
@@ -31,7 +31,7 @@
           id="apply-course-action-btn"
           class="mx-2"
           color="secondary"
-          :disabled="disableControls || !selectedCourseAction || !selectedEvaluationIds.length"
+          :disabled="disableControls || !allowEdits || !selectedCourseAction || !selectedEvaluationIds.length"
           @click="applyCourseAction"
           @keypress.enter.prevent="applyCourseAction"
         >
@@ -119,6 +119,7 @@
           id="add-course-section-btn"
           class="text-capitalize pl-2 mt-1"
           color="tertiary"
+          :disabled="!allowEdits"
           text
           @click="() => isAddingSection = true"
           @keypress.enter.prevent="() => isAddingSection = true"
@@ -180,6 +181,11 @@ export default {
       if (action === 'duplicate') {
         this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
       }
+    }
+  },
+  computed: {
+    allowEdits() {
+      return this.$currentUser.isAdmin || !this.isSelectedTermLocked
     }
   },
   methods: {
