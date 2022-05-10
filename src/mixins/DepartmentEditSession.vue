@@ -32,6 +32,7 @@ export default {
       'editEvaluation',
       'init',
       'setDisableControls',
+      'setEvaluations',
       'showErrorDialog',
       'toggleSelectEvaluation',
       'updateContact',
