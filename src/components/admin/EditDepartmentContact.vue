@@ -225,7 +225,7 @@ export default {
     populateForm(contact) {
       if (contact) {
         this.csid = contact.csid
-        this.contactDepartmentForms = this.$_.cloneDeep(this.$_.sortBy(this.contact.departmentForms, 'name'))
+        this.contactDepartmentForms = this.$_.cloneDeep(this.$_.sortBy(contact.departmentForms, 'name'))
         this.email = contact.email
         this.firstName = contact.firstName
         this.lastName = contact.lastName
