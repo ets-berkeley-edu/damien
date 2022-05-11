@@ -8,7 +8,7 @@
         </span>
         <span v-if="selectedTerm"> - {{ $_.get(selectedTerm, 'name') }}</span>
       </h1>
-      <div class="d-flex align-baseline">
+      <div class="d-flex align-baseline justify-space-between">
         <div v-if="$currentUser.isAdmin" class="d-flex align-baseline mr-3">
           <label
             id="select-term-label"
@@ -35,15 +35,9 @@
             </option>
           </select>
         </div>
-        <div v-if="!loading && false === $_.get(department, 'evaluationTerm.isLocked')">
-          <span class="sr-only">Unlocked</span>
-          <v-icon>
-            mdi-lock-open-variant-outline
-          </v-icon>
-        </div>
-        <div v-if="!loading && true === $_.get(department, 'evaluationTerm.isLocked')">
-          <span class="sr-only">Locked</span>
-          <v-icon>
+        <div v-if="!loading && isSelectedTermLocked" class="ml-auto">
+          <span class="sr-only">Evaluation term is locked.</span>
+          <v-icon large>
             mdi-lock
           </v-icon>
         </div>

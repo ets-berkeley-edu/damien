@@ -2,6 +2,7 @@
   <v-autocomplete
     :id="id"
     v-model="selected"
+    :allow-overflow="false"
     :append-icon="null"
     :auto-select-first="true"
     background-color="white"
@@ -17,6 +18,7 @@
     :placeholder="placeholder"
     return-object
     :search-input.sync="search"
+    single-line
     hide-details="auto"
   >
     <template #selection>

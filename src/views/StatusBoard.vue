@@ -1,10 +1,28 @@
 <template>
   <div>
-    <div class="pb-2">
-      <h1 id="page-title">Evaluation Status Dashboard - Spring 2022</h1>
-    </div>
+    <v-row class="pb-2" no-gutters>
+      <v-col cols="12" md="9" class="d-flex align-baseline">
+        <h1 id="page-title">Evaluation Status Dashboard - Spring 2022</h1>
+      </v-col>
+      <v-col cols="12" md="3" class="d-flex align-center justify-end">
+        <div class="d-flex">
+          <label for="toggle-term-locked" class="text-nowrap pr-4 py-2">
+            {{ `${isCurrentTermLocked ? 'Unlock' : 'Lock'} current term` }}
+          </label>
+          <v-switch
+            id="toggle-term-locked"
+            v-model="isCurrentTermLocked"
+            class="my-auto"
+            color="tertiary"
+            hide-details
+            inset
+            @change="toggleCurrentTermLocked"
+          />
+        </div>
+      </v-col>
+    </v-row>
     <v-row>
-      <v-col>
+      <v-col cols="auto" class="mr-auto">
         <v-btn
           id="publish-btn"
           class="my-4"
@@ -24,10 +42,10 @@
           ></v-progress-circular>
         </v-btn>
       </v-col>
-      <v-col>
+      <v-col cols="auto" class="pr-8">
         <h2>Term Exports</h2>
         <ul id="term-exports-list">
-          <li v-for="e in exports" :key="e.createdAt">
+          <li v-for="(e, index) in exports" :key="index">
             <a :href="`${$config.apiBaseUrl}/api/export/${encodeURIComponent(e.s3Path)}`">{{ e.createdAt | moment('M/DD/YYYY HH:mm:SS') }}</a>
           </li>
         </ul>
@@ -117,6 +135,7 @@
 <script>
 import {getDepartmentsEnrolled} from '@/api/departments'
 import {exportEvaluations, getExports} from '@/api/evaluations'
+import {getEvaluationTerm, lockEvaluationTerm, unlockEvaluationTerm} from '@/api/evaluationTerms'
 import Context from '@/mixins/Context.vue'
 import NotificationForm from '@/components/admin/NotificationForm'
 
@@ -136,6 +155,7 @@ export default {
     ],
     isCreatingNotification: false,
     isExporting: false,
+    isCurrentTermLocked: false,
     selectedDepartmentIds: []
   }),
   computed: {
@@ -171,6 +191,9 @@ export default {
     getExports().then(data => {
       this.exports = data
     })
+    getEvaluationTerm(this.$config.currentTermId).then(data => {
+      this.isCurrentTermLocked = data.isLocked === true
+    })
   },
   methods: {
     afterSendNotification() {
@@ -178,6 +201,17 @@ export default {
       this.isCreatingNotification = false
       this.alertScreenReader('Notification sent.')
       this.$putFocusNextTick('open-notification-form-btn')
+    },
+    toggleCurrentTermLocked() {
+      if (this.isCurrentTermLocked) {
+        lockEvaluationTerm(this.$config.currentTermId).then(() => {
+          this.alertScreenReader(`Locked ${this.$config.currentTermName}`)
+        })
+      } else {
+        unlockEvaluationTerm(this.$config.currentTermId).then(() => {
+          this.alertScreenReader(`Unlocked ${this.$config.currentTermName}`)
+        })
+      }
     },
     cancelSendNotification() {
       this.isCreatingNotification = false

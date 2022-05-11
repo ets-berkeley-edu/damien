@@ -56,6 +56,7 @@ const state = {
   errorDialog: false,
   errorDialogText: null,
   evaluations: [],
+  isSelectedTermLocked: false,
   note: undefined,
   selectedEvaluationIds: [],
   selectedTerm: undefined
@@ -69,6 +70,7 @@ const getters = {
   errorDialog: (state: any): boolean => state.errorDialog,
   errorDialogText: (state: any): boolean => state.errorDialogText,
   evaluations: (state: any): any[] => state.evaluations,
+  isSelectedTermLocked: (state: any): boolean => state.isSelectedTermLocked,
   note: (state: any): string => state.note,
   selectedEvaluationIds: (state: any): any[] => state.selectedEvaluationIds,
   selectedTerm: (state: any): any => state.selectedTerm
@@ -168,6 +170,7 @@ const mutations = {
       state.department = department
       _.each(department.evaluations, $_decorateEvaluation)
       state.evaluations = _.sortBy(department.evaluations, 'sortableCourseNumber')
+      state.isSelectedTermLocked = true === _.get(department, 'evaluationTerm.isLocked')
       state.note = _.get(department.notes, [termId, 'note'])
     }
     state.selectedTerm = _.find(Vue.prototype.$config.availableTerms, {'id': termId})

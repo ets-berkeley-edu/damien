@@ -8,7 +8,7 @@
       </v-col>
     </v-row>
     <v-card outlined class="elevation-1">
-      <EvaluationTable :error-page="true" />
+      <EvaluationTable :readonly="true" />
     </v-card>
   </div>
 </template>

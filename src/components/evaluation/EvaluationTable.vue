@@ -50,11 +50,11 @@
                 :class="evaluationClass(evaluation, hover)"
               >
                 <td v-if="readonly" :id="`evaluation-${rowIndex}-department`">
-                  <router-link :to="`/department/${evaluation.department.id}`">
-                    {{ evaluation.department.name }}
+                  <router-link :to="`/department/${$_.get(evaluation.department, 'id')}`">
+                    {{ $_.get(evaluation.department, 'name') }}
                   </router-link>
                 </td>
-                <td v-if="!readonly">
+                <td v-if="!readonly && allowEdits" class="text-center">
                   <v-checkbox
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${rowIndex}-checkbox`"
@@ -67,20 +67,21 @@
                 </td>
                 <td :id="`evaluation-${rowIndex}-status`" class="position-relative">
                   <div
-                    v-if="!isEditing(evaluation) && (!hover || readonly) && evaluation.status"
-                    class="pill"
+                    v-if="!isEditing(evaluation) && (!hover || !allowEdits || readonly) && evaluation.status"
+                    class="pill mx-auto"
                     :class="evaluationPillClass(evaluation)"
                   >
                     {{ evaluation.status }}
                   </div>
                   <div
-                    v-if="!isEditing(evaluation) && ((hover && !readonly) || !evaluation.status)"
-                    class="pill pill-invisible"
+                    v-if="allowEdits && !isEditing(evaluation) && ((hover && !readonly) || !evaluation.status)"
+                    class="pill pill-invisible mx-auto pl-0"
                   >
                     <v-btn
                       class="primary--text"
                       :class="{'hidden': isEditing(evaluation) || !hover}"
                       block
+                      :disabled="!allowEdits"
                       text
                       @click="onEditEvaluation(evaluation)"
                       @keypress.enter.prevent="onEditEvaluation(evaluation)"
@@ -92,7 +93,7 @@
                     v-if="isEditing(evaluation)"
                     id="select-evaluation-status"
                     v-model="selectedEvaluationStatus"
-                    class="native-select-override light status-select"
+                    class="native-select-override light d-block mx-auto"
                   >
                     <option v-for="s in evaluationStatuses" :key="s.text" :value="s.value">{{ s.text }}</option>
                   </select>
@@ -131,7 +132,15 @@
                   <div v-if="evaluation.instructor">
                     {{ evaluation.instructor.emailAddress }}
                   </div>
-                  <div v-if="!evaluation.instructor && isEditing(evaluation)">
+                  <div v-if="!evaluation.instructor && isEditing(evaluation) && allowEdits">
+                    <div class="d-flex align-center mt-2 pb-2">
+                      <PersonLookup
+                        id="input-instructor-lookup-autocomplete"
+                        :instructor-lookup="true"
+                        :on-select-result="selectInstructor"
+                        solo
+                      />
+                    </div>
                     <div v-if="pendingInstructor" class="py-2">
                       {{ pendingInstructor.firstName }}
                       {{ pendingInstructor.lastName }}
@@ -139,19 +148,6 @@
                     </div>
                     <div v-if="pendingInstructor">
                       {{ pendingInstructor.emailAddress }}
-                    </div>
-                    <div class="pb-2">
-                      <div>
-                        <div class="d-flex align-center mt-2">
-                          <PersonLookup
-                            id="input-instructor-lookup-autocomplete"
-                            :instructor-lookup="true"
-                            placeholder="Choose instructor name or UID"
-                            :on-select-result="selectInstructor"
-                            solo
-                          />
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </td>
@@ -169,7 +165,7 @@
                     <v-icon small color="error">mdi-alert-circle</v-icon> Department form required
                   </div>
                   <vue-select
-                    v-if="isEditing(evaluation)"
+                    v-if="allowEdits && isEditing(evaluation)"
                     id="select-department-form"
                     v-model="selectedDepartmentForm"
                     class="vue-select-override light py-2"
@@ -205,7 +201,7 @@
                     <v-icon small color="error">mdi-alert-circle</v-icon> Evaluation type required
                   </div>
                   <select
-                    v-if="isEditing(evaluation)"
+                    v-if="allowEdits && isEditing(evaluation)"
                     id="select-evaluation-type"
                     v-model="selectedEvaluationType"
                     class="native-select-override light"
@@ -224,7 +220,7 @@
                       from {{ conflict.department }} department
                     </div>
                   </span>
-                  <div v-if="isEditing(evaluation)">
+                  <div v-if="allowEdits && isEditing(evaluation)">
                     <div v-if="selectedStartDate">
                       Start date:
                     </div>
@@ -239,7 +235,7 @@
                     >
                       <template v-slot="{ inputValue, inputEvents }">
                         <input
-                          class="datepicker-input input-override light"
+                          class="datepicker-input input-override light mt-0"
                           :value="inputValue"
                           v-on="inputEvents"
                         />
@@ -308,9 +304,9 @@ export default {
   mixins: [Context, DepartmentEditSession, Util],
   components: { PersonLookup },
   props: {
-    errorPage: {
-      required: false,
-      type: Boolean
+    readonly: {
+      type: Boolean,
+      required: false
     }
   },
   data: () => ({
@@ -330,17 +326,16 @@ export default {
       'ignore': {label: 'Ignore', enabled: false}
     },
     headers: [
-      {class: 'text-nowrap', text: 'Status', value: 'status'},
-      {class: 'text-nowrap', text: 'Last Updated', value: 'lastUpdated'},
-      {class: 'text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '90px'},
-      {class: 'text-nowrap', text: 'Course Name', value: 'sortableCourseName', width: '200px'},
-      {class: 'text-nowrap', text: 'Instructor', value: 'sortableInstructor'},
+      {align: 'center', class: 'text-nowrap', text: 'Status', value: 'status', width: '122px'},
+      {class: 'text-nowrap', text: 'Last Updated', value: 'lastUpdated', width: '75px'},
+      {class: 'text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '80px'},
+      {class: 'text-nowrap course-name', text: 'Course Name', value: 'sortableCourseName'},
+      {class: 'text-nowrap', text: 'Instructor', value: 'sortableInstructor', width: '200px'},
       {class: 'text-nowrap', text: 'Department Form', value: 'departmentForm.name', width: '180px'},
-      {class: 'text-nowrap', text: 'Evaluation Type', value: 'evaluationType.name', width: '90px'},
-      {class: 'text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '200px'}
+      {class: 'text-nowrap', text: 'Evaluation Type', value: 'evaluationType.name', width: '175px'},
+      {class: 'text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '180px'}
     ],
     pendingInstructor: null,
-    readonly: false,
     rules: {
       currentTermDate: null,
       instructorUid: null
@@ -353,6 +348,9 @@ export default {
     selectedStartDate: null
   }),
   computed: {
+    allowEdits() {
+      return this.$currentUser.isAdmin || !this.isSelectedTermLocked
+    },
     rowValid() {
       return this.rules.currentTermDate(this.selectedStartDate) === true
     }
@@ -454,13 +452,10 @@ export default {
     }
   },
   created() {
-    if (this.errorPage) {
-      this.readonly = true
-    }
     if (this.readonly) {
       this.headers = [{class: 'text-nowrap', text: 'Department', value: 'department.id'}].concat(this.headers)
-    } else {
-      this.headers = [{class: 'text-nowrap', text: 'Select'}].concat(this.headers)
+    } else if (this.allowEdits) {
+      this.headers = [{class: 'text-nowrap', text: 'Select', width: '40px'}].concat(this.headers)
     }
     getDepartmentForms().then(data => {
         this.departmentForms = [{id: null, name: 'None'}].concat(data)
@@ -482,6 +477,9 @@ export default {
 </script>
 
 <style>
+.course-name {
+  min-width: 250px;
+}
 tr.border-bottom-none td {
   border-bottom: none !important;
 }
@@ -531,6 +529,7 @@ tr.border-top-none td {
   padding: 3px 10px;
   text-align: center;
   text-transform: uppercase;
+  width: 90px;
 }
 .pill-confirmed {
   background-color: #666;
@@ -546,12 +545,6 @@ tr.border-top-none td {
 }
 .position-relative {
   position: relative;
-}
-.status-select {
-  left: 0;
-  max-width: fit-content;
-  position: absolute;
-  top: 14px;
 }
 .xlisting-note {
   font-size: 0.8em;
