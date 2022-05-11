@@ -112,7 +112,6 @@
     </v-container>
     <v-container v-if="!loading" class="mx-0 px-0 pb-6" fluid>
       <v-card outlined class="elevation-1">
-        <EvaluationActions :after-apply="refresh" />
         <EvaluationTable />
       </v-card>
     </v-container>
@@ -125,7 +124,6 @@ import DepartmentContact from '@/components/admin/DepartmentContact'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import DepartmentNote from '@/components/admin/DepartmentNote'
 import EditDepartmentContact from '@/components/admin/EditDepartmentContact'
-import EvaluationActions from '@/components/evaluation/EvaluationActions'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
 import NotificationForm from '@/components/admin/NotificationForm'
 
@@ -135,7 +133,6 @@ export default {
     DepartmentContact,
     DepartmentNote,
     EditDepartmentContact,
-    EvaluationActions,
     EvaluationTable,
     NotificationForm
   },

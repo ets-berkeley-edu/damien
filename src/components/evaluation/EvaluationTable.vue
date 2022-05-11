@@ -1,38 +1,41 @@
 <template>
   <div v-if="evaluations">
-    <v-row>
-      <v-col>
-        <v-text-field
-          v-model="searchFilter"
-          class="ml-4"
-          append-icon="mdi-magnify"
-          color="tertiary"
-          label="Find"
-          single-line
-          hide-details
-        ></v-text-field>
-      </v-col>
-      <v-col v-if="!readonly" class="ma-4 text-right">
-        Show statuses:
-        <v-btn
-          v-for="type in $_.keys(filterTypes)"
-          :id="`evaluations-filter-${type}`"
-          :key="type"
-          role="tablist"
-          class="filter ma-1 px-2 text-center"
-          :class="{
-            'secondary': filterTypes[type].enabled,
-            'filter-inactive': !filterTypes[type].enabled
-          }"
-          aria-controls="timeline-messages"
-          :aria-selected="filterTypes[type].enabled"
-          @click="toggleFilter(type)"
-          @keypress.enter.prevent="toggleFilter(type)"
-        >
-          {{ filterTypes[type].label }}
-        </v-btn>
-      </v-col>
-    </v-row>
+    <div class="sticky" :class="$vuetify.theme.dark ? 'sticky-dark' : 'sticky-light'">
+      <EvaluationActions v-if="!readonly" />
+      <v-row class="mt-0">
+        <v-col>
+          <v-text-field
+            v-model="searchFilter"
+            class="ml-4"
+            append-icon="mdi-magnify"
+            color="tertiary"
+            label="Find"
+            single-line
+            hide-details
+          ></v-text-field>
+        </v-col>
+        <v-col v-if="!readonly" class="ma-4 text-right">
+          Show statuses:
+          <v-btn
+            v-for="type in $_.keys(filterTypes)"
+            :id="`evaluations-filter-${type}`"
+            :key="type"
+            role="tablist"
+            class="filter ma-1 px-2 text-center"
+            :class="{
+              'secondary': filterTypes[type].enabled,
+              'filter-inactive': !filterTypes[type].enabled
+            }"
+            aria-controls="timeline-messages"
+            :aria-selected="filterTypes[type].enabled"
+            @click="toggleFilter(type)"
+            @keypress.enter.prevent="toggleFilter(type)"
+          >
+            {{ filterTypes[type].label }}
+          </v-btn>
+        </v-col>
+      </v-row>
+    </div>
     <v-data-table
       id="evaluation-table"
       disable-pagination
@@ -296,13 +299,14 @@ import {getDepartmentForms} from '@/api/departmentForms'
 import {getEvaluationTypes} from '@/api/evaluationTypes'
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
+import EvaluationActions from '@/components/evaluation/EvaluationActions'
 import PersonLookup from '@/components/admin/PersonLookup'
 import Util from '@/mixins/Util'
 
 export default {
   name: 'EvaluationTable',
   mixins: [Context, DepartmentEditSession, Util],
-  components: { PersonLookup },
+  components: { EvaluationActions, PersonLookup },
   props: {
     readonly: {
       type: Boolean,
@@ -519,6 +523,13 @@ tr.border-top-none td {
   height: 1px;
   overflow: hidden;
 }
+.no-eligible-sections {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 40px;
+}
 .pill {
   border: 1px solid #999;
   border-radius: 5px;
@@ -546,14 +557,19 @@ tr.border-top-none td {
 .position-relative {
   position: relative;
 }
+.sticky {
+  position: sticky;
+  margin: 1px !important;
+  top: 60px;
+  z-index: 1;
+}
+.sticky-dark {
+  background-color: #222;
+}
+.sticky-light {
+  background-color: #fff;
+}
 .xlisting-note {
   font-size: 0.8em;
-}
-.no-eligible-sections {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  font-size: 40px;
 }
 </style>

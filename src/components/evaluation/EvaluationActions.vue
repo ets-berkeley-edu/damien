@@ -1,6 +1,6 @@
 <template>
-  <v-row class="sticky">
-    <v-col cols="12" sm="6">
+  <v-row class="px-3 pt-4">
+    <v-col class="pt-2 pb-0" cols="12" sm="6">
       <div class="d-flex flex-row flex-grow-1 align-baseline mb-4">
         <select
           id="select-course-actions"
@@ -113,7 +113,7 @@
       </v-dialog>
     </v-col>
     <v-col cols="12" sm="6">
-      <div class="d-flex flex-grow-1 align-baseline justify-end mb-4">
+      <div class="d-flex flex-grow-1 align-baseline justify-end">
         <v-btn
           v-if="!isAddingSection"
           id="add-course-section-btn"
@@ -154,12 +154,6 @@ export default {
     PersonLookup
   },
   mixins: [Context, DepartmentEditSession, Util],
-  props: {
-    afterApply: {
-      required: true,
-      type: Function
-    }
-  },
   data: () => ({
     bulkUpdateOptions: {
       midtermFormEnabled: false,
@@ -217,7 +211,7 @@ export default {
           this.selectedCourseAction,
           this.selectedEvaluationIds,
           fields
-        ).then(() => this.afterApply(), error => this.showErrorDialog(error.response.data.message))
+        ).then(() => this.refreshAll(), error => this.showErrorDialog(error.response.data.message))
         .finally(() => this.setDisableControls(false))
       }
     },
@@ -232,13 +226,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.sticky {
-  background-color: #fff;
-  position: sticky;
-  margin: 1px !important;
-  top: 60px;
-  z-index: 1;
-}
-</style>
