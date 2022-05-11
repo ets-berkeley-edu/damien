@@ -32,6 +32,7 @@ export default {
       'dismissErrorDialog',
       'editEvaluation',
       'init',
+      'refreshAll',
       'setDisableControls',
       'setEvaluations',
       'showErrorDialog',

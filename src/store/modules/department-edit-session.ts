@@ -129,6 +129,11 @@ const actions = {
         .then(department => resolve(department))
     })
   },
+  refreshAll: ({commit, state}) => {
+    return new Promise<void>(resolve => {
+      $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id}).then(dept => resolve(dept))
+    })
+  },
   setEvaluations: ({commit}, evaluations: any[]) => {
     commit('setEvaluations', evaluations)
   },
