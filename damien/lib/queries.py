@@ -96,6 +96,15 @@ def get_confirmed_enrollments(term_id):
     return results
 
 
+def get_default_meeting_dates(term_id):
+    query = """SELECT
+        mode() WITHIN GROUP (ORDER BY meeting_start_date) AS start_date,
+        mode() WITHIN GROUP (ORDER BY meeting_end_date) AS end_date
+        FROM unholy_loch.sis_sections where term_id = :term_id"""
+    results = db.session().execute(text(query), {'term_id': term_id}).all()
+    return results[0]
+
+
 def get_loch_basic_attributes(uids):
     if os.environ.get('DAMIEN_ENV') == 'test':
         return _read_fixture(f"{app.config['FIXTURES_PATH']}/loch_ness/basic_attributes_for_uids.json") if uids else []

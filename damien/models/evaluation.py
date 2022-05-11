@@ -28,8 +28,7 @@ from datetime import timedelta
 from itertools import groupby
 
 from damien import db, std_commit
-from damien.lib.berkeley import current_term_dates
-from damien.lib.queries import refresh_additional_instructors
+from damien.lib.queries import get_default_meeting_dates, refresh_additional_instructors
 from damien.lib.util import safe_strftime
 from damien.models.base import Base
 from damien.models.department_form import DepartmentForm
@@ -384,11 +383,11 @@ class Evaluation(Base):
     def set_dates(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
         self.meeting_start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
         self.meeting_end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)
-        term_begin, term_end = current_term_dates()
+        default_meeting_dates = get_default_meeting_dates(self.term_id)
         if not self.meeting_start_date:
-            self.meeting_start_date = term_begin
+            self.meeting_start_date = default_meeting_dates['start_date']
         if not self.meeting_end_date:
-            self.meeting_end_date = term_end
+            self.meeting_end_date = default_meeting_dates['end_date']
 
         if saved_evaluation and saved_evaluation.start_date:
             self.start_date = saved_evaluation.start_date
@@ -414,6 +413,12 @@ class Evaluation(Base):
                 self.end_date = self.start_date + timedelta(days=20)
         else:
             self.end_date = self.meeting_end_date
+
+            # The most common meeting end date is the Friday before finals week. During Spring and Fall terms, we bump these two days forward
+            # to the Sunday before finals.
+            if self.end_date == default_meeting_dates['end_date'] and self.term_id[-1:] in {'2', '8'}:
+                self.end_date = self.end_date + timedelta(days=2)
+
             if (self.end_date - self.meeting_start_date) < timedelta(days=90):
                 self.start_date = self.end_date - timedelta(days=13)
             else:

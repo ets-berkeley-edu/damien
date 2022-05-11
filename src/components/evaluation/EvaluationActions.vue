@@ -1,5 +1,5 @@
 <template>
-  <v-row>
+  <v-row class="sticky">
     <v-col cols="12" sm="6">
       <div class="d-flex flex-row flex-grow-1 align-baseline mb-4">
         <select
@@ -232,3 +232,13 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.sticky {
+  background-color: #fff;
+  position: sticky;
+  margin: 1px !important;
+  top: 60px;
+  z-index: 1;
+}
+</style>

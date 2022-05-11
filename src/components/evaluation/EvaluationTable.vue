@@ -35,7 +35,6 @@
     </v-row>
     <v-data-table
       id="evaluation-table"
-      class="scrollable-table"
       disable-pagination
       :headers="headers"
       :search="searchFilter"
@@ -288,7 +287,7 @@
     </v-data-table>
   </div>
   <div v-else class="no-eligible-sections">
-    No eligible sections
+    <span>No eligible sections to load. You may still add a section manually.</span>
   </div>
 </template>
 
@@ -547,10 +546,6 @@ tr.border-top-none td {
 .position-relative {
   position: relative;
 }
-.scrollable-table {
-  max-height: 500px;
-  overflow-y: scroll;
-}
 .xlisting-note {
   font-size: 0.8em;
 }
@@ -559,6 +554,6 @@ tr.border-top-none td {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  font-size: 50px;
+  font-size: 40px;
 }
 </style>
