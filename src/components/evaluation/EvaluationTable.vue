@@ -292,7 +292,7 @@
     </v-data-table>
   </div>
   <div v-else class="no-eligible-sections">
-    No eligible sections
+    <span>No eligible sections to load. You may still add a section manually.</span>
   </div>
 </template>
 
@@ -566,6 +566,6 @@ tr.border-top-none td {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  font-size: 50px;
+  font-size: 40px;
 }
 </style>
