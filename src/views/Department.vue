@@ -117,8 +117,8 @@
       </v-row>
     </v-container>
     <v-container v-if="!loading" class="mx-0 px-0 pb-6" fluid>
-      <EvaluationActions :after-apply="refresh" />
       <v-card outlined class="elevation-1">
+        <EvaluationActions :after-apply="refresh" />
         <EvaluationTable />
       </v-card>
     </v-container>

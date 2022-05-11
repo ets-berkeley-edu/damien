@@ -35,7 +35,6 @@
     </v-row>
     <v-data-table
       id="evaluation-table"
-      class="scrollable-table"
       disable-pagination
       :headers="headers"
       :search="searchFilter"
@@ -547,10 +546,6 @@ tr.border-top-none td {
 }
 .position-relative {
   position: relative;
-}
-.scrollable-table {
-  max-height: 500px;
-  overflow-y: scroll;
 }
 .status-select {
   left: 0;
