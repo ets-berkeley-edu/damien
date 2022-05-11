@@ -117,9 +117,12 @@ class DamienPages(Page):
     def add_contact_lookup_result(user):
         return By.XPATH, f'//div[contains(@id, "list-item")][contains(., "{user.uid}")]'
 
-    def look_up_contact_uid(self, uid):
+    def look_up_uid(self, uid, input_locator):
         app.logger.info(f'Looking up UID {uid}')
-        self.remove_and_enter_chars(DamienPages.ADD_CONTACT_LOOKUP_INPUT, uid)
+        self.remove_and_enter_chars(input_locator, uid)
+
+    def look_up_contact_uid(self, uid):
+        self.look_up_uid(uid, DamienPages.ADD_CONTACT_LOOKUP_INPUT)
 
     def look_up_contact_name(self, name):
         app.logger.info(f'Looking up {name}')

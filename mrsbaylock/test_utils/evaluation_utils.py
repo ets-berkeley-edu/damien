@@ -30,6 +30,7 @@ from damien import db, std_commit
 from flask import current_app as app
 from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.evaluation import Evaluation
+from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.models.evaluation_type import EvaluationType
 from mrsbaylock.models.instructor import Instructor
 from mrsbaylock.test_utils import utils
@@ -100,18 +101,14 @@ def row_instructor(row):
         return None
 
 
-def row_eval_end_from_eval_start(evaluation):
-    course_start = evaluation.course_start_date
-    eval_start = evaluation.eval_start_date
+def row_eval_end_from_eval_start(course_start, eval_start):
     if course_start:
         return eval_start + timedelta(days=20) if (eval_start - course_start).days > 90 else eval_start + timedelta(days=13)
     else:
         return None
 
 
-def row_eval_start_from_course_end(evaluation):
-    course_end = evaluation.course_end_date
-    course_start = evaluation.course_start_date
+def row_eval_start_from_course_end(course_end, course_start):
     if course_start:
         return course_end - timedelta(days=20) if (course_end - course_start).days > 90 else course_end - timedelta(days=13)
     else:
@@ -126,8 +123,8 @@ def remove_listing_dept_forms(evals):
 
 def calculate_eval_dates(evals):
     for e in evals:
-        e.eval_end_date = row_eval_end_from_eval_start(e) if e.eval_start_date else e.course_end_date
-        e.eval_start_date = e.eval_start_date or row_eval_start_from_course_end(e)
+        e.eval_end_date = row_eval_end_from_eval_start(e.course_start_date, e.eval_start_date) if e.eval_start_date else e.course_end_date
+        e.eval_start_date = e.eval_start_date or row_eval_start_from_course_end(e.course_end_date, e.course_start_date)
 
 
 def result_row_to_eval(row, term, dept):
@@ -139,7 +136,8 @@ def result_row_to_eval(row, term, dept):
 
     dept_form = row_data(row, 'dept_form')
     eval_type = row_data(row, 'eval_type')
-    status = row_data(row, 'status')
+    status = next(filter(lambda s: (s.value['db'] == row_data(row, 'status')), EvaluationStatus))
+
     instructor = row_instructor(row)
     if instructor.uid == 'None':
         instructor.uid = None
