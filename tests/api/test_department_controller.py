@@ -170,6 +170,13 @@ class TestGetDepartment:
         }
         assert elementary_sumerian['id'] == '_2222_30659_637739'
 
+    def test_default_dates(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        department = _api_get_melc(client)
+        for e in department['evaluations']:
+            assert e['startDate'] == '2022-04-18'
+            assert e['endDate'] == '2022-05-08'
+
     def test_uid_not_in_sis_instructors(self, client, fake_auth):
         """When a sis_section has no matching sis_instructor, returns only the instructor UID."""
         fake_auth.login(non_admin_uid)
@@ -323,7 +330,7 @@ class TestDuplicateEvaluation:
         assert midterm_eval['instructor']['uid'] == '637739'
         assert midterm_eval['departmentForm']['name'] == 'CUNEIF_MID'
 
-        final_eval = next(r for r in response if r['startDate'] == '2022-04-16')
+        final_eval = next(r for r in response if r['startDate'] == '2022-04-18')
         assert final_eval['courseNumber'] == '30659'
         assert final_eval['courseTitle'] == 'Elementary Sumerian'
         assert final_eval['instructor']['uid'] == '637739'
