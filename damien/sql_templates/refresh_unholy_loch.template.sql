@@ -145,6 +145,21 @@ INSERT INTO unholy_loch.sis_instructors
 
 DROP TABLE tmp_sis_instructors;
 
+-- Any current-term evaluations not yet confirmed or marked which refer to deleted instructors should have the instructor UID removed.
+UPDATE evaluations
+  SET instructor_uid = NULL
+  WHERE term_id = '{term_id}'
+  AND id IN (
+  SELECT e.id FROM evaluations e
+    JOIN unholy_loch.sis_instructors i
+      ON i.ldap_uid = e.instructor_uid
+      AND i.deleted_at IS NOT NULL
+      AND (e.status IS NULL OR e.status NOT IN ('confirmed', 'marked'))
+    LEFT JOIN supplemental_instructors si
+      ON i.ldap_uid = si.ldap_uid
+      WHERE si.ldap_uid IS NULL OR si.deleted_at IS NOT NULL
+);
+
 --
 
 DELETE FROM unholy_loch.sis_enrollments WHERE term_id = '{term_id}';
