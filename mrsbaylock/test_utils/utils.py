@@ -96,7 +96,7 @@ def get_current_term():
 
 def get_previous_term_code(current_term_id):
     d1 = '2'
-    d2_3 = str(int(current_term_id[1:3]) - 1) if (current_term_id[-1] == '2') else current_term_id[1:2]
+    d2_3 = str(int(current_term_id[1:3]) - 1) if (current_term_id[-1] == '2') else current_term_id[1:3]
     if current_term_id[3] == '8':
         d4 = '5'
     elif current_term_id[3] == '5':

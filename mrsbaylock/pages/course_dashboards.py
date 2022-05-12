@@ -35,11 +35,13 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 class CourseDashboards(DamienPages):
     EVALUATION_ROW = (By.XPATH, '//tr[contains(@class, "evaluation-row")]')
+    EVALUATION_STATUS = (By.XPATH, '//td[contains(@id, "-status")]')
 
     @staticmethod
     def eval_row_xpath(evaluation):
         uid = f'[contains(., "{evaluation.instructor.uid}")]' if evaluation.instructor.uid else ''
-        return f'//tr[contains(., " {evaluation.ccn} ")]{uid}'
+        dept_form = f'[contains(., "{evaluation.dept_form}")]' if evaluation.dept_form else ''
+        return f'//tr[contains(., " {evaluation.ccn} ")]{uid}{dept_form}'
 
     def rows_of_evaluation(self, evaluation):
         return self.elements((By.XPATH, self.eval_row_xpath(evaluation)))
@@ -57,6 +59,8 @@ class CourseDashboards(DamienPages):
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.presence_of_all_elements_located(CourseDashboards.EVALUATION_ROW),
         )
+        self.scroll_to_top()
+        time.sleep(2)
 
     @staticmethod
     def expected_eval_data(evals):
@@ -79,12 +83,10 @@ class CourseDashboards(DamienPages):
         return data
 
     def visible_eval_data(self):
-        self.wait_for_eval_rows()
         time.sleep(1)
         data = []
-        for index, value in enumerate(self.elements(CourseDashboards.EVALUATION_ROW)):
-            cell = self.element((By.XPATH, f'//tr[contains(@class, "evaluation-row")][{index + 1}]/td[2]'))
-            idx = cell.get_attribute('id').split('-')[1]
+        for el in self.elements(CourseDashboards.EVALUATION_STATUS):
+            idx = el.get_attribute('id').split('-')[1]
             uid_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-instructor"]/div')
             uid = ''
             if self.is_present(uid_loc):
@@ -98,9 +100,9 @@ class CourseDashboards(DamienPages):
                 {
                     'ccn': self.element((By.ID, f'evaluation-{idx}-courseNumber')).text.strip().split('\n')[0],
                     'listings': listings,
-                    'course': self.element((By.ID, f'evaluation-{index}-courseName')).text.strip(),
+                    'course': self.element((By.ID, f'evaluation-{idx}-courseName')).text.strip(),
                     'uid': uid,
-                    'form': self.element((By.ID, f'evaluation-{index}-departmentForm')).text.strip(),
+                    'form': self.element((By.ID, f'evaluation-{idx}-departmentForm')).text.strip(),
                     'type': self.element((By.ID, f'evaluation-{idx}-evaluationType')).text.strip(),
                     'dates': self.element((By.ID, f'evaluation-{idx}-period')).text.split('\n')[0],
                 },
