@@ -65,7 +65,7 @@
                     :color="`${hover ? 'primary' : 'tertiary'}`"
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
-                    @change="updateEvaluationsSelected(rowIndex)"
+                    @change="updateEvaluationsSelected(evaluation.id)"
                   ></v-checkbox>
                 </td>
                 <td :id="`evaluation-${rowIndex}-status`" class="position-relative">
@@ -446,8 +446,8 @@ export default {
         }
       })
     },
-    updateEvaluationsSelected(rowIndex) {
-      this.toggleSelectEvaluation(rowIndex)
+    updateEvaluationsSelected(evaluationId) {
+      this.toggleSelectEvaluation(evaluationId)
       this.$root.$emit('update-evaluations-selected')
     },
     selectInstructor(instructor) {
