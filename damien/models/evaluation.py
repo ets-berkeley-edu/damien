@@ -104,7 +104,7 @@ class Evaluation(Base):
         self.term_id = term_id
         self.course_number = course_number
         self.department_id = department_id
-        self.instructor_uid = instructor_uid
+        self.instructor_uid = instructor_uid if instructor_uid != 'None' else None
         self.status = status
         self.department_form_id = department_form_id
         self.evaluation_type_id = evaluation_type_id
