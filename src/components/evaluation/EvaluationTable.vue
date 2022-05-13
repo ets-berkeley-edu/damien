@@ -35,6 +35,23 @@
           </v-btn>
         </v-col>
       </v-row>
+      <v-row class="mt-0 ml-4">
+        <v-checkbox
+          v-if="!readonly"
+          id="select-all-evals-checkbox"
+          :indeterminate="someEvaluationsSelected"
+          :ripple="false"
+          color="tertiary"
+          :value="allEvaluationsSelected"
+          @change="toggleSelectAll"
+        >
+          <template v-slot:label>
+            <div>
+              Select all
+            </div>
+          </template>
+        </v-checkbox>
+      </v-row>
     </div>
     <v-data-table
       id="evaluation-table"
@@ -61,7 +78,7 @@
                   <v-checkbox
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${rowIndex}-checkbox`"
-                    :value="evaluation.isSelected"
+                    :value="selectedEvals.includes(evaluation.id)"
                     :color="`${hover ? 'primary' : 'tertiary'}`"
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
@@ -370,7 +387,8 @@ export default {
     selectedDepartmentForm: null,
     selectedEvaluationStatus: null,
     selectedEvaluationType: null,
-    selectedStartDate: null
+    selectedStartDate: null,
+    selectedEvals: []
   }),
   computed: {
     allowEdits() {
@@ -378,6 +396,12 @@ export default {
     },
     rowValid() {
       return this.rules.currentTermDate(this.selectedStartDate) === true
+    },
+    someEvaluationsSelected() {
+      return !!(this.$_.size(this.selectedEvals) && this.$_.size(this.selectedEvals) < this.$_.size(this.evaluations))
+    },
+    allEvaluationsSelected() {
+      return !!(this.$_.size(this.selectedEvals) && this.$_.size(this.selectedEvals) === this.$_.size(this.evaluations))
     }
   },
   methods: {
@@ -469,12 +493,30 @@ export default {
       })
     },
     updateEvaluationsSelected(evaluationId) {
+      const index = this.$_.indexOf(this.selectedEvals, evaluationId)
+      
+      if (index === -1) {
+        this.selectedEvals.push(evaluationId)
+      } else {
+        this.selectedEvals.splice(index, 1)
+      }
+
       this.toggleSelectEvaluation(evaluationId)
+
       this.$root.$emit('update-evaluations-selected')
     },
     selectInstructor(instructor) {
       instructor.emailAddress = instructor.email
       this.setPendingInstructor(instructor)
+    },
+    toggleSelectAll() {
+      if (this.allEvaluationsSelected) {
+        this.selectedEvals.forEach(id => this.updateEvaluationsSelected(id))
+        this.selectedEvals = []
+      } else {
+        this.evaluations.filter(ev => !ev.isSelected).forEach(ev => this.updateEvaluationsSelected(ev.id))
+        this.selectedEvals = this.$_.map(this.evaluations, 'id')
+      }
     }
   },
   created() {
