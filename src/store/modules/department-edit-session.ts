@@ -144,8 +144,8 @@ const actions = {
     commit('setErrorDialog', true)
     commit('setErrorDialogText', text)
   },
-  toggleSelectEvaluation: ({commit}, index: number) => {
-    commit('setIsSelected', index)
+  toggleSelectEvaluation: ({commit}, evaluationId: any) => {
+    commit('setIsSelected', evaluationId)
   },
   updateContact: ({commit, state}, contact: any) => {
     commit('setDisableControls', true)
@@ -190,8 +190,8 @@ const mutations = {
     const evaluations = _.sortBy(updatedEvaluations, 'sortableCourseNumber')
     state.evaluations.splice(sectionIndex, sectionCount, ...evaluations)
   },
-  setIsSelected: (state: any, index: number) => {
-    const evaluation = _.get(state.evaluations, index)
+  setIsSelected: (state: any, evaluationId: any) => {
+    const evaluation = _.find(state.evaluations, {'id': evaluationId})
     if (evaluation) {
       evaluation.isSelected = !evaluation.isSelected
     }
