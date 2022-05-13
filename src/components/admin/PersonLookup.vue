@@ -6,6 +6,8 @@
     :append-icon="null"
     :auto-select-first="true"
     background-color="white"
+    class="person-lookup"
+    color="white"
     dense
     :hide-no-data="true"
     :items="suggestions"
@@ -22,7 +24,7 @@
     hide-details="auto"
   >
     <template #selection>
-      <span>{{ toLabel(selected) }}</span>
+      <span class="text-nowrap">{{ toLabel(selected) }}</span>
     </template>
     <template #item="data">
       <v-list-item-content class="tertiary--text">
@@ -116,5 +118,14 @@ export default {
 <style>
 .autocomplete-menu {
   border: thin solid gray;
+}
+.person-lookup.v-input--is-focused {
+  appearance: auto !important;
+  color: -webkit-focus-ring-color !important;
+  outline: auto !important;
+  outline-color: -webkit-focus-ring-color !important;
+  outline-offset: 0px !important;
+  outline-style: auto !important;
+  outline-width: 1px !important;
 }
 </style>

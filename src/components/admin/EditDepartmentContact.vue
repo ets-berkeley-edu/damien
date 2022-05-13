@@ -5,9 +5,9 @@
     lazy-validation
   >
     <div v-if="!contact">
-      <label for="input-person-lookup-autocomplete" class="form-label">
-        Person Lookup
-      </label>
+      <h3 class="form-title my-2">
+        Add Contact
+      </h3>
       <PersonLookup
         class="mt-1 mb-4"
         :exclude-uids="$_.map(contacts, 'uid')"
@@ -252,3 +252,15 @@ export default {
   }
 }
 </script>
+
+<style>
+.form-title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+}
+</style>
