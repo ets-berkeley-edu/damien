@@ -640,3 +640,59 @@ class TestAddSection:
         new_section = next(e for e in department['evaluations'] if e['courseNumber'] == '30481')
         assert new_section['subjectArea'] == 'LGBT'
         assert new_section['courseTitle'] == 'Alternative Sexual Identities and Communities in Contemporary American Society'
+
+
+def _api_update_department_note(client, dept=None, params={}, expected_status_code=200):
+    if not dept:
+        dept = Department.find_by_name('Philosophy')
+    response = client.post(
+        f'/api/department/{dept.id}/note',
+        data=json.dumps(params),
+        content_type='application/json',
+    )
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestUpdateDepartmentNote:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_update_department_note(client, expected_status_code=401)
+
+    def test_unauthorized(self, client, fake_auth):
+        """Non-admin user cannot update another department's note."""
+        fake_auth.login(non_admin_uid)
+        department = Department.find_by_name('History')
+        _api_update_department_note(client, department, expected_status_code=401)
+
+    def test_department_member(self, client, fake_auth):
+        """Non-admin user can update their own department's note."""
+        fake_auth.login(non_admin_uid)
+        department = Department.find_by_name('Philosophy')
+        assert department.notes == []
+
+        note = """Look, he's a perfectly healthy boy. I mean, we have nothing to worry about with him.
+            Not physically or... or otherwise. He just... had a bad moment. You know, like a fright."""
+        department_note = _api_update_department_note(client, department, {'note': note})
+        assert department_note['note'] == note
+
+        department_note = _api_update_department_note(client, department)
+        assert department_note['note'] is None
+
+    def test_admin(self, client, fake_auth):
+        """Admin user can update the note."""
+        fake_auth.login(admin_uid)
+        department = Department.find_by_name('Philosophy')
+        assert department.notes == []
+
+        note = """It is the greatest mystery of all because no human being will ever solve it.
+            It is the highest suspense because no man can bear it.
+            It is the greatest fear because it is the ancient fear of the unknown.
+            It is a warning foretold for thousands of years. It is our final warning.
+            It is The Omen."""
+        department_note = _api_update_department_note(client, department, {'note': note})
+        assert department_note['note'] == note
+
+        department_note = _api_update_department_note(client, department)
+        assert department_note['note'] is None

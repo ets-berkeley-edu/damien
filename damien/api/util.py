@@ -37,3 +37,18 @@ def admin_required(func):
             app.logger.warning(f'Unauthorized request to {request.path}')
             return app.login_manager.unauthorized()
     return _admin_required
+
+
+def department_membership_required(func):
+    @wraps(func)
+    def _department_membership_required(*args, **kw):
+        department_id = kw['department_id']
+        if current_user.is_authenticated and (
+            current_user.is_admin
+            or department_id in [str(d.id) for d in current_user.get_departments() or []]
+        ):
+            return func(*args, **kw)
+        else:
+            app.logger.warning(f'Unauthorized request to {request.path}')
+            return app.login_manager.unauthorized()
+    return _department_membership_required
