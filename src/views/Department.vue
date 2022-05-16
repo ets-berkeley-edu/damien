@@ -106,7 +106,7 @@
           />
         </v-col>
         <v-col cols="12" md="7">
-          <DepartmentNote v-if="$currentUser.isAdmin" />
+          <DepartmentNote />
         </v-col>
       </v-row>
     </v-container>

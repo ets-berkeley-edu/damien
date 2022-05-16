@@ -26,7 +26,7 @@
         ></v-textarea>
       </v-form>
       <v-toolbar
-        v-if="$currentUser.isAdmin && !isEditing"
+        v-if="!isEditing"
         id="dept-note-actions"
         flat
         height="unset"

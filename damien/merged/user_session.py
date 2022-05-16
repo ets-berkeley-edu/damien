@@ -32,6 +32,9 @@ class UserSession(UserMixin):
     def __init__(self, user_id):
         self.user = User.find_by_id(user_id) if user_id else None
 
+    def get_departments(self):
+        return self.user and [dm.department for dm in self.user.department_memberships or []]
+
     def get_id(self):
         return self.user and self.user.id
 

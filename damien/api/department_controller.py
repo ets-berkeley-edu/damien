@@ -27,7 +27,7 @@ from datetime import date
 import re
 
 from damien.api.errors import BadRequestError, ResourceNotFoundError
-from damien.api.util import admin_required
+from damien.api.util import admin_required, department_membership_required
 from damien.lib.berkeley import available_term_ids, current_term_dates
 from damien.lib.http import tolerant_jsonify
 from damien.lib.util import get as get_param
@@ -101,19 +101,18 @@ def get_section_evaluations(department_id, section_id):
 
 
 @app.route('/api/department/<department_id>/note', methods=['POST'])
-@admin_required
+@department_membership_required
 def update_note(department_id):
     department = Department.find_by_id(int(department_id))
-    if department:
-        params = request.get_json()
-        note = get_param(params, 'note')
-        term_id = get_param(params, 'termId', app.config['CURRENT_TERM_ID'])
-        if term_id not in available_term_ids():
-            raise BadRequestError('Invalid term id.')
-        department_note = DepartmentNote.upsert(department_id, term_id=term_id, note=note)
-        return tolerant_jsonify(department_note.to_api_json())
-    else:
+    if not department:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
+    params = request.get_json()
+    note = get_param(params, 'note')
+    term_id = get_param(params, 'termId', app.config['CURRENT_TERM_ID'])
+    if term_id not in available_term_ids():
+        raise BadRequestError('Invalid term id.')
+    department_note = DepartmentNote.upsert(department_id, term_id=term_id, note=note)
+    return tolerant_jsonify(department_note.to_api_json())
 
 
 @app.route('/api/department/<department_id>/evaluations', methods=['POST'])
