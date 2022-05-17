@@ -46,45 +46,64 @@
     <v-container v-if="!loading" class="mx-0 px-0 pb-6" fluid>
       <v-row justify="start">
         <v-col cols="12" md="5">
-          <h2 class="pb-1 px-2">Department Contacts</h2>
-          <v-btn
-            v-if="$currentUser.isAdmin && !isCreatingNotification"
-            id="open-notification-form-btn"
-            class="ma-2 secondary text-capitalize"
-            :disabled="disableControls || $_.isEmpty(contacts)"
-            @click="() => isCreatingNotification = true"
-          >
-            Send notification
-          </v-btn>
-          <NotificationForm
-            v-if="$currentUser.isAdmin && isCreatingNotification"
-            :after-send="afterSendNotification"
-            :on-cancel="cancelSendNotification"
-            :recipients="[notificationRecipients]"
-          />
-          <v-btn
-            class="float-right text-capitalize mt-2 mr-4"
-            color="primary--text"
-            text
-            @click="() => contactsPanel = []"
-            @keypress.enter.prevent="() => contactsPanel = []"
-          >
-            Collapse All
-            <v-icon class="flip-horizontally ml-1">mdi-collapse-all-outline</v-icon>
-          </v-btn>
-          <v-expansion-panels
-            v-model="contactsPanel"
-            flat
-            focusable
-            hover
-            multiple
-          >
-            <DepartmentContact
-              v-for="(contact, index) in contacts"
-              :key="contact.id"
-              :contact="contact"
-              :index="index"
-            />
+          <v-expansion-panels v-model="contactsPanel" disable-icon-rotate flat>
+            <v-expansion-panel class="panel-override">
+              <template #default>
+                <div class="d-flex" :class="$currentUser.isAdmin ? 'flex-column' : 'align-center justify-space-between flex-wrap'">
+                  <h2 class="pb-1 px-2">Department Contacts</h2>
+                  <div class="d-flex height-unset" :class="{'flex-column': isCreatingNotification, 'align-center justify-space-between': !isCreatingNotification}">
+                    <v-btn
+                      v-if="$currentUser.isAdmin && !isCreatingNotification"
+                      id="open-notification-form-btn"
+                      class="ma-2 secondary text-capitalize"
+                      :disabled="disableControls || $_.isEmpty(contacts)"
+                      @click="() => isCreatingNotification = true"
+                    >
+                      Send notification
+                    </v-btn>
+                    <NotificationForm
+                      v-if="$currentUser.isAdmin && isCreatingNotification"
+                      :after-send="afterSendNotification"
+                      :on-cancel="cancelSendNotification"
+                      :recipients="[notificationRecipients]"
+                    />
+                    <v-expansion-panel-header
+                      class="w-fit-content ml-auto mr-3"
+                      hide-actions
+                      text
+                      @click="collapseAllContacts"
+                    >
+                      <template #default="{open}">
+                        <span v-if="!open">
+                          Expand
+                          <v-icon class="rotate-180 ml-1">mdi-plus-box-multiple-outline</v-icon>
+                        </span>
+                        <span v-if="open">
+                          Collapse All
+                          <v-icon class="rotate-180 ml-1">mdi-minus-box-multiple-outline</v-icon>
+                        </span>
+                      </template>
+                    </v-expansion-panel-header>
+                  </div>
+                </div>
+                <v-expansion-panel-content class="panel-content-override">
+                  <v-expansion-panels
+                    v-model="contactDetailsPanel"
+                    flat
+                    focusable
+                    hover
+                    multiple
+                  >
+                    <DepartmentContact
+                      v-for="(contact, index) in contacts"
+                      :key="contact.id"
+                      :contact="contact"
+                      :index="index"
+                    />
+                  </v-expansion-panels>
+                </v-expansion-panel-content>
+              </template>
+            </v-expansion-panel>
           </v-expansion-panels>
           <v-btn
             v-if="$currentUser.isAdmin && !isAddingContact"
@@ -144,7 +163,8 @@ export default {
       midtermFormEnabled: false,
       startDate: null,
     },
-    contactsPanel: [],
+    contactDetailsPanel: [],
+    contactsPanel: undefined,
     courseActions: [
       {'text': 'Mark for review', 'value': 'mark'},
       {'text': 'Mark as confirmed', 'value': 'confirm'},
@@ -193,6 +213,11 @@ export default {
       this.isCreatingNotification = false
       this.alertScreenReader('Notification canceled.')
     },
+    collapseAllContacts() {
+      if (this.contactsPanel === 0) {
+        this.contactDetailsPanel = []
+      }
+    },
     onCancelAddContact() {
       this.isAddingContact = false
       this.alertScreenReader('Canceled. Nothing saved.')
@@ -219,5 +244,18 @@ export default {
 <style scoped>
 .select-term {
   max-width: 200px;
+}
+.w-fit-content {
+  width: fit-content;
+}
+</style>
+
+<style>
+.panel-content-override>.v-expansion-panel-content__wrap {
+  padding: 0 !important;
+}
+.panel-override {
+  background-color: unset !important;
+
 }
 </style>
