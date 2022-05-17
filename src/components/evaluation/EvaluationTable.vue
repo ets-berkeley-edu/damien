@@ -82,6 +82,7 @@
                     :color="`${hover ? 'primary' : 'tertiary'}`"
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
+                    class="pr-1"
                     @change="updateEvaluationsSelected(evaluation.id)"
                   ></v-checkbox>
                 </td>
@@ -122,10 +123,10 @@
                     </select>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-lastUpdated`" class="align-middle">
+                <td :id="`evaluation-${rowIndex}-lastUpdated`" class="align-middle px-1">
                   {{ $moment(evaluation.lastUpdated) | moment('MM/DD/YYYY') }}
                 </td>
-                <td :id="`evaluation-${rowIndex}-courseNumber`" class="align-middle">
+                <td :id="`evaluation-${rowIndex}-courseNumber`" class="align-middle px-1">
                   {{ evaluation.courseNumber }}
                   <div v-if="evaluation.crossListedWith" class="xlisting-note">
                     (Cross-listed with {{ evaluation.crossListedWith.length > 1 ? 'sections' : 'section' }}
@@ -136,7 +137,7 @@
                     {{ evaluation.roomSharedWith.join(', ') }})
                   </div>
                 </td>
-                <td class="align-middle">
+                <td class="align-middle px-1">
                   <div :id="`evaluation-${rowIndex}-courseName`">
                     {{ evaluation.subjectArea }}
                     {{ evaluation.catalogId }}
@@ -178,7 +179,7 @@
                     </div>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-departmentForm`" class="align-middle">
+                <td :id="`evaluation-${rowIndex}-departmentForm`" class="align-middle px-1">
                   <div
                     v-if="evaluation.departmentForm && !isEditing(evaluation)"
                     :class="{'error--text': evaluation.conflicts.departmentForm}"
@@ -221,7 +222,7 @@
                     </vue-select>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-evaluationType`" class="align-middle">
+                <td :id="`evaluation-${rowIndex}-evaluationType`" class="align-middle px-1">
                   <div v-if="evaluation.evaluationType && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationType}">
                     {{ evaluation.evaluationType.name }}
                     <div v-for="(conflict, index) in evaluation.conflicts.evaluationType" :key="index" class="evaluation-error error--text">
@@ -247,7 +248,7 @@
                     </select>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-period`" class="align-middle">
+                <td :id="`evaluation-${rowIndex}-period`" class="align-middle px-1">
                   <span v-if="evaluation.startDate && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationPeriod}">
                     <div>{{ evaluation.startDate | moment('MM/DD/YY') }} - {{ evaluation.endDate | moment('MM/DD/YY') }}</div>
                     <div>{{ evaluation.modular ? 2 : 3 }} weeks</div>
@@ -368,14 +369,14 @@ export default {
       'ignore': {label: 'Ignore', enabled: false}
     },
     headers: [
-      {align: 'center', class: 'text-nowrap', text: 'Status', value: 'status', width: '130px'},
-      {class: 'text-nowrap', text: 'Last Updated', value: 'lastUpdated', width: '75px'},
-      {class: 'text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '80px'},
-      {class: 'text-nowrap course-name', text: 'Course Name', value: 'sortableCourseName'},
-      {class: 'text-nowrap', text: 'Instructor', value: 'sortableInstructor', width: '200px'},
-      {class: 'text-nowrap', text: 'Department Form', value: 'departmentForm.name', width: '180px'},
-      {class: 'text-nowrap', text: 'Evaluation Type', value: 'evaluationType.name', width: '175px'},
-      {class: 'text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '180px'}
+      {align: 'center', class: 'px-1 text-nowrap', text: 'Status', value: 'status', width: '100px'},
+      {class: 'px-1 text-nowrap', text: 'Last Updated', value: 'lastUpdated', width: '75px'},
+      {class: 'px-1 text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '80px'},
+      {class: 'px-1 course-name', text: 'Course Name', value: 'sortableCourseName'},
+      {class: 'px-1 text-nowrap', text: 'Instructor', value: 'sortableInstructor', width: '200px'},
+      {class: 'px-1', text: 'Department Form', value: 'departmentForm.name', width: '155px'},
+      {class: 'px-1', text: 'Evaluation Type', value: 'evaluationType.name', width: '145px'},
+      {class: 'px-1 text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '180px'}
     ],
     pendingInstructor: null,
     rules: {
@@ -546,7 +547,7 @@ export default {
 
 <style>
 .course-name {
-  min-width: 250px;
+  min-width: 220px;
 }
 tr.border-bottom-none td {
   border-bottom: none !important;
