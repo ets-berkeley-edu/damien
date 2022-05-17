@@ -526,7 +526,7 @@ export default {
       this.headers = [{class: 'text-nowrap', text: 'Select', width: '40px'}].concat(this.headers)
     }
     getDepartmentForms().then(data => {
-        this.departmentForms = [{id: null, name: 'None'}].concat(data)
+        this.departmentForms = [{id: null, name: 'Revert'}].concat(data)
     })
     getEvaluationTypes().then(data => {
       this.evaluationTypes = [{id: null, name: 'None'}].concat(data)
