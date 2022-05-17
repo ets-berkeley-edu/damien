@@ -5,9 +5,6 @@
   max-width: 7rem;
   padding-left: 12px !important;
 }
-.flip-horizontally {
-  transform: scaleX(-1);
-}
 .form-label {
   font-size: 15px;
   font-weight: 700;
@@ -58,6 +55,9 @@
 .native-select-override.light {
   background: #FFFFFF;
   color: rgba(0, 0, 0, 0.87);
+}
+.rotate-180 {
+  transform: scaleX(-1) scaleY(-1);
 }
 .separator {
   border-color: rgba(128, 128, 128, .75) !important;
