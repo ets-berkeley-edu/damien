@@ -86,7 +86,7 @@
                     @change="updateEvaluationsSelected(evaluation.id)"
                   ></v-checkbox>
                 </td>
-                <td :id="`evaluation-${rowIndex}-status`" class="align-middle position-relative">
+                <td :id="`evaluation-${rowIndex}-status`" :class="{'align-middle position-relative': !isEditing(evaluation)}">
                   <div
                     v-if="!isEditing(evaluation) && (!hover || !allowEdits || readonly) && evaluation.status"
                     class="pill mx-auto"
@@ -123,10 +123,10 @@
                     </select>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-lastUpdated`" class="align-middle px-1">
+                <td :id="`evaluation-${rowIndex}-lastUpdated`" class="px-1" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
                   {{ $moment(evaluation.lastUpdated) | moment('MM/DD/YYYY') }}
                 </td>
-                <td :id="`evaluation-${rowIndex}-courseNumber`" class="align-middle px-1">
+                <td :id="`evaluation-${rowIndex}-courseNumber`" class="px-1" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
                   {{ evaluation.courseNumber }}
                   <div v-if="evaluation.crossListedWith" class="xlisting-note">
                     (Cross-listed with {{ evaluation.crossListedWith.length > 1 ? 'sections' : 'section' }}
@@ -137,7 +137,7 @@
                     {{ evaluation.roomSharedWith.join(', ') }})
                   </div>
                 </td>
-                <td class="align-middle px-1">
+                <td class="px-1" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
                   <div :id="`evaluation-${rowIndex}-courseName`">
                     {{ evaluation.subjectArea }}
                     {{ evaluation.catalogId }}
@@ -148,7 +148,7 @@
                     {{ evaluation.courseTitle }}
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-instructor`" class="align-middle">
+                <td :id="`evaluation-${rowIndex}-instructor`" :class="{'align-middle': !isEditing(evaluation)}">
                   <div v-if="evaluation.instructor">
                     {{ evaluation.instructor.firstName }}
                     {{ evaluation.instructor.lastName }}
@@ -164,6 +164,7 @@
                       </label>
                       <PersonLookup
                         id="input-instructor-lookup-autocomplete"
+                        class="instructor-lookup"
                         :instructor-lookup="true"
                         :on-select-result="selectInstructor"
                         solo
@@ -179,7 +180,7 @@
                     </div>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-departmentForm`" class="align-middle px-1">
+                <td :id="`evaluation-${rowIndex}-departmentForm`" class="px-1" :class="{'align-middle': !isEditing(evaluation)}">
                   <div
                     v-if="evaluation.departmentForm && !isEditing(evaluation)"
                     :class="{'error--text': evaluation.conflicts.departmentForm}"
@@ -222,7 +223,7 @@
                     </vue-select>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-evaluationType`" class="align-middle px-1">
+                <td :id="`evaluation-${rowIndex}-evaluationType`" class="px-1" :class="{'align-middle': !isEditing(evaluation)}">
                   <div v-if="evaluation.evaluationType && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationType}">
                     {{ evaluation.evaluationType.name }}
                     <div v-for="(conflict, index) in evaluation.conflicts.evaluationType" :key="index" class="evaluation-error error--text">
@@ -248,7 +249,7 @@
                     </select>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-period`" class="align-middle px-1">
+                <td :id="`evaluation-${rowIndex}-period`" class="px-1" :class="{'align-middle': !isEditing(evaluation)}">
                   <span v-if="evaluation.startDate && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationPeriod}">
                     <div>{{ evaluation.startDate | moment('MM/DD/YY') }} - {{ evaluation.endDate | moment('MM/DD/YY') }}</div>
                     <div>{{ evaluation.modular ? 2 : 3 }} weeks</div>
@@ -495,19 +496,18 @@ export default {
     },
     updateEvaluationsSelected(evaluationId) {
       const index = this.$_.indexOf(this.selectedEvals, evaluationId)
-      
       if (index === -1) {
         this.selectedEvals.push(evaluationId)
       } else {
         this.selectedEvals.splice(index, 1)
       }
-
       this.toggleSelectEvaluation(evaluationId)
-
       this.$root.$emit('update-evaluations-selected')
     },
     selectInstructor(instructor) {
-      instructor.emailAddress = instructor.email
+      if (instructor) {
+        instructor.emailAddress = instructor.email
+      }
       this.setPendingInstructor(instructor)
     },
     toggleSelectAll() {
@@ -593,6 +593,9 @@ tr.border-top-none td {
   width: 1px;
   height: 1px;
   overflow: hidden;
+}
+.instructor-lookup {
+  max-width: 168px !important;
 }
 .no-eligible-sections {
   display: flex;

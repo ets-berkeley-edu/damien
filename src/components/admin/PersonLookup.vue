@@ -6,7 +6,7 @@
     :append-icon="null"
     :auto-select-first="true"
     background-color="white"
-    class="person-lookup"
+    class="overflow-x-hidden person-lookup"
     color="white"
     dense
     :hide-no-data="true"
@@ -81,9 +81,7 @@ export default {
       this.debouncedSearch(snippet)
     },
     selected(suggestion) {
-      if (suggestion) {
-        this.onSelectResult(suggestion)
-      }
+      this.onSelectResult(suggestion)
     }
   },
   methods: {
@@ -121,6 +119,7 @@ export default {
 }
 .person-lookup.v-input--is-focused {
   appearance: auto !important;
+  caret-color: #000 !important;
   color: -webkit-focus-ring-color !important;
   outline: auto !important;
   outline-color: -webkit-focus-ring-color !important;

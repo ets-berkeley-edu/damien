@@ -178,6 +178,7 @@ const mutations = {
       state.isSelectedTermLocked = true === _.get(department, 'evaluationTerm.isLocked')
       state.note = _.get(department.notes, [termId, 'note'])
     }
+    state.selectedEvaluationIds = []
     state.selectedTerm = _.find(Vue.prototype.$config.availableTerms, {'id': termId})
     state.disableControls = false
   },

@@ -93,12 +93,14 @@
                     focusable
                     hover
                     multiple
+                    tile
                   >
                     <DepartmentContact
                       v-for="(contact, index) in contacts"
                       :key="contact.id"
                       :contact="contact"
                       :index="index"
+                      :is-expanded="$_.includes(contactDetailsPanel, index)"
                     />
                   </v-expansion-panels>
                 </v-expansion-panel-content>

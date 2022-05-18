@@ -4,11 +4,11 @@
     class="text-condensed my-1"
     :class="{'theme--light v-sheet--outlined': isEditing && !this.$vuetify.theme.dark, 'theme--dark v-sheet--outlined': isEditing && this.$vuetify.theme.dark}"
   >
-    <v-expansion-panel-header class="py-1 mb-1 rounded-b-0 height-unset">
+    <v-expansion-panel-header class="py-1 rounded-b-0 height-unset">
       <strong :id="`dept-contact-${contact.id}-name`">{{ fullName }}</strong>
     </v-expansion-panel-header>
     <v-expansion-panel-content>
-      <div v-if="!isEditing">
+      <div v-if="!isEditing" class="mt-1">
         <div :id="`dept-contact-${contact.id}-email`">{{ contact.email }}</div>
         <div :id="`dept-contact-${contact.id}-notifications`" class="font-italic">
           <v-icon
@@ -33,7 +33,7 @@
             {{ `Can view reports ${contact.canViewResponseRates ? 'and response rates ' : ''}in Blue` }}
           </span>
         </div>
-        <div :id="`dept-contact-${contact.id}-deptForms`">
+        <div :id="`dept-contact-${contact.id}-deptForms`" class="my-1">
           <v-chip
             v-for="(form, formIndex) in departmentForms"
             :id="`dept-contact-${contact.id}-form-${formIndex}`"
@@ -121,12 +121,23 @@ export default {
     index: {
       required: true,
       type: Number
+    },
+    isExpanded: {
+      required: false,
+      type: Boolean
     }
   },
   data: () => ({
     isConfirming: false,
     isEditing: false
   }),
+  watch: {
+    isExpanded(isExpanded) {
+      if (!isExpanded) {
+        this.isEditing = false
+      }
+    }
+  },
   computed: {
     departmentForms() {
       return this.$_.sortBy(this.contact.departmentForms, 'name')

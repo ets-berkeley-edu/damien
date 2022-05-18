@@ -191,6 +191,11 @@ export default {
       }, error => this.showErrorDialog(error.response.data.message))
       .finally(() => this.setDisableControls(false))
     },
+    afterApply() {
+      /* TODO: a more informative screen reader alert plus a visual indication of the affected row(s) */
+      this.refreshAll()
+      this.alertScreenReader('Success')
+    },
     applyCourseAction() {
       let fields = null
       if (this.selectedCourseAction === 'duplicate') {
@@ -211,7 +216,7 @@ export default {
           this.selectedCourseAction,
           this.selectedEvaluationIds,
           fields
-        ).then(() => this.refreshAll(), error => this.showErrorDialog(error.response.data.message))
+        ).then(data => this.afterApply(data), error => this.showErrorDialog(error.response.data.message))
         .finally(() => this.setDisableControls(false))
       }
     },
