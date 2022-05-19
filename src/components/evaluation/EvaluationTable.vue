@@ -1,56 +1,88 @@
 <template>
   <div v-if="evaluations">
-    <div class="sticky" :class="$vuetify.theme.dark ? 'sticky-dark' : 'sticky-light'">
-      <EvaluationActions v-if="!readonly" />
+    <div class="elevation-2 sticky" :class="$vuetify.theme.dark ? 'sticky-dark' : 'sticky-light'">
       <v-row class="mt-0">
-        <v-col>
+        <v-col cols="7" md="8" class="d-flex flex-column pt-2">
           <v-text-field
+            id="evaluation-search-input"
             v-model="searchFilter"
-            class="ml-4"
             append-icon="mdi-magnify"
+            class="flex-grow-0 flex-shrink-1 ml-4 pt-0 evaluation-search-input"
             color="tertiary"
-            label="Find"
-            single-line
             hide-details
+            label="Find"
+            max-width="600px"
+            single-line
           ></v-text-field>
-        </v-col>
-        <v-col v-if="!readonly" class="ma-3 text-right">
-          Show statuses:
-          <v-btn
-            v-for="type in $_.keys(filterTypes)"
-            :id="`evaluations-filter-${type}`"
-            :key="type"
-            role="tablist"
-            class="filter ma-1 px-2 text-center"
-            :class="{
-              'secondary': filterTypes[type].enabled,
-              'filter-inactive': !filterTypes[type].enabled
-            }"
-            aria-controls="timeline-messages"
-            :aria-selected="filterTypes[type].enabled"
-            @click="toggleFilter(type)"
-            @keypress.enter.prevent="toggleFilter(type)"
-          >
-            {{ filterTypes[type].label }}
-          </v-btn>
-        </v-col>
-      </v-row>
-      <v-row class="mt-0 ml-4">
-        <v-checkbox
-          v-if="!readonly"
-          id="select-all-evals-checkbox"
-          :indeterminate="someEvaluationsSelected"
-          :ripple="false"
-          color="tertiary"
-          :value="allEvaluationsSelected"
-          @change="toggleSelectAll"
-        >
-          <template v-slot:label>
-            <div>
-              Select all
+          <div class="d-flex align-baseline text-nowrap pt-4 pl-4">
+            <div class="mr-2">Filter statuses:</div>
+            <div class="d-flex flex-wrap">
+              <v-chip
+                v-for="type in $_.keys(filterTypes)"
+                :id="`evaluations-filter-${type}`"
+                :key="type"
+                aria-controls="timeline-messages"
+                :aria-selected="filterTypes[type].enabled"
+                class="ma-1 px-4 text-center text-uppercase"
+                :class="{
+                  'secondary': filterTypes[type].enabled,
+                  'inactive': !filterTypes[type].enabled
+                }"
+                :color="filterTypes[type].enabled ? 'secondary' : ''"
+                role="tablist"
+                small
+                :text-color="filterTypes[type].enabled ? 'white' : 'inactive-contrast'"
+                @click="toggleFilter(type)"
+                @keypress.enter.prevent="toggleFilter(type)"
+              >
+                {{ filterTypes[type].label }}
+                <v-icon
+                  v-if="filterTypes[type].enabled"
+                  color="white"
+                  small
+                  right
+                >
+                  mdi-check-circle
+                </v-icon>
+                <v-icon
+                  v-if="!filterTypes[type].enabled"
+                  color="inactive-contrast"
+                  small
+                  right
+                >
+                  mdi-plus-circle
+                </v-icon>
+              </v-chip>
             </div>
-          </template>
-        </v-checkbox>
+          </div>
+          <div class="d-flex mt-auto ml-4 pt-2">
+            <v-checkbox
+              v-if="!readonly"
+              id="select-all-evals-checkbox"
+              class="align-center mt-0 pt-0"
+              hide-details
+              :indeterminate="someEvaluationsSelected"
+              :ripple="false"
+              color="tertiary"
+              :value="allEvaluationsSelected"
+              @change="toggleSelectAll"
+            >
+              <template v-slot:label>
+                <div>
+                  Select all
+                </div>
+              </template>
+            </v-checkbox>
+            <EvaluationActions v-if="!readonly && (someEvaluationsSelected || allEvaluationsSelected)" class="ml-4" />
+          </div>
+        </v-col>
+        <v-col cols="5" md="4" class="pt-2">
+          <AddCourseSection
+            id="add-course-section"
+            :evaluations="evaluations"
+            :readonly="!allowEdits"
+          />
+        </v-col>
       </v-row>
     </div>
     <v-data-table
@@ -337,6 +369,7 @@
 <script>
 import {getDepartmentForms} from '@/api/departmentForms'
 import {getEvaluationTypes} from '@/api/evaluationTypes'
+import AddCourseSection from '@/components/evaluation/AddCourseSection'
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import EvaluationActions from '@/components/evaluation/EvaluationActions'
@@ -346,7 +379,11 @@ import Util from '@/mixins/Util'
 export default {
   name: 'EvaluationTable',
   mixins: [Context, DepartmentEditSession, Util],
-  components: { EvaluationActions, PersonLookup },
+  components: {
+    AddCourseSection,
+    EvaluationActions,
+    PersonLookup
+  },
   props: {
     readonly: {
       type: Boolean,
@@ -576,14 +613,8 @@ tr.border-top-none td {
 .evaluation-row {
   vertical-align: top;
 }
-.filter {
-  color: #fff;
-}
-.filter-active {
-  background-color: #0074aa !important;
-}
-.filter-inactive {
-  background-color: #999 !important;
+.evaluation-search-input {
+  max-width: 600px;
 }
 .hidden {
   visibility: hidden;
@@ -633,8 +664,7 @@ tr.border-top-none td {
 }
 .sticky {
   position: sticky;
-  margin: 1px !important;
-  top: 60px;
+  top: 56px;
   z-index: 1;
 }
 .sticky-dark {
