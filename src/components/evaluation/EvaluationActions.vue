@@ -1,43 +1,30 @@
 <template>
-  <div>
-    <div class="d-flex flex-row flex-grow-1 align-baseline">
-      <select
-        id="select-course-actions"
-        v-model="selectedCourseAction"
-        aria-labelledby="action-option-label"
-        class="native-select-override"
-        :class="$vuetify.theme.dark ? 'dark' : 'light'"
-        :disabled="disableControls || !allowEdits"
-      >
-        <option
-          id="action-option-label"
-          :key="0"
-          disabled
-          :value="undefined"
-        >
-          Course Actions
-        </option>
-        <option
-          v-for="(action, index) in courseActions"
-          :id="`action-option-${action.value}`"
-          :key="index + 1"
-          :value="action.value"
+  <div class="d-flex align-center">
+    <div v-if="!isDuplicating" class="d-flex">
+      <template v-for="(action, index) in courseActions">
+        <v-btn
+          :id="`apply-course-action-btn-${action.value}`"
+          :key="index"
+          class="text-capitalize text-nowrap px-2"
+          :color="$vuetify.theme.dark ? 'tertiary' : 'secondary'"
+          :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length"
+          text
+          @click="action.apply(action.value)"
+          @keypress.enter.prevent="action.apply(action.value)"
         >
           {{ action.text }}
-        </option>
-      </select>
-      <v-btn
-        id="apply-course-action-btn"
-        class="mx-2"
-        color="secondary"
-        :disabled="disableControls || !allowEdits || !selectedCourseAction || !selectedEvaluationIds.length"
-        @click="applyCourseAction"
-        @keypress.enter.prevent="applyCourseAction"
-      >
-        Apply
-      </v-btn>
+        </v-btn>
+        <v-divider
+          v-if="action.value === 'ignore'"
+          :key="index + 2"
+          class="align-self-stretch separator ma-2"
+          inset
+          role="presentation"
+          vertical
+        ></v-divider>
+      </template>
     </div>
-    <div v-if="selectedCourseAction === 'duplicate'" class="mb-4">
+    <div v-if="isDuplicating" class="ma-3 pl-4">
       <div class="d-flex align-center mt-2">
         <PersonLookup
           id="bulk-duplicate-instructor-lookup-autocomplete"
@@ -84,6 +71,25 @@
           </template>
         </c-date-picker>
       </div>
+      <v-btn
+        id="apply-course-action-btn"
+        class="mt-2 mr-2"
+        color="secondary"
+        :disabled="disableControls || !allowEdits || $_.isEmpty(selectedEvaluationIds)"
+        @click="applyAction('duplicate')"
+        @keypress.enter.prevent="applyAction('duplicate')"
+      >
+        Apply
+      </v-btn>
+      <v-btn
+        id="cancel-duplicate-btn"
+        class="mt-2 mr-2"
+        :disabled="disableControls"
+        @click="cancelDuplicate"
+        @keypress.enter.prevent="cancelDuplicate"
+      >
+        Cancel
+      </v-btn>
     </div>
     <v-dialog
       id="error-dialog"
@@ -131,23 +137,19 @@ export default {
       midtermFormEnabled: false,
       startDate: null,
     },
-    courseActions: [
-      {'text': 'Mark for review', 'value': 'mark'},
-      {'text': 'Mark as confirmed', 'value': 'confirm'},
-      {'text': 'Unmark', 'value': 'unmark'},
-      {'text': 'Duplicate', 'value': 'duplicate'},
-      {'text': 'Ignore', 'value': 'ignore'}
-    ],
+    courseActions: [],
     isAddingSection: false,
     instructor: null,
-    selectedCourseAction: undefined
+    isDuplicating: false
   }),
-  watch: {
-    selectedCourseAction(action) {
-      if (action === 'duplicate') {
-        this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
-      }
-    }
+  created() {
+    this.courseActions = [
+      {'text': 'Mark for review', 'value': 'mark', 'apply': this.applyAction},
+      {'text': 'Mark as confirmed', 'value': 'confirm', 'apply': this.applyAction},
+      {'text': 'Unmark', 'value': 'unmark', 'apply': this.applyAction},
+      {'text': 'Ignore', 'value': 'ignore', 'apply': this.applyAction},
+      {'text': 'Duplicate', 'value': 'duplicate', 'apply': this.showDuplicateOptions}
+    ]
   },
   computed: {
     allowEdits() {
@@ -155,14 +157,18 @@ export default {
     }
   },
   methods: {
-    afterApply() {
+    afterApply(action) {
       /* TODO: a more informative screen reader alert plus a visual indication of the affected row(s) */
-      this.refreshAll()
-      this.alertScreenReader('Success')
+      this.isDuplicating = false
+      this.refreshAll().then(() => {
+        this.alertScreenReader('Success')
+        this.$putFocusNextTick(`apply-course-action-btn-${action}`)
+      })
+
     },
-    applyCourseAction() {
+    applyAction(action) {
       let fields = null
-      if (this.selectedCourseAction === 'duplicate') {
+      if (action === 'duplicate') {
         fields = {
           instructorUid: this.$_.get(this.instructor, 'uid')
         }
@@ -173,19 +179,27 @@ export default {
           fields.startDate = this.$moment(this.bulkUpdateOptions.startDate).format('YYYY-MM-DD')
         }
       }
-      if (this.selectedCourseAction !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds, true, true)) {
+      if (action !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds, true, true)) {
         this.setDisableControls(true)
         updateEvaluations(
           this.department.id,
-          this.selectedCourseAction,
+          action,
           this.selectedEvaluationIds,
           fields
-        ).then(data => this.afterApply(data), error => this.showErrorDialog(error.response.data.message))
+        ).then(data => this.afterApply(action, data), error => this.showErrorDialog(error.response.data.message))
         .finally(() => this.setDisableControls(false))
       }
     },
+    cancelDuplicate() {
+      this.isDuplicating = false
+      this.$putFocusNextTick('apply-course-action-btn-duplicate')
+    },
     selectInstructor(suggestion) {
       this.instructor = suggestion
+    },
+    showDuplicateOptions() {
+      this.isDuplicating = true
+      this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
     }
   }
 }

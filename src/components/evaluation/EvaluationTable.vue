@@ -68,12 +68,12 @@
               @change="toggleSelectAll"
             >
               <template v-slot:label>
-                <div>
+                <div v-if="!(someEvaluationsSelected || allEvaluationsSelected)" class="text-nowrap pl-1 py-2">
                   Select all
                 </div>
               </template>
             </v-checkbox>
-            <EvaluationActions v-if="!readonly && (someEvaluationsSelected || allEvaluationsSelected)" class="ml-4" />
+            <EvaluationActions v-if="!readonly && (someEvaluationsSelected || allEvaluationsSelected)" />
           </div>
         </v-col>
         <v-col cols="5" md="4" class="pt-2">
@@ -110,12 +110,12 @@
                   <v-checkbox
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${rowIndex}-checkbox`"
-                    :value="selectedEvals.includes(evaluation.id)"
+                    :value="evaluation.isSelected"
                     :color="`${hover ? 'primary' : 'tertiary'}`"
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
                     class="pr-1"
-                    @change="updateEvaluationsSelected(evaluation.id)"
+                    @change="toggleSelectEvaluation(evaluation.id)"
                   ></v-checkbox>
                 </td>
                 <td :id="`evaluation-${rowIndex}-status`" :class="{'align-middle position-relative': !isEditing(evaluation)}">
@@ -180,7 +180,7 @@
                     {{ evaluation.courseTitle }}
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-instructor`" :class="{'align-middle': !isEditing(evaluation)}">
+                <td :id="`evaluation-${rowIndex}-instructor`" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
                   <div v-if="evaluation.instructor">
                     {{ evaluation.instructor.firstName }}
                     {{ evaluation.instructor.lastName }}
@@ -401,7 +401,7 @@ export default {
     ],
     evaluationTypes: [],
     filterTypes: {
-      'unmarked': {label: 'Unmarked', enabled: true},
+      'unmarked': {label: 'None', enabled: true},
       'review': {label: 'Review', enabled: true},
       'confirmed': {label: 'Confirmed', enabled: true},
       'ignore': {label: 'Ignore', enabled: false}
@@ -426,8 +426,7 @@ export default {
     selectedDepartmentForm: null,
     selectedEvaluationStatus: null,
     selectedEvaluationType: null,
-    selectedStartDate: null,
-    selectedEvals: []
+    selectedStartDate: null
   }),
   computed: {
     allowEdits() {
@@ -437,10 +436,10 @@ export default {
       return this.rules.currentTermDate(this.selectedStartDate) === true
     },
     someEvaluationsSelected() {
-      return !!(this.$_.size(this.selectedEvals) && this.$_.size(this.selectedEvals) < this.$_.size(this.evaluations))
+      return !!(this.$_.size(this.selectedEvaluationIds) && this.$_.size(this.selectedEvaluationIds) < this.$_.size(this.evaluations))
     },
     allEvaluationsSelected() {
-      return !!(this.$_.size(this.selectedEvals) && this.$_.size(this.selectedEvals) === this.$_.size(this.evaluations))
+      return !!(this.$_.size(this.selectedEvaluationIds) && this.$_.size(this.selectedEvaluationIds) === this.$_.size(this.evaluations))
     }
   },
   methods: {
@@ -522,7 +521,7 @@ export default {
         } else {
           this.editEvaluation({evaluationId, sectionId, fields}).then(() => {
             this.alertScreenReader('Changes saved.')
-            this.updateSelectedEvaluationIds()
+            this.deselectAllEvaluations()
             resolve()
           }, error => {
             this.showErrorDialog(error)
@@ -532,14 +531,7 @@ export default {
       })
     },
     updateEvaluationsSelected(evaluationId) {
-      const index = this.$_.indexOf(this.selectedEvals, evaluationId)
-      if (index === -1) {
-        this.selectedEvals.push(evaluationId)
-      } else {
-        this.selectedEvals.splice(index, 1)
-      }
       this.toggleSelectEvaluation(evaluationId)
-      this.$root.$emit('update-evaluations-selected')
     },
     selectInstructor(instructor) {
       if (instructor) {
@@ -549,11 +541,9 @@ export default {
     },
     toggleSelectAll() {
       if (this.allEvaluationsSelected) {
-        this.selectedEvals.forEach(id => this.updateEvaluationsSelected(id))
-        this.selectedEvals = []
+        this.deselectAllEvaluations()
       } else {
-        this.evaluations.filter(ev => !ev.isSelected).forEach(ev => this.updateEvaluationsSelected(ev.id))
-        this.selectedEvals = this.$_.map(this.evaluations, 'id')
+        this.selectAllEvaluations()
       }
     }
   },
@@ -614,7 +604,7 @@ tr.border-top-none td {
   vertical-align: top;
 }
 .evaluation-search-input {
-  max-width: 600px;
+  max-width: 540px;
 }
 .hidden {
   visibility: hidden;
@@ -668,7 +658,7 @@ tr.border-top-none td {
   z-index: 1;
 }
 .sticky-dark {
-  background-color: #222;
+  background-color: #171717;
 }
 .sticky-light {
   background-color: #fff;

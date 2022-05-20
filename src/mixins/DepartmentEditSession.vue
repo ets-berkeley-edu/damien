@@ -29,10 +29,12 @@ export default {
     ...mapActions('departmentEditSession', [
       'addSection',
       'deleteContact',
+      'deselectAllEvaluations',
       'dismissErrorDialog',
       'editEvaluation',
       'init',
       'refreshAll',
+      'selectAllEvaluations',
       'setDisableControls',
       'setEvaluations',
       'showErrorDialog',
