@@ -43,6 +43,7 @@ const $_refresh = (commit, {departmentId, termId}) => {
   return new Promise<void>(resolve => {
     getDepartment(departmentId, termId).then((department: any) => {
       commit('reset', {department, termId})
+      commit('updateSelectedEvaluationIds')
       return resolve(department)
     })
   })
@@ -97,6 +98,9 @@ const actions = {
       $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id})
     })
   },
+  deselectAllEvaluations: ({commit}) => {
+    commit('deselectAllEvaluations')
+  },
   dismissErrorDialog: ({commit}) => {
     commit('setErrorDialog', false)
     commit('setErrorDialogText', null)
@@ -134,6 +138,9 @@ const actions = {
       $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id}).then(dept => resolve(dept))
     })
   },
+  selectAllEvaluations: ({commit}) => {
+    commit('selectAllEvaluations')
+  },
   setEvaluations: ({commit}, evaluations: any[]) => {
     commit('setEvaluations', evaluations)
   },
@@ -146,6 +153,7 @@ const actions = {
   },
   toggleSelectEvaluation: ({commit}, evaluationId: any) => {
     commit('setIsSelected', evaluationId)
+    commit('updateSelectedEvaluationIds')
   },
   updateContact: ({commit, state}, contact: any) => {
     commit('setDisableControls', true)
@@ -169,6 +177,12 @@ const actions = {
 }
 
 const mutations = {
+  deselectAllEvaluations: (state: any) => {
+    state.selectedEvaluationIds = []
+    _.each(state.evaluations, e => {
+      e.isSelected = false
+    })
+  },
   reset: (state, {department, termId}) => {
     if (department) {
       state.contacts = department.contacts
@@ -181,6 +195,13 @@ const mutations = {
     state.selectedEvaluationIds = []
     state.selectedTerm = _.find(Vue.prototype.$config.availableTerms, {'id': termId})
     state.disableControls = false
+  },
+  selectAllEvaluations: (state: any) => {
+    state.selectedEvaluationIds = []
+    _.each(state.evaluations, e => {
+      e.isSelected = true
+      state.selectedEvaluationIds.push(e.id)
+    })
   },
   setAllDepartmentForms: (state: any, departmentForms: any[]) => state.allDepartmentForms = departmentForms,
   setDisableControls: (state: any, disable: boolean) => state.disableControls = disable,

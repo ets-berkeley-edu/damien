@@ -282,7 +282,7 @@ def get_loch_sections_by_ids(term_id, course_numbers):
         text(query),
         {'term_id': term_id, 'course_numbers': course_numbers},
     ).all()
-    app.logger.info(f'Unholy loch course query returned {len(results)} results: {query}')
+    app.logger.info(f'Unholy loch course by id query returned {len(results)} results: {query}')
     return results
 
 

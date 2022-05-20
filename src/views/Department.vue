@@ -192,7 +192,6 @@ export default {
   created() {
     this.availableTerms = this.$config.availableTerms
     this.selectedTermId = this.$config.currentTermId
-    this.$root.$on('update-evaluations-selected', this.updateSelectedEvaluationIds)
     this.refresh()
   },
   methods: {
