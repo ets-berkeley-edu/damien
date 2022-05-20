@@ -153,7 +153,6 @@ const actions = {
   },
   toggleSelectEvaluation: ({commit}, evaluationId: any) => {
     commit('setIsSelected', evaluationId)
-    commit('updateSelectedEvaluationIds')
   },
   updateContact: ({commit, state}, contact: any) => {
     commit('setDisableControls', true)
@@ -215,7 +214,14 @@ const mutations = {
   setIsSelected: (state: any, evaluationId: any) => {
     const evaluation = _.find(state.evaluations, {'id': evaluationId})
     if (evaluation) {
-      evaluation.isSelected = !evaluation.isSelected
+      const index = _.indexOf(state.selectedEvaluationIds, evaluationId)
+      if (index === -1 && !evaluation.isSelected) {
+        evaluation.isSelected = true
+        state.selectedEvaluationIds.push(evaluationId)
+      } else {
+        evaluation.isSelected = false
+        state.selectedEvaluationIds.splice(index, 1)
+      }
     }
   },
   updateSelectedEvaluationIds: (state: any) => {
