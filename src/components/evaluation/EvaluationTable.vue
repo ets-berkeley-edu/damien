@@ -110,7 +110,7 @@
                   <v-checkbox
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${rowIndex}-checkbox`"
-                    :value="evaluation.isSelected"
+                    :value="selectedEvaluationIds.includes(evaluation.id)"
                     :color="`${hover ? 'primary' : 'tertiary'}`"
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
@@ -529,9 +529,6 @@ export default {
           })
         }
       })
-    },
-    updateEvaluationsSelected(evaluationId) {
-      this.toggleSelectEvaluation(evaluationId)
     },
     selectInstructor(instructor) {
       if (instructor) {

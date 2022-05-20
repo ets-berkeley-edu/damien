@@ -17,7 +17,7 @@
         <v-divider
           v-if="action.value === 'ignore'"
           :key="index + 2"
-          class="align-self-stretch separator ma-2"
+          class="align-self-stretch primary--text separator ma-2"
           inset
           role="presentation"
           vertical
