@@ -9,7 +9,7 @@
           :color="$vuetify.theme.dark ? 'tertiary' : 'secondary'"
           :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length"
           text
-          @click="action.apply(action.value)"
+          @click.stop="action.apply(action.value)"
           @keypress.enter.prevent="action.apply(action.value)"
         >
           {{ action.text }}
@@ -24,73 +24,90 @@
         ></v-divider>
       </template>
     </div>
-    <div v-if="isDuplicating" class="ma-3 pl-4">
-      <div class="d-flex align-center mt-2">
-        <PersonLookup
-          id="bulk-duplicate-instructor-lookup-autocomplete"
-          :instructor-lookup="true"
-          placeholder="Instructor name or UID"
-          :on-select-result="selectInstructor"
-          solo
-        />
-      </div>
-      <v-checkbox
-        v-model="bulkUpdateOptions.midtermFormEnabled"
-        class="text-nowrap"
-        color="tertiary"
-        :disabled="disableControls"
-        hide-details="auto"
-        label="Use midterm department forms"
-      />
-      <div class="d-flex align-center mt-2">
-        <label
-          for="bulk-duplicate-start-date"
-          class="v-label"
-          :class="$vuetify.theme.dark ? 'theme--dark' : 'theme--light'"
-        >
-          Evaluation start date:
-        </label>
-        <c-date-picker
-          v-model="bulkUpdateOptions.startDate"
-          class="mx-3"
-          :min-date="$moment($config.currentTermDates.begin).toDate()"
-          :max-date="$moment($config.currentTermDates.end).subtract(20, 'days').toDate()"
-          title-position="left"
-        >
-          <template v-slot="{ inputValue, inputEvents }">
-            <input
-              id="bulk-duplicate-start-date"
-              class="datepicker-input input-override my-0"
-              :class="$vuetify.theme.dark ? 'dark' : 'light'"
-              :disabled="disableControls"
-              maxlength="10"
-              minlength="10"
-              :value="inputValue"
-              v-on="inputEvents"
+    <v-dialog
+      id="duplicate-row-dialog"
+      v-model="isDuplicating"
+      aria-labelledby="duplicate-row-dialog-title"
+      class="overflow-y-visible"
+      width="500"
+    >
+      <v-card>
+        <v-card-title id="duplicate-row-dialog-title" tabindex="-1">Duplicate</v-card-title>
+        <v-card-text>
+          <div class="d-flex align-center mt-2">
+            <PersonLookup
+              id="bulk-duplicate-instructor-lookup-autocomplete"
+              :instructor-lookup="true"
+              placeholder="Instructor name or UID"
+              :on-select-result="selectInstructor"
+              solo
             />
-          </template>
-        </c-date-picker>
-      </div>
-      <v-btn
-        id="apply-course-action-btn"
-        class="mt-2 mr-2"
-        color="secondary"
-        :disabled="disableControls || !allowEdits || $_.isEmpty(selectedEvaluationIds)"
-        @click="applyAction('duplicate')"
-        @keypress.enter.prevent="applyAction('duplicate')"
-      >
-        Apply
-      </v-btn>
-      <v-btn
-        id="cancel-duplicate-btn"
-        class="mt-2 mr-2"
-        :disabled="disableControls"
-        @click="cancelDuplicate"
-        @keypress.enter.prevent="cancelDuplicate"
-      >
-        Cancel
-      </v-btn>
-    </div>
+          </div>
+          <v-checkbox
+            v-model="bulkUpdateOptions.midtermFormEnabled"
+            class="text-nowrap"
+            color="tertiary"
+            :disabled="disableControls"
+            hide-details="auto"
+            label="Use midterm department forms"
+          />
+          <div class="d-flex align-center mt-2">
+            <label
+              for="bulk-duplicate-start-date"
+              class="v-label"
+              :class="$vuetify.theme.dark ? 'theme--dark' : 'theme--light'"
+            >
+              Evaluation start date:
+            </label>
+            <c-date-picker
+              v-model="bulkUpdateOptions.startDate"
+              class="mx-3"
+              :min-date="$moment($config.currentTermDates.begin).toDate()"
+              :max-date="$moment($config.currentTermDates.end).subtract(20, 'days').toDate()"
+              title-position="left"
+            >
+              <template v-slot="{ inputValue, inputEvents }">
+                <input
+                  id="bulk-duplicate-start-date"
+                  class="datepicker-input input-override my-0"
+                  :class="$vuetify.theme.dark ? 'dark' : 'light'"
+                  :disabled="disableControls"
+                  maxlength="10"
+                  minlength="10"
+                  :value="inputValue"
+                  v-on="inputEvents"
+                />
+              </template>
+            </c-date-picker>
+          </div>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions>
+          <v-spacer />
+          <div class="d-flex pa-2">
+            <v-btn
+              id="apply-course-action-btn"
+              class="mt-2 mr-2"
+              color="secondary"
+              :disabled="disableControls || !allowEdits || $_.isEmpty(selectedEvaluationIds)"
+              @click="applyAction('duplicate')"
+              @keypress.enter.prevent="applyAction('duplicate')"
+            >
+              Apply
+            </v-btn>
+            <v-btn
+              id="cancel-duplicate-btn"
+              class="mt-2 mr-2"
+              :disabled="disableControls"
+              @click="cancelDuplicate"
+              @keypress.enter.prevent="cancelDuplicate"
+            >
+              Cancel
+            </v-btn>
+          </div>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-dialog
       id="error-dialog"
       v-model="errorDialog"
@@ -164,7 +181,6 @@ export default {
         this.alertScreenReader('Success')
         this.$putFocusNextTick(`apply-course-action-btn-${action}`)
       })
-
     },
     applyAction(action) {
       let fields = null
@@ -192,7 +208,16 @@ export default {
     },
     cancelDuplicate() {
       this.isDuplicating = false
+      this.alertScreenReader('Canceled.')
       this.$putFocusNextTick('apply-course-action-btn-duplicate')
+    },
+    reset() {
+      this.bulkUpdateOptions = {
+        midtermFormEnabled: false,
+        startDate: null,
+      }
+      this.instructor = null,
+      this.isDuplicating = false
     },
     selectInstructor(suggestion) {
       this.instructor = suggestion
