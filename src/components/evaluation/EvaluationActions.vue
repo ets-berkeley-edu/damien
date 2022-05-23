@@ -61,6 +61,7 @@
             </label>
             <c-date-picker
               v-model="bulkUpdateOptions.startDate"
+              :attributes="{popover: 'positionFixed'}"
               class="mx-3"
               :min-date="$moment($config.currentTermDates.begin).toDate()"
               :max-date="$moment($config.currentTermDates.end).subtract(20, 'days').toDate()"
@@ -106,31 +107,6 @@
             </v-btn>
           </div>
         </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-dialog
-      id="error-dialog"
-      v-model="errorDialog"
-      width="400"
-      role="alertdialog"
-      aria-labelledby="error-dialog-title"
-      aria-describedby="error-dialog-text"
-    >
-      <v-card>
-        <v-card-title id="error-dialog-title" tabindex="-1">Error</v-card-title>
-        <v-card-text id="error-dialog-text" class="pt-3">{{ errorDialogText }}</v-card-text>
-        <div class="d-flex pa-2">
-          <div class="mr-2">
-            <v-btn
-              id="error-dialog-ok-btn"
-              color="primary"
-              @click="dismissErrorDialog"
-              @keypress.enter.prevent="dismissErrorDialog"
-            >
-              OK
-            </v-btn>
-          </div>
-        </div>
       </v-card>
     </v-dialog>
   </div>

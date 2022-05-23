@@ -106,7 +106,7 @@
                     {{ $_.get(evaluation.department, 'name') }}
                   </router-link>
                 </td>
-                <td v-if="!readonly && allowEdits" class="text-center">
+                <td v-if="!readonly && allowEdits" class="text-center pr-1">
                   <v-checkbox
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${rowIndex}-checkbox`"
@@ -118,7 +118,11 @@
                     @change="toggleSelectEvaluation(evaluation.id)"
                   ></v-checkbox>
                 </td>
-                <td :id="`evaluation-${rowIndex}-status`" :class="{'align-middle position-relative': !isEditing(evaluation)}">
+                <td
+                  :id="`evaluation-${rowIndex}-status`"
+                  :class="{'align-middle position-relative': !isEditing(evaluation)}"
+                  class="px-1"
+                >
                   <div
                     v-if="!isEditing(evaluation) && (!hover || !allowEdits || readonly) && evaluation.status"
                     class="pill mx-auto"
@@ -180,7 +184,11 @@
                     {{ evaluation.courseTitle }}
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-instructor`" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
+                <td
+                  :id="`evaluation-${rowIndex}-instructor`"
+                  :class="{'pt-5': isEditing(evaluation) && evaluation.instructor, 'align-middle': !isEditing(evaluation)}"
+                  class="px-1"
+                >
                   <div v-if="evaluation.instructor">
                     {{ evaluation.instructor.firstName }}
                     {{ evaluation.instructor.lastName }}
@@ -232,27 +240,13 @@
                     <label id="select-department-form-label" for="select-department-form">
                       Department Form:
                     </label>
-                    <vue-select
+                    <select
                       id="select-department-form"
                       v-model="selectedDepartmentForm"
-                      class="vue-select-override light"
-                      :clearable="false"
-                      label="name"
-                      :options="departmentForms"
-                      @option:selected="afterSelectDepartmentForm"
+                      class="native-select-override light"
                     >
-                      <template #search="{attributes, events}">
-                        <input
-                          id="input-department-form"
-                          class="vs__search input-department-form"
-                          v-bind="attributes"
-                          v-on="events"
-                        />
-                      </template>
-                      <template #selected-option-container="{option}">
-                        <div>{{ option.name }}</div>
-                      </template>
-                    </vue-select>
+                      <option v-for="df in departmentForms" :key="df.id" :value="df.id">{{ df.name }}</option>
+                    </select>
                   </div>
                 </td>
                 <td :id="`evaluation-${rowIndex}-evaluationType`" class="px-1" :class="{'align-middle': !isEditing(evaluation)}">
@@ -322,7 +316,7 @@
             </v-hover>
             <tr v-if="isEditing(evaluation)" :key="`${evaluation.id}-edit`" class="secondary white--text border-top-none">
               <td></td>
-              <td colspan="8">
+              <td colspan="8" class="px-2">
                 <div class="d-flex justify-end">
                   <v-btn
                     id="save-evaluation-edit-btn"
@@ -360,6 +354,35 @@
         </tbody>
       </template>
     </v-data-table>
+    <v-dialog
+      id="error-dialog"
+      v-model="errorDialog"
+      width="400"
+      role="alertdialog"
+      aria-labelledby="error-dialog-title"
+      aria-describedby="error-dialog-text"
+    >
+      <v-card>
+        <v-card-title id="error-dialog-title" tabindex="-1">Error</v-card-title>
+        <v-card-text id="error-dialog-text" class="pt-3">{{ errorDialogText }}</v-card-text>
+        <v-divider />
+        <v-card-actions>
+          <v-spacer />
+          <div class="d-flex pa-2">
+            <div class="mr-2">
+              <v-btn
+                id="error-dialog-ok-btn"
+                color="primary"
+                @click="dismissErrorDialog"
+                @keypress.enter.prevent="dismissErrorDialog"
+              >
+                OK
+              </v-btn>
+            </div>
+          </div>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
   <div v-else class="no-eligible-sections">
     <span>No eligible sections to load. You may still add a section manually.</span>
@@ -407,14 +430,14 @@ export default {
       'ignore': {label: 'Ignore', enabled: false}
     },
     headers: [
-      {align: 'center', class: 'px-1 text-nowrap', text: 'Status', value: 'status', width: '100px'},
+      {align: 'center', class: 'px-1 text-nowrap', text: 'Status', value: 'status', width: '120px'},
       {class: 'px-1 text-nowrap', text: 'Last Updated', value: 'lastUpdated', width: '75px'},
       {class: 'px-1 text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '80px'},
       {class: 'px-1 course-name', text: 'Course Name', value: 'sortableCourseName'},
-      {class: 'px-1 text-nowrap', text: 'Instructor', value: 'sortableInstructor', width: '200px'},
+      {class: 'px-1 text-nowrap', text: 'Instructor', value: 'sortableInstructor', width: '175px'},
       {class: 'px-1', text: 'Department Form', value: 'departmentForm.name', width: '155px'},
       {class: 'px-1', text: 'Evaluation Type', value: 'evaluationType.name', width: '145px'},
-      {class: 'px-1 text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '180px'}
+      {class: 'px-1 text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '130px'}
     ],
     pendingInstructor: null,
     rules: {
@@ -462,7 +485,7 @@ export default {
     onEditEvaluation(evaluation) {
       this.editRowId = evaluation.id
       this.pendingInstructor = evaluation.instructor
-      this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm')
+      this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
       this.selectedEvaluationStatus = this.$_.get(evaluation, 'status')
       this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
       this.selectedStartDate = evaluation.startDate
@@ -498,7 +521,7 @@ export default {
     saveEvaluation(evaluation) {
       this.saving = true
       const fields = {
-        'departmentFormId': this.$_.get(this.selectedDepartmentForm, 'id'),
+        'departmentFormId': this.selectedDepartmentForm,
         'evaluationTypeId': this.selectedEvaluationType,
         'instructorUid': this.$_.get(this.pendingInstructor, 'uid'),
         'status': this.selectedEvaluationStatus
@@ -548,7 +571,7 @@ export default {
     if (this.readonly) {
       this.headers = [{class: 'text-nowrap', text: 'Department', value: 'department.id'}].concat(this.headers)
     } else if (this.allowEdits) {
-      this.headers = [{class: 'text-nowrap', text: 'Select', width: '40px'}].concat(this.headers)
+      this.headers = [{class: 'text-nowrap pr-1', text: 'Select', width: '30px'}].concat(this.headers)
     }
     getDepartmentForms().then(data => {
         this.departmentForms = [{id: null, name: 'Revert'}].concat(data)
@@ -571,7 +594,7 @@ export default {
 
 <style>
 .course-name {
-  min-width: 220px;
+  min-width: 200px;
 }
 tr.border-bottom-none td {
   border-bottom: none !important;
