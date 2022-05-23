@@ -78,6 +78,10 @@ SCHEDULE_LOCH_REFRESH = {'hour': 0, 'minute': 0}
 # Used to encrypt session cookie.
 SECRET_KEY = 'secret'
 
+SFTP_HOST = 'hostname'
+SFTP_PORT = 22
+SFTP_USER = 'username'
+
 # Save DB changes at the end of a request.
 SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
