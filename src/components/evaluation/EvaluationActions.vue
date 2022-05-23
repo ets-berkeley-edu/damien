@@ -63,8 +63,8 @@
               v-model="bulkUpdateOptions.startDate"
               :attributes="{popover: 'positionFixed'}"
               class="mx-3"
-              :min-date="$moment($config.currentTermDates.begin).toDate()"
-              :max-date="$moment($config.currentTermDates.end).subtract(20, 'days').toDate()"
+              :min-date="$moment($config.defaultTermDates.begin).toDate()"
+              :max-date="$moment($config.defaultTermDates.end).subtract(20, 'days').toDate()"
               title-position="left"
             >
               <template v-slot="{ inputValue, inputEvents }">
