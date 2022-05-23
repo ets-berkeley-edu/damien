@@ -90,6 +90,9 @@
 input.vs__search:enabled {
   cursor: text !important;
 }
+.v-dialog.v-dialog--active {
+  overflow-y: visible;
+}
 .vue-select-override {
   border-radius: 4px;
   padding: 9px 0;
