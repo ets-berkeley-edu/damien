@@ -23,8 +23,9 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.lib.berkeley import available_term_ids, current_term_dates, term_name_for_sis_id
+from damien.lib.berkeley import available_term_ids, term_name_for_sis_id
 from damien.lib.http import tolerant_jsonify
+from damien.lib.queries import get_default_meeting_dates
 from damien.lib.util import safe_strftime
 from flask import current_app as app
 
@@ -33,12 +34,12 @@ from flask import current_app as app
 def app_config():
     def _term_feed(term_id):
         return {'id': term_id, 'name': term_name_for_sis_id(term_id)}
-    term_begin, term_end = current_term_dates()
+    default_start, default_end = get_default_meeting_dates(app.config['CURRENT_TERM_ID'])
     return tolerant_jsonify({
         'availableTerms': [_term_feed(term_id) for term_id in available_term_ids()],
-        'currentTermDates': {
-            'begin': safe_strftime(term_begin, '%Y-%m-%d'),
-            'end': safe_strftime(term_end, '%Y-%m-%d'),
+        'defaultTermDates': {
+            'begin': safe_strftime(default_start, '%Y-%m-%d'),
+            'end': safe_strftime(default_end, '%Y-%m-%d'),
         },
         'currentTermId': app.config['CURRENT_TERM_ID'],
         'currentTermName': term_name_for_sis_id(app.config['CURRENT_TERM_ID']),

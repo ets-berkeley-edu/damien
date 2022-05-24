@@ -298,7 +298,7 @@
                     <c-date-picker
                       v-model="selectedStartDate"
                       :min-date="new Date(evaluation.meetingDates.start)"
-                      :max-date="$moment($config.currentTermDates.end).subtract(20, 'days').toDate()"
+                      :max-date="$moment($config.defaultTermDates.end).subtract(20, 'days').toDate()"
                       title-position="left"
                     >
                       <template v-slot="{ inputValue, inputEvents }">
@@ -456,7 +456,10 @@ export default {
       return this.$currentUser.isAdmin || !this.isSelectedTermLocked
     },
     rowValid() {
-      return this.rules.currentTermDate(this.selectedStartDate) === true
+      const courseStart = this.$_.find(this.evaluations, ['id', this.editRowId]).meetingDates.start
+      const courseEnd = this.$_.find(this.evaluations, ['id', this.editRowId]).meetingDates.end
+      
+      return this.rules.currentTermDate(this.selectedStartDate, courseStart, courseEnd) === true
     },
     someEvaluationsSelected() {
       return !!(this.$_.size(this.selectedEvaluationIds) && this.$_.size(this.selectedEvaluationIds) < this.$_.size(this.evaluations))
@@ -565,7 +568,7 @@ export default {
       } else {
         this.selectAllEvaluations()
       }
-    }
+    },
   },
   created() {
     if (this.readonly) {
@@ -579,16 +582,32 @@ export default {
     getEvaluationTypes().then(data => {
       this.evaluationTypes = [{id: null, name: 'None'}].concat(data)
     })
-    this.rules.currentTermDate = v => {
-      const formatted = this.$moment(v).format('YYYY-MM-DD')
-      if (formatted > this.$config.currentTermDates.begin && formatted < this.$config.currentTermDates.end) {
-        return true
+    this.rules.currentTermDate = (selectedDate, sisStartDate, sisEndDate) => {
+      const formattedSelectedDate = this.$moment(selectedDate).format('YYYY-MM-DD')
+      const formattedCourseStart = this.$moment(sisStartDate).format('YYYY-MM-DD')
+      const formattedCourseEnd = this.$moment(sisEndDate).format('YYYY-MM-DD')
+
+      const courseLength = this.$moment(formattedCourseEnd).diff(formattedCourseStart, 'days')
+      let lastStartDate =  this.$moment(sisEndDate)
+
+      if (this.selectedTerm.name.includes('Summer')) {
+          lastStartDate = courseLength < 90 ? lastStartDate.subtract(13, 'day') : lastStartDate.subtract(20, 'day')
+          return formattedSelectedDate <= lastStartDate.format('YYYY-MM-DD') ? true : 'Date must be within current term.'
+      } else {
+        
+        if (formattedCourseEnd <= this.$config.defaultTermDates.end) {
+          const paddedDate = this.$moment(this.$config.defaultTermDates.end).add(2, 'day')
+          lastStartDate = courseLength < 90 ? paddedDate.subtract(13, 'day') : paddedDate.subtract(20, 'day')
+          
+        } else {
+          lastStartDate = courseLength < 90 ? lastStartDate.subtract(13, 'day') : lastStartDate.subtract(20, 'day')          
+        }
+        return formattedSelectedDate <= lastStartDate.format('YYYY-MM-DD') ? true : 'Date must be within current term.'
       }
-      return 'Date must be within current term.'
     }
     this.rules.instructorUid = () => {
       return this.$_.get(this.pendingInstructor, 'uid') ? true : 'Instructor is required.'}
-  },
+  }
 }
 </script>
 
