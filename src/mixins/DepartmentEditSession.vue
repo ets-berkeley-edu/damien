@@ -32,6 +32,7 @@ export default {
       'deselectAllEvaluations',
       'dismissErrorDialog',
       'editEvaluation',
+      'filterSelectedEvaluations',
       'init',
       'refreshAll',
       'selectAllEvaluations',

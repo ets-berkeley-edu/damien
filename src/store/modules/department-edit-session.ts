@@ -125,6 +125,9 @@ const actions = {
       .finally(() => commit('setDisableControls', false))
     })
   },
+  filterSelectedEvaluations: ({commit}, {searchFilterResults, enabledStatuses}) => {
+    commit('filterSelectedEvaluations', {searchFilterResults, enabledStatuses})
+  },
   init: ({commit}, {departmentId: departmentId, termId: termId}) => {
     $_getDepartmentForms(commit)
     return new Promise<void>(resolve => {
@@ -138,8 +141,8 @@ const actions = {
       $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id}).then(dept => resolve(dept))
     })
   },
-  selectAllEvaluations: ({commit}) => {
-    commit('selectAllEvaluations')
+  selectAllEvaluations: ({commit}, enabledStatuses: string[]) => {
+    commit('selectAllEvaluations', enabledStatuses)
   },
   setEvaluations: ({commit}, evaluations: any[]) => {
     commit('setEvaluations', evaluations)
@@ -182,6 +185,20 @@ const mutations = {
       e.isSelected = false
     })
   },
+  filterSelectedEvaluations: (state: any, {searchFilterResults, enabledStatuses}) => {
+    const selectedSearchFilterResultIds = _.intersectionWith(state.selectedEvaluationIds, searchFilterResults, (id: number|string, e: any) => {
+      return _.toString(e.id) === _.toString(id)
+    })
+    state.selectedEvaluationIds = []
+    _.each(state.evaluations, e => {
+      if (_.includes(enabledStatuses, e.status || 'unmarked') && _.includes(selectedSearchFilterResultIds, e.id)) {
+        e.isSelected = true
+        state.selectedEvaluationIds.push(e.id)
+      } else {
+        e.isSelected = false
+      }
+    })
+  },
   reset: (state, {department, termId}) => {
     if (department) {
       state.contacts = department.contacts
@@ -195,11 +212,13 @@ const mutations = {
     state.selectedTerm = _.find(Vue.prototype.$config.availableTerms, {'id': termId})
     state.disableControls = false
   },
-  selectAllEvaluations: (state: any) => {
+  selectAllEvaluations: (state: any, {searchFilterResults, enabledStatuses}) => {
     state.selectedEvaluationIds = []
     _.each(state.evaluations, e => {
-      e.isSelected = true
-      state.selectedEvaluationIds.push(e.id)
+      if (_.includes(enabledStatuses, e.status || 'unmarked') && _.some(searchFilterResults, {'id': e.id})) {
+        e.isSelected = true
+        state.selectedEvaluationIds.push(e.id)
+      }
     })
   },
   setAllDepartmentForms: (state: any, departmentForms: any[]) => state.allDepartmentForms = departmentForms,
