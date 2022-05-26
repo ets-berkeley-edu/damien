@@ -2,9 +2,9 @@
   <div>
     <v-row class="pb-2" no-gutters>
       <v-col cols="12" md="9" class="d-flex align-baseline">
-        <h1 id="page-title">Evaluation Status Dashboard - Spring 2022</h1>
+        <h1 id="page-title">Evaluation Status Dashboard - {{ currentTermName }}</h1>
       </v-col>
-      <v-col cols="12" md="3" class="d-flex align-center justify-end">
+      <v-col cols="12" md="3" class="d-flex align-center justify-end flex-wrap">
         <div class="d-flex">
           <label for="toggle-term-locked" class="text-nowrap pr-4 py-2">
             {{ `${isCurrentTermLocked ? 'Unlock' : 'Lock'} current term` }}
@@ -18,6 +18,32 @@
             inset
             @change="toggleCurrentTermLocked"
           />
+        </div>
+        <div v-if="$currentUser.isAdmin" class="d-flex align-baseline mr-3">
+          <label
+            id="select-term-label"
+            for="select-term"
+            class="align-self-baseline text-nowrap pr-3"
+          >
+            Term:
+          </label>
+          <select
+            id="select-term"
+            v-model="currentTermId"
+            class="native-select-override select-term my-2 px-3"
+            :class="this.$vuetify.theme.dark ? 'dark' : 'light'"
+            :disabled="loading"
+            @change="onChangeTerm"
+          >
+            <option
+              v-for="term in availableTerms"
+              :id="`term-option-${term.id}`"
+              :key="term.id"
+              :value="term.id"
+            >
+              {{ term.name }}
+            </option>
+          </select>
         </div>
       </v-col>
     </v-row>
@@ -113,7 +139,7 @@
                   <span class="font-italic muted--text">TODO</span>
                 </td>
                 <td class="department-note">
-                  {{ $_.get(department, `notes.${$config.currentTermId}.note`) }}
+                  {{ $_.get(department, `notes.${currentTermId}.note`) }}
                 </td>
               </tr>
             </template>
@@ -144,6 +170,9 @@ export default {
   components: {NotificationForm},
   mixins: [Context],
   data: () => ({
+    availableTerms: [],
+    currentTermId: null,
+    currentTermName: null,
     departments: [],
     exports: [],
     headers: [
@@ -184,6 +213,9 @@ export default {
   },
   created() {
     this.$loading()
+    this.currentTermId = this.$config.currentTermId
+    this.currentTermName = this.$config.currentTermName
+    this.availableTerms = this.$config.availableTerms
     getDepartmentsEnrolled().then(data => {
       this.departments = data
       this.$ready('Status Board')
@@ -191,7 +223,7 @@ export default {
     getExports().then(data => {
       this.exports = data
     })
-    getEvaluationTerm(this.$config.currentTermId).then(data => {
+    getEvaluationTerm(this.currentTermId).then(data => {
       this.isCurrentTermLocked = data.isLocked === true
     })
   },
@@ -204,12 +236,12 @@ export default {
     },
     toggleCurrentTermLocked() {
       if (this.isCurrentTermLocked) {
-        lockEvaluationTerm(this.$config.currentTermId).then(() => {
-          this.alertScreenReader(`Locked ${this.$config.currentTermName}`)
+        lockEvaluationTerm(this.currentTermId).then(() => {
+          this.alertScreenReader(`Locked ${this.currentTermName}`)
         })
       } else {
-        unlockEvaluationTerm(this.$config.currentTermId).then(() => {
-          this.alertScreenReader(`Unlocked ${this.$config.currentTermName}`)
+        unlockEvaluationTerm(this.currentTermId).then(() => {
+          this.alertScreenReader(`Unlocked ${this.currentTermName}`)
         })
       }
     },
@@ -244,7 +276,14 @@ export default {
       } else {
         this.selectedDepartmentIds = this.$_.map(this.departments, 'id')
       }
-    }
+    },
+    onChangeTerm(event) {
+      const term = this.$_.find(this.availableTerms, ['id', event.target.value])
+      this.currentTermId = term.id
+      this.currentTermName = term.name
+      this.alertScreenReader(`Loading ${this.$_.get(term, 'name', 'term')}`)
+      this.$putFocusNextTick('select-term')
+    },
   }
 }
 </script>
@@ -268,5 +307,8 @@ export default {
 .notify-all {
   position: absolute;
   top: 0;
+}
+.select-term {
+  max-width: 200px;
 }
 </style>
