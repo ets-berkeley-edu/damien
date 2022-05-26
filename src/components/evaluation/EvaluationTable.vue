@@ -21,7 +21,7 @@
                 v-for="type in $_.keys(filterTypes)"
                 :id="`evaluations-filter-${type}`"
                 :key="type"
-                aria-controls="timeline-messages"
+                aria-controls="evaluation-table"
                 :aria-selected="filterTypes[type].enabled"
                 class="ma-1 px-4 text-center text-uppercase"
                 :class="{
@@ -60,6 +60,7 @@
               v-if="!readonly"
               id="select-all-evals-checkbox"
               class="align-center mt-0 pt-0"
+              :disabled="$_.isEmpty(searchFilterResults)"
               hide-details
               :indeterminate="someEvaluationsSelected"
               :ripple="false"
@@ -92,11 +93,12 @@
       :search="searchFilter"
       hide-default-footer
       :items="evaluations"
+      @current-items="onChangeSearchFilter"
     >
       <template #body="{items}">
         <tbody>
           <template v-for="(evaluation, rowIndex) in items">
-            <v-hover v-if="filterEnabled(evaluation)" v-slot="{ hover }" :key="evaluation.id">
+            <v-hover v-if="statusFilterEnabled(evaluation)" v-slot="{ hover }" :key="evaluation.id">
               <tr
                 class="evaluation-row"
                 :class="evaluationClass(evaluation, hover)"
@@ -111,10 +113,10 @@
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${rowIndex}-checkbox`"
                     :value="selectedEvaluationIds.includes(evaluation.id)"
+                    class="pr-1"
                     :color="`${hover ? 'primary' : 'tertiary'}`"
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
-                    class="pr-1"
                     @change="toggleSelectEvaluation(evaluation.id)"
                   ></v-checkbox>
                 </td>
@@ -446,6 +448,7 @@ export default {
     },
     saving: false,
     searchFilter: '',
+    searchFilterResults: [],
     selectedDepartmentForm: null,
     selectedEvaluationStatus: null,
     selectedEvaluationType: null,
@@ -455,10 +458,13 @@ export default {
     allowEdits() {
       return this.$currentUser.isAdmin || !this.isSelectedTermLocked
     },
+    enabledStatusFilterTypes() {
+      return this.$_.keys(this.$_.pickBy(this.filterTypes, 'enabled'))
+    },
     rowValid() {
-      const courseStart = this.$_.find(this.evaluations, ['id', this.editRowId]).meetingDates.start
-      const courseEnd = this.$_.find(this.evaluations, ['id', this.editRowId]).meetingDates.end
-      
+      const courseStart = this.$_.get(this.$_.find(this.evaluations, ['id', this.editRowId]), 'meetingDates.start')
+      const courseEnd = this.$_.get(this.$_.find(this.evaluations, ['id', this.editRowId]), 'meetingDates.end')
+
       return this.rules.currentTermDate(this.selectedStartDate, courseStart, courseEnd) === true
     },
     someEvaluationsSelected() {
@@ -485,15 +491,6 @@ export default {
     clearPendingInstructor() {
       this.pendingInstructor = null
     },
-    onEditEvaluation(evaluation) {
-      this.editRowId = evaluation.id
-      this.pendingInstructor = evaluation.instructor
-      this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
-      this.selectedEvaluationStatus = this.$_.get(evaluation, 'status')
-      this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
-      this.selectedStartDate = evaluation.startDate
-      this.$putFocusNextTick(`${this.readonly ? '' : 'select-evaluation-status'}`)
-    },
     evaluationClass(evaluation, hover) {
       return {
         'evaluation-row-confirmed': evaluation.id !== this.editRowId && evaluation.status === 'confirmed',
@@ -514,9 +511,20 @@ export default {
     isEditing(evaluation) {
       return this.editRowId === evaluation.id
     },
-    filterEnabled(evaluation) {
-      const status = evaluation.status || 'unmarked'
-      return this.filterTypes[status].enabled
+    onChangeSearchFilter(searchFilterResults) {
+      this.searchFilterResults = searchFilterResults
+      if (this.$_.size(this.selectedEvaluationIds)) {
+        this.filterSelectedEvaluations(searchFilterResults, this.enabledStatusFilterTypes)
+      }
+    },
+    onEditEvaluation(evaluation) {
+      this.editRowId = evaluation.id
+      this.pendingInstructor = evaluation.instructor
+      this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
+      this.selectedEvaluationStatus = this.$_.get(evaluation, 'status')
+      this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
+      this.selectedStartDate = evaluation.startDate
+      this.$putFocusNextTick(`${this.readonly ? '' : 'select-evaluation-status'}`)
     },
     setPendingInstructor(instructor) {
       this.pendingInstructor = instructor
@@ -534,10 +542,34 @@ export default {
       }
       this.updateEvaluation(evaluation.id, evaluation.courseNumber, fields).then(this.clearEdit)
     },
+    selectInstructor(instructor) {
+      if (instructor) {
+        instructor.emailAddress = instructor.email
+      }
+      this.setPendingInstructor(instructor)
+    },
+    statusFilterEnabled(evaluation) {
+      const status = evaluation.status || 'unmarked'
+      return this.filterTypes[status].enabled
+    },
     toggleFilter(type) {
       const filter = this.filterTypes[type]
       filter.enabled = !filter.enabled
+      this.filterSelectedEvaluations({
+          searchFilterResults: this.searchFilterResults,
+          enabledStatuses: this.enabledStatusFilterTypes
+        })
       this.alertScreenReader(`Filter ${filter.label} ${filter.enabled ? 'enabled' : 'disabled'}.`)
+    },
+    toggleSelectAll() {
+      if (this.allEvaluationsSelected || this.someEvaluationsSelected) {
+        this.deselectAllEvaluations()
+      } else {
+        this.selectAllEvaluations({
+          searchFilterResults: this.searchFilterResults,
+          enabledStatuses: this.enabledStatusFilterTypes
+        })
+      }
     },
     updateEvaluation(evaluationId, sectionId, fields) {
       this.alertScreenReader('Saving evaluation row.')
@@ -555,20 +587,7 @@ export default {
           })
         }
       })
-    },
-    selectInstructor(instructor) {
-      if (instructor) {
-        instructor.emailAddress = instructor.email
-      }
-      this.setPendingInstructor(instructor)
-    },
-    toggleSelectAll() {
-      if (this.allEvaluationsSelected) {
-        this.deselectAllEvaluations()
-      } else {
-        this.selectAllEvaluations()
-      }
-    },
+    }
   },
   created() {
     if (this.readonly) {
@@ -594,13 +613,13 @@ export default {
           lastStartDate = courseLength < 90 ? lastStartDate.subtract(13, 'day') : lastStartDate.subtract(20, 'day')
           return formattedSelectedDate <= lastStartDate.format('YYYY-MM-DD') ? true : 'Date must be within current term.'
       } else {
-        
+
         if (formattedCourseEnd <= this.$config.defaultTermDates.end) {
           const paddedDate = this.$moment(this.$config.defaultTermDates.end).add(2, 'day')
           lastStartDate = courseLength < 90 ? paddedDate.subtract(13, 'day') : paddedDate.subtract(20, 'day')
-          
+
         } else {
-          lastStartDate = courseLength < 90 ? lastStartDate.subtract(13, 'day') : lastStartDate.subtract(20, 'day')          
+          lastStartDate = courseLength < 90 ? lastStartDate.subtract(13, 'day') : lastStartDate.subtract(20, 'day')
         }
         return formattedSelectedDate <= lastStartDate.format('YYYY-MM-DD') ? true : 'Date must be within current term.'
       }

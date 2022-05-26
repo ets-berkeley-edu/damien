@@ -61,7 +61,6 @@
             </label>
             <c-date-picker
               v-model="bulkUpdateOptions.startDate"
-              :attributes="{popover: 'positionFixed'}"
               class="mx-3"
               :min-date="$moment($config.defaultTermDates.begin).toDate()"
               :max-date="$moment($config.defaultTermDates.end).subtract(20, 'days').toDate()"
