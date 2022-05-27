@@ -63,12 +63,12 @@
   border-color: rgba(128, 128, 128, .75) !important;
 }
 .sr-only {
-  position: absolute;
-  left: -10000px;
-  top: auto;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
+  position: absolute !important;
+  left: -10000px !important;
+  top: auto !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
 }
 .text-condensed {
   line-height: 1.2;
@@ -92,6 +92,15 @@ input.vs__search:enabled {
 }
 .v-dialog.v-dialog--active {
   overflow-y: visible;
+}
+.v-input--is-focused .v-input--selection-controls__input {
+  appearance: auto !important;
+  color: -webkit-focus-ring-color !important;
+  outline: auto !important;
+  outline-color: -webkit-focus-ring-color !important;
+  outline-offset: 0px !important;
+  outline-style: auto !important;
+  outline-width: 1px !important;
 }
 .vue-select-override {
   border-radius: 4px;

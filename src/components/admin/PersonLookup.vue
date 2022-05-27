@@ -4,11 +4,13 @@
     v-model="selected"
     :allow-overflow="false"
     :append-icon="null"
+    :aria-disabled="disabled"
     :auto-select-first="true"
-    background-color="white"
+    :background-color="disabled ? 'disabled' : 'white'"
     class="overflow-x-hidden person-lookup"
     color="white"
     dense
+    :disabled="disabled"
     :hide-no-data="true"
     :items="suggestions"
     light
@@ -41,6 +43,10 @@ import {searchUsers} from '@/api/user'
 export default {
   name: 'PersonLookup',
   props: {
+    disabled: {
+      required: false,
+      type: Boolean
+    },
     excludeUids: {
       default: () => [],
       required: false,
