@@ -25,7 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien.lib.berkeley import available_term_ids, term_name_for_sis_id
 from damien.lib.http import tolerant_jsonify
-from damien.lib.queries import get_default_meeting_dates
+from damien.lib.queries import get_default_meeting_dates, get_valid_meeting_dates
 from damien.lib.util import safe_strftime
 from flask import current_app as app
 
@@ -35,12 +35,9 @@ def app_config():
     def _term_feed(term_id):
         return {'id': term_id, 'name': term_name_for_sis_id(term_id)}
     default_start, default_end = get_default_meeting_dates(app.config['CURRENT_TERM_ID'])
+    valid_start, valid_end = get_valid_meeting_dates(app.config['CURRENT_TERM_ID'])
     return tolerant_jsonify({
         'availableTerms': [_term_feed(term_id) for term_id in available_term_ids()],
-        'defaultTermDates': {
-            'begin': safe_strftime(default_start, '%Y-%m-%d'),
-            'end': safe_strftime(default_end, '%Y-%m-%d'),
-        },
         'currentTermId': app.config['CURRENT_TERM_ID'],
         'currentTermName': term_name_for_sis_id(app.config['CURRENT_TERM_ID']),
         'damienEnv': app.config['DAMIEN_ENV'],
@@ -50,5 +47,15 @@ def app_config():
         'ebEnvironment': app.config['EB_ENVIRONMENT'] if 'EB_ENVIRONMENT' in app.config else None,
         'emailSupport': app.config['EMAIL_COURSE_EVALUATION_ADMIN'],
         'emailTestMode': app.config['EMAIL_TEST_MODE'],
+        'termDates': {
+            'default': {
+                'begin': safe_strftime(default_start, '%Y-%m-%d'),
+                'end': safe_strftime(default_end, '%Y-%m-%d'),
+            },
+            'valid': {
+                'begin': safe_strftime(valid_start, '%Y-%m-%d'),
+                'end': safe_strftime(valid_end, '%Y-%m-%d'),
+            },
+        },
         'timezone': app.config['TIMEZONE'],
     })

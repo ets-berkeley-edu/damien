@@ -70,5 +70,7 @@ class TestConfigController:
         assert response.status_code == 200
         data = response.json
         assert data['currentTermId'] == '2222'
-        assert data['defaultTermDates']['begin'] == '2022-01-18'
-        assert data['defaultTermDates']['end'] == '2022-05-06'
+        assert data['termDates']['default']['begin'] == '2022-01-18'
+        assert data['termDates']['default']['end'] == '2022-05-06'
+        assert data['termDates']['valid']['begin'] == '2022-01-18'
+        assert data['termDates']['valid']['end'] == '2022-05-06'
