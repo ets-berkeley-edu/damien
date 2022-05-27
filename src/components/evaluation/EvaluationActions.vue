@@ -73,8 +73,8 @@
               <c-date-picker
                 v-model="bulkUpdateOptions.startDate"
                 class="mx-3"
-                :min-date="$moment($config.defaultTermDates.begin).toDate()"
-                :max-date="$moment($config.defaultTermDates.end).subtract(20, 'days').toDate()"
+                :min-date="$moment($config.termDates.valid.begin).toDate()"
+                :max-date="$moment($config.termDates.valid.end).subtract(13, 'days').toDate()"
                 title-position="left"
               >
                 <template v-slot="{ inputValue, inputEvents }">
