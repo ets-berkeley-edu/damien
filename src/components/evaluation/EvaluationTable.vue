@@ -31,6 +31,7 @@
                 :color="filterTypes[type].enabled ? 'secondary' : ''"
                 role="tablist"
                 small
+                tabindex="0"
                 :text-color="filterTypes[type].enabled ? 'white' : 'inactive-contrast'"
                 @click="toggleFilter(type)"
                 @keypress.enter.prevent="toggleFilter(type)"
@@ -126,23 +127,26 @@
                   class="px-1"
                 >
                   <div
-                    v-if="!isEditing(evaluation) && (!hover || !allowEdits || readonly) && evaluation.status"
+                    v-if="isStatusVisible(evaluation)"
                     class="pill mx-auto"
-                    :class="evaluationPillClass(evaluation)"
+                    :class="evaluationPillClass(evaluation, hover)"
                   >
                     {{ evaluation.status }}
                   </div>
                   <div
-                    v-if="allowEdits && !isEditing(evaluation) && ((hover && !readonly) || !evaluation.status)"
+                    v-if="allowEdits && !isEditing(evaluation) && (!readonly || !evaluation.status)"
                     class="pill pill-invisible mx-auto pl-0"
                   >
                     <v-btn
-                      class="primary--text"
-                      :class="{'hidden': isEditing(evaluation) || !hover}"
+                      :id="`edit-evaluation-${evaluation.id}-btn`"
+                      class="primary-contrast primary--text"
+                      :class="{'sr-only': !hover && evaluation.id !== focusedEditButtonEvaluationId}"
                       block
                       :disabled="!allowEdits"
                       text
                       @click="onEditEvaluation(evaluation)"
+                      @blur="() => focusedEditButtonEvaluationId = null"
+                      @focus.prevent="() => focusedEditButtonEvaluationId = evaluation.id"
                       @keypress.enter.prevent="onEditEvaluation(evaluation)"
                     >
                       Edit
@@ -156,6 +160,7 @@
                       id="select-evaluation-status"
                       v-model="selectedEvaluationStatus"
                       class="native-select-override light d-block mx-auto"
+                      :disabled="saving"
                     >
                       <option v-for="s in evaluationStatuses" :key="s.text" :value="s.value">{{ s.text }}</option>
                     </select>
@@ -207,9 +212,9 @@
                       <PersonLookup
                         id="input-instructor-lookup-autocomplete"
                         class="instructor-lookup"
+                        :disabled="saving"
                         :instructor-lookup="true"
                         :on-select-result="selectInstructor"
-                        solo
                       />
                     </div>
                     <div v-if="pendingInstructor">
@@ -246,6 +251,7 @@
                       id="select-department-form"
                       v-model="selectedDepartmentForm"
                       class="native-select-override light"
+                      :disabled="saving"
                     >
                       <option v-for="df in departmentForms" :key="df.id" :value="df.id">{{ df.name }}</option>
                     </select>
@@ -272,6 +278,7 @@
                       id="select-evaluation-type"
                       v-model="selectedEvaluationType"
                       class="native-select-override light"
+                      :disabled="saving"
                     >
                       <option v-for="et in evaluationTypes" :key="et.id" :value="et.id">{{ et.name }}</option>
                     </select>
@@ -307,6 +314,8 @@
                         <input
                           id="input-evaluation-start-date"
                           class="datepicker-input input-override light mt-0"
+                          :class="{'disabled': saving}"
+                          :disabled="saving"
                           :value="inputValue"
                           v-on="inputEvents"
                         />
@@ -322,7 +331,7 @@
                 <div class="d-flex justify-end">
                   <v-btn
                     id="save-evaluation-edit-btn"
-                    class="ma-2 evaluation-edit-btn"
+                    class="ma-2 evaluation-form-btn"
                     color="primary"
                     width="150px"
                     :disabled="disableControls || !rowValid || saving"
@@ -341,11 +350,11 @@
                   </v-btn>
                   <v-btn
                     id="cancel-evaluation-edit-btn"
-                    class="ma-2 evaluation-edit-btn"
+                    class="ma-2 evaluation-form-btn"
                     :disabled="saving"
                     width="150px"
-                    @click="clearEdit"
-                    @keypress.enter.prevent="clearEdit"
+                    @click="onCancelEdit(evaluation)"
+                    @keypress.enter.prevent="onCancelEdit(evaluation)"
                   >
                     Cancel
                   </v-btn>
@@ -356,6 +365,13 @@
         </tbody>
       </template>
     </v-data-table>
+    <ConfirmDialog
+      :model="isConfirmingCancelEdit"
+      :cancel-action="onCancelConfirm"
+      :perform-action="onConfirm"
+      :text="'You have unsaved changes that will be lost.'"
+      :title="'Cancel edit?'"
+    />
     <v-dialog
       id="error-dialog"
       v-model="errorDialog"
@@ -395,6 +411,7 @@
 import {getDepartmentForms} from '@/api/departmentForms'
 import {getEvaluationTypes} from '@/api/evaluationTypes'
 import AddCourseSection from '@/components/evaluation/AddCourseSection'
+import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import EvaluationActions from '@/components/evaluation/EvaluationActions'
@@ -406,6 +423,7 @@ export default {
   mixins: [Context, DepartmentEditSession, Util],
   components: {
     AddCourseSection,
+    ConfirmDialog,
     EvaluationActions,
     PersonLookup
   },
@@ -431,6 +449,7 @@ export default {
       'confirmed': {label: 'Confirmed', enabled: true},
       'ignore': {label: 'Ignore', enabled: false}
     },
+    focusedEditButtonEvaluationId: null,
     headers: [
       {align: 'center', class: 'px-1 text-nowrap', text: 'Status', value: 'status', width: '120px'},
       {class: 'px-1 text-nowrap', text: 'Last Updated', value: 'lastUpdated', width: '75px'},
@@ -441,6 +460,8 @@ export default {
       {class: 'px-1', text: 'Evaluation Type', value: 'evaluationType.name', width: '145px'},
       {class: 'px-1 text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '130px'}
     ],
+    isConfirmingCancelEdit: false,
+    pendingEditRowId: null,
     pendingInstructor: null,
     rules: {
       currentTermDate: null,
@@ -464,7 +485,6 @@ export default {
     rowValid() {
       const courseStart = this.$_.get(this.$_.find(this.evaluations, ['id', this.editRowId]), 'meetingDates.start')
       const courseEnd = this.$_.get(this.$_.find(this.evaluations, ['id', this.editRowId]), 'meetingDates.end')
-
       return this.rules.currentTermDate(this.selectedStartDate, courseStart, courseEnd) === true
     },
     someEvaluationsSelected() {
@@ -475,18 +495,21 @@ export default {
     }
   },
   methods: {
-    afterSelectDepartmentForm(selected) {
-      this.alertScreenReader(`${selected.name} department form selected.`)
-      this.$putFocusNextTick('input-department-form')
-    },
-    clearEdit() {
+    afterEditEvaluation(evaluation) {
       this.editRowId = null
+      this.pendingEditRowId = null
       this.pendingInstructor = null
       this.saving = false
       this.selectedDepartmentForm = null
       this.selectedEvaluationStatus = null
       this.selectedEvaluationType = null
       this.selectedStartDate = null
+      this.focusedEditButtonEvaluationId = evaluation.id
+      this.$putFocusNextTick(`'edit-evaluation-${evaluation.id}-btn`)
+    },
+    afterSelectDepartmentForm(selected) {
+      this.alertScreenReader(`${selected.name} department form selected.`)
+      this.$putFocusNextTick('input-department-form')
     },
     clearPendingInstructor() {
       this.pendingInstructor = null
@@ -494,22 +517,39 @@ export default {
     evaluationClass(evaluation, hover) {
       return {
         'evaluation-row-confirmed': evaluation.id !== this.editRowId && evaluation.status === 'confirmed',
-        'evaluation-row-ignore muted--text': evaluation.id !== this.editRowId && evaluation.status === 'ignore',
+        'evaluation-row-ignore muted--text': !hover && evaluation.id !== this.editRowId && evaluation.status === 'ignore',
         'secondary white--text border-bottom-none': evaluation.id === this.editRowId,
         'evaluation-row-review': evaluation.id !== this.editRowId && evaluation.status === 'review',
         'evaluation-row-xlisting': evaluation.id !== this.editRowId && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith),
-        'primary-contrast primary--text': hover && !this.readonly && !this.isEditing(evaluation)
+        'primary-contrast primary--text': (hover || evaluation.id === this.focusedEditButtonEvaluationId) && !this.readonly && !this.isEditing(evaluation)
       }
     },
-    evaluationPillClass(evaluation) {
+    evaluationPillClass(evaluation, hover) {
       return {
         'pill-confirmed': evaluation.status === 'confirmed',
         'pill-ignore': evaluation.status === 'ignore',
-        'pill-review': evaluation.status === 'review'
+        'pill-review': evaluation.status === 'review',
+        'sr-only': hover && this.allowEdits && !this.readonly
       }
     },
     isEditing(evaluation) {
       return this.editRowId === evaluation.id
+    },
+    isStatusVisible(evaluation) {
+      return !this.isEditing(evaluation)
+        && evaluation.status
+        && evaluation.id !== this.focusedEditButtonEvaluationId
+    },
+    onCancelConfirm() {
+      const editingEvaluation = this.$_.find(this.evaluations, ['id', this.editRowId])
+      this.isConfirmingCancelEdit = false
+      this.focusedEditButtonEvaluationId = this.$_.clone(this.pendingEditRowId)
+      this.pendingEditRowId = null
+      this.$putFocusNextTick(`edit-evaluation-${editingEvaluation.id}-btn`)
+    },
+    onCancelEdit(evaluation) {
+      this.alertScreenReader('Edit canceled.')
+      this.afterEditEvaluation(evaluation)
     },
     onChangeSearchFilter(searchFilterResults) {
       this.searchFilterResults = searchFilterResults
@@ -517,14 +557,34 @@ export default {
         this.filterSelectedEvaluations(searchFilterResults, this.enabledStatusFilterTypes)
       }
     },
+    onConfirm() {
+      this.isConfirmingCancelEdit = false
+      this.editRowId = null
+      const evaluation = this.$_.find(this.evaluations, ['id', this.pendingEditRowId])
+      this.onEditEvaluation(evaluation)
+    },
     onEditEvaluation(evaluation) {
-      this.editRowId = evaluation.id
-      this.pendingInstructor = evaluation.instructor
-      this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
-      this.selectedEvaluationStatus = this.$_.get(evaluation, 'status')
-      this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
-      this.selectedStartDate = evaluation.startDate
-      this.$putFocusNextTick(`${this.readonly ? '' : 'select-evaluation-status'}`)
+      if (this.editRowId) {
+        const editingEvaluation = this.$_.find(this.evaluations, ['id', this.editRowId])
+        this.isConfirmingCancelEdit = editingEvaluation && (
+          this.$_.get(this.pendingInstructor, 'uid') !== this.$_.get(editingEvaluation, 'instructor.uid')
+          || this.selectedDepartmentForm !== this.$_.get(editingEvaluation, 'departmentForm.id')
+          || this.selectedEvaluationStatus !== this.$_.get(editingEvaluation, 'status')
+          || this.selectedEvaluationType !== this.$_.get(editingEvaluation, 'evaluationType.id')
+          || this.selectedStartDate !== editingEvaluation.startDate
+        )
+      }
+      if (this.isConfirmingCancelEdit) {
+        this.pendingEditRowId = evaluation.id
+      } else {
+        this.editRowId = evaluation.id
+        this.pendingInstructor = evaluation.instructor
+        this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
+        this.selectedEvaluationStatus = this.$_.get(evaluation, 'status')
+        this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
+        this.selectedStartDate = evaluation.startDate
+        this.$putFocusNextTick(`${this.readonly ? '' : 'select-evaluation-status'}`)
+      }
     },
     setPendingInstructor(instructor) {
       this.pendingInstructor = instructor
@@ -540,7 +600,7 @@ export default {
       if (this.selectedStartDate) {
         fields.startDate = this.$moment(this.selectedStartDate).format('YYYY-MM-DD')
       }
-      this.updateEvaluation(evaluation.id, evaluation.courseNumber, fields).then(this.clearEdit)
+      this.updateEvaluation(evaluation, fields)
     },
     selectInstructor(instructor) {
       if (instructor) {
@@ -571,14 +631,19 @@ export default {
         })
       }
     },
-    updateEvaluation(evaluationId, sectionId, fields) {
+    updateEvaluation(evaluation, fields) {
       this.alertScreenReader('Saving evaluation row.')
       return new Promise(resolve => {
-        if (fields.status === 'confirmed' && !this.validateConfirmable([evaluationId], fields.departmentFormId, fields.evaluationTypeId)) {
+        if (fields.status === 'confirmed' && !this.validateConfirmable([evaluation.id], fields.departmentFormId, fields.evaluationTypeId)) {
           resolve()
         } else {
-          this.editEvaluation({evaluationId, sectionId, fields}).then(() => {
+          this.editEvaluation({
+            evaluationId: evaluation.id,
+            sectionId: evaluation.courseNumber,
+            fields
+          }).then(() => {
             this.alertScreenReader('Changes saved.')
+            this.afterEditEvaluation(evaluation)
             this.deselectAllEvaluations()
             resolve()
           }, error => {
@@ -651,12 +716,12 @@ tr.border-top-none td {
 .align-middle {
   vertical-align: middle;
 }
-.evaluation-edit-btn {
-  width: 150px;
-}
 .evaluation-error {
   font-size: 0.8em;
   font-style: italic;
+}
+.evaluation-form-btn {
+  width: 150px;
 }
 .evaluation-row {
   vertical-align: top;
