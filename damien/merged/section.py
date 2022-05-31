@@ -198,4 +198,16 @@ class Section:
 
     def get_evaluation_feed(self, department, evaluation_ids=None):
         merged_evaluations = self.merge_evaluations(department=department)
-        return [e.to_api_json(section=self) for e in merged_evaluations if not evaluation_ids or e.get_id() in evaluation_ids]
+        evaluation_feed = [e.to_api_json(section=self) for e in merged_evaluations if not evaluation_ids or e.get_id() in evaluation_ids]
+
+        def _sort_key(evaluation):
+            course_number = evaluation.get('courseNumber', '')
+            evaluation_type = (evaluation.get('evaluationType') or {}).get('name', '')
+            department_form = (evaluation.get('departmentForm') or {}).get('name', '')
+            instructor = evaluation.get('instructor')
+            instructor_name = f"{instructor.get('lastName', '')}, {instructor.get('firstName', '')}" if instructor else ''
+            start_date = evaluation.get('startDate', '')
+            return f'{course_number}_{evaluation_type}_{department_form}_{instructor_name}_{start_date}'
+
+        evaluation_feed.sort(key=_sort_key)
+        return evaluation_feed

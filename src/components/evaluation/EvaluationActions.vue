@@ -48,6 +48,7 @@
             <div class="d-flex align-center mt-2">
               <PersonLookup
                 id="bulk-duplicate-instructor-lookup-autocomplete"
+                :disabled="disableControls"
                 :instructor-lookup="true"
                 placeholder="Instructor name or UID"
                 :on-select-result="selectInstructor"
