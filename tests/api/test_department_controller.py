@@ -215,13 +215,39 @@ class TestGetDepartment:
         assert home_dept_row['roomSharedWith'] == ['32159']
         assert home_dept_row['departmentForm'] is None
 
-    def test_single_section_feed(self, client, fake_auth, melc_id):
+    def test_single_section_feed(self, client, fake_auth, melc_id, app):
+        """Sorts section evalutions by type, then form, then instructor, then start date."""
         fake_auth.login(non_admin_uid)
-        response = client.get(f'/api/department/{melc_id}/section_evaluations/30470')
+        response = client.get(f'/api/department/{melc_id}/section_evaluations/30666')
         assert response.status_code == 200
-        assert len(response.json) == 2
-        for e in response.json:
-            assert e['courseNumber'] == '30470'
+        feed = response.json
+        app.logger.error(feed)
+        assert len(feed) == 5
+        assert feed[0]['courseNumber'] == '30666'
+        assert feed[0]['evaluationType']['name'] == 'F'
+        assert feed[0]['departmentForm']['name'] == 'MELC'
+        assert feed[0]['instructor']['lastName'] == 'Riddle'
+        assert feed[0]['startDate'] == '2022-04-18'
+        assert feed[1]['courseNumber'] == '30666'
+        assert feed[1]['evaluationType']['name'] == 'F'
+        assert feed[1]['departmentForm']['name'] == 'MELC'
+        assert feed[1]['instructor']['lastName'] == 'Wade'
+        assert feed[1]['startDate'] == '2022-04-18'
+        assert feed[2]['courseNumber'] == '30666'
+        assert feed[2]['evaluationType']['name'] == 'G'
+        assert feed[2]['departmentForm']['name'] == 'MELC'
+        assert feed[2]['instructor']['lastName'] == 'Bachelor'
+        assert feed[2]['startDate'] == '2022-03-31'
+        assert feed[3]['courseNumber'] == '30666'
+        assert feed[3]['evaluationType']['name'] == 'G'
+        assert feed[3]['departmentForm']['name'] == 'MELC'
+        assert feed[3]['instructor']['lastName'] == 'O\'Blivion'
+        assert feed[3]['startDate'] == '2022-02-21'
+        assert feed[4]['courseNumber'] == '30666'
+        assert feed[4]['evaluationType']['name'] == 'G'
+        assert feed[4]['departmentForm']['name'] == 'MELC'
+        assert feed[4]['instructor']['lastName'] == 'Waterman'
+        assert feed[4]['startDate'] == '2022-04-18'
 
 
 def _api_update_evaluation(client, dept_id=None, params={}, expected_status_code=200):

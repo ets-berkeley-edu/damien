@@ -140,13 +140,14 @@
                     <v-btn
                       :id="`edit-evaluation-${evaluation.id}-btn`"
                       class="primary-contrast primary--text"
-                      :class="{'sr-only': !hover && evaluation.id !== focusedEditButtonEvaluationId}"
+                      :class="{'sr-only': !hover && evaluation.id !== focusedEditButtonEvaluationId, 'focus-btn': evaluation.id === focusedEditButtonEvaluationId}"
                       block
                       :disabled="!allowEdits"
+                      :ripple="false"
                       text
                       @click="onEditEvaluation(evaluation)"
-                      @blur="() => focusedEditButtonEvaluationId = null"
-                      @focus.prevent="() => focusedEditButtonEvaluationId = evaluation.id"
+                      @blur.native="() => focusedEditButtonEvaluationId = null"
+                      @focus.native="() => focusedEditButtonEvaluationId = evaluation.id"
                       @keypress.enter.prevent="onEditEvaluation(evaluation)"
                     >
                       Edit
@@ -503,7 +504,7 @@ export default {
       this.selectedEvaluationType = null
       this.selectedStartDate = null
       this.focusedEditButtonEvaluationId = evaluation.id
-      this.$putFocusNextTick(`'edit-evaluation-${evaluation.id}-btn`)
+      this.$putFocusNextTick(`edit-evaluation-${this.focusedEditButtonEvaluationId}-btn`)
     },
     afterSelectDepartmentForm(selected) {
       this.alertScreenReader(`${selected.name} department form selected.`)
@@ -558,11 +559,10 @@ export default {
       return new Date(this.$_.get(evaluation, 'meetingDates.start'))
     },
     onCancelConfirm() {
-      const editingEvaluation = this.$_.find(this.evaluations, ['id', this.editRowId])
       this.isConfirmingCancelEdit = false
       this.focusedEditButtonEvaluationId = this.$_.clone(this.pendingEditRowId)
       this.pendingEditRowId = null
-      this.$putFocusNextTick(`edit-evaluation-${editingEvaluation.id}-btn`)
+      this.$putFocusNextTick(`edit-evaluation-${this.focusedEditButtonEvaluationId}-btn`)
     },
     onCancelEdit(evaluation) {
       this.alertScreenReader('Edit canceled.')
@@ -692,6 +692,9 @@ export default {
 <style>
 .course-name {
   min-width: 200px;
+}
+.focus-btn::before {
+  opacity: 0.24;
 }
 tr.border-bottom-none td {
   border-bottom: none !important;
