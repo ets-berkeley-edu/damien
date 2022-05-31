@@ -23,9 +23,14 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from damien.models.tool_setting import ToolSetting
+import simplejson as json
 from tests.util import override_config
 
-authorized_uid = '100'
+
+non_admin_uid = '100'
+admin_uid = '200'
+unauthorized_uid = '666'
 
 
 class TestConfigController:
@@ -45,7 +50,7 @@ class TestConfigController:
     def test_authorized_user(self, app, client, fake_auth):
         """Returns a well-formed response to authorized user."""
         with override_config(app, 'DEVELOPER_AUTH_ENABLED', True):
-            fake_auth.login(authorized_uid)
+            fake_auth.login(non_admin_uid)
             response = client.get('/api/config')
             assert response.status_code == 200
             data = response.json
@@ -56,7 +61,7 @@ class TestConfigController:
             assert data['timezone'] == 'America/Los_Angeles'
 
     def test_available_terms(self, app, client, fake_auth):
-        fake_auth.login(authorized_uid)
+        fake_auth.login(non_admin_uid)
         response = client.get('/api/config')
         assert response.status_code == 200
         data = response.json
@@ -65,7 +70,7 @@ class TestConfigController:
         assert data['availableTerms'][1] == {'id': '2222', 'name': 'Spring 2022'}
 
     def test_current_term(self, app, client, fake_auth):
-        fake_auth.login(authorized_uid)
+        fake_auth.login(non_admin_uid)
         response = client.get('/api/config')
         assert response.status_code == 200
         data = response.json
@@ -74,3 +79,100 @@ class TestConfigController:
         assert data['termDates']['default']['end'] == '2022-05-06'
         assert data['termDates']['valid']['begin'] == '2022-01-18'
         assert data['termDates']['valid']['end'] == '2022-05-06'
+
+
+class TestServiceAnnouncement:
+    """Tool Settings API."""
+
+    @staticmethod
+    def _api_service_announcement(client, expected_status_code=200):
+        response = client.get('/api/service_announcement')
+        assert response.status_code == expected_status_code
+        return response.json
+
+    def test_not_authenticated(self, client):
+        """Rejects anonymous user."""
+        self._api_service_announcement(client, expected_status_code=401)
+
+    def test_announcement_is_not_live_as_advisor(self, client, fake_auth):
+        """Does not return unpublished announcements to users."""
+        _update_service_announcement(text='Go to the city of Megiddo', is_live=False)
+        fake_auth.login(non_admin_uid)
+        assert self._api_service_announcement(client) is None
+
+    def test_announcement_is_not_live_as_admin(self, client, fake_auth):
+        """Returns unpublished announcement to admin."""
+        text = 'See Bugenhagen before it\'s too late'
+        _update_service_announcement(text=text, is_live=False)
+        fake_auth.login(admin_uid)
+        api_json = self._api_service_announcement(client)
+        assert api_json == {
+            'text': text,
+            'isLive': False,
+        }
+
+    def test_announcement_is_live(self, client, fake_auth):
+        """All users get the service announcement."""
+        text = 'The son of the devil will rise from the world of politics.'
+        _update_service_announcement(text=text, is_live=True)
+        fake_auth.login(non_admin_uid)
+        api_json = self._api_service_announcement(client)
+        assert api_json == {
+            'text': text,
+            'isLive': True,
+        }
+
+
+class TestUpdateAnnouncement:
+    """Tool Settings API."""
+
+    @staticmethod
+    def _api_update_announcement(client, text, is_live, expected_status_code=200):
+        response = client.post(
+            '/api/service_announcement/update',
+            content_type='application/json',
+            data=json.dumps({'text': text, 'isLive': is_live}),
+        )
+        assert response.status_code == expected_status_code
+        return response.json
+
+    def test_not_authenticated(self, client):
+        """Rejects anonymous user."""
+        self._api_update_announcement(
+            client,
+            text='Go to the city of Megiddo',
+            is_live=True,
+            expected_status_code=401,
+        )
+
+    def test_not_authorized(self, client, fake_auth):
+        """Rejects non-admin user."""
+        fake_auth.login(non_admin_uid)
+        self._api_update_announcement(
+            client,
+            text='See Bugenhagen before it\'s too late',
+            is_live=True,
+            expected_status_code=401,
+        )
+
+    def test_update_service_announcement(self, client, fake_auth):
+        """Admin can update service announcement."""
+        fake_auth.login(admin_uid)
+        text = 'The son of the devil will rise from the world of politics.'
+        self._api_update_announcement(client, text=text, is_live=True)
+        # Verify the update
+        response = client.get('/api/service_announcement')
+        assert response.status_code == 200
+        assert response.json == {
+            'text': text,
+            'isLive': True,
+        }
+
+
+def _update_service_announcement(text, is_live):
+    ToolSetting.upsert('SERVICE_ANNOUNCEMENT_TEXT', text)
+    ToolSetting.upsert('SERVICE_ANNOUNCEMENT_IS_LIVE', is_live)
+    return {
+        'text': text,
+        'isLive': is_live,
+    }

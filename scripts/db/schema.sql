@@ -263,6 +263,29 @@ CREATE INDEX supplemental_sections_department_id_idx ON supplemental_sections US
 
 --
 
+CREATE TABLE tool_settings (
+    id integer NOT NULL,
+    key character varying NOT NULL,
+    value character varying NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+CREATE SEQUENCE tool_settings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE tool_settings_id_seq OWNED BY tool_settings.id;
+ALTER TABLE ONLY tool_settings ALTER COLUMN id SET DEFAULT nextval('tool_settings_id_seq'::regclass);
+ALTER TABLE ONLY tool_settings
+    ADD CONSTRAINT tool_settings_key_unique_constraint UNIQUE (key);
+ALTER TABLE ONLY tool_settings
+    ADD CONSTRAINT tool_settings_pkey PRIMARY KEY (id);
+CREATE INDEX tool_settings_key_idx ON tool_settings USING btree (key);
+
+--
+
 CREATE TABLE user_department_forms (
     id integer NOT NULL,
     user_id integer NOT NULL,

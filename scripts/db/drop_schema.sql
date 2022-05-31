@@ -81,6 +81,8 @@ ALTER TABLE IF EXISTS ONLY public.supplemental_instructors DROP CONSTRAINT IF EX
 ALTER TABLE IF EXISTS ONLY public.department_catalog_listings DROP CONSTRAINT IF EXISTS department_catalog_listings_pkey;
 ALTER TABLE IF EXISTS public.department_catalog_listings ALTER COLUMN id DROP DEFAULT;
 
+ALTER TABLE IF EXISTS ONLY public.tool_settings DROP CONSTRAINT IF EXISTS tool_settings_key_unique_constraint;
+
 ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_pkey;
 ALTER TABLE IF EXISTS public.users ALTER COLUMN id DROP DEFAULT;
 
@@ -119,6 +121,9 @@ DROP TABLE IF EXISTS public.supplemental_instructors CASCADE;
 
 DROP SEQUENCE IF EXISTS public.supplemental_sections_id_seq;
 DROP TABLE IF EXISTS public.supplemental_sections CASCADE;
+
+DROP SEQUENCE IF EXISTS public.tool_settings_id_seq CASCADE;
+DROP TABLE IF EXISTS public.tool_settings CASCADE;
 
 DROP SEQUENCE IF EXISTS public.users_id_seq;
 DROP TABLE IF EXISTS public.users CASCADE;
