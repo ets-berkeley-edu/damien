@@ -23,11 +23,15 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from damien.api.errors import BadRequestError
+from damien.api.util import admin_required
 from damien.lib.berkeley import available_term_ids, term_name_for_sis_id
 from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_default_meeting_dates, get_valid_meeting_dates
-from damien.lib.util import safe_strftime
-from flask import current_app as app
+from damien.lib.util import safe_strftime, to_bool_or_none
+from damien.models.tool_setting import ToolSetting
+from flask import current_app as app, request
+from flask_login import current_user, login_required
 
 
 @app.route('/api/config')
@@ -59,3 +63,36 @@ def app_config():
         },
         'timezone': app.config['TIMEZONE'],
     })
+
+
+@app.route('/api/service_announcement')
+@login_required
+def get_service_announcement():
+    announcement = _get_service_announcement()
+    return tolerant_jsonify(announcement if current_user.is_admin or announcement['isLive'] else None)
+
+
+@app.route('/api/service_announcement/update', methods=['POST'])
+@admin_required
+def update_service_announcement():
+    params = request.get_json()
+    text = params.get('text')
+    is_live = to_bool_or_none(params.get('isLive'))
+    if not text or is_live is None:
+        raise BadRequestError('API requires \'text\' and \'isLive\'')
+    _update_service_announcement(text, is_live)
+    return tolerant_jsonify(_get_service_announcement())
+
+
+def _get_service_announcement():
+    is_live = ToolSetting.get_tool_setting('SERVICE_ANNOUNCEMENT_IS_LIVE')
+    is_live = False if is_live is None else to_bool_or_none(is_live)
+    return {
+        'text': ToolSetting.get_tool_setting('SERVICE_ANNOUNCEMENT_TEXT'),
+        'isLive': is_live,
+    }
+
+
+def _update_service_announcement(text, is_live):
+    ToolSetting.upsert('SERVICE_ANNOUNCEMENT_TEXT', text)
+    ToolSetting.upsert('SERVICE_ANNOUNCEMENT_IS_LIVE', is_live)

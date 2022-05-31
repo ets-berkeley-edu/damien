@@ -30,6 +30,15 @@ from flask import current_app as app
 import pytz
 
 
+def camelize(string):
+    def lower_then_capitalize():
+        yield str.lower
+        while True:
+            yield str.capitalize
+    string_transform = lower_then_capitalize()
+    return ''.join(next(string_transform)(segment) for segment in string.split('_'))
+
+
 def get(_dict, key, default_value=None):
     return _dict[key] if key in _dict else default_value
 
@@ -79,6 +88,22 @@ def resolve_sql_template(sql_filename, **kwargs):
 
 def safe_strftime(date, date_format):
     return datetime.strftime(date, date_format) if date else None
+
+
+def to_bool_or_none(arg):
+    """
+    On the principle of "no decision is a decision," this util has three possible outcomes: True, False and None.
+
+    If arg is type string, handle 'true'/'false' values or return None.
+    If arg is NOT type string and NOT None, fall back to Python's bool().
+    """
+    s = arg
+    if isinstance(arg, str):
+        s = arg.strip().lower()
+        s = True if s == 'true' else s
+        s = False if s == 'false' else s
+        s = None if s not in [True, False] else s
+    return None if s is None else bool(s)
 
 
 def to_int(s):
