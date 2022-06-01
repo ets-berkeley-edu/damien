@@ -200,6 +200,9 @@ export default {
     },
     cancelDuplicate() {
       this.isDuplicating = false
+      if (this.bulkUpdateOptions.startDate) {
+        this.bulkUpdateOptions.startDate = null
+      }
       this.alertScreenReader('Canceled.')
       this.$putFocusNextTick('apply-course-action-btn-duplicate')
     },
@@ -217,6 +220,18 @@ export default {
     },
     showDuplicateOptions() {
       this.isDuplicating = true
+
+      /* Find all the dates from the selected evals, format them, then find if they're unique*/
+      const uniqueStartDates = this.evaluations
+                    .filter(ev => this.selectedEvaluationIds.includes(ev.id))
+                    .map(ev => new Date(ev.startDate).toDateString())
+                    .filter((date, idx, val) => val.indexOf(date) === idx)
+
+      if (uniqueStartDates.length === 1) {
+        this.bulkUpdateOptions.startDate = new Date(uniqueStartDates[0])
+      }
+      
+      
       this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
     }
   }
