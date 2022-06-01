@@ -97,9 +97,22 @@
         </v-list>
       </v-menu>
     </v-app-bar>
-    <v-main id="content" class="ma-3">
+    <v-main id="content" class="ma-0">
       <Snackbar />
       <Spinner v-if="loading" />
+      <div
+        v-if="serviceAnnouncement && serviceAnnouncement.isLive"
+        class="service-announcement"
+      >
+        <div
+          id="service-announcement"
+          class="p-3"
+          aria-live="polite"
+          role="alert"
+        >
+          {{ serviceAnnouncement.text }}
+        </div>
+      </div>
       <router-view :key="stripAnchorRef($route.fullPath)" class="px-4"></router-view>
     </v-main>
     <Footer />
@@ -176,6 +189,16 @@
 <style scoped>
 .nav {
   z-index: 9 !important;
+}
+.service-announcement {
+  background-color: #f0ad4e;
+  color: #000;
+  margin: 0px;
+  padding: 10px 15px;
+  position: sticky;
+  top: 56px;
+  width: 100%;
+  z-index: 2;
 }
 .sidebar-link-content {
   height: 56px;

@@ -775,7 +775,7 @@ tr.border-top-none td {
 .sticky {
   position: sticky;
   top: 56px;
-  z-index: 1;
+  z-index: 10;
 }
 .sticky-dark {
   background-color: #171717;
