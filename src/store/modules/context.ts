@@ -1,8 +1,10 @@
+import { getServiceAnnouncement } from '@/api/config'
 import Vue from 'vue'
 
 const state = {
   loading: undefined,
   screenReaderAlert: undefined,
+  serviceAnnouncement: undefined,
   snackbar: {
     color: 'primary',
     text: undefined,
@@ -14,6 +16,7 @@ const state = {
 const getters = {
   loading: (state: any): boolean => state.loading,
   screenReaderAlert: (state: any): string => state.screenReaderAlert,
+  serviceAnnouncement: (state: any): string => state.serviceAnnouncement,
   snackbar: (state: any): any => state.snackbar,
   snackbarShow: (state: any): boolean => state.snackbarShow,
 }
@@ -31,6 +34,7 @@ const mutations = {
   },
   loadingStart: (state: any) => (state.loading = true),
   setScreenReaderAlert: (state: any, alert: string) => (state.screenReaderAlert = alert),
+  setServiceAnnouncement: (state: any, data: any) => (state.serviceAnnouncement = data),
   snackbarClose: (state: any) => {
     state.snackbarShow = false
     state.snackbar.text = undefined
@@ -51,7 +55,12 @@ const mutations = {
 const actions = {
   alertScreenReader: ({ commit }, alert) => commit('setScreenReaderAlert', alert),
   loadingComplete: ({ commit }, {pageTitle, alert}) => commit('loadingComplete', {pageTitle, alert}),
-  loadingStart: ({ commit }) => commit('loadingStart'),
+  loadingStart: ({ commit }) => {
+    commit('loadingStart')
+    getServiceAnnouncement().then(data => {
+      commit('setServiceAnnouncement', data)
+    })
+  },
   snackbarClose: ({ commit }) => commit('snackbarClose'),
   snackbarOpen: ({ commit }, text) => commit('snackbarOpen', text),
   snackbarReportError: ({ commit }, text) => commit('snackbarReportError', text)

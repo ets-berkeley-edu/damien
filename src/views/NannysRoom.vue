@@ -319,6 +319,10 @@
               </template>
             </v-data-table>
           </v-card>
+          <v-card elevation="2" class="mr-4 mt-4">
+            <v-card-title>Service Announcement</v-card-title>
+            <EditServiceAnnouncement />
+          </v-card>
         </v-col>
       </v-row>
     </v-container>
@@ -335,11 +339,12 @@
 <script>
 import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context.vue'
+import EditServiceAnnouncement from '@/components/admin/EditServiceAnnouncement'
 import ListManagementSession from '@/mixins/ListManagementSession'
 
 export default {
   name: 'NannysRoom',
-  components: {ConfirmDialog},
+  components: {ConfirmDialog, EditServiceAnnouncement},
   mixins: [Context, ListManagementSession],
   data: () => ({
     instructorValid: true,

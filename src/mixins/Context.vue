@@ -5,7 +5,7 @@ import {mapActions, mapGetters} from 'vuex'
 export default {
   name: 'Context',
   computed: {
-    ...mapGetters('context', ['loading', 'screenReaderAlert', 'snackbar']),
+    ...mapGetters('context', ['loading', 'screenReaderAlert', 'serviceAnnouncement', 'snackbar']),
     snackbarShow: {
       get: () => store.getters['context/snackbarShow'],
       set: show => store.dispatch(show ? 'context/snackbarOpen' : 'context/snackbarClose')
