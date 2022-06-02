@@ -215,13 +215,12 @@ class TestGetDepartment:
         assert home_dept_row['roomSharedWith'] == ['32159']
         assert home_dept_row['departmentForm'] is None
 
-    def test_single_section_feed(self, client, fake_auth, melc_id, app):
+    def test_single_section_feed(self, client, fake_auth, melc_id):
         """Sorts section evalutions by type, then form, then instructor, then start date."""
         fake_auth.login(non_admin_uid)
         response = client.get(f'/api/department/{melc_id}/section_evaluations/30666')
         assert response.status_code == 200
         feed = response.json
-        app.logger.error(feed)
         assert len(feed) == 5
         assert feed[0]['courseNumber'] == '30666'
         assert feed[0]['evaluationType']['name'] == 'F'
