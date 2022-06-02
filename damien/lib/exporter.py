@@ -26,35 +26,41 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from itertools import groupby
 
 from damien.externals.s3 import get_s3_path, put_csv_to_s3
-from damien.lib.berkeley import term_code_for_sis_id
+from damien.lib.berkeley import term_code_for_sis_id, term_ids_range
 from damien.lib.queries import get_confirmed_enrollments, get_loch_basic_attributes
 from damien.lib.util import safe_strftime
 from damien.models.department import Department
+from damien.models.department_catalog_listing import DepartmentCatalogListing
 from damien.models.department_form import DepartmentForm
-from damien.models.evaluation import is_modular
+from damien.models.evaluation import Evaluation, is_modular
 from damien.models.export import Export
 from damien.models.user import User
+from flask import current_app as app
 
 
-def generate_exports(evals, term_id, timestamp):
-    evaluations = {}
-    instructors = {}
-    sections = {}
-
-    for dept_id, dept_evals in groupby(evals, key=lambda e: e.department_id):
-        department_exports = Department.find_by_id(dept_id).get_evaluation_exports(term_id, evaluation_ids=[e.id for e in dept_evals])
-        instructors.update(department_exports['instructors'])
-        sections.update(department_exports['sections'])
-
-        for export_key, instructor_uid_set in department_exports['evaluations'].items():
-            if export_key not in evaluations:
-                evaluations[export_key] = set()
-            evaluations[export_key].update(instructor_uid_set)
-
+def generate_exports(term_id, timestamp):
+    all_catalog_listings = DepartmentCatalogListing.query.all()
     dept_forms_to_uids = {df.name: [udf.user.uid for udf in df.users] for df in DepartmentForm.query.filter_by(deleted_at=None).all()}
 
-    courses, course_instructors, course_students, course_supervisors, students =\
-        _generate_course_rows(term_id, sections, evaluations, dept_forms_to_uids)
+    # Course-supervisor mappings for cross-listed courses include past terms.
+    past_term_ids = term_ids_range(app.config['EARLIEST_TERM_ID'], term_id)[:-1]
+    xlisted_course_supervisors = []
+    for past_term_id in past_term_ids:
+        evaluations, instructors, sections = _generate_evaluation_maps(past_term_id)
+        sorted_keys = sorted(evaluations.keys(), key=lambda k: (k.course_number, k.department_form, k.evaluation_type))
+        for course_number, keys in groupby(sorted_keys, lambda k: k.course_number):
+            keys = list(keys)
+            course_ids = _generate_course_id_map(keys, course_number, past_term_id)
+            for key in keys:
+                xlisted_course_supervisors.extend(
+                    _generate_xlisted_course_supervisor_rows(course_ids[key], course_number, sections, dept_forms_to_uids, all_catalog_listings))
+
+    # All other exports are for the current term only.
+    evaluations, instructors, sections = _generate_evaluation_maps(term_id)
+    courses, course_instructors, course_students, course_supervisors, students, current_term_xlisted_course_supervisors =\
+        _generate_course_rows(term_id, sections, evaluations, dept_forms_to_uids, all_catalog_listings)
+    xlisted_course_supervisors.extend(current_term_xlisted_course_supervisors)
+
     instructors = [_export_instructor_row(instructors[k]) for k in sorted(instructors.keys())]
     supervisors = [_export_supervisor_row(u) for u in User.get_dept_contacts_with_blue_permissions()]
     department_hierarchy, report_viewer_hierarchy = _generate_hierarchy_rows(dept_forms_to_uids)
@@ -68,17 +74,19 @@ def generate_exports(evals, term_id, timestamp):
     put_csv_to_s3(term_id, timestamp, 'report_viewer_hierarchy', report_viewer_hierarchy_headers, report_viewer_hierarchy)
     put_csv_to_s3(term_id, timestamp, 'students', student_headers, students)
     put_csv_to_s3(term_id, timestamp, 'supervisors', supervisor_headers, supervisors)
+    put_csv_to_s3(term_id, timestamp, 'xlisted_course_supervisors', xlisted_course_supervisor_headers, xlisted_course_supervisors)
 
     s3_path = get_s3_path(term_id, timestamp)
     export = Export.create(term_id, s3_path)
     return export.to_api_json()
 
 
-def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms_to_uids):
+def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms_to_uids, all_catalog_listings):
     course_rows = []
     course_instructor_rows = []
     course_student_rows = []
     course_supervisor_rows = []
+    xlisted_course_supervisor_rows = []
 
     enrollments = get_confirmed_enrollments(term_id)
     students_by_uid = {r['uid']: r for r in get_loch_basic_attributes(list({e['ldap_uid'] for e in enrollments}))}
@@ -90,21 +98,8 @@ def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms
     sorted_keys = sorted(keys_to_instructor_uids.keys(), key=lambda k: (k.course_number, k.department_form, k.evaluation_type))
 
     for course_number, keys in groupby(sorted_keys, lambda k: k.course_number):
-        course_id_prefix = f'{term_code_for_sis_id(term_id)}-{course_number}'
         keys = list(keys)
-
-        # One key per course number makes life easy.
-        if len(keys) == 1:
-            course_ids = {keys[0]: course_id_prefix}
-        # A couple of common cases.
-        elif len(keys) == 2 and keys[0].evaluation_type == 'F' and keys[1].evaluation_type == 'G':
-            course_ids = {keys[0]: course_id_prefix, keys[1]: f'{course_id_prefix}_GSI'}
-        elif len(keys) == 2 and not keys[0].department_form.endswith('_MID') and keys[1].department_form.endswith('_MID'):
-            course_ids = {keys[0]: course_id_prefix, keys[1]: f'{course_id_prefix}_MID'}
-        # If we can't make sense of how the eval keys differ, just use the alphabet.
-        else:
-            course_ids = {key: f'{course_id_prefix}_{chr(65 + index)}' for index, key in enumerate(keys)}
-
+        course_ids = _generate_course_id_map(keys, course_number, term_id)
         for key in keys:
             course_rows.append(_export_course_row(course_ids[key], key, sections[course_number]))
             for instructor_uid in keys_to_instructor_uids[key]:
@@ -113,10 +108,46 @@ def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms
                 course_student_rows.append({'COURSE_ID': course_ids[key], 'LDAP_UID': student_uid})
             for supervisor_uid in dept_forms_to_uids.get(key.department_form, []):
                 course_supervisor_rows.append({'COURSE_ID': course_ids[key], 'LDAP_UID': supervisor_uid, 'DEPT_NAME': key.department_form})
+            xlisted_course_supervisor_rows.extend(
+                _generate_xlisted_course_supervisor_rows(course_ids[key], course_number, sections, dept_forms_to_uids, all_catalog_listings))
 
     student_rows = [_export_student_row(v) for v in students_by_uid.values()]
 
-    return course_rows, course_instructor_rows, course_student_rows, course_supervisor_rows, student_rows
+    return course_rows, course_instructor_rows, course_student_rows, course_supervisor_rows, student_rows, xlisted_course_supervisor_rows
+
+
+def _generate_course_id_map(keys, course_number, term_id):
+    course_id_prefix = f'{term_code_for_sis_id(term_id)}-{course_number}'
+    # One key per course number makes life easy.
+    if len(keys) == 1:
+        return {keys[0]: course_id_prefix}
+    # A couple of common cases.
+    elif len(keys) == 2 and keys[0].evaluation_type == 'F' and keys[1].evaluation_type == 'G':
+        return {keys[0]: course_id_prefix, keys[1]: f'{course_id_prefix}_GSI'}
+    elif len(keys) == 2 and not keys[0].department_form.endswith('_MID') and keys[1].department_form.endswith('_MID'):
+        return {keys[0]: course_id_prefix, keys[1]: f'{course_id_prefix}_MID'}
+    # If we can't make sense of how the eval keys differ, just use the alphabet.
+    else:
+        return {key: f'{course_id_prefix}_{chr(65 + index)}' for index, key in enumerate(keys)}
+
+
+def _generate_evaluation_maps(term_id):
+    evaluations = {}
+    instructors = {}
+    sections = {}
+
+    db_evals = Evaluation.get_confirmed(term_id)
+
+    for dept_id, dept_evals in groupby(db_evals, key=lambda e: e.department_id):
+        department_exports = Department.find_by_id(dept_id).get_evaluation_exports(term_id, evaluation_ids=[e.id for e in dept_evals])
+        instructors.update(department_exports['instructors'])
+        sections.update(department_exports['sections'])
+
+        for export_key, instructor_uid_set in department_exports['evaluations'].items():
+            if export_key not in evaluations:
+                evaluations[export_key] = set()
+            evaluations[export_key].update(instructor_uid_set)
+    return evaluations, instructors, sections
 
 
 def _generate_hierarchy_rows(dept_forms_to_uids):
@@ -145,6 +176,18 @@ def _generate_hierarchy_rows(dept_forms_to_uids):
             })
 
     return department_hierarchy_rows, report_viewer_hierarchy_rows
+
+
+def _generate_xlisted_course_supervisor_rows(course_id, course_number, sections, dept_forms_to_uids, all_catalog_listings):
+    rows = []
+    cln = _cross_listed_name(sections[course_number])
+    if cln:
+        for n in cln.split('-'):
+            default_form = sections[n].find_default_form(all_catalog_listings)
+            if default_form:
+                for supervisor_uid in dept_forms_to_uids.get(default_form.name, []):
+                    rows.append({'COURSE_ID': course_id, 'LDAP_UID': supervisor_uid})
+    return rows
 
 
 course_headers = [
@@ -242,6 +285,12 @@ supervisor_headers = [
     'DEPT_NAME_8',
     'DEPT_NAME_9',
     'DEPT_NAME_10',
+]
+
+
+xlisted_course_supervisor_headers = [
+    'COURSE_ID',
+    'LDAP_UID',
 ]
 
 

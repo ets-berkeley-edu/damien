@@ -98,12 +98,15 @@ class Section:
 
     def set_default_form(self, catalog_listings):
         # Apply a default form value to courses not cross-listed or room shared.
-        self.default_form = None
-        if not self.cross_listed_with and not self.room_shared_with:
-            for c in catalog_listings:
-                if c.subject_area in (self.subject_area, '') and (c.catalog_id is None or re.match(c.catalog_id, self.catalog_id)):
-                    self.default_form = c.default_form
-                    break
+        if self.cross_listed_with or self.room_shared_with:
+            self.default_form = None
+        else:
+            self.default_form = self.find_default_form(catalog_listings)
+
+    def find_default_form(self, catalog_listings):
+        for c in catalog_listings:
+            if c.subject_area in (self.subject_area, '') and (c.catalog_id is None or re.match(c.catalog_id, self.catalog_id)):
+                return c.default_form
 
     def merge_evaluations(self, department):
         merged_evaluations = []
