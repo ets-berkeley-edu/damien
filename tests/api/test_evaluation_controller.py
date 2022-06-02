@@ -172,7 +172,7 @@ class TestExportEvaluations:
             assert eval_response['createdAt']
 
             exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
-            assert len(exported_objects) == 9
+            assert len(exported_objects) == 10
 
             courses = _read_csv(exported_objects, '/courses.csv')
             assert len(courses) == 1
@@ -214,7 +214,7 @@ class TestExportEvaluations:
         with mock_s3_bucket(app) as s3:
             _api_export_evaluations(client)
             exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
-            assert len(exported_objects) == 9
+            assert len(exported_objects) == 10
 
             courses = _read_csv(exported_objects, '/courses.csv')
             assert len(courses) == 2
@@ -254,6 +254,15 @@ class TestExportEvaluations:
             assert students[2] == '88888,12388888,Archy,Goforth,agoforth1@berkeley.edu'
             assert students[3] == '99999,12399999,Georgi,Prudence,gprudence2@berkeley.edu'
 
+            xlisted_course_supervisors = _read_csv(exported_objects, '/xlisted_course_supervisors.csv')
+            assert len(xlisted_course_supervisors) == 4
+            assert xlisted_course_supervisors[0] == 'COURSE_ID,LDAP_UID'
+            # Dept admins for cross-listed MELC department.
+            assert xlisted_course_supervisors[1] == '2022-B-30643,1007025'
+            # Dept admins for home history department.
+            assert xlisted_course_supervisors[2] == '2022-B-30643,5013530'
+            assert xlisted_course_supervisors[3] == '2022-B-30643,6982398'
+
     @mock_s3
     def test_supervisors_export(self, client, app, fake_auth, history_id, form_history_id, type_f_id):
         fake_auth.login(admin_uid)
@@ -278,7 +287,8 @@ class TestExportEvaluations:
             assert 'HISTORY,HISTORY,UC Berkeley,UC Berkeley,2' in department_hierarchy
 
             report_viewer_hierarchy = _read_csv(exported_objects, '/report_viewer_hierarchy.csv')
-            assert len(report_viewer_hierarchy) == 3
+            assert len(report_viewer_hierarchy) == 4
             assert report_viewer_hierarchy[0] == 'SOURCE,TARGET,ROLE_ID'
-            assert report_viewer_hierarchy[1] == 'HISTORY,5013530,DEPT_ADMIN'
-            assert report_viewer_hierarchy[2] == 'HISTORY,6982398,DEPT_ADMIN'
+            assert 'HISTORY,5013530,DEPT_ADMIN' in report_viewer_hierarchy
+            assert 'HISTORY,6982398,DEPT_ADMIN' in report_viewer_hierarchy
+            assert 'MELC,1007025,DEPT_ADMIN' in report_viewer_hierarchy

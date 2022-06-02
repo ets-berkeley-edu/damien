@@ -46,9 +46,8 @@ def export_evaluations():
     validation_errors = Evaluation.get_invalid(term_id, status='confirmed')
     if len(validation_errors):
         raise BadRequestError(f'Cannot export evaluations: {len(validation_errors)} validation errors')
-    evals = Evaluation.get_confirmed(term_id)
     timestamp = datetime.now()
-    result = generate_exports(evals, term_id, timestamp)
+    result = generate_exports(term_id, timestamp)
     if result:
         return tolerant_jsonify(result)
     else:

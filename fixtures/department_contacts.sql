@@ -133,7 +133,7 @@ INSERT INTO dept_uids VALUES
 ('Engineering','6555809',TRUE),
 ('Engineering','8432154',TRUE),
 ('Engineering','9115040',TRUE),
-('Engineering','1007025',TRUE),
+('Middle Eastern Languages and Cultures','1007025',TRUE),
 ('Legal Studies','7464420',TRUE),
 ('Industrial Engineering and Operations Research','6736735',TRUE),
 ('Bioengineering','6555809',TRUE),
