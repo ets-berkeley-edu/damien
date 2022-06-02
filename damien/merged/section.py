@@ -110,7 +110,7 @@ class Section:
 
         # Multiple loch rows for a single section-instructor pairing are possible.
         loch_rows_by_instructor_uid = {k: list(v) for k, v in groupby(self.loch_rows, key=lambda r: r['instructor_uid'])}
-        evaluation_uids = set()
+        merged_evaluation_uids = set()
 
         home_dept_evals = []
         foreign_dept_evals_by_uid = {}
@@ -128,11 +128,41 @@ class Section:
                     foreign_dept_evals_by_uid[instructor_uid] = []
                 foreign_dept_evals_by_uid[instructor_uid].extend(foreign_dept_evals)
 
+        self.merge_home_dept_evaluations(
+            merged_evaluations,
+            home_dept_evals,
+            loch_rows_by_instructor_uid,
+            foreign_dept_evals_by_uid,
+            merged_evaluation_uids,
+        )
+        self.merge_loch_evaluations(
+            merged_evaluations,
+            loch_rows_by_instructor_uid,
+            foreign_dept_evals_by_uid,
+            merged_evaluation_uids,
+        )
+        self.merge_foreign_dept_evaluations(
+            merged_evaluations,
+            loch_rows_by_instructor_uid,
+            foreign_dept_evals_by_uid,
+            merged_evaluation_uids,
+        )
+
+        return merged_evaluations
+
+    def merge_home_dept_evaluations(
+        self,
+        merged_evaluations,
+        home_dept_evals,
+        loch_rows_by_instructor_uid,
+        foreign_dept_evals_by_uid,
+        merged_evaluation_uids,
+    ):
         # Create one API feed element per visible saved evaluation, merging in data from SIS as needed.
         for evaluation in home_dept_evals:
-            evaluation_uids.add(evaluation.instructor_uid)
             if not evaluation.is_visible():
                 continue
+            merged_evaluation_uids.add(evaluation.instructor_uid)
             # When merging evaluation data for a specific instructor, we prefer in order: 1) loch rows for that specific
             # instructor; 2) loch rows with no instructor; 3) any loch rows available.
             loch_rows_for_uid = loch_rows_by_instructor_uid.get(evaluation.instructor_uid) or loch_rows_by_instructor_uid.get(None) or self.loch_rows
@@ -146,14 +176,22 @@ class Section:
                 evaluation_type_cache=self.evaluation_type_cache,
             ))
 
+    def merge_loch_evaluations(
+        self,
+        merged_evaluations,
+        loch_rows_by_instructor_uid,
+        foreign_dept_evals_by_uid,
+        merged_evaluation_uids,
+    ):
         # Supplement with SIS-only rows.
         for instructor_uid, loch_rows_for_uid in loch_rows_by_instructor_uid.items():
             # Ignore instructor UIDs already handled under saved evaluations.
-            if instructor_uid in evaluation_uids:
+            if instructor_uid in merged_evaluation_uids:
                 continue
             # Ignore rows without an instructor unless we have no saved evaluations.
             if instructor_uid is None and len(self.evaluations):
                 continue
+            merged_evaluation_uids.add(instructor_uid)
             merged_evaluations.append(Evaluation.merge_transient(
                 instructor_uid,
                 loch_rows_for_uid,
@@ -164,7 +202,28 @@ class Section:
                 evaluation_type_cache=self.evaluation_type_cache,
             ))
 
-        return merged_evaluations
+    def merge_foreign_dept_evaluations(
+        self,
+        merged_evaluations,
+        loch_rows_by_instructor_uid,
+        foreign_dept_evals_by_uid,
+        merged_evaluation_uids,
+    ):
+        # Add foreign department rows.
+        for instructor_uid, evaluations_for_instructor_uid in foreign_dept_evals_by_uid.items():
+            # Ignore instructor UIDs already handled under saved evaluations.
+            if instructor_uid in merged_evaluation_uids:
+                continue
+            loch_rows_for_uid = loch_rows_by_instructor_uid.get(instructor_uid) or loch_rows_by_instructor_uid.get(None) or self.loch_rows
+            merged_evaluations.append(Evaluation.merge_transient(
+                instructor_uid,
+                loch_rows_for_uid,
+                saved_evaluation=None,
+                foreign_dept_evaluations=evaluations_for_instructor_uid,
+                instructor=self.instructors.get(instructor_uid),
+                default_form=self.default_form,
+                evaluation_type_cache=self.evaluation_type_cache,
+            ))
 
     def to_api_json(self):
         feed = {

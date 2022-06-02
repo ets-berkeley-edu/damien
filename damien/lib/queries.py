@@ -191,11 +191,12 @@ def get_cross_listings(term_id, course_numbers):
             AND ss.course_number = cl2.cross_listing_number
             ORDER BY ss.course_number, ss.instructor_uid
         """
+    params = {'term_id': term_id, 'course_numbers': course_numbers}
     results = db.session().execute(
         text(query),
-        {'term_id': term_id, 'course_numbers': course_numbers},
+        params,
     ).all()
-    app.logger.info(f'Unholy loch cross-listing query returned {len(results)} results: {query}')
+    app.logger.info(f'Unholy loch cross-listing query returned {len(results)} results: {query} {params}')
     return results
 
 
@@ -214,11 +215,12 @@ def get_room_shares(term_id, course_numbers):
             AND ss.course_number = cs2.room_share_number
             ORDER BY ss.course_number, ss.instructor_uid
         """
+    params = {'term_id': term_id, 'course_numbers': course_numbers}
     results = db.session().execute(
         text(query),
-        {'term_id': term_id, 'course_numbers': course_numbers},
+        params,
     ).all()
-    app.logger.info(f'Unholy loch room share query returned {len(results)} results: {query}')
+    app.logger.info(f'Unholy loch room share query returned {len(results)} results: {query} {params}')
     return results
 
 
@@ -287,11 +289,12 @@ def get_loch_sections_by_ids(term_id, course_numbers):
             WHERE s.term_id = :term_id AND s.course_number = ANY(:course_numbers)
             ORDER BY s.course_number, s.instructor_uid
         """
+    params = {'term_id': term_id, 'course_numbers': course_numbers}
     results = db.session().execute(
         text(query),
-        {'term_id': term_id, 'course_numbers': course_numbers},
+        params,
     ).all()
-    app.logger.info(f'Unholy loch course by id query returned {len(results)} results: {query}')
+    app.logger.info(f'Unholy loch course by id query returned {len(results)} results: {query} {params}')
     return results
 
 

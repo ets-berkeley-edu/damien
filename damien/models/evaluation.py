@@ -350,7 +350,7 @@ class Evaluation(Base):
         if saved_evaluation and saved_evaluation.department_form:
             self.department_form = saved_evaluation.department_form
             for fde in foreign_dept_evaluations:
-                if fde.department_form and fde.department_form != self.department_form:
+                if fde.department_form and fde.department_form.id != self.department_form.id:
                     self.mark_conflict(fde, 'departmentForm', saved_evaluation, self.department_form.name, fde.department_form.name)
         else:
             for fde in foreign_dept_evaluations:
@@ -364,7 +364,7 @@ class Evaluation(Base):
         if saved_evaluation and saved_evaluation.evaluation_type:
             self.evaluation_type = saved_evaluation.evaluation_type
             for fde in foreign_dept_evaluations:
-                if fde.evaluation_type and fde.evaluation_type != self.evaluation_type:
+                if fde.evaluation_type and fde.evaluation_type.id != self.evaluation_type.id:
                     self.mark_conflict(fde, 'evaluationType', saved_evaluation, self.evaluation_type.name, fde.evaluation_type.name)
         else:
             for fde in foreign_dept_evaluations:
