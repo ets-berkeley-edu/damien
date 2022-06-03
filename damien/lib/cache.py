@@ -23,25 +23,20 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien import cache, db
-from damien.configs import load_configs
-from damien.jobs.refresh_unholy_loch import initialize_refresh_schedule
-from damien.logger import initialize_logger
-from damien.routes import register_routes
-from flask import Flask
+from damien import cache
 
 
-def create_app():
-    """Initialize app with configs."""
-    app = Flask(__name__.split('.')[0])
-    load_configs(app)
-    initialize_logger(app)
-    cache.init_app(app)
-    cache.clear()
-    db.init_app(app)
+def clear_section_cache(department_id, term_id, course_number):
+    cache.delete(_section_cache_key(department_id, term_id, course_number))
 
-    with app.app_context():
-        register_routes(app)
-        initialize_refresh_schedule(app)
 
-    return app
+def fetch_section_cache(department_id, term_id, course_number):
+    return cache.get(_section_cache_key(department_id, term_id, course_number))
+
+
+def set_section_cache(department_id, term_id, course_number, cached):
+    cache.set(_section_cache_key(department_id, term_id, course_number), cached, 86400)
+
+
+def _section_cache_key(department_id, term_id, course_number):
+    return f'section/{term_id}/{course_number}/dept/{department_id}'

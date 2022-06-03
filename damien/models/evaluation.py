@@ -28,6 +28,7 @@ from datetime import timedelta
 from itertools import groupby
 
 from damien import db, std_commit
+from damien.lib.cache import clear_section_cache
 from damien.lib.queries import get_default_meeting_dates, refresh_additional_instructors
 from damien.lib.util import safe_strftime
 from damien.models.base import Base
@@ -236,7 +237,7 @@ class Evaluation(Base):
         return evaluation
 
     @classmethod
-    def duplicate_bulk(cls, department_id, evaluation_ids, department, fields=None):
+    def duplicate_bulk(cls, department, evaluation_ids, fields=None):
         original_feed = []
         if fields:
             original_feed = department.evaluations_feed(app.config['CURRENT_TERM_ID'], evaluation_ids=evaluation_ids)
@@ -254,8 +255,8 @@ class Evaluation(Base):
                 duplicate.set_fields(filtered_fields, original_evaluation_feed)
 
             if not evaluation.department_id:
-                evaluation.department_id = department_id
-            duplicate.department_id = department_id
+                evaluation.department_id = department.id
+            duplicate.department_id = department.id
 
             duplicate.created_by = current_user.get_uid()
             duplicate.updated_by = current_user.get_uid()
@@ -263,6 +264,9 @@ class Evaluation(Base):
             db.session.add(evaluation)
             db.session.add(duplicate)
             evaluations.extend([evaluation, duplicate])
+
+            clear_section_cache(department.id, evaluation.term_id, evaluation.course_number)
+
         std_commit()
         return [e.id for e in evaluations]
 
@@ -278,6 +282,9 @@ class Evaluation(Base):
             evaluation.updated_by = current_user.get_uid()
             db.session.add(evaluation)
             evaluations.append(evaluation)
+
+            clear_section_cache(department_id, evaluation.term_id, evaluation.course_number)
+
         std_commit()
         return [e.id for e in evaluations]
 
@@ -285,12 +292,16 @@ class Evaluation(Base):
     def update_evaluation_status(cls, term_id, course_number, instructor_uid, status):
         # Keep evaluation status from different departments in sync per term/course/instructor, unless that
         # status is 'ignore' (or, if enabled, 'deleted'), which is confined to individual departments.
-        db.session.execute(update(cls).where(and_(
+        conditions = and_(
             cls.term_id == term_id,
             cls.course_number == course_number,
             cls.instructor_uid == instructor_uid,
             cls.status.in_(['confirmed', 'marked', None]),
-        )).values(status=status))
+        )
+        dept_ids = set([r.department_id for r in cls.query.filter(conditions).with_entities(cls.department_id).all()])
+        db.session.execute(update(cls).where(conditions).values(status=status))
+        for dept_id in dept_ids:
+            clear_section_cache(dept_id, term_id, course_number)
 
     @classmethod
     def get_confirmed(cls, term_id):
@@ -443,6 +454,7 @@ class Evaluation(Base):
     def mark_conflict(self, foreign_dept_evaluation, key, saved_evaluation, self_value, other_value):
         self.conflicts[key].append({'department': foreign_dept_evaluation.department.dept_name, 'value': other_value})
         foreign_dept_evaluation.conflicts[key].append({'department': saved_evaluation.department.dept_name, 'value': self_value})
+        clear_section_cache(foreign_dept_evaluation.department_id, self.term_id, self.course_number)
 
     def update_validity(self, saved_evaluation, foreign_dept_evaluations):
         self.valid = True
@@ -456,6 +468,7 @@ class Evaluation(Base):
             if updated_validity != saved_evaluation.valid:
                 saved_evaluation.valid = updated_validity
                 db.session.add(saved_evaluation)
+                clear_section_cache(self.department_id, self.term_id, self.course_number)
             self.valid = saved_evaluation.valid
         for fde in foreign_dept_evaluations:
             updated_validity = True
@@ -469,6 +482,7 @@ class Evaluation(Base):
             if updated_validity != fde.valid:
                 fde.valid = updated_validity
                 db.session.add(fde)
+                clear_section_cache(fde.department_id, self.term_id, self.course_number)
         std_commit()
 
     # Fallback id string for Evaluation instances that are created for the department/section API but not saved to the database.

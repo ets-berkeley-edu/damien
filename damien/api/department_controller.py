@@ -137,7 +137,7 @@ def update_evaluations(department_id):  # noqa C901
         fields = None
         if params.get('fields'):
             fields = _validate_evaluation_fields(params.get('fields'))
-        updated_ids = Evaluation.duplicate_bulk(department_id=department_id, evaluation_ids=evaluation_ids, department=department, fields=fields)
+        updated_ids = Evaluation.duplicate_bulk(department=department, evaluation_ids=evaluation_ids, fields=fields)
     elif action == 'edit':
         fields = _validate_evaluation_fields(params.get('fields'))
         if fields.get('status') == 'confirmed':

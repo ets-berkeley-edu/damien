@@ -113,6 +113,12 @@ def db_session(db):
     return _session
 
 
+@pytest.fixture(scope='function', autouse=True)
+def cache_session():
+    from damien import cache
+    cache.clear()
+
+
 @pytest.fixture(scope='function')
 def fake_auth(app, db, client):
     """Shortcut to start an authenticated session."""

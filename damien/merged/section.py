@@ -26,6 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from itertools import groupby
 import re
 
+from damien.lib.cache import fetch_section_cache, set_section_cache
 from damien.lib.queries import get_loch_sections_by_ids
 from damien.models.evaluation import Evaluation
 
@@ -259,8 +260,14 @@ class Section:
         return exports
 
     def get_evaluation_feed(self, department, evaluation_ids=None):
-        merged_evaluations = self.merge_evaluations(department=department)
-        evaluation_feed = [e.to_api_json(section=self) for e in merged_evaluations if not evaluation_ids or e.get_id() in evaluation_ids]
+        evaluation_feed = fetch_section_cache(department.id, self.term_id, self.course_number)
+        if not evaluation_feed:
+            merged_evaluations = self.merge_evaluations(department=department)
+            evaluation_feed = [e.to_api_json(section=self) for e in merged_evaluations]
+            set_section_cache(department.id, self.term_id, self.course_number, evaluation_feed)
+
+        if evaluation_ids:
+            evaluation_feed = [e for e in evaluation_feed if e['id'] in evaluation_ids]
 
         def _sort_key(evaluation):
             course_number = evaluation.get('courseNumber', '')
