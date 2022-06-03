@@ -7,25 +7,15 @@
           :key="index"
           class="text-capitalize text-nowrap px-2"
           :color="$vuetify.theme.dark ? 'tertiary' : 'secondary'"
-          :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length"
+          :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length || isLoading"
           text
           @click.stop="action.apply(action.value)"
           @keypress.enter.prevent="action.apply(action.value)"
         >
-          {{ action.text }}
-          <v-overlay :value="isLoading">
-            <v-progress-circular
-              class="d-block ml-5 pl-5"
-              :indeterminate="true"
-              rotate="5"
-              size="64"
-              width="8"
-              color="tertiary"
-            ></v-progress-circular>
-          </v-overlay>
+          <span v-if="!isLoading">{{ action.text }}</span>
         </v-btn>
         <v-divider
-          v-if="action.value === 'ignore'"
+          v-if="action.value === 'ignore' && !isLoading"
           :key="index + 2"
           class="align-self-stretch primary--text separator ma-2"
           inset
@@ -33,6 +23,15 @@
           vertical
         ></v-divider>
       </template>
+      <v-progress-circular
+        v-if="isLoading"
+        :indeterminate="true"
+        rotate="5"
+        size="20"
+        width="3"
+        color="tertiary"
+        class="ma-2 pl-5"
+      ></v-progress-circular>
     </div>
     <v-dialog
       id="duplicate-row-dialog"
@@ -42,83 +41,81 @@
       width="500"
     >
       <v-card>
-        <div v-if="!isLoading">
-          <v-card-title id="duplicate-row-dialog-title" tabindex="-1">Duplicate</v-card-title>
-          <v-card-text>
-            <div class="d-flex align-center mt-2">
-              <PersonLookup
-                id="bulk-duplicate-instructor-lookup-autocomplete"
-                :disabled="disableControls"
-                :instructor-lookup="true"
-                placeholder="Instructor name or UID"
-                :on-select-result="selectInstructor"
-                solo
-              />
-            </div>
-            <v-checkbox
-              v-model="bulkUpdateOptions.midtermFormEnabled"
-              class="text-nowrap"
-              color="tertiary"
+        <v-card-title id="duplicate-row-dialog-title" tabindex="-1">Duplicate</v-card-title>
+        <v-card-text>
+          <div class="d-flex align-center mt-2">
+            <PersonLookup
+              id="bulk-duplicate-instructor-lookup-autocomplete"
               :disabled="disableControls"
-              hide-details="auto"
-              label="Use midterm department forms"
+              :instructor-lookup="true"
+              placeholder="Instructor name or UID"
+              :on-select-result="selectInstructor"
+              solo
             />
-            <div class="d-flex align-center mt-2">
-              <label
-                for="bulk-duplicate-start-date"
-                class="v-label"
-                :class="$vuetify.theme.dark ? 'theme--dark' : 'theme--light'"
-              >
-                Evaluation start date:
-              </label>
-              <c-date-picker
-                v-model="bulkUpdateOptions.startDate"
-                class="mx-3"
-                :min-date="$moment($config.termDates.valid.begin).toDate()"
-                :max-date="$moment($config.termDates.valid.end).subtract(13, 'days').toDate()"
-                title-position="left"
-              >
-                <template v-slot="{ inputValue, inputEvents }">
-                  <input
-                    id="bulk-duplicate-start-date"
-                    class="datepicker-input input-override my-0"
-                    :class="$vuetify.theme.dark ? 'dark' : 'light'"
-                    :disabled="disableControls"
-                    maxlength="10"
-                    minlength="10"
-                    :value="inputValue"
-                    v-on="inputEvents"
-                  />
-                </template>
-              </c-date-picker>
-            </div>
-          </v-card-text>
-          <v-divider />
-          <v-card-actions>
-            <v-spacer />
-            <div class="d-flex pa-2">
-              <v-btn
-                id="apply-course-action-btn"
-                class="mt-2 mr-2"
-                color="secondary"
-                :disabled="disableControls || !allowEdits || $_.isEmpty(selectedEvaluationIds)"
-                @click="applyAction('duplicate')"
-                @keypress.enter.prevent="applyAction('duplicate')"
-              >
-                Apply
-              </v-btn>
-              <v-btn
-                id="cancel-duplicate-btn"
-                class="mt-2 mr-2"
-                :disabled="disableControls"
-                @click="cancelDuplicate"
-                @keypress.enter.prevent="cancelDuplicate"
-              >
-                Cancel
-              </v-btn>
-            </div>
-          </v-card-actions>
-        </div>
+          </div>
+          <v-checkbox
+            v-model="bulkUpdateOptions.midtermFormEnabled"
+            class="text-nowrap"
+            color="tertiary"
+            :disabled="disableControls"
+            hide-details="auto"
+            label="Use midterm department forms"
+          />
+          <div class="d-flex align-center mt-2">
+            <label
+              for="bulk-duplicate-start-date"
+              class="v-label"
+              :class="$vuetify.theme.dark ? 'theme--dark' : 'theme--light'"
+            >
+              Evaluation start date:
+            </label>
+            <c-date-picker
+              v-model="bulkUpdateOptions.startDate"
+              class="mx-3"
+              :min-date="$moment($config.termDates.valid.begin).toDate()"
+              :max-date="$moment($config.termDates.valid.end).subtract(13, 'days').toDate()"
+              title-position="left"
+            >
+              <template v-slot="{ inputValue, inputEvents }">
+                <input
+                  id="bulk-duplicate-start-date"
+                  class="datepicker-input input-override my-0"
+                  :class="$vuetify.theme.dark ? 'dark' : 'light'"
+                  :disabled="disableControls"
+                  maxlength="10"
+                  minlength="10"
+                  :value="inputValue"
+                  v-on="inputEvents"
+                />
+              </template>
+            </c-date-picker>
+          </div>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions>
+          <v-spacer />
+          <div class="d-flex pa-2">
+            <v-btn
+              id="apply-course-action-btn"
+              class="mt-2 mr-2"
+              color="secondary"
+              :disabled="disableControls || !allowEdits || $_.isEmpty(selectedEvaluationIds)"
+              @click="applyAction('duplicate')"
+              @keypress.enter.prevent="applyAction('duplicate')"
+            >
+              <span v-if="!isLoading">Apply</span>
+            </v-btn>
+            <v-btn
+              id="cancel-duplicate-btn"
+              class="mt-2 mr-2"
+              :disabled="disableControls"
+              @click="cancelDuplicate"
+              @keypress.enter.prevent="cancelDuplicate"
+            >
+              Cancel
+            </v-btn>
+          </div>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
@@ -166,6 +163,7 @@ export default {
     afterApply(action) {
       /* TODO: a more informative screen reader alert plus a visual indication of the affected row(s) */
       this.isDuplicating = false
+      this.isLoading = true
       this.refreshAll().then(() => {
         this.alertScreenReader('Success')
         this.$putFocusNextTick(`apply-course-action-btn-${action}`)
@@ -185,8 +183,9 @@ export default {
         }
       }
       if (action !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds, true, true)) {
-        this.setDisableControls(true)
         this.isLoading = true
+        this.setDisableControls(true)
+
         updateEvaluations(
           this.department.id,
           action,
