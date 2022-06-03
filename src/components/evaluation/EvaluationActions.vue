@@ -7,7 +7,7 @@
           :key="index"
           class="text-capitalize text-nowrap px-2"
           :color="$vuetify.theme.dark ? 'tertiary' : 'secondary'"
-          :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length || isLoading"
+          :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length || isLoading || isInvalidAction(action)"
           text
           @click.stop="action.apply(action.value)"
           @keypress.enter.prevent="action.apply(action.value)"
@@ -147,10 +147,10 @@ export default {
   }),
   created() {
     this.courseActions = [
-      {'text': 'Mark for review', 'value': 'mark', 'apply': this.applyAction},
-      {'text': 'Mark as confirmed', 'value': 'confirm', 'apply': this.applyAction},
-      {'text': 'Unmark', 'value': 'unmark', 'apply': this.applyAction},
-      {'text': 'Ignore', 'value': 'ignore', 'apply': this.applyAction},
+      {'text': 'Mark for review', 'value': 'mark', 'status': 'review', 'apply': this.applyAction},
+      {'text': 'Mark as confirmed', 'value': 'confirm', 'status': 'confirmed', 'apply': this.applyAction},
+      {'text': 'Unmark', 'value': 'unmark', 'status': null, 'apply': this.applyAction},
+      {'text': 'Ignore', 'value': 'ignore', 'status': 'ignore', 'apply': this.applyAction},
       {'text': 'Duplicate', 'value': 'duplicate', 'apply': this.showDuplicateOptions}
     ]
   },
@@ -232,6 +232,13 @@ export default {
       
       
       this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
+    },
+    isInvalidAction(action) {
+      const uniqueStatuses = this.$_.uniq(this.evaluations
+                  .filter(e => this.selectedEvaluationIds.includes(e.id))
+                  .map(e => e.status))
+
+      return (uniqueStatuses.length === 1 && uniqueStatuses[0] === action.status)
     }
   }
 }
