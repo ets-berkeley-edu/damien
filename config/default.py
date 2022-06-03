@@ -39,6 +39,11 @@ BCOP_SMTP_PORT = 587
 BCOP_SMTP_SERVER = 'bcop.berkeley.edu'
 BCOP_SMTP_USERNAME = None
 
+CACHE_DEFAULT_TIMEOUT = 86400
+CACHE_DIR = f'{BASE_DIR}/.flask_cache'
+CACHE_THRESHOLD = 50000
+CACHE_TYPE = 'FileSystemCache'
+
 CAS_SERVER = 'https://auth-test.berkeley.edu/cas/'
 
 CURRENT_TERM_ID = '2222'
