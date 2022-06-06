@@ -14,8 +14,42 @@
             max-width="600px"
             single-line
           ></v-text-field>
-          <div class="d-flex align-baseline text-nowrap pt-4 pl-4">
-            <div class="mr-2">Filter statuses:</div>
+        </v-col>
+        <v-col cols="5" md="4" class="pt-2">
+          <AddCourseSection
+            id="add-course-section"
+            :evaluations="evaluations"
+            :readonly="!allowEdits"
+          />
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="5" md="7">
+          <div class="d-flex mt-auto ml-4 pt-4 pl-4 pb-4 pr-4">
+            <v-checkbox
+              v-if="!readonly"
+              id="select-all-evals-checkbox"
+              class="align-center mt-0 pt-0"
+              :disabled="$_.isEmpty(searchFilterResults)"
+              hide-details
+              :indeterminate="someEvaluationsSelected"
+              :ripple="false"
+              color="tertiary"
+              :value="allEvaluationsSelected"
+              @change="toggleSelectAll"
+            >
+              <template v-slot:label>
+                <div v-if="!(someEvaluationsSelected || allEvaluationsSelected)" class="text-nowrap pl-1 py-2">
+                  Select all
+                </div>
+              </template>
+            </v-checkbox>
+            <EvaluationActions v-if="!readonly" />
+          </div>
+        </v-col>
+        <v-col cols="5" md="5">
+          <div class="d-flex align-baseline text-nowrap pt-4">
+            <div class="mr-2 ml-3">Filter statuses:</div>
             <div class="d-flex flex-wrap">
               <v-chip
                 v-for="type in $_.keys(filterTypes)"
@@ -36,12 +70,11 @@
                 @click="toggleFilter(type)"
                 @keypress.enter.prevent="toggleFilter(type)"
               >
-                {{ filterTypes[type].label }}
                 <v-icon
                   v-if="filterTypes[type].enabled"
                   color="white"
                   small
-                  right
+                  left
                 >
                   mdi-check-circle
                 </v-icon>
@@ -49,41 +82,15 @@
                   v-if="!filterTypes[type].enabled"
                   color="inactive-contrast"
                   small
-                  right
+                  left
                 >
                   mdi-plus-circle
                 </v-icon>
+                {{ filterTypes[type].label }}
+                {{ filterTypeCounts(type) }}
               </v-chip>
             </div>
           </div>
-          <div class="d-flex mt-auto ml-4 pt-2">
-            <v-checkbox
-              v-if="!readonly"
-              id="select-all-evals-checkbox"
-              class="align-center mt-0 pt-0"
-              :disabled="$_.isEmpty(searchFilterResults)"
-              hide-details
-              :indeterminate="someEvaluationsSelected"
-              :ripple="false"
-              color="tertiary"
-              :value="allEvaluationsSelected"
-              @change="toggleSelectAll"
-            >
-              <template v-slot:label>
-                <div v-if="!(someEvaluationsSelected || allEvaluationsSelected)" class="text-nowrap pl-1 py-2">
-                  Select all
-                </div>
-              </template>
-            </v-checkbox>
-            <EvaluationActions v-if="!readonly && (someEvaluationsSelected || allEvaluationsSelected)" />
-          </div>
-        </v-col>
-        <v-col cols="5" md="4" class="pt-2">
-          <AddCourseSection
-            id="add-course-section"
-            :evaluations="evaluations"
-            :readonly="!allowEdits"
-          />
         </v-col>
       </v-row>
     </div>
@@ -438,16 +445,16 @@ export default {
     departmentForms: [],
     editRowId: null,
     evaluationStatuses: [
-      {text: 'Unmarked', value: null},
-      {text: 'Review', value: 'review'},
-      {text: 'Confirmed', value: 'confirmed'},
+      {text: 'None', value: null},
+      {text: 'To-do', value: 'review'},
+      {text: 'Done', value: 'confirmed'},
       {text: 'Ignore', value: 'ignore'}
     ],
     evaluationTypes: [],
     filterTypes: {
       'unmarked': {label: 'None', enabled: true},
-      'review': {label: 'Review', enabled: true},
-      'confirmed': {label: 'Confirmed', enabled: true},
+      'review': {label: 'To-Do', enabled: true},
+      'confirmed': {label: 'Done', enabled: true},
       'ignore': {label: 'Ignore', enabled: false}
     },
     focusedEditButtonEvaluationId: null,
@@ -669,6 +676,12 @@ export default {
           })
         }
       })
+    },
+    filterTypeCounts(type) {
+      if (type === 'unmarked') {
+        return this.evaluations.filter(e => e.status === null).length
+      }
+      return this.evaluations.filter(e => e.status === type).length
     }
   },
   created() {
@@ -706,6 +719,9 @@ tr.border-top-none td {
 
 .evaluation-input .v-messages__message {
   color: #fff !important;
+}
+.filter-div {
+  padding:  16px 16px 16px 50px;
 }
 </style>
 
