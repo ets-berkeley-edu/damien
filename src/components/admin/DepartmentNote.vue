@@ -11,7 +11,7 @@
         id="dept-note"
         class="text-condensed pb-2"
       >
-        {{ item }}
+        <pre>{{ item }} </pre>
       </div>
       <v-form v-if="isEditing" class="pa-3">
         <v-textarea
@@ -160,3 +160,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+pre {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 0;
+}
+</style>
