@@ -188,7 +188,7 @@
 
 <style scoped>
 .nav {
-  z-index: 9 !important;
+  z-index: 20 !important;
 }
 .service-announcement {
   background-color: #f0ad4e;
