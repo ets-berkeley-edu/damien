@@ -23,9 +23,13 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import csv
 from itertools import groupby
+import os
+import tempfile
 
-from damien.externals.s3 import get_s3_path, put_csv_to_s3
+from damien.externals.s3 import get_s3_path, put_binary_data_to_s3
+from damien.externals.sftp import get_sftp_client
 from damien.lib.berkeley import term_code_for_sis_id, term_ids_range
 from damien.lib.queries import get_confirmed_enrollments, get_loch_basic_attributes
 from damien.lib.util import safe_strftime
@@ -65,20 +69,36 @@ def generate_exports(term_id, timestamp):
     supervisors = [_export_supervisor_row(u) for u in User.get_dept_contacts_with_blue_permissions()]
     department_hierarchy, report_viewer_hierarchy = _generate_hierarchy_rows(dept_forms_to_uids)
 
-    put_csv_to_s3(term_id, timestamp, 'courses', course_headers, courses)
-    put_csv_to_s3(term_id, timestamp, 'course_instructors', course_instructor_headers, course_instructors)
-    put_csv_to_s3(term_id, timestamp, 'course_students', course_student_headers, course_students)
-    put_csv_to_s3(term_id, timestamp, 'course_supervisors', course_supervisor_headers, course_supervisors)
-    put_csv_to_s3(term_id, timestamp, 'department_hierarchy', department_hierarchy_headers, department_hierarchy)
-    put_csv_to_s3(term_id, timestamp, 'instructors', instructor_headers, instructors)
-    put_csv_to_s3(term_id, timestamp, 'report_viewer_hierarchy', report_viewer_hierarchy_headers, report_viewer_hierarchy)
-    put_csv_to_s3(term_id, timestamp, 'students', student_headers, students)
-    put_csv_to_s3(term_id, timestamp, 'supervisors', supervisor_headers, supervisors)
-    put_csv_to_s3(term_id, timestamp, 'xlisted_course_supervisors', xlisted_course_supervisor_headers, xlisted_course_supervisors)
+    with get_sftp_client() as sftp:
+        upload(sftp, term_id, timestamp, 'courses', course_headers, courses)
+        upload(sftp, term_id, timestamp, 'course_instructors', course_instructor_headers, course_instructors)
+        upload(sftp, term_id, timestamp, 'course_students', course_student_headers, course_students)
+        upload(sftp, term_id, timestamp, 'course_supervisors', course_supervisor_headers, course_supervisors)
+        upload(sftp, term_id, timestamp, 'department_hierarchy', department_hierarchy_headers, department_hierarchy)
+        upload(sftp, term_id, timestamp, 'instructors', instructor_headers, instructors)
+        upload(sftp, term_id, timestamp, 'report_viewer_hierarchy', report_viewer_hierarchy_headers, report_viewer_hierarchy)
+        upload(sftp, term_id, timestamp, 'students', student_headers, students)
+        upload(sftp, term_id, timestamp, 'supervisors', supervisor_headers, supervisors)
+        upload(sftp, term_id, timestamp, 'xlisted_course_supervisors', xlisted_course_supervisor_headers, xlisted_course_supervisors)
 
     s3_path = get_s3_path(term_id, timestamp)
     export = Export.create(term_id, s3_path)
     return export.to_api_json()
+
+
+def upload(sftp, term_id, timestamp, filename, headers, rows):
+    tmpfile = tempfile.NamedTemporaryFile()
+    with open(tmpfile.name, mode='wt', encoding='utf-8') as f:
+        csv_writer = csv.DictWriter(f, fieldnames=headers)
+        csv_writer.writeheader()
+        csv_writer.writerows(rows)
+
+    filesize = os.stat(tmpfile.name).st_size
+    with open(tmpfile.name, mode='rb') as f:
+        if sftp:
+            sftp.putfo(f, f'{filename}.csv', file_size=filesize)
+        f.seek(0)
+        put_binary_data_to_s3(get_s3_path(term_id, timestamp, filename), f, 'text/csv')
 
 
 def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms_to_uids, all_catalog_listings):
