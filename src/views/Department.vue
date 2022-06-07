@@ -160,24 +160,10 @@ export default {
   mixins: [Context, DepartmentEditSession],
   data: () => ({
     availableTerms: undefined,
-    bulkUpdateOptions: {
-      evalDatesEnabled: false,
-      midtermFormEnabled: false,
-      startDate: null,
-    },
     contactDetailsPanel: [],
     contactsPanel: undefined,
-    courseActions: [
-      {'text': 'Mark for review', 'value': 'mark'},
-      {'text': 'Mark as confirmed', 'value': 'confirm'},
-      {'text': 'Unmark', 'value': 'unmark'},
-      {'text': 'Duplicate', 'value': 'duplicate'},
-      {'text': 'Ignore', 'value': 'ignore'}
-    ],
     isAddingContact: false,
-    isAddingSection: false,
     isCreatingNotification: false,
-    selectedCourseAction: undefined,
     selectedTermId: undefined
   }),
   computed: {
@@ -204,11 +190,6 @@ export default {
       this.isCreatingNotification = false
       this.snackbarOpen('Notification sent.')
       this.$putFocusNextTick('open-notification-form-btn')
-    },
-    cancelAddSection() {
-      this.isAddingSection = false
-      this.alertScreenReader('Section lookup canceled.')
-      this.$putFocusNextTick('add-course-section-btn')
     },
     cancelSendNotification() {
       this.isCreatingNotification = false

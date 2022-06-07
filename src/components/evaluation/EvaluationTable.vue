@@ -23,9 +23,14 @@
           />
         </v-col>
       </v-row>
-      <v-row>
-        <v-col cols="5" md="7">
-          <div class="d-flex mt-auto ml-4 pt-4 pl-4 pb-4 pr-4">
+      <v-row class="d-flex flex-column-reverse flex-md-row">
+        <v-col
+          cols="12"
+          lg="7"
+          md="8"
+          class="d-flex"
+        >
+          <div class="d-flex align-self-stretch align-end mt-auto mx-4">
             <v-checkbox
               v-if="!readonly"
               id="select-all-evals-checkbox"
@@ -47,9 +52,9 @@
             <EvaluationActions v-if="!readonly" />
           </div>
         </v-col>
-        <v-col cols="5" md="5">
-          <div class="d-flex align-baseline text-nowrap pt-4">
-            <div class="mr-2 ml-3">Filter statuses:</div>
+        <v-col cols="12" lg="5" md="4">
+          <div class="d-flex flex-nowrap flex-md-wrap align-baseline justify-end mt-auto mx-4">
+            <div class="mr-md-auto text-nowrap mr-2">Filter statuses:</div>
             <div class="d-flex flex-wrap">
               <v-chip
                 v-for="type in $_.keys(filterTypes)"
@@ -57,7 +62,7 @@
                 :key="type"
                 aria-controls="evaluation-table"
                 :aria-selected="filterTypes[type].enabled"
-                class="ma-1 px-4 text-center text-uppercase"
+                class="ma-1 px-4 text-center text-nowrap text-uppercase"
                 :class="{
                   'secondary': filterTypes[type].enabled,
                   'inactive': !filterTypes[type].enabled
@@ -104,7 +109,11 @@
       @current-items="onChangeSearchFilter"
     >
       <template #body="{items}">
-        <tbody>
+        <TransitionGroup
+          class="position-relative"
+          name="evaluation-row"
+          tag="tbody"
+        >
           <template v-for="(evaluation, rowIndex) in items">
             <v-hover v-if="statusFilterEnabled(evaluation)" v-slot="{ hover }" :key="evaluation.id">
               <tr
@@ -370,7 +379,7 @@
               </td>
             </tr>
           </template>
-        </tbody>
+        </TransitionGroup>
       </template>
     </v-data-table>
     <ConfirmDialog
@@ -706,19 +715,17 @@ export default {
 .course-name {
   min-width: 200px;
 }
+.evaluation-input .v-messages__message {
+  color: #fff !important;
+}
 .focus-btn::before {
   opacity: 0.24;
 }
 tr.border-bottom-none td {
   border-bottom: none !important;
 }
-
 tr.border-top-none td {
   border-top: none !important;
-}
-
-.evaluation-input .v-messages__message {
-  color: #fff !important;
 }
 .filter-div {
   padding:  16px 16px 16px 50px;
@@ -738,6 +745,25 @@ tr.border-top-none td {
 }
 .evaluation-row {
   vertical-align: top;
+}
+.evaluation-row-enter-to {
+  animation: 4s fadeOut;
+  animation-timing-function: cubic-bezier(.05, -.12, .02, .32);
+}
+.evaluation-row-enter-from,
+.evaluation-row-leave-to {
+  opacity: 0;
+  transform: translateX(50%);
+}
+.evaluation-row-move,
+.evaluation-row-enter-active,
+.evaluation-row-leave-active {
+  transition: opacity 0.5s ease,
+    position 0.5s ease,
+    transform 0.5s ease;
+}
+.evaluation-row-leave-active {
+  position: absolute;
 }
 .evaluation-search-input {
   max-width: 540px;
@@ -784,9 +810,6 @@ tr.border-top-none td {
 }
 .pill-review {
   background-color: #595;
-}
-.position-relative {
-  position: relative;
 }
 .sticky {
   position: sticky;

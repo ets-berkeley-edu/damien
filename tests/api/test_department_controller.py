@@ -302,7 +302,7 @@ class TestUpdateEvaluationStatus:
 
     def test_mark_unmark(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
-        response = _api_update_evaluation(client, params={'evaluationIds': ['_2222_30659_637739'], 'action': 'mark'})
+        response = _api_update_evaluation(client, params={'evaluationIds': ['_2222_30659_637739'], 'action': 'review'})
         assert len(response) == 1
         assert response[0]['termId'] == '2222'
         assert response[0]['courseNumber'] == '30659'

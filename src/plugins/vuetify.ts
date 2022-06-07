@@ -38,7 +38,7 @@ export default new Vuetify({
         error: '#D50000',
         'evaluation-row-confirmed': '#2D2D2D',
         'evaluation-row-ignore': '#555',
-        'evaluation-row-review': '#0E1D0F',
+        'evaluation-row-review': '#173619',
         'evaluation-row-xlisting': '#2D2901',
         hovered: '#616161',
         inactive: '#AAA',

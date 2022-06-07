@@ -1,22 +1,22 @@
 <template>
   <div class="d-flex align-center">
-    <div v-if="!isDuplicating" class="d-flex">
-      <template v-for="(action, index) in courseActions">
+    <div class="d-flex">
+      <template v-for="(action, key) in courseActions">
         <v-btn
-          :id="`apply-course-action-btn-${action.value}`"
-          :key="index"
-          class="text-capitalize text-nowrap px-2"
+          :id="`apply-course-action-btn-${key}`"
+          :key="key"
+          class="position-relative text-capitalize text-nowrap px-2"
           :color="$vuetify.theme.dark ? 'tertiary' : 'secondary'"
           :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length || isLoading || isInvalidAction(action)"
           text
-          @click.stop="action.apply(action.value)"
-          @keypress.enter.prevent="action.apply(action.value)"
+          @click.stop="action.apply(key)"
+          @keypress.enter.prevent="action.apply(key)"
         >
           <span v-if="!isLoading">{{ action.text }}</span>
         </v-btn>
         <v-divider
-          v-if="action.value === 'ignore' && !isLoading"
-          :key="index + 2"
+          v-if="key === 'ignore' && !isLoading"
+          :key="`${key}-divider`"
           class="align-self-stretch primary--text separator ma-2"
           inset
           role="presentation"
@@ -135,24 +135,58 @@ export default {
   },
   mixins: [Context, DepartmentEditSession, Util],
   data: () => ({
+    applyingAction: null,
     bulkUpdateOptions: {
       midtermFormEnabled: false,
       startDate: null,
     },
-    courseActions: [],
-    isAddingSection: false,
+    courseActions: {},
     instructor: null,
     isDuplicating: false,
     isLoading: false
   }),
   created() {
-    this.courseActions = [
-      {'text': 'Mark for review', 'value': 'mark', 'status': 'review', 'apply': this.applyAction},
-      {'text': 'Mark as confirmed', 'value': 'confirm', 'status': 'confirmed', 'apply': this.applyAction},
-      {'text': 'Unmark', 'value': 'unmark', 'status': null, 'apply': this.applyAction},
-      {'text': 'Ignore', 'value': 'ignore', 'status': 'ignore', 'apply': this.applyAction},
-      {'text': 'Duplicate', 'value': 'duplicate', 'apply': this.showDuplicateOptions}
-    ]
+    this.courseActions = {
+      review: {
+        apply: this.applyAction,
+        completedText: 'Marked for review',
+        inProgressText: 'Marking for review',
+        key: 'review',
+        status: 'review',
+        text: 'Mark for review'
+      },
+      confirm: {
+        apply: this.applyAction,
+        completedText: 'Marked as confirmed',
+        inProgressText: 'Marking as confirmed',
+        key: 'confirm',
+        status: 'confirmed',
+        text: 'Mark as confirmed'
+      },
+      unmark: {
+        apply: this.applyAction,
+        completedText: 'Unmarked',
+        inProgressText: 'Unmarking',
+        key: 'unmark',
+        status: null,
+        text: 'Unmark'
+      },
+      ignore: {
+        apply: this.applyAction,
+        completedText: 'Ignored',
+        inProgressText: 'Ignoring',
+        key: 'ignore',
+        status: 'ignore',
+        text: 'Ignore'
+      },
+      duplicate: {
+        apply: this.showDuplicateOptions,
+        completedText: 'Duplicated',
+        inProgressText: 'Duplicating',
+        key: 'duplicate',
+        text: 'Duplicate'
+      }
+    }
   },
   computed: {
     allowEdits() {
@@ -160,18 +194,21 @@ export default {
     }
   },
   methods: {
-    afterApply(action) {
-      /* TODO: a more informative screen reader alert plus a visual indication of the affected row(s) */
-      this.isDuplicating = false
-      this.isLoading = true
+    afterApply(response) {
       this.refreshAll().then(() => {
-        this.alertScreenReader('Success')
-        this.$putFocusNextTick(`apply-course-action-btn-${action}`)
-      })
+        const selectedRowCount = this.applyingAction.key === 'duplicate' ? ((response.length || 0) / 2) : (response.length || 0)
+        const target = `${selectedRowCount} ${selectedRowCount === 1 ? 'row' : 'rows'}`
+        this.alertScreenReader(`${this.applyingAction.completedText} ${target}`)
+        this.$putFocusNextTick(`apply-course-action-btn-${this.applyingAction.key}`)
+        this.reset()
+      }).finally(() => this.setDisableControls(false))
     },
-    applyAction(action) {
+    applyAction(key) {
       let fields = null
-      if (action === 'duplicate') {
+      const target = `${this.selectedEvaluationIds.length || 0} ${this.selectedEvaluationIds.length === 1 ? 'row' : 'rows'}`
+      this.applyingAction = this.courseActions[key]
+      this.alertScreenReader(`${this.applyingAction.inProgressText} ${target}`)
+      if (key === 'duplicate') {
         fields = {
           instructorUid: this.$_.get(this.instructor, 'uid')
         }
@@ -182,36 +219,35 @@ export default {
           fields.startDate = this.$moment(this.bulkUpdateOptions.startDate).format('YYYY-MM-DD')
         }
       }
-      if (action !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds, true, true)) {
-        this.isLoading = true
+      if (key !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds, true, true)) {
         this.setDisableControls(true)
-
+        this.isLoading = true
         updateEvaluations(
           this.department.id,
-          action,
+          key,
           this.selectedEvaluationIds,
           fields
-        ).then(data => this.afterApply(action, data), error => this.showErrorDialog(error.response.data.message))
-        .finally(() => this.setDisableControls(false),
-          this.isLoading = false
-        )
+        ).then(response => this.afterApply(response), error => this.handleError(error))
       }
     },
     cancelDuplicate() {
-      this.isDuplicating = false
-      if (this.bulkUpdateOptions.startDate) {
-        this.bulkUpdateOptions.startDate = null
-      }
-      this.alertScreenReader('Canceled.')
+      this.reset()
+      this.alertScreenReader('Canceled duplication.')
       this.$putFocusNextTick('apply-course-action-btn-duplicate')
+    },
+    handleError(error) {
+      this.showErrorDialog(this.$_.get(error, 'response.data.message', 'An unknown error occurred.'))
+      this.setDisableControls(false)
+      this.applyingAction = null
     },
     reset() {
       this.bulkUpdateOptions = {
         midtermFormEnabled: false,
         startDate: null,
       }
-      this.instructor = null,
-      this.isDuplicating = false,
+      this.instructor = null
+      this.isDuplicating = false
+      this.applyingAction = null
       this.isLoading = false
     },
     selectInstructor(suggestion) {
@@ -229,8 +265,6 @@ export default {
       if (uniqueStartDates.length === 1) {
         this.bulkUpdateOptions.startDate = new Date(uniqueStartDates[0])
       }
-      
-      
       this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
     },
     isInvalidAction(action) {

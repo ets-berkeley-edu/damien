@@ -1,3 +1,11 @@
+@keyframes fadeOut {
+  from {
+    box-shadow: inset 1px 1px 8px 8px #daf0fd20;
+  }
+  to {
+    box-shadow: inset 0px 0px transparent;
+  }
+}
 .borderless {
   border: none !important;
 }
@@ -33,7 +41,7 @@
 }
 .native-select-override {
   -webkit-appearance: menulist !important; /* override vuetify style */
-  -moze-appearance: menulist !important; /* override vuetify style */
+  -moz-appearance: menulist !important; /* override vuetify style */
   appearance: menulist !important; /* override vuetify style */
   border-radius: 4px;
   box-shadow:
@@ -55,6 +63,12 @@
 .native-select-override.light {
   background: #FFFFFF;
   color: rgba(0, 0, 0, 0.87);
+}
+.position-absolute {
+  position: absolute !important;
+}
+.position-relative {
+  position: relative !important;
 }
 .rotate-180 {
   transform: scaleX(-1) scaleY(-1);
