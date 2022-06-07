@@ -143,7 +143,7 @@ def update_evaluations(department_id):  # noqa C901
         if fields.get('status') == 'confirmed':
             _validate_confirmable(evaluation_ids)
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields=fields)
-    elif action == 'mark':
+    elif action == 'review':
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'marked'})
     elif action == 'ignore':
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'ignore'})
