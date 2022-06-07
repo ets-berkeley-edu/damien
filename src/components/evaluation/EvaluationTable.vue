@@ -746,23 +746,23 @@ tr.border-top-none td {
 .evaluation-row {
   vertical-align: top;
 }
-.evaluation-row-enter-to {
+.evaluation-row.evaluation-row-enter-to {
   animation: 4s fadeOut;
   animation-timing-function: cubic-bezier(.05, -.12, .02, .32);
 }
-.evaluation-row-enter-from,
-.evaluation-row-leave-to {
+.evaluation-row.evaluation-row-enter-from,
+.evaluation-row.evaluation-row-leave-to {
   opacity: 0;
   transform: translateX(50%);
 }
-.evaluation-row-move,
-.evaluation-row-enter-active,
-.evaluation-row-leave-active {
+.evaluation-row.evaluation-row-move,
+.evaluation-row.evaluation-row-enter-active,
+.evaluation-row.evaluation-row-leave-active {
   transition: opacity 0.5s ease,
     position 0.5s ease,
     transform 0.5s ease;
 }
-.evaluation-row-leave-active {
+.evaluation-row.evaluation-row-leave-active {
   position: absolute;
 }
 .evaluation-search-input {
