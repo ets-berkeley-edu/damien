@@ -23,9 +23,6 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-import csv
-import tempfile
-
 import boto3
 from flask import current_app as app
 import smart_open
@@ -49,17 +46,6 @@ def put_binary_data_to_s3(key, binary_data, content_type):
         app.logger.error(f'S3 put operation failed (bucket={bucket}, key={key})')
         app.logger.exception(e)
         return None
-
-
-def put_csv_to_s3(term_id, timestamp, filename, headers, rows):
-    key = get_s3_path(term_id, timestamp, filename)
-    tmpfile = tempfile.NamedTemporaryFile()
-    with open(tmpfile.name, mode='wt', encoding='utf-8') as f:
-        csv_writer = csv.DictWriter(f, fieldnames=headers)
-        csv_writer.writeheader()
-        csv_writer.writerows(rows)
-    with open(tmpfile.name, mode='rb') as f:
-        return put_binary_data_to_s3(key, f, 'text/csv')
 
 
 def stream_object(s3_url):
