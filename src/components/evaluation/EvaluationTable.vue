@@ -667,7 +667,8 @@ export default {
     updateEvaluation(evaluation, fields) {
       this.alertScreenReader('Saving evaluation row.')
       return new Promise(resolve => {
-        if (fields.status === 'confirmed' && !this.validateConfirmable([evaluation.id], fields.departmentFormId, fields.evaluationTypeId)) {
+        if (fields.status === 'confirmed' && (!fields.departmentFormId || !fields.evaluationTypeId)) {
+          this.showErrorDialog('Cannot confirm an evaluation with missing fields.')
           resolve()
         } else {
           this.editEvaluation({

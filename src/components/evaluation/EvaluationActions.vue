@@ -219,7 +219,7 @@ export default {
           fields.startDate = this.$moment(this.bulkUpdateOptions.startDate).format('YYYY-MM-DD')
         }
       }
-      if (key !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds, true, true)) {
+      if (key !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds)) {
         this.setDisableControls(true)
         this.isLoading = true
         updateEvaluations(

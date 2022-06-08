@@ -19,8 +19,8 @@ export default {
     ])
   },
   methods: {
-    validateConfirmable(evaluationIds, departmentFormId, evaluationTypeId) {
-      if (this.$_.some(this.evaluations, e => this.$_.includes(evaluationIds, e.id) && (!(departmentFormId && e.departmentForm) || !(evaluationTypeId && e.evaluationType)))) {
+    validateConfirmable(evaluationIds) {
+      if (this.$_.some(this.evaluations, e => this.$_.includes(evaluationIds, e.id) && (!e.departmentForm || !e.evaluationType))) {
         this.showErrorDialog('Cannot confirm evaluations with missing fields.')
         return false
       }

@@ -141,7 +141,7 @@ def update_evaluations(department_id):  # noqa C901
     elif action == 'edit':
         fields = _validate_evaluation_fields(params.get('fields'))
         if fields.get('status') == 'confirmed':
-            _validate_confirmable(evaluation_ids)
+            _validate_confirmable(evaluation_ids, fields=fields)
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields=fields)
     elif action == 'review':
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'marked'})
@@ -157,7 +157,9 @@ def update_evaluations(department_id):  # noqa C901
     return tolerant_jsonify(response)
 
 
-def _validate_confirmable(evaluation_ids):
+def _validate_confirmable(evaluation_ids, fields=None):
+    if fields and fields.get('departmentForm') and fields.get('evaluationType'):
+        return True
     numeric_ids = [int(eid) for eid in evaluation_ids if re.match(r'\d+\Z', str(eid))]
     if numeric_ids:
         validation_errors = Evaluation.get_invalid(app.config['CURRENT_TERM_ID'], evaluation_ids=evaluation_ids)

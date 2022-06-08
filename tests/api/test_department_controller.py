@@ -25,7 +25,9 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import json
 
+from damien import std_commit
 from damien.models.department import Department
+from damien.models.evaluation import Evaluation
 
 
 non_admin_uid = '100'
@@ -515,6 +517,36 @@ class TestEditEvaluation:
         assert response[0]['transientId'] == '_2222_30659_637739'
         assert response[0]['startDate'] == '2022-04-01'
         assert response[0]['endDate'] == '2022-04-14'
+
+    def test_complete_and_confirm(self, client, fake_auth, type_f_id, form_melc_id):
+        # First, create an evaluation with missing department form and evaluation type
+        dept = Department.find_by_name('German')
+        Evaluation.create(term_id='2222', course_number='12345', department_id=dept.id)
+        std_commit(allow_test_environment=True)
+        incomplete_eval = Evaluation.fetch_by_course_numbers('2222', ['12345'])['12345'][0]
+        assert incomplete_eval.department_form_id is None
+        assert incomplete_eval.evaluation_type_id is None
+        assert incomplete_eval.status is None
+
+        fake_auth.login(non_admin_uid)
+        params = {
+            'action': 'edit',
+            'evaluationIds': [incomplete_eval.id],
+            'fields': {
+                'departmentFormId': form_melc_id,
+                'evaluationTypeId': type_f_id,
+                'instructorUid': '124434',
+                'status': 'confirmed',
+                'startDate': '2022-04-01',
+            },
+        }
+        _api_update_evaluation(client, params=params)
+
+        edited_eval = Evaluation.find_by_id(incomplete_eval.id)
+        assert edited_eval.course_number == '12345'
+        assert edited_eval.department_form_id == form_melc_id
+        assert edited_eval.evaluation_type_id == type_f_id
+        assert edited_eval.status == 'confirmed'
 
 
 def _api_get_evaluation(client, dept_id, course_number, instructor_uid):
