@@ -317,9 +317,6 @@
                       <label id="input-evaluation-start-date-label" for="input-evaluation-start-date">
                         Start date:
                       </label>
-                      <div v-if="!selectedStartDate" class="evaluation-error">
-                        <v-icon class="pl-2 pr-1" small color="white">mdi-alert-circle</v-icon>Required
-                      </div>
                     </div>
                     <c-date-picker
                       v-model="selectedStartDate"
@@ -336,6 +333,9 @@
                           :value="inputValue"
                           v-on="inputEvents"
                         />
+                        <div v-if="!selectedStartDate" id="error-msg-evaluation-start-date" class="evaluation-error">
+                          <v-icon class="px-1" small color="white">mdi-alert-circle</v-icon>Required
+                        </div>
                       </template>
                     </c-date-picker>
                   </div>
@@ -623,7 +623,6 @@ export default {
       this.pendingInstructor = instructor
     },
     saveEvaluation(evaluation) {
-      this.saving = true
       const fields = {
         'departmentFormId': this.selectedDepartmentForm,
         'evaluationTypeId': this.selectedEvaluationType,
@@ -665,10 +664,13 @@ export default {
       }
     },
     updateEvaluation(evaluation, fields) {
+      this.saving = true
       this.alertScreenReader('Saving evaluation row.')
       return new Promise(resolve => {
-        if (fields.status === 'confirmed' && (!fields.departmentFormId || !fields.evaluationTypeId)) {
+        if (fields.status === 'confirmed' &&
+          !(fields.departmentFormId && fields.evaluationTypeId && fields.instructorUid)) {
           this.showErrorDialog('Cannot confirm an evaluation with missing fields.')
+          this.saving = false
           resolve()
         } else {
           this.editEvaluation({
@@ -677,11 +679,13 @@ export default {
             fields
           }).then(() => {
             this.alertScreenReader('Changes saved.')
+            this.saving = false
             this.afterEditEvaluation(evaluation)
             this.deselectAllEvaluations()
             resolve()
           }, error => {
             this.showErrorDialog(error)
+            this.saving = false
             resolve()
           })
         }

@@ -163,7 +163,7 @@ def update_evaluations(department_id):  # noqa C901
 
 
 def _validate_confirmable(evaluation_ids, fields=None):
-    if fields and fields.get('departmentForm') and fields.get('evaluationType'):
+    if fields and fields.get('departmentForm') and fields.get('evaluationType') and fields.get('instructorUid'):
         return True
     numeric_ids = [int(eid) for eid in evaluation_ids if re.match(r'\d+\Z', str(eid))]
     if numeric_ids:
