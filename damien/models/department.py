@@ -222,6 +222,7 @@ class Department(Base):
         include_contacts=False,
         include_evaluations=False,
         include_sections=False,
+        include_status=False,
         term_id=None,
     ):
         feed = {
@@ -235,8 +236,22 @@ class Department(Base):
         feed['notes'] = {note.term_id: note.to_api_json() for note in self.notes}
         if include_contacts:
             feed['contacts'] = sorted([user.to_api_json() for user in self.members], key=lambda m: m['lastName'])
-        if include_evaluations:
-            feed['evaluations'] = self.evaluations_feed(term_id)
+
+        if include_evaluations or include_status:
+            evaluations = self.evaluations_feed(term_id)
+            if include_evaluations:
+                feed['evaluations'] = evaluations
+            if include_status:
+                confirmed_count = 0
+                invalid_count = 0
+                for evaluation in evaluations:
+                    if evaluation['status'] == 'confirmed':
+                        confirmed_count += 1
+                    elif not evaluation['valid']:
+                        invalid_count += 1
+                feed['totalConfirmed'] = confirmed_count
+                feed['totalEvaluations'] = len(evaluations)
+                feed['totalInError'] = invalid_count
         if include_sections:
             if self.row_count is None:
                 self.get_visible_sections()['sections']

@@ -13,8 +13,8 @@ export function getDepartment(departmentId: number, termId: string) {
   return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}?term_id=${termId}`)
 }
 
-export function getDepartmentsEnrolled(includeContacts: boolean, includeSections: boolean) {
-  return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/departments/enrolled?c=${includeContacts ? 1 : 0}&s=${includeSections ? 1 : 0}`)
+export function getDepartmentsEnrolled(includeContacts: boolean, includeSections: boolean, includeStatus: boolean) {
+  return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/departments/enrolled?c=${includeContacts ? 1 : 0}&s=${includeSections ? 1 : 0}&t=${includeStatus ? 1 : 0}`)
 }
 
 export function getSectionEvaluations(departmentId: number, courseNumber: string) {

@@ -239,6 +239,7 @@ export default {
       this.showErrorDialog(this.$_.get(error, 'response.data.message', 'An unknown error occurred.'))
       this.setDisableControls(false)
       this.applyingAction = null
+      this.isLoading = false
     },
     reset() {
       this.bulkUpdateOptions = {

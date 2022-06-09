@@ -1,24 +1,10 @@
 <template>
-  <div>
+  <div class="pt-2">
     <v-row class="pb-2" no-gutters>
       <v-col cols="12" md="9" class="d-flex align-baseline">
-        <h1 id="page-title">Evaluation Status Dashboard - {{ currentTermName }}</h1>
+        <h1 id="page-title">Evaluation Status Dashboard - {{ selectedTermName }}</h1>
       </v-col>
       <v-col cols="12" md="3" class="d-flex align-center justify-end flex-wrap">
-        <div class="d-flex">
-          <label for="toggle-term-locked" class="text-nowrap pr-4 py-2">
-            {{ `${isCurrentTermLocked ? 'Unlock' : 'Lock'} current term` }}
-          </label>
-          <v-switch
-            id="toggle-term-locked"
-            v-model="isCurrentTermLocked"
-            class="my-auto"
-            color="tertiary"
-            hide-details
-            inset
-            @change="toggleCurrentTermLocked"
-          />
-        </div>
         <div v-if="$currentUser.isAdmin" class="d-flex align-baseline mr-3">
           <label
             id="select-term-label"
@@ -29,7 +15,7 @@
           </label>
           <select
             id="select-term"
-            v-model="currentTermId"
+            v-model="selectedTermId"
             class="native-select-override select-term my-2 px-3"
             :class="this.$vuetify.theme.dark ? 'dark' : 'light'"
             :disabled="loading"
@@ -45,15 +31,30 @@
             </option>
           </select>
         </div>
+        <div class="d-flex ml-4">
+          <label for="toggle-term-locked" class="text-nowrap pr-4 py-2">
+            {{ `${isCurrentTermLocked ? 'Unlock' : 'Lock'} current term` }}
+          </label>
+          <v-switch
+            id="toggle-term-locked"
+            v-model="isCurrentTermLocked"
+            class="my-auto"
+            color="tertiary"
+            dense
+            hide-details
+            inset
+            @change="toggleCurrentTermLocked"
+          />
+        </div>
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="auto" class="mr-auto">
+      <v-col cols="auto" class="d-flex mr-auto">
         <v-btn
           id="publish-btn"
-          class="my-4"
+          class="align-self-end my-4"
           color="primary"
-          :disabled="isExporting"
+          :disabled="isExporting || loading"
           @click="publish"
           @keypress.enter.prevent="publish"
         >
@@ -68,11 +69,28 @@
           ></v-progress-circular>
         </v-btn>
       </v-col>
-      <v-col cols="auto" class="pr-8">
+      <v-col cols="auto" class="pr-8 mb-2">
         <h2>Term Exports</h2>
-        <ul id="term-exports-list">
+        <ul id="term-exports-list" class="pl-2">
           <li v-for="(e, index) in exports" :key="index">
-            <a :href="`${$config.apiBaseUrl}/api/export/${encodeURIComponent(e.s3Path)}`">{{ e.createdAt | moment('M/DD/YYYY HH:mm:SS') }}</a>
+            <a
+              :id="`term-export-${index}`"
+              download
+              :href="`${$config.apiBaseUrl}/api/export/${encodeURIComponent(e.s3Path)}`"
+            >
+              <v-icon
+                aria-hidden="false"
+                aria-label="download"
+                class="pr-2"
+                color="anchor"
+                role="img"
+                small
+              >
+                mdi-tray-arrow-down
+              </v-icon>
+              {{ e.createdAt | moment('M/DD/YYYY HH:mm:SS') }}
+              <span class="sr-only">term export</span>
+            </a>
           </li>
         </ul>
       </v-col>
@@ -81,6 +99,7 @@
       <v-data-table
         id="department-table"
         disable-pagination
+        :disable-sort="loading"
         :headers="headers"
         :header-props="{'every-item': true, 'some-items': true}"
         hide-default-footer
@@ -91,6 +110,7 @@
           <div class="d-flex flex-row notify-all">
             <v-simple-checkbox
               id="checkbox-select-dept-all"
+              :disabled="loading"
               :indeterminate="someDepartmentsSelected"
               :ripple="false"
               :value="allDepartmentsSelected"
@@ -129,17 +149,46 @@
                     ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})
                   </router-link>
                 </td>
-                <td class="department-lastUpdated">
+                <td :id="`last-updated-dept-${department.id}`" class="department-lastUpdated">
                   {{ department.updatedAt | moment('MMM D, YYYY h:mma') }}
                 </td>
                 <td class="department-errors">
-                  <span class="font-italic muted--text">TODO</span>
+                  <v-chip
+                    v-if="department.totalInError"
+                    :id="`errors-count-dept-${department.id}`"
+                    class="error error--text error-count"
+                    outlined
+                    small
+                  >
+                    {{ department.totalInError }} <span class="sr-only">errors</span>
+                  </v-chip>
+                  <v-icon
+                    v-if="!department.totalInError"
+                    aria-hidden="false"
+                    aria-label="no errors"
+                    class="success--text"
+                    role="img"
+                  >
+                    mdi-check-circle
+                  </v-icon>
                 </td>
                 <td class="department-confirmed">
-                  <span class="font-italic muted--text">TODO</span>
+                  <v-icon
+                    v-if="department.totalConfirmed > 0 && department.totalConfirmed === department.totalEvaluations"
+                    aria-hidden="false"
+                    aria-label="all confirmed"
+                    class="success--text"
+                    role="img"
+                  >
+                    mdi-check-circle
+                  </v-icon>
+                  <span v-if="department.totalConfirmed === 0 || department.totalConfirmed < department.totalEvaluations">
+                    <span aria-hidden="true">{{ department.totalConfirmed }} / {{ department.totalEvaluations }}</span>
+                    <span class="sr-only">{{ department.totalConfirmed }} of {{ department.totalEvaluations }} confirmed</span>
+                  </span>
                 </td>
                 <td class="department-note">
-                  {{ $_.get(department, `notes.${currentTermId}.note`) }}
+                  {{ $_.get(department, `notes.${selectedTermId}.note`) }}
                 </td>
               </tr>
             </template>
@@ -171,17 +220,11 @@ export default {
   mixins: [Context],
   data: () => ({
     availableTerms: [],
-    currentTermId: null,
-    currentTermName: null,
+    selectedTermId: null,
+    selectedTermName: null,
     departments: [],
     exports: [],
-    headers: [
-      {class: 'pt-12 pb-3', text: 'Department', value: 'deptName'},
-      {class: 'pt-12 pb-3', text: 'Last Updated', value: 'updatedAt'},
-      {class: 'pt-12 pb-3', text: 'Errors', value: 'errors'},
-      {class: 'pt-12 pb-3', text: 'Confirmed', value: 'confirmed'},
-      {class: 'pt-12 pb-3', text: 'Notes', value: 'notes'},
-    ],
+    headers: [],
     isCreatingNotification: false,
     isExporting: false,
     isCurrentTermLocked: false,
@@ -213,17 +256,34 @@ export default {
   },
   created() {
     this.$loading()
-    this.currentTermId = this.$config.currentTermId
-    this.currentTermName = this.$config.currentTermName
+    this.selectedTermId = this.$config.currentTermId
+    this.selectedTermName = this.$config.currentTermName
     this.availableTerms = this.$config.availableTerms
-    getDepartmentsEnrolled().then(data => {
+    this.headers = [
+      {class: 'text-nowrap pt-12 pb-3', text: 'Department', value: 'deptName'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Last Updated', value: 'updatedAt'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Errors', value: 'totalInError'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Confirmed', value: 'totalConfirmed'},
+      {
+        class: 'text-nowrap pt-12 pb-3',
+        sort: (a, b) => {
+          const deptANote = this.$_.get(a, `${this.selectedTermId}.note`)
+          const deptBNote = this.$_.get(b, `${this.selectedTermId}.note`)
+          // Nulls last
+          return deptANote && deptBNote ? deptANote.localeCompare(deptBNote) : !deptANote - !deptBNote
+        },
+        text: 'Notes',
+        value: 'notes'
+      },
+    ]
+    getDepartmentsEnrolled(false, false, true).then(data => {
       this.departments = data
       this.$ready('Status Board')
     })
     getExports().then(data => {
       this.exports = data
     })
-    getEvaluationTerm(this.currentTermId).then(data => {
+    getEvaluationTerm(this.selectedTermId).then(data => {
       this.isCurrentTermLocked = data.isLocked === true
     })
   },
@@ -236,12 +296,12 @@ export default {
     },
     toggleCurrentTermLocked() {
       if (this.isCurrentTermLocked) {
-        lockEvaluationTerm(this.currentTermId).then(() => {
-          this.alertScreenReader(`Locked ${this.currentTermName}`)
+        lockEvaluationTerm(this.selectedTermId).then(() => {
+          this.alertScreenReader(`Locked ${this.selectedTermName}`)
         })
       } else {
-        unlockEvaluationTerm(this.currentTermId).then(() => {
-          this.alertScreenReader(`Unlocked ${this.currentTermName}`)
+        unlockEvaluationTerm(this.selectedTermId).then(() => {
+          this.alertScreenReader(`Unlocked ${this.selectedTermName}`)
         })
       }
     },
@@ -279,8 +339,8 @@ export default {
     },
     onChangeTerm(event) {
       const term = this.$_.find(this.availableTerms, ['id', event.target.value])
-      this.currentTermId = term.id
-      this.currentTermName = term.name
+      this.selectedTermId = term.id
+      this.selectedTermName = term.name
       this.alertScreenReader(`Loading ${this.$_.get(term, 'name', 'term')}`)
       this.$putFocusNextTick('select-term')
     },
@@ -290,9 +350,11 @@ export default {
 
 <style scoped>
 .department-confirmed {
+  min-width: 120px;
   width: 10%;
 }
 .department-errors {
+  min-width: 100px;
   width: 10%;
 }
 .department-lastUpdated {
@@ -303,6 +365,11 @@ export default {
 }
 .department-note {
   width: 35%;
+}
+.error-count {
+  border-width: 2px;
+  font-weight: bold;
+  padding: 0 7px;
 }
 .notify-all {
   position: absolute;
