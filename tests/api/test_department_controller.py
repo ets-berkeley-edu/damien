@@ -34,8 +34,8 @@ non_admin_uid = '100'
 admin_uid = '200'
 
 
-def _api_enrolled_departments(client, include_contacts=False, include_sections=False, expected_status_code=200):
-    response = client.get(f'/api/departments/enrolled?c={int(include_contacts)}&s={int(include_sections)}')
+def _api_enrolled_departments(client, include_contacts=False, include_sections=False, include_status=False, expected_status_code=200):
+    response = client.get(f'/api/departments/enrolled?c={int(include_contacts)}&s={int(include_sections)}&t={int(include_status)}')
     assert response.status_code == expected_status_code
     return response.json
 
@@ -76,12 +76,14 @@ class TestEnrolledDepartments:
             'UGIS': ['82', '187', '188', '189', '303'],
         }
 
-    def test_include_contacts_and_sections(self, client, fake_auth):
+    def test_include_contacts_sections_and_status(self, client, fake_auth):
         fake_auth.login(admin_uid)
-        departments = _api_enrolled_departments(client, include_contacts=True, include_sections=True)
+        departments = _api_enrolled_departments(client, include_contacts=True, include_sections=True, include_status=True)
         assert len(departments) == 82
         for d in departments:
             assert 'contacts' in d
+            assert 'totalConfirmed' in d
+            assert 'totalInError' in d
             assert 'totalSections' in d
             assert d['isEnrolled']
 

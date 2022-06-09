@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="pt-2">
     <div v-if="$_.get(department, 'deptName')" class="d-flex align-center justify-space-between flex-wrap">
       <h1 id="page-title" class="d-flex align-baseline flex-wrap mr-5">
         {{ department.deptName }}&MediumSpace;

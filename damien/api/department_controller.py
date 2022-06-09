@@ -65,7 +65,12 @@ def enrolled_departments():
     enrolled_depts = Department.all_enrolled()
     include_contacts = bool(get_param(request.args, 'c', False))
     include_sections = bool(get_param(request.args, 's', False))
-    return tolerant_jsonify([d.to_api_json(include_contacts=include_contacts, include_sections=include_sections) for d in enrolled_depts])
+    include_status = bool(get_param(request.args, 't', False))
+    return tolerant_jsonify([d.to_api_json(
+        include_contacts=include_contacts,
+        include_sections=include_sections,
+        include_status=include_status,
+    ) for d in enrolled_depts])
 
 
 @app.route('/api/department/<department_id>')

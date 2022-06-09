@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="pt-2">
     <div class="pb-2 d-flex">
       <h1 id="page-title">List Management</h1>
       <v-spacer class="d-flex justify-center"></v-spacer>

@@ -1,13 +1,13 @@
 <template>
-  <div v-if="!loading">
+  <div class="pt-2">
     <v-row>
       <v-col cols="12" md="7" class="d-flex justify-start">
         <h1 id="page-title">
-          Course Errors Dashboard - {{ $config.currentTermName }}
+          Course Errors Dashboard<span v-if="$config.currentTermName"> - {{ $config.currentTermName }}</span>
         </h1>
       </v-col>
     </v-row>
-    <v-card outlined class="elevation-1">
+    <v-card v-if="!loading" outlined class="elevation-1">
       <EvaluationTable :readonly="true" />
     </v-card>
   </div>

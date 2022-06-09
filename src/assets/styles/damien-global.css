@@ -172,3 +172,6 @@ a {
 svg {
   fill: currentColor;
 }
+ul {
+  list-style: none;
+}
