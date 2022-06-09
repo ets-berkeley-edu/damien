@@ -83,6 +83,7 @@ class TestEnrolledDepartments:
         for d in departments:
             assert 'contacts' in d
             assert 'totalConfirmed' in d
+            assert 'totalEvaluations' in d
             assert 'totalInError' in d
             assert 'totalSections' in d
             assert d['isEnrolled']
@@ -291,6 +292,23 @@ class TestUpdateEvaluationStatus:
     def test_bad_evaluation_ids(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         _api_update_evaluation(client, params={'evaluationIds': ['xxxx'], 'action': 'confirm'}, expected_status_code=400)
+
+    def test_confirm_invalid(self, client, fake_auth):
+        # First, create an evaluation with missing instructor, department form and evaluation type
+        dept = Department.find_by_name('Middle Eastern Languages and Cultures')
+        Evaluation.create(term_id='2222', course_number='12345', department_id=dept.id)
+        std_commit(allow_test_environment=True)
+        incomplete_eval = Evaluation.fetch_by_course_numbers('2222', ['12345'])['12345'][0]
+        incomplete_eval.valid = False
+        std_commit(allow_test_environment=True)
+        incomplete_eval = Evaluation.fetch_by_course_numbers('2222', ['12345'])['12345'][0]
+        assert incomplete_eval.department_form_id is None
+        assert incomplete_eval.evaluation_type_id is None
+        assert incomplete_eval.instructor_uid is None
+        assert incomplete_eval.status is None
+
+        fake_auth.login(non_admin_uid)
+        _api_update_evaluation(client, params={'evaluationIds': [incomplete_eval.id], 'action': 'confirm'}, expected_status_code=400)
 
     def test_confirm(self, client, fake_auth):
         fake_auth.login(non_admin_uid)

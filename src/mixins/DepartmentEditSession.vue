@@ -1,5 +1,10 @@
 <script>
+import _ from 'lodash'
 import {mapActions, mapGetters} from 'vuex'
+
+const $_isInvalid = (e, evaluationIds) => {
+  return _.includes(evaluationIds, e.id) && !(e.departmentForm && e.evaluationType && e.instructor)
+}
 
 export default {
   name: 'DepartmentEditSession',
@@ -20,7 +25,7 @@ export default {
   },
   methods: {
     validateConfirmable(evaluationIds) {
-      if (this.$_.some(this.evaluations, e => this.$_.includes(evaluationIds, e.id) && (!e.departmentForm || !e.evaluationType))) {
+      if (this.$_.some(this.evaluations, e => $_isInvalid(e, evaluationIds))) {
         this.showErrorDialog('Cannot confirm evaluations with missing fields.')
         return false
       }

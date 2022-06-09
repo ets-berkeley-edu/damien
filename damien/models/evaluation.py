@@ -136,6 +136,7 @@ class Evaluation(Base):
                     evaluation_type_id={self.evaluation_type_id},
                     start_date={self.start_date},
                     end_date={self.end_date},
+                    valid={self.valid},
                     created_at={self.created_at},
                     created_by={self.created_by},
                     updated_at={self.updated_at},
@@ -320,6 +321,18 @@ class Evaluation(Base):
     def is_transient(self):
         return self.id is None
 
+    def is_valid(self, foreign_department_evaluation=None):
+        if self.status in ('marked', 'confirmed'):
+            if next((v for v in (foreign_department_evaluation or self).conflicts.values() if len(v)), None):
+                return False
+            if not (self.department_form or (foreign_department_evaluation and foreign_department_evaluation.department_form)):
+                return False
+            if not (self.evaluation_type or (foreign_department_evaluation and foreign_department_evaluation.evaluation_type)):
+                return False
+            if not (self.instructor_uid or (foreign_department_evaluation and foreign_department_evaluation.instructor_uid)):
+                return False
+        return True
+
     def is_visible(self):
         return self.status != 'deleted'
 
@@ -459,26 +472,14 @@ class Evaluation(Base):
     def update_validity(self, saved_evaluation, foreign_dept_evaluations):
         self.valid = True
         if saved_evaluation:
-            updated_validity = True
-            if self.status in ('marked', 'confirmed'):
-                if not self.department_form or not self.evaluation_type:
-                    updated_validity = False
-                if next((v for v in self.conflicts.values() if len(v)), None):
-                    updated_validity = False
+            updated_validity = self.is_valid()
             if updated_validity != saved_evaluation.valid:
                 saved_evaluation.valid = updated_validity
                 db.session.add(saved_evaluation)
                 clear_section_cache(self.department_id, self.term_id, self.course_number)
             self.valid = saved_evaluation.valid
         for fde in foreign_dept_evaluations:
-            updated_validity = True
-            if self.status in ('marked', 'confirmed'):
-                if next((v for v in fde.conflicts.values() if len(v)), None):
-                    updated_validity = False
-                if not self.department_form and not fde.department_form:
-                    updated_validity = False
-                if not self.evaluation_type and not fde.evaluation_type:
-                    updated_validity = False
+            updated_validity = self.is_valid(fde)
             if updated_validity != fde.valid:
                 fde.valid = updated_validity
                 db.session.add(fde)
