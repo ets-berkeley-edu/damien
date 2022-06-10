@@ -176,6 +176,8 @@ export default {
       this.alertScreenReader(`Adding section ${courseNumber}.`)
       this.addSection(courseNumber).then(() => {
         this.isAddingSection = false
+        this.courseNumber = null
+        this.section = null
         this.alertScreenReader(`Section ${courseNumber} added.`)
       }, error => this.showErrorDialog(error.response.data.message))
       .finally(() => this.setDisableControls(false))

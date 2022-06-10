@@ -167,7 +167,7 @@ def _validate_confirmable(evaluation_ids, fields=None):
         return True
     numeric_ids = [int(eid) for eid in evaluation_ids if re.match(r'\d+\Z', str(eid))]
     if numeric_ids:
-        validation_errors = Evaluation.get_invalid(app.config['CURRENT_TERM_ID'], evaluation_ids=evaluation_ids)
+        validation_errors = Evaluation.get_invalid(app.config['CURRENT_TERM_ID'], evaluation_ids=numeric_ids)
         if validation_errors:
             raise BadRequestError('Could not confirm evaluations with errors.')
 
