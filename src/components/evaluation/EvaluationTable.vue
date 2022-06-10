@@ -60,6 +60,7 @@
                 v-for="type in $_.keys(filterTypes)"
                 :id="`evaluations-filter-${type}`"
                 :key="type"
+                :aria-label="`Toggle evaluation filter ${filterTypes[type].label}`"
                 aria-controls="evaluation-table"
                 :aria-selected="filterTypes[type].enabled"
                 class="ma-1 px-4 text-center text-nowrap text-uppercase"
