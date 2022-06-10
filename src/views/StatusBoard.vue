@@ -110,6 +110,7 @@
           <div class="d-flex flex-row notify-all">
             <v-simple-checkbox
               id="checkbox-select-dept-all"
+              aria-label="Select all department rows"
               :disabled="loading"
               :indeterminate="someDepartmentsSelected"
               :ripple="false"
