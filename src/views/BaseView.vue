@@ -104,14 +104,14 @@
         v-if="serviceAnnouncement && serviceAnnouncement.isLive"
         class="service-announcement"
       >
-        <div
-          id="service-announcement"
-          class="p-3"
-          aria-live="polite"
-          role="alert"
-        >
-          {{ serviceAnnouncement.text }}
-        </div>
+        <pre>
+          <span
+            id="service-announcement"
+            aria-live="polite"
+            role="alert"
+            v-html="serviceAnnouncement.text"
+          />
+        </pre>
       </div>
       <router-view :key="stripAnchorRef($route.fullPath)" class="px-4"></router-view>
     </v-main>
@@ -205,5 +205,8 @@
 }
 .sr-debug {
   width: fit-content;
+}
+pre {
+  white-space: pre-line;
 }
 </style>
