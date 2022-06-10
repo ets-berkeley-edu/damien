@@ -25,6 +25,7 @@
       </v-row>
       <v-row class="d-flex flex-column-reverse flex-md-row">
         <v-col
+          v-if="!readonly && allowEdits"
           cols="12"
           lg="7"
           md="8"
@@ -32,7 +33,6 @@
         >
           <div class="d-flex align-self-stretch align-end mt-auto mx-4">
             <v-checkbox
-              v-if="!readonly"
               id="select-all-evals-checkbox"
               class="align-center mt-0 pt-0"
               :disabled="$_.isEmpty(searchFilterResults)"
