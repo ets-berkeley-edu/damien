@@ -106,3 +106,21 @@ class ListMgmtPage(DamienPages):
         app.logger.info(f'Adding manual instructor UID {user.uid}')
         self.wait_for_element_and_click(ListMgmtPage.ADD_INSTR_BUTTON)
         # TODO
+
+    SERVICE_ALERT_INPUT = (By.ID, 'service-announcement-textarea')
+    SERVICE_ALERT_POST_CBX = (By.XPATH, '//input[@id="service-announcement-published"]/..')
+    SERVICE_ALERT_SAVE_BUTTON = (By.ID, 'service-announcement-save')
+
+    def enter_service_alert(self, alert_text):
+        app.logger.info(f'Entering service alert {alert_text}')
+        self.remove_and_enter_chars(ListMgmtPage.SERVICE_ALERT_INPUT, alert_text)
+
+    def click_publish_alert_cbx(self):
+        self.wait_for_element_and_click(ListMgmtPage.SERVICE_ALERT_POST_CBX)
+
+    def save_service_alert(self):
+        self.wait_for_element_and_click(ListMgmtPage.SERVICE_ALERT_SAVE_BUTTON)
+
+    def is_service_alert_posted(self):
+        loc = By.ID, 'service-announcement-published'
+        return True if (self.element(loc).get_attribute('aria-checked') == 'true') else False

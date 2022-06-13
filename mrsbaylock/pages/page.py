@@ -178,7 +178,7 @@ class Page(object):
 
     def remove_and_enter_chars(self, locator, string):
         self.wait_for_element_and_click(locator)
-        repeat = 100
+        repeat = 300
         for x in range(repeat):
             self.hit_delete()
             self.hit_backspace()

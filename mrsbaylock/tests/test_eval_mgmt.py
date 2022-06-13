@@ -58,8 +58,31 @@ class TestEvaluationManagement:
             self.midterm_form = DepartmentForm(f'{self.dept_forms[0]}_MID')
             self.list_mgmt_page.add_dept_form(self.midterm_form)
 
-    def test_status_board(self):
+    def test_status_board_lock(self):
         self.list_mgmt_page.click_status_board()
+        if not self.status_board_admin_page.is_current_term_locked():
+            self.status_board_admin_page.lock_current_term()
+
+    def test_verify_no_locked_edits(self):
+        self.status_board_admin_page.log_out()
+        self.login_page.dev_auth(self.dept_1.users[0])
+        self.dept_details_dept_page.wait_for_eval_rows()
+        assert not self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
+
+    def test_status_board_unlock(self):
+        self.dept_details_dept_page.log_out()
+        self.login_page.dev_auth()
+        self.status_board_admin_page.unlock_current_term()
+
+    def test_verify_unlocked_edits(self):
+        self.status_board_admin_page.log_out()
+        self.login_page.dev_auth(self.dept_1.users[0])
+        self.dept_details_dept_page.wait_for_eval_rows()
+        assert self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
+
+    def test_admin_log_in(self):
+        self.dept_details_dept_page.log_out()
+        self.login_page.dev_auth()
         self.status_board_admin_page.click_dept_link(self.dept_1)
 
     def test_add_instructor(self):

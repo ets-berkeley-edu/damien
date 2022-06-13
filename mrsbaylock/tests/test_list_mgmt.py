@@ -50,6 +50,7 @@ class TestListManagement:
     eval_confirmed = evaluations[2]
     form = DepartmentForm(f'Form {test_id}')
     eval_type = EvaluationType(f'Type {test_id}')
+    alert = (f'FOO {test_id} ' * 15).strip()
 
     role = UserDeptRole(dept.dept_id, receives_comms=True)
     instructor = utils.get_test_user(role)
@@ -133,3 +134,28 @@ class TestListManagement:
 
     def test_deleted_type_not_available(self):
         assert self.eval_type.name not in self.dept_details_admin_page.visible_eval_type_options()
+
+    # SERVICE ALERTS
+
+    def test_save_unposted_alert(self):
+        self.list_mgmt_page.load_page()
+        self.list_mgmt_page.enter_service_alert(self.alert)
+        if self.list_mgmt_page.is_service_alert_posted():
+            self.list_mgmt_page.click_publish_alert_cbx()
+        self.list_mgmt_page.save_service_alert()
+        assert not self.list_mgmt_page.service_alert()
+
+    def test_post_alert(self):
+        self.list_mgmt_page.click_publish_alert_cbx()
+        self.list_mgmt_page.save_service_alert()
+        assert self.list_mgmt_page.service_alert() == self.alert
+
+    def test_edit_posted_alert(self):
+        self.list_mgmt_page.enter_service_alert(f'EDITED {self.alert}')
+        self.list_mgmt_page.save_service_alert()
+        assert self.list_mgmt_page.service_alert() == f'EDITED {self.alert}'
+
+    def test_unpost_alert(self):
+        self.list_mgmt_page.click_publish_alert_cbx()
+        self.list_mgmt_page.save_service_alert()
+        assert not self.list_mgmt_page.service_alert()
