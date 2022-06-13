@@ -24,6 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import re
+import time
 
 from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
@@ -38,6 +39,21 @@ class StatusBoardAdminPage(DamienPages):
     def load_page(self):
         app.logger.info('Loading the dept status page')
         self.driver.get(f'{app.config["BASE_URL"]}/status')
+
+    LOCK_BOX = (By.XPATH, '//label[text()=" Lock current term "]/following-sibling::div//input/..')
+    UNLOCK_BOX = (By.XPATH, '//label[text()=" Unlock current term "]/following-sibling::div//input/..')
+
+    def lock_current_term(self):
+        app.logger.info('Locking current term edits')
+        self.wait_for_element_and_click(StatusBoardAdminPage.LOCK_BOX)
+
+    def unlock_current_term(self):
+        app.logger.info('Unlocking current term edits')
+        self.wait_for_element_and_click(StatusBoardAdminPage.UNLOCK_BOX)
+
+    def is_current_term_locked(self):
+        time.sleep(1)
+        return True if (self.is_present(StatusBoardAdminPage.UNLOCK_BOX)) else False
 
     NOTIF_SELECT_ALL_CBX = (By.ID, 'checkbox-select-dept-all')
     NOTIF_APPLY_BUTTON = (By.ID, 'open-notification-form-btn')

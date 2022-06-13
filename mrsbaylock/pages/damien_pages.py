@@ -45,6 +45,8 @@ class DamienPages(Page):
     MENU_BUTTON = (By.ID, 'btn-main-menu')
     LOG_OUT_LINK = (By.ID, 'menu-item-log-out')
 
+    SERVICE_ALERT = (By.ID, 'service-announcement')
+
     @staticmethod
     def menu_option_locator(option_str):
         return By.XPATH, f'//*[@role="option"][contains(., "{option_str}")]'
@@ -76,6 +78,10 @@ class DamienPages(Page):
         if self.is_present(DamienPages.LOG_OUT_LINK):
             self.open_menu()
             self.wait_for_element_and_click(DamienPages.LOG_OUT_LINK)
+
+    def service_alert(self):
+        time.sleep(1)
+        return self.element(DamienPages.SERVICE_ALERT).text if self.is_present(DamienPages.SERVICE_ALERT) else None
 
     def click_status_board(self):
         app.logger.info('Clicking link to the Status Board')
