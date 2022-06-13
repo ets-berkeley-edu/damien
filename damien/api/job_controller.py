@@ -23,18 +23,26 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.api.errors import ForbiddenRequestError, InternalServerError
+from damien import cache
+from damien.api.errors import InternalServerError
+from damien.api.util import admin_required
 from damien.jobs.refresh_unholy_loch import refresh_from_api
 from damien.lib.http import tolerant_jsonify
 from flask import current_app as app
-from flask_login import current_user, login_required
+
+
+@app.route('/api/job/clear_cache')
+@admin_required
+def clear_cache():
+    if cache.clear():
+        return tolerant_jsonify({'status': 'cleared'})
+    else:
+        raise InternalServerError('Cache clear failed.')
 
 
 @app.route('/api/job/refresh_unholy_loch')
-@login_required
+@admin_required
 def refresh_unholy_loch():
-    if not current_user.is_admin:
-        raise ForbiddenRequestError('Admin required.')
     if refresh_from_api():
         return tolerant_jsonify({'status': 'started'})
     else:

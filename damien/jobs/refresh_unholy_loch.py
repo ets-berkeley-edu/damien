@@ -27,7 +27,7 @@ import os
 from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from damien import db, std_commit
+from damien import cache, db, std_commit
 from damien.lib.queries import refresh_additional_instructors
 from damien.lib.util import resolve_sql_template
 from sqlalchemy.sql import text
@@ -71,7 +71,8 @@ def _bg_refresh_unholy_loch(app):
             db.session().execute(text(resolved_ddl))
             refresh_additional_instructors()
             std_commit()
-            app.logger.info('Unholy loch refresh completed.')
+            cache.clear()
+            app.logger.info('Unholy loch refresh completed, cache cleared.')
         except Exception as e:
             app.logger.error('Unholy loch refresh failed:')
             app.logger.exception(e)
