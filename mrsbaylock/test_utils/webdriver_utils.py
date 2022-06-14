@@ -59,3 +59,11 @@ class WebDriverManager(object):
     def quit_browser(cls, driver):
         app.logger.warning(f'Quitting {utils.get_browser().capitalize()}')
         driver.quit()
+
+    @classmethod
+    def get_browser_logs(cls, driver):
+        log = driver.get_log('browser')
+        messages = list(map(lambda mess: mess['message'], log))
+        for message in messages:
+            app.logger.info(f'Possible JS error {message}')
+        return messages

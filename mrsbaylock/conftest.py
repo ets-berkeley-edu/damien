@@ -27,6 +27,7 @@ from datetime import datetime
 import os
 
 from damien.factory import create_app
+from mrsbaylock.pages.api_page import ApiPage
 from mrsbaylock.pages.calnet_page import CalNetPage
 from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
 from mrsbaylock.pages.course_errors_page import CourseErrorsPage
@@ -54,6 +55,7 @@ def page_objects(request):
     test_id = datetime.strftime(datetime.now(), '%s')
 
     # Define page objects
+    api_page = ApiPage(driver)
     calnet_page = CalNetPage(driver)
     course_errors_page = CourseErrorsPage(driver)
     dept_details_admin_page = DeptDetailsAdminPage(driver)
@@ -70,6 +72,7 @@ def page_objects(request):
             cls = item.getparent(pytest.Class)
             setattr(cls.obj, 'driver', driver)
             setattr(cls.obj, 'test_id', test_id)
+            setattr(cls.obj, 'api_page', api_page)
             setattr(cls.obj, 'calnet_page', calnet_page)
             setattr(cls.obj, 'course_errors_page', course_errors_page)
             setattr(cls.obj, 'dept_details_admin_page', dept_details_admin_page)

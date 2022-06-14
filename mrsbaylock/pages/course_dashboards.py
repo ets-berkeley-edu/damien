@@ -59,6 +59,7 @@ class CourseDashboards(DamienPages):
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.presence_of_all_elements_located(CourseDashboards.EVALUATION_ROW),
         )
+        self.hit_tab()
         self.scroll_to_top()
         time.sleep(2)
 
@@ -108,6 +109,9 @@ class CourseDashboards(DamienPages):
                 },
             )
         return data
+
+    def eval_row_el(self, evaluation):
+        return self.element((By.XPATH, self.eval_row_xpath(evaluation)))
 
     def eval_status_el(self, evaluation):
         xpath = f'{self.eval_row_xpath(evaluation)}/td[contains(@id, "status")]'

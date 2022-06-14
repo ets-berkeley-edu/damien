@@ -23,33 +23,18 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-import enum
+from flask import current_app as app
+from mrsbaylock.pages.page import Page
+from mrsbaylock.test_utils import utils
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
-class EvaluationStatus(enum.Enum):
+class ApiPage(Page):
 
-    CONFIRMED = {
-        'db': 'confirmed',
-        'option': 'Done',
-        'ui': 'CONFIRMED',
-    }
-    DELETED = {
-        'db': 'deleted',
-        'option': None,
-        'ui': None,
-    }
-    FOR_REVIEW = {
-        'db': 'marked',
-        'option': 'To-do',
-        'ui': 'REVIEW',
-    }
-    IGNORED = {
-        'db': 'ignore',
-        'option': 'Ignore',
-        'ui': 'IGNORE',
-    }
-    UNMARKED = {
-        'db': None,
-        'option': 'None',
-        'ui': '',
-    }
+    def clear_cache(self):
+        self.driver.get(f'{app.config["BASE_URL"]}/api/job/clear_cache')
+        Wait(self.driver, utils.get_short_timeout()).until(
+            ec.presence_of_element_located((By.XPATH, '//*[contains(text(), "cleared")]')),
+        )
