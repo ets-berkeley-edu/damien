@@ -93,6 +93,11 @@
 .text-wrap {
   white-space: break-spaces;
 }
+.truncate-with-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .vs__actions button:enabled {
   cursor: pointer;
 }

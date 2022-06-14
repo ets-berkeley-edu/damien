@@ -193,7 +193,7 @@
                   </span>
                 </td>
                 <td class="department-note">
-                  <pre class="body-2 text-condensed">{{ $_.get(department, `notes.${selectedTermId}.note`) }}</pre>
+                  <pre class="body-2 text-condensed truncate-with-ellipsis">{{ $_.get(department, `notes.${selectedTermId}.note`) }}</pre>
                 </td>
               </tr>
             </template>
@@ -360,10 +360,10 @@ export default {
 
 <style scoped>
 .department-confirmed {
-  min-width: 120px;
+  min-width: 100px;
 }
 .department-errors {
-  min-width: 100px;
+  min-width: 80px;
 }
 .department-lastUpdated {
   min-width: 130px;
