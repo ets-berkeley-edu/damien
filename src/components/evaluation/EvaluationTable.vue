@@ -53,49 +53,47 @@
           </div>
         </v-col>
         <v-col cols="12" lg="5" md="4">
-          <div class="d-flex flex-nowrap flex-md-wrap align-baseline justify-end mt-auto mx-4">
-            <div class="mr-md-auto text-nowrap mr-2">Filter statuses:</div>
-            <div class="d-flex flex-wrap">
-              <v-chip
-                v-for="type in $_.keys(filterTypes)"
-                :id="`evaluations-filter-${type}`"
-                :key="type"
-                :aria-label="`Toggle evaluation filter ${filterTypes[type].label}`"
-                aria-controls="evaluation-table"
-                :aria-selected="filterTypes[type].enabled"
-                class="ma-1 px-4 text-center text-nowrap text-uppercase"
-                :class="{
-                  'secondary': filterTypes[type].enabled,
-                  'inactive': !filterTypes[type].enabled
-                }"
-                :color="filterTypes[type].enabled ? 'secondary' : ''"
-                role="tablist"
+          <div class="d-flex flex-wrap align-baseline justify-end mt-auto mx-4">
+            <div class="mr-2">Show statuses:</div>
+            <v-chip
+              v-for="type in $_.keys(filterTypes)"
+              :id="`evaluations-filter-${type}`"
+              :key="type"
+              :aria-label="`Toggle evaluation filter ${filterTypes[type].label}`"
+              aria-controls="evaluation-table"
+              :aria-selected="filterTypes[type].enabled"
+              class="ma-1 px-4 text-center text-nowrap text-uppercase"
+              :class="{
+                'secondary': filterTypes[type].enabled,
+                'inactive': !filterTypes[type].enabled
+              }"
+              :color="filterTypes[type].enabled ? 'secondary' : ''"
+              role="tablist"
+              small
+              tabindex="0"
+              :text-color="filterTypes[type].enabled ? 'white' : 'inactive-contrast'"
+              @click="toggleFilter(type)"
+              @keypress.enter.prevent="toggleFilter(type)"
+            >
+              <v-icon
+                v-if="filterTypes[type].enabled"
+                color="white"
                 small
-                tabindex="0"
-                :text-color="filterTypes[type].enabled ? 'white' : 'inactive-contrast'"
-                @click="toggleFilter(type)"
-                @keypress.enter.prevent="toggleFilter(type)"
+                left
               >
-                <v-icon
-                  v-if="filterTypes[type].enabled"
-                  color="white"
-                  small
-                  left
-                >
-                  mdi-check-circle
-                </v-icon>
-                <v-icon
-                  v-if="!filterTypes[type].enabled"
-                  color="inactive-contrast"
-                  small
-                  left
-                >
-                  mdi-plus-circle
-                </v-icon>
-                {{ filterTypes[type].label }}
-                {{ filterTypeCounts(type) }}
-              </v-chip>
-            </div>
+                mdi-check-circle
+              </v-icon>
+              <v-icon
+                v-if="!filterTypes[type].enabled"
+                color="inactive-contrast"
+                small
+                left
+              >
+                mdi-plus-circle
+              </v-icon>
+              {{ filterTypes[type].label }}
+              {{ filterTypeCounts(type) }}
+            </v-chip>
           </div>
         </v-col>
       </v-row>
