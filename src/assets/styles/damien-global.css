@@ -85,7 +85,7 @@
   overflow: hidden !important;
 }
 .text-condensed {
-  line-height: 1.2;
+  line-height: 1.2 !important;
 }
 .text-nowrap {
   white-space: nowrap;

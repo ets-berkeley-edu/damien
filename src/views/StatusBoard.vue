@@ -41,6 +41,7 @@
             class="my-auto"
             color="tertiary"
             dense
+            :disabled="loading"
             hide-details
             inset
             @change="toggleCurrentTermLocked"
@@ -123,7 +124,7 @@
               id="open-notification-form-btn"
               class="ma-2 secondary text-capitalize"
               color="secondary"
-              :disabled="$_.isEmpty(selectedDepartmentIds)"
+              :disabled="$_.isEmpty(selectedDepartmentIds) || loading"
               small
               @click="() => isCreatingNotification = true"
               @keypress.enter.prevent="() => isCreatingNotification = true"
@@ -139,16 +140,19 @@
                 <td>
                   <v-simple-checkbox
                     :id="`checkbox-select-dept-${$_.kebabCase(department.deptName)}`"
+                    :disabled="loading"
                     :ripple="false"
                     :value="isSelected(department)"
                     @input="toggleSelect(department)"
                   ></v-simple-checkbox>
                 </td>
                 <td class="department-name">
-                  <router-link :id="`link-to-dept-${$_.kebabCase(department.deptName)}`" :to="`/department/${department.id}`">
-                    {{ department.deptName }}
-                    ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})
-                  </router-link>
+                  <div class="d-flex align-top">
+                    <router-link :id="`link-to-dept-${$_.kebabCase(department.deptName)}`" :to="`/department/${department.id}`">
+                      {{ department.deptName }}
+                      ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})
+                    </router-link>
+                  </div>
                 </td>
                 <td :id="`last-updated-dept-${department.id}`" class="department-lastUpdated">
                   {{ department.updatedAt | moment('MMM D, YYYY h:mma') }}
@@ -189,7 +193,7 @@
                   </span>
                 </td>
                 <td class="department-note">
-                  {{ $_.get(department, `notes.${selectedTermId}.note`) }}
+                  <pre class="body-2 text-condensed">{{ $_.get(department, `notes.${selectedTermId}.note`) }}</pre>
                 </td>
               </tr>
             </template>
@@ -256,15 +260,18 @@ export default {
     }
   },
   created() {
-    this.$loading()
     this.selectedTermId = this.$config.currentTermId
     this.selectedTermName = this.$config.currentTermName
     this.availableTerms = this.$config.availableTerms
+    this.loadSelectedTerm()
+    getExports().then(data => {
+      this.exports = data
+    })
     this.headers = [
-      {class: 'text-nowrap pt-12 pb-3', text: 'Department', value: 'deptName'},
-      {class: 'text-nowrap pt-12 pb-3', text: 'Last Updated', value: 'updatedAt'},
-      {class: 'text-nowrap pt-12 pb-3', text: 'Errors', value: 'totalInError'},
-      {class: 'text-nowrap pt-12 pb-3', text: 'Confirmed', value: 'totalConfirmed'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Department', value: 'deptName', width: '50%'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Last Updated', value: 'updatedAt', width: '20%'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Errors', value: 'totalInError', width: '10%'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Confirmed', value: 'totalConfirmed', width: '10%'},
       {
         class: 'text-nowrap pt-12 pb-3',
         sort: (a, b) => {
@@ -274,19 +281,10 @@ export default {
           return deptANote && deptBNote ? deptANote.localeCompare(deptBNote) : !deptANote - !deptBNote
         },
         text: 'Notes',
-        value: 'notes'
+        value: 'notes',
+        width: '30%'
       },
     ]
-    getDepartmentsEnrolled(false, false, true).then(data => {
-      this.departments = data
-      this.$ready('Status Board')
-    })
-    getExports().then(data => {
-      this.exports = data
-    })
-    getEvaluationTerm(this.selectedTermId).then(data => {
-      this.isCurrentTermLocked = data.isLocked === true
-    })
   },
   methods: {
     afterSendNotification() {
@@ -295,17 +293,6 @@ export default {
       this.alertScreenReader('Notification sent.')
       this.$putFocusNextTick('open-notification-form-btn')
     },
-    toggleCurrentTermLocked() {
-      if (this.isCurrentTermLocked) {
-        lockEvaluationTerm(this.selectedTermId).then(() => {
-          this.alertScreenReader(`Locked ${this.selectedTermName}`)
-        })
-      } else {
-        unlockEvaluationTerm(this.selectedTermId).then(() => {
-          this.alertScreenReader(`Unlocked ${this.selectedTermName}`)
-        })
-      }
-    },
     cancelSendNotification() {
       this.isCreatingNotification = false
       this.alertScreenReader('Notification canceled.')
@@ -313,6 +300,24 @@ export default {
     },
     isSelected(department) {
       return this.$_.includes(this.selectedDepartmentIds, department.id)
+    },
+    loadSelectedTerm() {
+      this.$loading()
+      getDepartmentsEnrolled(false, false, true, this.selectedTermId).then(data => {
+        this.departments = data
+        this.$ready(`Status Dashboard for ${this.selectedTermName}`)
+      })
+      getEvaluationTerm(this.selectedTermId).then(data => {
+        this.isCurrentTermLocked = data.isLocked === true
+      })
+    },
+    onChangeTerm(event) {
+      const term = this.$_.find(this.availableTerms, ['id', event.target.value])
+      this.selectedTermId = term.id
+      this.selectedTermName = term.name
+      this.alertScreenReader(`Loading ${this.$_.get(term, 'name', 'term')}`)
+      this.loadSelectedTerm()
+      this.$putFocusNextTick('select-term')
     },
     publish() {
       this.isExporting = true
@@ -338,13 +343,17 @@ export default {
         this.selectedDepartmentIds = this.$_.map(this.departments, 'id')
       }
     },
-    onChangeTerm(event) {
-      const term = this.$_.find(this.availableTerms, ['id', event.target.value])
-      this.selectedTermId = term.id
-      this.selectedTermName = term.name
-      this.alertScreenReader(`Loading ${this.$_.get(term, 'name', 'term')}`)
-      this.$putFocusNextTick('select-term')
-    },
+    toggleCurrentTermLocked() {
+      if (this.isCurrentTermLocked) {
+        lockEvaluationTerm(this.selectedTermId).then(() => {
+          this.alertScreenReader(`Locked ${this.selectedTermName}`)
+        })
+      } else {
+        unlockEvaluationTerm(this.selectedTermId).then(() => {
+          this.alertScreenReader(`Unlocked ${this.selectedTermName}`)
+        })
+      }
+    }
   }
 }
 </script>
@@ -352,20 +361,18 @@ export default {
 <style scoped>
 .department-confirmed {
   min-width: 120px;
-  width: 10%;
 }
 .department-errors {
   min-width: 100px;
-  width: 10%;
 }
 .department-lastUpdated {
-  width: 20%;
+  min-width: 130px;
 }
 .department-name {
-  width: 25%;
+  min-width: 250px;
 }
 .department-note {
-  width: 35%;
+  max-width: 400px;
 }
 .error-count {
   border-width: 2px;

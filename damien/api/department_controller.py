@@ -66,10 +66,12 @@ def enrolled_departments():
     include_contacts = bool(get_param(request.args, 'c', False))
     include_sections = bool(get_param(request.args, 's', False))
     include_status = bool(get_param(request.args, 't', False))
+    term_id = get_param(request.args, 'i', None)
     return tolerant_jsonify([d.to_api_json(
         include_contacts=include_contacts,
         include_sections=include_sections,
         include_status=include_status,
+        term_id=term_id,
     ) for d in enrolled_depts])
 
 
