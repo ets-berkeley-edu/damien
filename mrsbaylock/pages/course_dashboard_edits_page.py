@@ -32,7 +32,6 @@ from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.pages.course_dashboards import CourseDashboards
 from mrsbaylock.test_utils import utils
-from selenium.webdriver.common.action_chains import ActionChains as Act
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.select import Select
@@ -85,6 +84,11 @@ class CourseDashboardEditsPage(CourseDashboards):
     # COURSE ACTIONS
 
     COURSE_ACTIONS_SELECT = (By.ID, 'select-course-actions')
+    REVIEW_BUTTON = (By.ID, 'apply-course-action-btn-review')
+    CONFIRM_BUTTON = (By.ID, 'apply-course-action-btn-confirm')
+    UNMARK_BUTTON = (By.ID, 'apply-course-action-btn-unmark')
+    IGNORE_BUTTON = (By.ID, 'apply-course-action-btn-ignore')
+    DUPE_BUTTON = (By.ID, 'apply-course-action-btn-duplicate')
     DUPE_SECTION_INSTR_INPUT = (By.ID, 'bulk-duplicate-instructor-lookup-autocomplete')
     USE_MIDTERM_FORM_CBX = (By.XPATH, '//label[text()="Use midterm department forms"]/preceding-sibling::div')
     USE_START_DATE_INPUT = (By.ID, 'bulk-duplicate-start-date')
@@ -94,35 +98,40 @@ class CourseDashboardEditsPage(CourseDashboards):
         for evaluation in evaluations:
             app.logger.info(f'Setting CCN {evaluation.ccn} to {status}')
             self.click_eval_checkbox(evaluation)
-        select_el = Select(self.element(CourseDashboardEditsPage.COURSE_ACTIONS_SELECT))
-        select_el.select_by_visible_text(status)
-        self.wait_for_page_and_click_js(CourseDashboardEditsPage.ACTION_APPLY_BUTTON)
+        if status == EvaluationStatus.FOR_REVIEW:
+            self.wait_for_element_and_click(CourseDashboardEditsPage.REVIEW_BUTTON)
+        elif status == EvaluationStatus.CONFIRMED:
+            self.wait_for_element_and_click(CourseDashboardEditsPage.CONFIRM_BUTTON)
+        elif status == EvaluationStatus.UNMARKED:
+            self.wait_for_element_and_click(CourseDashboardEditsPage.UNMARK_BUTTON)
+        elif status == EvaluationStatus.IGNORED:
+            self.wait_for_element_and_click(CourseDashboardEditsPage.IGNORE_BUTTON)
+        time.sleep(1)
 
     def bulk_mark_for_review(self, evaluations):
-        self.bulk_set_row_status(evaluations, 'Mark for review')
+        self.bulk_set_row_status(evaluations, EvaluationStatus.FOR_REVIEW)
         for evaluation in evaluations:
             evaluation.status = EvaluationStatus.FOR_REVIEW
 
     def bulk_mark_as_confirmed(self, evaluations):
-        self.bulk_set_row_status(evaluations, 'Mark as confirmed')
+        self.bulk_set_row_status(evaluations, EvaluationStatus.CONFIRMED)
         for evaluation in evaluations:
             evaluation.status = EvaluationStatus.CONFIRMED
 
     def bulk_ignore(self, evaluations):
-        self.bulk_set_row_status(evaluations, 'Ignore')
+        self.bulk_set_row_status(evaluations, EvaluationStatus.IGNORED)
         for evaluation in evaluations:
             evaluation.status = EvaluationStatus.IGNORED
 
     def bulk_unmark(self, evaluations):
-        self.bulk_set_row_status(evaluations, 'Unmark')
+        self.bulk_set_row_status(evaluations, EvaluationStatus.UNMARKED)
         for evaluation in evaluations:
             evaluation.status = EvaluationStatus.UNMARKED
 
     def duplicate_section(self, evaluation, evaluations, midterm=None, start_date=None, instructor=None):
         app.logger.info(f'Duplicating row for CCN {evaluation.ccn}')
         self.click_eval_checkbox(evaluation)
-        select_el = Select(self.element(CourseDashboardEditsPage.COURSE_ACTIONS_SELECT))
-        select_el.select_by_visible_text('Duplicate')
+        self.wait_for_element_and_click(CourseDashboardEditsPage.DUPE_BUTTON)
         if instructor:
             self.look_up_uid(instructor.uid, CourseDashboardEditsPage.DUPE_SECTION_INSTR_INPUT)
             self.click_look_up_result(instructor)
@@ -132,7 +141,9 @@ class CourseDashboardEditsPage(CourseDashboards):
             s = start_date.strftime('%m/%d/%Y')
             app.logger.info(f'Setting start date {s}')
             self.wait_for_element_and_type(CourseDashboardEditsPage.USE_START_DATE_INPUT, s)
-        self.wait_for_element_and_click(CourseDashboardEditsPage.ACTION_APPLY_BUTTON)
+        self.hit_tab()
+        self.hit_tab()
+        self.wait_for_page_and_click_js(CourseDashboardEditsPage.ACTION_APPLY_BUTTON)
         dupe = copy.deepcopy(evaluation)
         if instructor:
             dupe.instructor = instructor
@@ -151,14 +162,14 @@ class CourseDashboardEditsPage(CourseDashboards):
     FILTER_IGNORE = (By.ID, 'evaluations-filter-ignore')
 
     def select_filter(self, filter_loc):
-        if 'filter-inactive' in self.element(filter_loc).get_attribute('class'):
+        if 'inactive' in self.element(filter_loc).get_attribute('class'):
             self.wait_for_element_and_click(filter_loc)
-            time.sleep(1)
+            time.sleep(2)
 
     def deselect_filter(self, filter_loc):
-        if 'filter-inactive' not in self.element(filter_loc).get_attribute('class'):
+        if 'inactive' not in self.element(filter_loc).get_attribute('class'):
             self.wait_for_element_and_click(filter_loc)
-            time.sleep(1)
+            time.sleep(2)
 
     def select_unmarked_filter(self):
         app.logger.info('Selecting unmarked filter')
@@ -235,12 +246,12 @@ class CourseDashboardEditsPage(CourseDashboards):
     EVAL_CHANGE_STATUS_SELECT = (By.ID, 'select-evaluation-status')
     EVAL_CHANGE_INSTR_BUTTON = (By.XPATH, '//button[contains(@id, "-change-instructor")]')
     EVAL_CHANGE_INSTR_INPUT = (By.ID, 'input-instructor-lookup-autocomplete')
-    EVAL_CHANGE_DEPT_FORM_INPUT = (By.ID, 'select-department-form')
+    EVAL_CHANGE_DEPT_FORM_SELECT = (By.ID, 'select-department-form')
     EVAL_CHANGE_DEPT_FORM_OPTION = (By.XPATH, '//div[@id="select-department-form"]//li')
     EVAL_CHANGE_DEPT_FORM_NO_OPTION = (By.XPATH, '//li[contains(text(), "Sorry, no matching options.")]')
     EVAL_CHANGE_EVAL_TYPE_SELECT = (By.ID, 'select-evaluation-type')
     EVAL_CHANGE_START_DATE_INPUT = (By.XPATH, '//input[contains(@class, "datepicker-input")]')
-    EVAL_CHANGE_START_REQ_MSG = (By.XPATH, '//div[contains(text(), "Start date required")]')
+    EVAL_CHANGE_START_REQ_MSG = (By.XPATH, '//div[contains(text(), "Required")]')
     EVAL_CHANGE_SAVE_BUTTON = (By.ID, 'save-evaluation-edit-btn')
     EVAL_CHANGE_CANCEL_BUTTON = (By.ID, 'cancel-evaluation-edit-btn')
 
@@ -255,7 +266,10 @@ class CourseDashboardEditsPage(CourseDashboards):
                 (By.XPATH, f'{self.eval_row_xpath(evaluation)}//button')),
         )
         self.hide_damien_footer()
-        self.mouseover(self.eval_status_el(evaluation))
+        if self.is_present(self.EVAL_CHANGE_CANCEL_BUTTON):
+            self.click_cancel_eval_changes()
+        self.scroll_to_element(self.eval_row_el(evaluation))
+        self.mouseover(self.eval_row_el(evaluation))
         self.wait_for_element_and_click((By.XPATH, f'{self.eval_row_xpath(evaluation)}//button'))
 
     def select_eval_status(self, evaluation, status):
@@ -270,29 +284,26 @@ class CourseDashboardEditsPage(CourseDashboards):
         evaluation.instructor = instructor
 
     def click_dept_form_input(self):
-        self.wait_for_element_and_click(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_INPUT)
+        self.wait_for_element_and_click(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT)
 
     def visible_dept_form_options(self):
-        els = self.elements(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_OPTION)
-        return list(map(lambda el: el.text.strip(), els))
-
-    def enter_dept_form(self, dept_form):
-        for i in dept_form.name:
-            Act(self.driver).send_keys_to_element(self.element(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_INPUT), i)
-            time.sleep(0.5)
+        self.wait_for_element(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT, utils.get_short_timeout())
+        select_el = Select(self.element(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT))
+        return list(map(lambda o: o.text.strip(), select_el.options))
 
     def wait_for_no_dept_form_option(self):
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.presence_of_element_located(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_NO_OPTION))
 
     def change_dept_form(self, evaluation, dept_form=None):
-        self.click_dept_form_input()
+        self.wait_for_element(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT, utils.get_short_timeout())
         if dept_form:
             app.logger.info(f'Setting dept form {dept_form.name} on CCN {evaluation.ccn}')
-            self.click_menu_option(dept_form.name)
+            self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT,
+                                                  dept_form.name)
         else:
-            app.logger.info('Setting dept form to None')
-            self.click_menu_option('None')
+            app.logger.info('Setting eval type to None')
+            self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT, 'Revert')
         time.sleep(1)
 
     def visible_eval_type_options(self):
@@ -315,16 +326,17 @@ class CourseDashboardEditsPage(CourseDashboards):
         self.wait_for_element_and_type(CourseDashboardEditsPage.EVAL_CHANGE_START_DATE_INPUT, date.strftime('%m/%d/%Y'))
 
     def change_eval_start_date(self, evaluation, date=None):
-        if date:
-            app.logger.info(f"Setting start date {date.strftime('%m/%d/%Y')} on CCN {evaluation.ccn}")
+        for i in range(10):
             self.wait_for_element_and_click(CourseDashboardEditsPage.EVAL_CHANGE_START_DATE_INPUT)
-            self.select_datepicker_date(date)
-        else:
-            for i in range(10):
-                self.wait_for_element_and_click(CourseDashboardEditsPage.EVAL_CHANGE_START_DATE_INPUT)
-                self.hit_delete()
-                self.hit_backspace()
-                time.sleep(0.5)
+            self.hit_delete()
+            self.hit_backspace()
+            time.sleep(0.5)
+        if date:
+            date_str = date.strftime('%m/%d/%Y')
+            app.logger.info(f'Setting start date {date_str} on CCN {evaluation.ccn}')
+            self.element(CourseDashboardEditsPage.EVAL_CHANGE_START_DATE_INPUT).send_keys(date_str)
+        self.hit_tab()
+        self.hit_tab()
 
     def save_eval_changes_button_disabled(self):
         time.sleep(2)
@@ -333,12 +345,12 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def click_save_eval_changes(self, evaluation):
         app.logger.info(f'Saving changes for CCN {evaluation.ccn}')
-        self.wait_for_page_and_click_js(self.EVAL_CHANGE_SAVE_BUTTON)
+        self.wait_for_page_and_click(self.EVAL_CHANGE_SAVE_BUTTON)
 
-    def click_cancel_eval_changes(self, evaluation):
-        app.logger.info(f'Canceling changes for CCN {evaluation.ccn}')
+    def click_cancel_eval_changes(self):
+        app.logger.info('Canceling changes')
         if self.is_present(self.EVAL_CHANGE_CANCEL_BUTTON):
-            self.wait_for_page_and_click_js(self.EVAL_CHANGE_CANCEL_BUTTON)
+            self.wait_for_page_and_click(self.EVAL_CHANGE_CANCEL_BUTTON)
 
     def wait_for_validation_error(self, msg):
         Wait(self.driver, utils.get_short_timeout()).until(

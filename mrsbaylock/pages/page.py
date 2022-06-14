@@ -27,6 +27,7 @@ import time
 
 from flask import current_app as app
 from mrsbaylock.test_utils import utils
+from mrsbaylock.test_utils.webdriver_utils import WebDriverManager
 from selenium.common import exceptions
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -146,6 +147,7 @@ class Page(object):
         )
         time.sleep(addl_pause or sleep_default)
         self.element(locator).click()
+        WebDriverManager.get_browser_logs(self.driver)
 
     def click_element_js(self, locator, addl_pause=None):
         sleep_default = app.config['CLICK_SLEEP']
@@ -224,6 +226,7 @@ class Page(object):
 
     def scroll_to_element(self, element):
         self.driver.execute_script('arguments[0].scrollIntoView(true);', element)
+        time.sleep(0.5)
 
     def mouseover(self, element):
         ActionChains(self.driver).move_to_element(element).perform()
@@ -240,3 +243,7 @@ class Page(object):
 
     def hit_escape(self):
         ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
+
+    def hit_tab(self):
+        ActionChains(self.driver).send_keys(Keys.TAB).perform()
+        time.sleep(0.5)

@@ -48,9 +48,14 @@ class TestEvaluationManagement:
     dept_2 = utils.get_test_dept_2()
     dept_2.evaluations = evaluation_utils.get_evaluations(term, dept_2)
 
-    def test_list_mgmt_page(self):
+    def test_clear_cache(self):
         self.login_page.load_page()
         self.login_page.dev_auth()
+        self.status_board_admin_page.click_list_mgmt()
+        self.api_page.clear_cache()
+
+    def test_list_mgmt_page(self):
+        self.homepage.load_page()
         self.status_board_admin_page.click_list_mgmt()
 
     def test_ensure_dept_form(self):
@@ -160,7 +165,7 @@ class TestEvaluationManagement:
 
     def test_change_start_date(self):
         e = self.dept_1.evaluations[0]
-        e.eval_start_date = e.eval_start_date + timedelta(days=1)
+        e.eval_start_date = e.eval_start_date - timedelta(days=1)
         e.eval_end_date = evaluation_utils.row_eval_end_from_eval_start(e.course_start_date, e.eval_start_date)
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_eval_start_date(e, e.eval_start_date)
@@ -179,7 +184,7 @@ class TestEvaluationManagement:
     def test_duplicate_section_new_instructor(self):
         instructor = utils.get_test_user()
         e = self.dept_1.evaluations[0]
-        self.dept_details_admin_page.click_cancel_eval_changes(e)
+        self.dept_details_admin_page.click_cancel_eval_changes()
         e_dupe = self.dept_details_admin_page.duplicate_section(e, self.dept_1.evaluations, instructor=instructor)
         self.dept_details_admin_page.wait_for_eval_rows()
         els = self.dept_details_admin_page.rows_of_evaluation(e)
@@ -232,6 +237,8 @@ class TestEvaluationManagement:
         e = next(filter(lambda row: (row.status == EvaluationStatus.UNMARKED), self.dept_1.evaluations))
         self.dept_details_admin_page.bulk_mark_for_review([e])
         self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
+        self.dept_details_admin_page.wait_for_eval_rows()
         assert e.status.value['ui'] in self.dept_details_admin_page.eval_status(e)
 
     def test_set_review_status_single(self):
@@ -240,12 +247,16 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.select_eval_status(e, EvaluationStatus.FOR_REVIEW)
         self.dept_details_admin_page.click_save_eval_changes(e)
         self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
+        self.dept_details_admin_page.wait_for_eval_rows()
         e.status = EvaluationStatus.FOR_REVIEW
         assert e.status.value['ui'] in self.dept_details_admin_page.eval_status(e)
 
     def test_set_confirmed_status_bulk(self):
         e = next(filter(lambda row: (row.status == EvaluationStatus.UNMARKED), self.dept_1.evaluations))
         self.dept_details_admin_page.bulk_mark_as_confirmed([e])
+        self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
         self.dept_details_admin_page.wait_for_eval_rows()
         assert e.status.value['ui'] in self.dept_details_admin_page.eval_status(e)
 
@@ -255,12 +266,16 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.select_eval_status(e, EvaluationStatus.CONFIRMED)
         self.dept_details_admin_page.click_save_eval_changes(e)
         self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
+        self.dept_details_admin_page.wait_for_eval_rows()
         e.status = EvaluationStatus.CONFIRMED
         assert e.status.value['ui'] in self.dept_details_admin_page.eval_status(e)
 
     def test_set_ignored_status_bulk(self):
         e = next(filter(lambda row: (row.status == EvaluationStatus.UNMARKED), self.dept_1.evaluations))
         self.dept_details_admin_page.bulk_ignore([e])
+        self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
         self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.select_ignored_filter()
         assert e.status.value['ui'] in self.dept_details_admin_page.eval_status(e)
@@ -271,12 +286,17 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.select_eval_status(e, EvaluationStatus.IGNORED)
         self.dept_details_admin_page.click_save_eval_changes(e)
         self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
+        self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.select_ignored_filter()
         e.status = EvaluationStatus.IGNORED
         assert e.status.value['ui'] in self.dept_details_admin_page.eval_status(e)
 
     def test_set_unmarked_status_bulk(self):
         e = next(filter(lambda row: (row.status == EvaluationStatus.FOR_REVIEW), self.dept_1.evaluations))
         self.dept_details_admin_page.bulk_unmark([e])
+        self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
         self.dept_details_admin_page.wait_for_eval_rows()
         assert e.status.value['ui'] in self.dept_details_admin_page.eval_status(e)
 
@@ -286,6 +306,8 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.select_eval_status(e, EvaluationStatus.UNMARKED)
         self.dept_details_admin_page.click_save_eval_changes(e)
+        self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
         self.dept_details_admin_page.wait_for_eval_rows()
         e.status = EvaluationStatus.UNMARKED
         assert e.status.value['ui'] in self.dept_details_admin_page.eval_status(e)
@@ -327,10 +349,12 @@ class TestEvaluationManagement:
     def test_filter_unmarked_status_only(self):
         unmarked = list(filter(lambda e: (e.status == EvaluationStatus.UNMARKED), self.dept_1.evaluations))
         unmarked = list(map(lambda e: e.ccn, unmarked))
+        unmarked.sort()
         self.dept_details_admin_page.select_unmarked_filter()
         self.dept_details_admin_page.deselect_review_filter()
         self.dept_details_admin_page.deselect_confirmed_filter()
         self.dept_details_admin_page.deselect_ignored_filter()
         visible = self.dept_details_admin_page.visible_eval_data()
         visible = list(map(lambda e: e['ccn'], visible))
+        visible.sort()
         assert visible == unmarked
