@@ -11,7 +11,7 @@
         id="dept-note"
         class="text-condensed pb-2"
       >
-        <pre class="body-2 text-condensed">{{ item }} </pre>
+        <pre class="body-2 text-condensed text-prewrap">{{ item }} </pre>
       </div>
       <v-form v-if="isEditing" class="pa-3">
         <v-textarea

@@ -93,6 +93,11 @@
 .text-wrap {
   white-space: break-spaces;
 }
+.text-prewrap {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: Arial, Helvetica, sans-serif;
+}
 .truncate-with-ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
