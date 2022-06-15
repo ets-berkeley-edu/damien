@@ -119,12 +119,12 @@
                 class="evaluation-row"
                 :class="evaluationClass(evaluation, hover)"
               >
-                <td v-if="readonly" :id="`evaluation-${rowIndex}-department`" class="py-1">
+                <td v-if="readonly" :id="`evaluation-${rowIndex}-department`" class="align-middle py-1">
                   <router-link :to="`/department/${$_.get(evaluation.department, 'id')}`">
                     {{ $_.get(evaluation.department, 'name') }}
                   </router-link>
                 </td>
-                <td v-if="!readonly && allowEdits" class="text-center pr-1">
+                <td v-if="!readonly && allowEdits" class="align-middle text-center pr-1">
                   <v-checkbox
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${rowIndex}-checkbox`"
@@ -150,7 +150,7 @@
                   </div>
                   <div
                     v-if="allowEdits && !isEditing(evaluation) && (!readonly || !evaluation.status)"
-                    class="pill pill-invisible mx-auto pl-0"
+                    class="pill pill-invisible mx-auto"
                   >
                     <v-btn
                       :id="`edit-evaluation-${evaluation.id}-btn`"
@@ -182,10 +182,10 @@
                     </select>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-lastUpdated`" class="px-1" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
+                <td :id="`evaluation-${rowIndex}-lastUpdated`" class="evaluation-last-updated px-1" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
                   {{ $moment(evaluation.lastUpdated) | moment('MM/DD/YYYY') }}
                 </td>
-                <td :id="`evaluation-${rowIndex}-courseNumber`" class="px-1" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
+                <td :id="`evaluation-${rowIndex}-courseNumber`" class="evaluation-course-number px-1" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
                   {{ evaluation.courseNumber }}
                   <div v-if="evaluation.crossListedWith" class="xlisting-note">
                     (Cross-listed with {{ evaluation.crossListedWith.length > 1 ? 'sections' : 'section' }}
@@ -196,7 +196,7 @@
                     {{ evaluation.roomSharedWith.join(', ') }})
                   </div>
                 </td>
-                <td class="px-1" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
+                <td class="evaluation-course-name px-1" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
                   <div :id="`evaluation-${rowIndex}-courseName`">
                     {{ evaluation.subjectArea }}
                     {{ evaluation.catalogId }}
@@ -210,7 +210,7 @@
                 <td
                   :id="`evaluation-${rowIndex}-instructor`"
                   :class="{'pt-5': isEditing(evaluation) && evaluation.instructor, 'align-middle': !isEditing(evaluation)}"
-                  class="px-1"
+                  class="evaluation-instructor px-1"
                 >
                   <div v-if="evaluation.instructor">
                     {{ evaluation.instructor.firstName }}
@@ -220,6 +220,12 @@
                   <div v-if="evaluation.instructor">
                     {{ evaluation.instructor.emailAddress }}
                   </div>
+                  <EvaluationError
+                    v-if="!evaluation.instructor && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
+                    id="error-msg-evaluation-instructor"
+                    :hover="hover || focusedEditButtonEvaluationId === evaluation.id"
+                    message="Instructor required"
+                  />
                   <div v-if="!evaluation.instructor && isEditing(evaluation) && allowEdits">
                     <div class="mt-1 pb-2">
                       <label id="input-instructor-lookup-autocomplete-label" for="input-instructor-lookup-autocomplete">
@@ -243,22 +249,23 @@
                     </div>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-departmentForm`" class="px-1" :class="{'align-middle': !isEditing(evaluation)}">
-                  <div
-                    v-if="evaluation.departmentForm && !isEditing(evaluation)"
-                    :class="{'error--text': evaluation.conflicts.departmentForm}"
-                  >
+                <td :id="`evaluation-${rowIndex}-departmentForm`" class="evaluation-department-form px-1" :class="{'align-middle': !isEditing(evaluation)}">
+                  <div v-if="evaluation.departmentForm && !isEditing(evaluation)">
                     {{ evaluation.departmentForm.name }}
-                    <div v-for="(conflict, index) in evaluation.conflicts.departmentForm" :key="index" class="evaluation-error error--text">
-                      <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
-                    </div>
+                    <EvaluationError
+                      v-for="(conflict, index) in evaluation.conflicts.departmentForm"
+                      :id="`error-msg-evaluation-department-form-conflict-${index}`"
+                      :key="index"
+                      :hover="hover || focusedEditButtonEvaluationId === evaluation.id"
+                      :message="`Conflicts with value ${conflict.value} from ${conflict.department} department`"
+                    />
                   </div>
-                  <div
+                  <EvaluationError
                     v-if="!evaluation.departmentForm && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
-                    class="evaluation-error error--text"
-                  >
-                    <v-icon small color="error">mdi-alert-circle</v-icon> Department form required
-                  </div>
+                    id="error-msg-evaluation-department-form"
+                    :hover="hover || focusedEditButtonEvaluationId === evaluation.id"
+                    message="Department form required"
+                  />
                   <div v-if="allowEdits && isEditing(evaluation)" class="mt-1 pb-2">
                     <label id="select-department-form-label" for="select-department-form">
                       Department Form:
@@ -273,19 +280,23 @@
                     </select>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-evaluationType`" class="px-1" :class="{'align-middle': !isEditing(evaluation)}">
-                  <div v-if="evaluation.evaluationType && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationType}">
+                <td :id="`evaluation-${rowIndex}-evaluationType`" class="evaluation-type px-1" :class="{'align-middle': !isEditing(evaluation)}">
+                  <div v-if="evaluation.evaluationType && !isEditing(evaluation)">
                     {{ evaluation.evaluationType.name }}
-                    <div v-for="(conflict, index) in evaluation.conflicts.evaluationType" :key="index" class="evaluation-error error--text">
-                      <v-icon small color="error">mdi-alert-circle</v-icon> Conflicts with value {{ conflict.value }} from {{ conflict.department }} department
-                    </div>
+                    <EvaluationError
+                      v-for="(conflict, index) in evaluation.conflicts.evaluationType"
+                      :id="`error-msg-evaluation-type-conflict-${index}`"
+                      :key="index"
+                      :hover="hover || focusedEditButtonEvaluationId === evaluation.id"
+                      :message="`Conflicts with value ${conflict.value} from ${conflict.department} department`"
+                    />
                   </div>
-                  <div
+                  <EvaluationError
                     v-if="!evaluation.evaluationType && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
-                    class="evaluation-error error--text"
-                  >
-                    <v-icon small color="error">mdi-alert-circle</v-icon> Evaluation type required
-                  </div>
+                    id="error-msg-evaluation-type"
+                    :hover="hover || focusedEditButtonEvaluationId === evaluation.id"
+                    message="Evaluation type required"
+                  />
                   <div v-if="allowEdits && isEditing(evaluation)" class="mt-1 pb-2">
                     <label id="select-evaluation-type-label" for="select-evaluation-type">
                       Evaluation Type:
@@ -300,16 +311,19 @@
                     </select>
                   </div>
                 </td>
-                <td :id="`evaluation-${rowIndex}-period`" class="px-1" :class="{'align-middle': !isEditing(evaluation)}">
-                  <span v-if="evaluation.startDate && !isEditing(evaluation)" :class="{'error--text': evaluation.conflicts.evaluationPeriod}">
+                <td :id="`evaluation-${rowIndex}-period`" class="evaluation-period px-1" :class="{'align-middle': !isEditing(evaluation)}">
+                  <span v-if="evaluation.startDate && !isEditing(evaluation)">
                     <div>{{ evaluation.startDate | moment('MM/DD/YY') }} - {{ evaluation.endDate | moment('MM/DD/YY') }}</div>
                     <div>{{ evaluation.modular ? 2 : 3 }} weeks</div>
-                    <div v-for="(conflict, index) in evaluation.conflicts.evaluationPeriod" :key="index" class="evaluation-error error--text">
-                      <v-icon small color="error">mdi-alert-circle</v-icon>
-                      Conflicts with period starting
-                      {{ $moment(conflict.value).format('MM/DD/YY') }}
-                      from {{ conflict.department }} department
-                    </div>
+                    <EvaluationError
+                      v-for="(conflict, index) in evaluation.conflicts.evaluationPeriod"
+                      :id="`error-msg-evaluation-period-conflict-${index}`"
+                      :key="index"
+                      :hover="hover || focusedEditButtonEvaluationId === evaluation.id"
+                      :message="`Conflicts with period starting
+                      ${$moment(conflict.value).format('MM/DD/YY')}
+                      from ${conflict.department} department`"
+                    />
                   </span>
                   <div v-if="allowEdits && isEditing(evaluation)" class="mt-1 pb-2">
                     <div class="d-flex align-center">
@@ -332,9 +346,12 @@
                           :value="inputValue"
                           v-on="inputEvents"
                         />
-                        <div v-if="!selectedStartDate" id="error-msg-evaluation-start-date" class="evaluation-error">
-                          <v-icon class="px-1" small color="white">mdi-alert-circle</v-icon>Required
-                        </div>
+                        <EvaluationError
+                          v-if="!selectedStartDate"
+                          id="error-msg-evaluation-start-date"
+                          color="white"
+                          message="Required"
+                        />
                       </template>
                     </c-date-picker>
                   </div>
@@ -431,6 +448,7 @@ import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import EvaluationActions from '@/components/evaluation/EvaluationActions'
+import EvaluationError from '@/components/evaluation/EvaluationError'
 import PersonLookup from '@/components/admin/PersonLookup'
 import Util from '@/mixins/Util'
 
@@ -441,6 +459,7 @@ export default {
     AddCourseSection,
     ConfirmDialog,
     EvaluationActions,
+    EvaluationError,
     PersonLookup
   },
   props: {
@@ -467,14 +486,14 @@ export default {
     },
     focusedEditButtonEvaluationId: null,
     headers: [
-      {align: 'center', class: 'px-1 text-nowrap', text: 'Status', value: 'status', width: '120px'},
-      {class: 'px-1 text-nowrap', text: 'Last Updated', value: 'lastUpdated', width: '75px'},
-      {class: 'px-1 text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '80px'},
-      {class: 'px-1 course-name', text: 'Course Name', value: 'sortableCourseName'},
-      {class: 'px-1 text-nowrap', text: 'Instructor', value: 'sortableInstructor', width: '175px'},
-      {class: 'px-1', text: 'Department Form', value: 'departmentForm.name', width: '155px'},
-      {class: 'px-1', text: 'Evaluation Type', value: 'evaluationType.name', width: '145px'},
-      {class: 'px-1 text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '130px'}
+      {align: 'center', class: 'px-1 text-nowrap', text: 'Status', value: 'status', width: '115px'},
+      {class: 'px-1 text-nowrap', text: 'Last Updated', value: 'lastUpdated', width: '5%'},
+      {class: 'px-1 text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '5%'},
+      {class: 'px-1 course-name', text: 'Course Name', value: 'sortableCourseName', width: '20%'},
+      {class: 'px-1 text-nowrap', text: 'Instructor', value: 'sortableInstructor', width: '20%'},
+      {class: 'px-1', text: 'Department Form', value: 'departmentForm.name', width: '20%'},
+      {class: 'px-1', text: 'Evaluation Type', value: 'evaluationType.name', width: '20%'},
+      {class: 'px-1 text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '10%'}
     ],
     isConfirmingCancelEdit: false,
     pendingEditRowId: null,
@@ -535,7 +554,7 @@ export default {
         'secondary white--text border-bottom-none': evaluation.id === this.editRowId,
         'evaluation-row-review': evaluation.id !== this.editRowId && evaluation.status === 'review',
         'evaluation-row-xlisting': evaluation.id !== this.editRowId && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith),
-        'primary-contrast primary--text': (hover || evaluation.id === this.focusedEditButtonEvaluationId) && !this.readonly && !this.isEditing(evaluation)
+        'primary-contrast primary--text': (hover || evaluation.id === this.focusedEditButtonEvaluationId) && !this.isEditing(evaluation)
       }
     },
     evaluationPillClass(evaluation, hover) {
@@ -740,12 +759,26 @@ tr.border-top-none td {
 .align-middle {
   vertical-align: middle;
 }
-.evaluation-error {
-  font-size: 0.8em;
-  font-style: italic;
-}
 .evaluation-form-btn {
   width: 150px;
+}
+.evaluation-course-name {
+  min-width: 200px;
+}
+.evaluation-course-number {
+  min-width: 115px;
+}
+.evaluation-department-form {
+  min-width: 155px;
+}
+.evaluation-instructor {
+  min-width: 175p;
+}
+.evaluation-last-updated {
+  min-width: 100px;
+}
+.evaluation-period {
+  min-width: 135px;
 }
 .evaluation-row {
   vertical-align: top;
@@ -771,6 +804,9 @@ tr.border-top-none td {
 }
 .evaluation-search-input {
   max-width: 540px;
+}
+.evaluation-type {
+  min-width: 145px;
 }
 .hidden {
   visibility: hidden;
@@ -804,16 +840,17 @@ tr.border-top-none td {
   width: 90px;
 }
 .pill-confirmed {
-  background-color: #666;
+  background-color: #176190;
 }
 .pill-ignore {
-  background-color: #777;
+  background-color: #666;
 }
 .pill-invisible {
   border: none;
+  padding: 0;
 }
 .pill-review {
-  background-color: #595;
+  background-color: #478047;
 }
 .sticky {
   position: sticky;
