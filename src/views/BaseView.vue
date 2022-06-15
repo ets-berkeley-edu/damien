@@ -107,6 +107,8 @@
         <pre>
           <span
             id="service-announcement"
+            v-linkified
+            class="body-2"
             aria-live="polite"
             role="alert"
             v-html="serviceAnnouncement.text"

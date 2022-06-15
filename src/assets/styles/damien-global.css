@@ -185,3 +185,6 @@ svg {
 ul {
   list-style: none;
 }
+#service-announcement a {
+  color: #337ab7;
+}
