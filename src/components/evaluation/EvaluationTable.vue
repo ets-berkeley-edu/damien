@@ -1,5 +1,5 @@
 <template>
-  <div v-if="evaluations">
+  <div v-if="evaluations.length > 0">
     <div class="elevation-2 sticky" :class="$vuetify.theme.dark ? 'sticky-dark' : 'sticky-light'">
       <v-row class="mt-0">
         <v-col cols="7" md="8" class="d-flex flex-column pt-2">
