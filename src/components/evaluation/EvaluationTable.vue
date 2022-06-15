@@ -642,7 +642,7 @@ export default {
     },
     saveEvaluation(evaluation) {
       const fields = {
-        'departmentFormId': this.selectedDepartmentForm,
+        'departmentFormId': this.selectedDepartmentForm || this.$_.get(evaluation, 'defaultDepartmentForm.id'),
         'evaluationTypeId': this.selectedEvaluationType,
         'instructorUid': this.$_.get(this.pendingInstructor, 'uid'),
         'status': this.selectedEvaluationStatus

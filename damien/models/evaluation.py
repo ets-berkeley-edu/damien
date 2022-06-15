@@ -494,6 +494,7 @@ class Evaluation(Base):
         return self.id or self.transient_id()
 
     def to_api_json(self, section):
+        default_dept_form_feed = section.default_form.to_api_json() if section.default_form else None
         dept_form_feed = self.department_form.to_api_json() if self.department_form else None
         eval_type_feed = self.evaluation_type.to_api_json() if self.evaluation_type else None
 
@@ -505,6 +506,7 @@ class Evaluation(Base):
             'transientId': self.transient_id(),
             'status': feed_status,
             'instructor': section.instructors.get(self.instructor_uid),
+            'defaultDepartmentForm': default_dept_form_feed,
             'departmentForm': dept_form_feed,
             'evaluationType': eval_type_feed,
             'startDate': safe_strftime(self.start_date, '%Y-%m-%d'),
