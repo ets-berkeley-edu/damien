@@ -64,7 +64,7 @@ class TestEvaluationManagement:
             self.list_mgmt_page.add_dept_form(self.midterm_form)
 
     def test_status_board_lock(self):
-        self.list_mgmt_page.click_status_board()
+        self.status_board_admin_page.load_page()
         if not self.status_board_admin_page.is_current_term_locked():
             self.status_board_admin_page.lock_current_term()
 
@@ -77,6 +77,7 @@ class TestEvaluationManagement:
     def test_status_board_unlock(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth()
+        self.status_board_admin_page.load_page()
         self.status_board_admin_page.unlock_current_term()
 
     def test_verify_unlocked_edits(self):
@@ -232,6 +233,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_confirm_add_section()
         self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.wait_for_eval_row(e)
+        self.dept_1.evaluations.append(e)
 
     def test_set_review_status_bulk(self):
         e = next(filter(lambda row: (row.status == EvaluationStatus.UNMARKED), self.dept_1.evaluations))
@@ -313,7 +315,6 @@ class TestEvaluationManagement:
         assert e.status.value['ui'] in self.dept_details_admin_page.eval_status(e)
 
     def test_filter_review_status_only(self):
-        self.dept_1.evaluations = evaluation_utils.get_evaluations(self.term, self.dept_1)
         for_review = list(filter(lambda e: (e.status == EvaluationStatus.FOR_REVIEW), self.dept_1.evaluations))
         for_review = list(map(lambda e: e.ccn, for_review))
         self.dept_details_admin_page.select_review_filter()

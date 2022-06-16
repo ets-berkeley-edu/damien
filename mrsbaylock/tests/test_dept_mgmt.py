@@ -86,6 +86,9 @@ class TestDeptMgmt:
 
     # CONTACTS
 
+    def test_expand_contacts(self):
+        self.dept_details_admin_page.expand_dept_contact_list()
+
     @pytest.mark.parametrize('user', test_dept.users, scope='function', ids=[user.uid for user in test_dept.users])
     def test_dept_user_details(self, user):
         dept_role = utils.get_user_dept_role(user, test_dept)
@@ -250,8 +253,10 @@ class TestDeptMgmt:
     # CONTACT - DELETE
 
     def test_delete_contact_cancel(self):
+        self.status_board_admin_page.load_page()
         self.status_board_admin_page.click_dept_link(test_dept)
         self.dept_details_admin_page.wait_for_contact(test_user)
+        self.dept_details_admin_page.expand_dept_contact_list()
         self.dept_details_admin_page.expand_dept_contact(test_user)
         self.dept_details_admin_page.click_delete_contact(test_user)
         self.dept_details_admin_page.cancel_delete_contact()
@@ -259,4 +264,5 @@ class TestDeptMgmt:
     def test_delete_contact_confirm(self):
         self.dept_details_admin_page.click_delete_contact(test_user)
         self.dept_details_admin_page.confirm_delete_contact(test_user)
+        assert not self.dept_details_admin_page.is_present(DeptDetailsAdminPage.dept_contact_xpath(test_user))
         test_dept.users.remove(test_user)

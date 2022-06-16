@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from datetime import timedelta
 
+from mrsbaylock.models.user import User
 from mrsbaylock.test_utils import evaluation_utils
 from mrsbaylock.test_utils import utils
 import pytest
@@ -41,7 +42,7 @@ class TestEvalErrors:
     all_contacts = utils.get_all_users()
     dept = utils.get_dept('Environmental Science, Policy and Management', all_contacts)
     evals = evaluation_utils.get_evaluations(term, dept)
-    instructor = utils.get_test_user()
+    instructor_uid = utils.get_test_user().uid
     types = evaluation_utils.get_all_eval_types()
     eval_type_1 = types[-1]
     eval_type_2 = types[-2]
@@ -49,38 +50,57 @@ class TestEvalErrors:
     dept_form_1 = forms[-1]
     dept_form_2 = forms[-2]
 
-    # Test data for cross-listing tests
     x_list_eval = next(filter(lambda x1: x1.x_listing_ccns, evals))
     x_list_dept_1 = evaluation_utils.get_section_dept(x_list_eval.ccn, all_contacts)
+    x_list_dept_2 = evaluation_utils.get_section_dept(x_list_eval.x_listing_ccns[0], all_contacts)
+
+    share_eval = next(filter(lambda s1: s1.room_share_ccns, evals))
+    share_dept_1 = evaluation_utils.get_section_dept(share_eval.ccn, all_contacts)
+    share_dept_2 = evaluation_utils.get_section_dept(share_eval.room_share_ccns[0], all_contacts)
+
+    for d in [x_list_dept_1, x_list_dept_2, share_dept_1, share_dept_2]:
+        utils.reset_test_data(term, d)
+
+    evals = evaluation_utils.get_evaluations(term, dept)
+    for e in evals:
+        if e.ccn == x_list_eval.ccn:
+            x_list_eval = e
+        if e.ccn == share_eval.ccn:
+            share_eval = e
+
+    # Test data for cross-listing tests
+    x_list_eval_has_instr = True if x_list_eval.instructor.uid else False
     x_list_contact_1 = x_list_dept_1.users[0]
     x_list_start_1 = term.end_date.date() - timedelta(days=22)
     x_list_end_1 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_1)
-    x_list_dept_2 = evaluation_utils.get_section_dept(x_list_eval.x_listing_ccns[0], all_contacts)
     x_list_contact_2 = x_list_dept_2.users[0]
     x_list_start_2 = term.end_date.date() - timedelta(days=21)
     x_list_end_2 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_2)
 
     # Test data for room share tests
-    share_eval = next(filter(lambda s1: s1.room_share_ccns, evals))
-    share_dept_1 = evaluation_utils.get_section_dept(share_eval.ccn, all_contacts)
+    share_eval_has_instr = True if share_eval.instructor.uid else False
     share_contact_1 = share_dept_1.users[0]
     share_start_1 = term.end_date.date() - timedelta(days=22)
     share_end_1 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_1)
-    share_dept_2 = evaluation_utils.get_section_dept(share_eval.room_share_ccns[0], all_contacts)
     share_contact_2 = share_dept_2.users[0]
     share_start_2 = term.end_date.date() - timedelta(days=21)
     share_end_2 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_2)
 
-    def test_reset_test_data(self):
-        for d in [self.x_list_dept_1, self.x_list_dept_2, self.share_dept_1, self.share_dept_2]:
-            utils.reset_test_data(self.term, d)
+    def test_clear_cache(self):
+        self.login_page.load_page()
+        self.login_page.dev_auth()
+        self.status_board_admin_page.click_list_mgmt()
+        self.api_page.clear_cache()
+
+    def test_log_out(self):
+        self.status_board_admin_page.load_page()
+        self.status_board_admin_page.log_out()
 
     # CROSS-LISTINGS
 
     # Dept 1 makes selections on unmarked row; Dept 2 verifies no changes to corresponding row; SL verifies no errors
 
     def test_x_list_unmarked_dept_1_perform_edits(self):
-        self.login_page.load_page()
         self.login_page.dev_auth(self.x_list_contact_1, self.x_list_dept_1)
         self.dept_details_dept_page.click_edit_evaluation(self.x_list_eval)
         self.dept_details_dept_page.change_dept_form(self.x_list_eval, self.dept_form_1)
@@ -150,7 +170,7 @@ class TestEvalErrors:
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.x_list_contact_1, self.x_list_dept_1)
         self.dept_details_dept_page.wait_for_eval_rows()
-        self.dept_details_dept_page.bulk_mark_for_review(self.x_list_eval)
+        self.dept_details_dept_page.bulk_mark_for_review([self.x_list_eval])
 
     def test_x_list_review_dept_1_verify_form_conflict(self):
         self.dept_details_dept_page.wait_for_eval_rows()
@@ -200,6 +220,9 @@ class TestEvalErrors:
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.share_contact_1, self.share_dept_1)
         self.dept_details_dept_page.click_edit_evaluation(self.share_eval)
+        if not self.share_eval_has_instr:
+            instr = User({'uid': self.instructor_uid})
+            self.dept_details_dept_page.enter_instructor(self.share_eval, instr)
         self.dept_details_dept_page.change_dept_form(self.share_eval, self.dept_form_1)
         self.dept_details_dept_page.change_eval_type(self.share_eval, self.eval_type_1)
         self.dept_details_dept_page.change_eval_start_date(self.share_eval, self.share_start_1)
@@ -216,6 +239,13 @@ class TestEvalErrors:
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.share_contact_2, self.share_dept_2)
         self.dept_details_dept_page.wait_for_eval_rows()
+        if not self.share_eval_has_instr:
+            self.share_eval.instructor.uid = None
+            self.dept_details_dept_page.click_edit_evaluation(self.share_eval)
+            instr = User({'uid': self.instructor_uid})
+            self.dept_details_dept_page.enter_instructor(self.share_eval, instr)
+            self.dept_details_dept_page.click_save_eval_changes(self.share_eval)
+            self.dept_details_dept_page.wait_for_eval_rows()
         assert self.dept_form_1.name not in self.dept_details_dept_page.eval_dept_form(self.share_eval)
         assert self.eval_type_1.name not in self.dept_details_dept_page.eval_type(self.share_eval)
         unexpected = f"{self.share_start_1.strftime('%m/%d/%y')} - {self.share_end_1.strftime('%m/%d/%y')}"
@@ -239,7 +269,7 @@ class TestEvalErrors:
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.share_contact_2, self.share_dept_2)
         self.dept_details_dept_page.wait_for_eval_rows()
-        self.dept_details_dept_page.bulk_mark_as_confirmed(self.share_eval)
+        self.dept_details_dept_page.bulk_mark_as_confirmed([self.share_eval])
 
     def test_share_confirmed_dept_2_verify_edits(self):
         self.dept_details_dept_page.wait_for_eval_rows()

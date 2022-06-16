@@ -30,6 +30,8 @@ from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class StatusBoardAdminPage(DamienPages):
@@ -39,6 +41,12 @@ class StatusBoardAdminPage(DamienPages):
     def load_page(self):
         app.logger.info('Loading the dept status page')
         self.driver.get(f'{app.config["BASE_URL"]}/status')
+        self.wait_for_depts()
+
+    def wait_for_depts(self):
+        Wait(self.driver, utils.get_medium_timeout()).until(
+            ec.visibility_of_any_elements_located((By.XPATH, '//a[starts-with(@id, "link-to-dept-")]')),
+        )
 
     LOCK_BOX = (By.XPATH, '//label[text()=" Lock current term "]/following-sibling::div//input/..')
     UNLOCK_BOX = (By.XPATH, '//label[text()=" Unlock current term "]/following-sibling::div//input/..')

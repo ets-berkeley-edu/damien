@@ -115,10 +115,6 @@ class Page(object):
             method=ec.presence_of_element_located(locator),
             message=f'Failed wait for presence_of_element_located: {str(locator)}',
         )
-        Wait(self.driver, timeout).until(
-            method=ec.visibility_of_element_located(locator),
-            message=f'Failed wait for visibility_of_element_located: {str(locator)}',
-        )
 
     def wait_for_text_in_element(self, locator, string):
         tries = 0

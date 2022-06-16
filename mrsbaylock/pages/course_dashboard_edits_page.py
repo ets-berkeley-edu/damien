@@ -45,13 +45,19 @@ class CourseDashboardEditsPage(CourseDashboards):
         self.driver.get(f"{app.config['BASE_URL']}/department/{dept.dept_id}")
         self.wait_for_eval_rows()
 
+    EXPAND_CONTACTS_BUTTON = (By.XPATH, '//button[contains(., "Expand")]')
+
+    def expand_dept_contact_list(self):
+        app.logger.info('Expanding the list of contacts')
+        self.wait_for_page_and_click(CourseDashboardEditsPage.EXPAND_CONTACTS_BUTTON)
+
     @staticmethod
     def dept_contact_xpath(user):
         return f'//div[contains(@id, "department-contact-")][contains(., "{user.first_name} {user.last_name}")]'
 
     def wait_for_contact(self, user):
         app.logger.info(f'Waiting for UID {user.uid} to appear')
-        Wait(self.driver, utils.get_short_timeout()).until(
+        Wait(self.driver, utils.get_medium_timeout()).until(
             ec.presence_of_element_located((By.XPATH, self.dept_contact_xpath(user))),
         )
 
@@ -251,7 +257,7 @@ class CourseDashboardEditsPage(CourseDashboards):
     EVAL_CHANGE_DEPT_FORM_NO_OPTION = (By.XPATH, '//li[contains(text(), "Sorry, no matching options.")]')
     EVAL_CHANGE_EVAL_TYPE_SELECT = (By.ID, 'select-evaluation-type')
     EVAL_CHANGE_START_DATE_INPUT = (By.XPATH, '//input[contains(@class, "datepicker-input")]')
-    EVAL_CHANGE_START_REQ_MSG = (By.XPATH, '//div[contains(text(), "Required")]')
+    EVAL_CHANGE_START_REQ_MSG = (By.XPATH, '//span[contains(text(), "Required")]')
     EVAL_CHANGE_SAVE_BUTTON = (By.ID, 'save-evaluation-edit-btn')
     EVAL_CHANGE_CANCEL_BUTTON = (By.ID, 'cancel-evaluation-edit-btn')
 
@@ -261,7 +267,8 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def click_edit_evaluation(self, evaluation):
         self.scroll_to_top()
-        Wait(self.driver, utils.get_short_timeout()).until(
+        app.logger.info(f'Waiting for element locator {self.eval_row_xpath(evaluation)}//button')
+        Wait(self.driver, utils.get_medium_timeout()).until(
             ec.presence_of_element_located(
                 (By.XPATH, f'{self.eval_row_xpath(evaluation)}//button')),
         )
@@ -326,8 +333,8 @@ class CourseDashboardEditsPage(CourseDashboards):
         self.wait_for_element_and_type(CourseDashboardEditsPage.EVAL_CHANGE_START_DATE_INPUT, date.strftime('%m/%d/%Y'))
 
     def change_eval_start_date(self, evaluation, date=None):
+        self.wait_for_element_and_click(CourseDashboardEditsPage.EVAL_CHANGE_START_DATE_INPUT)
         for i in range(10):
-            self.wait_for_element_and_click(CourseDashboardEditsPage.EVAL_CHANGE_START_DATE_INPUT)
             self.hit_delete()
             self.hit_backspace()
             time.sleep(0.5)

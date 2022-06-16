@@ -44,7 +44,7 @@ class TestListManagement:
     dept = utils.get_test_dept_1()
     utils.reset_test_data(term, dept)
     dept.evaluations = evaluation_utils.get_evaluations(term, dept)
-    evaluations = list(map(lambda e: e.instructor.uid, dept.evaluations))
+    evaluations = list(filter(lambda e: e.instructor.uid, dept.evaluations))
     eval_unmarked = evaluations[0]
     eval_to_review = evaluations[1]
     eval_confirmed = evaluations[2]
@@ -61,6 +61,9 @@ class TestListManagement:
     def test_list_mgmt_page(self):
         self.login_page.load_page()
         self.login_page.dev_auth()
+        self.status_board_admin_page.click_list_mgmt()
+        self.api_page.clear_cache()
+        self.homepage.load_page()
         self.status_board_admin_page.click_list_mgmt()
 
     def test_add_dept_form(self):
@@ -79,6 +82,8 @@ class TestListManagement:
         self.dept_details_admin_page.change_eval_type(self.eval_unmarked, self.eval_type)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_unmarked)
         self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
+        self.dept_details_admin_page.wait_for_eval_rows()
         assert EvaluationStatus.UNMARKED.value['ui'] in self.dept_details_admin_page.eval_status(self.eval_unmarked)
         assert self.form.name in self.dept_details_admin_page.eval_dept_form(self.eval_unmarked)
         assert self.eval_type.name in self.dept_details_admin_page.eval_type(self.eval_unmarked)
@@ -90,6 +95,8 @@ class TestListManagement:
         self.dept_details_admin_page.change_eval_type(self.eval_to_review, self.eval_type)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_to_review)
         self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
+        self.dept_details_admin_page.wait_for_eval_rows()
         assert EvaluationStatus.FOR_REVIEW.value['ui'] in self.dept_details_admin_page.eval_status(self.eval_to_review)
         assert self.form.name in self.dept_details_admin_page.eval_dept_form(self.eval_to_review)
         assert self.eval_type.name in self.dept_details_admin_page.eval_type(self.eval_to_review)
@@ -100,6 +107,8 @@ class TestListManagement:
         self.dept_details_admin_page.change_dept_form(self.eval_confirmed, self.form)
         self.dept_details_admin_page.change_eval_type(self.eval_confirmed, self.eval_type)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_confirmed)
+        self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
         self.dept_details_admin_page.wait_for_eval_rows()
         assert EvaluationStatus.CONFIRMED.value['ui'] in self.dept_details_admin_page.eval_status(self.eval_confirmed)
         assert self.form.name in self.dept_details_admin_page.eval_dept_form(self.eval_confirmed)
@@ -138,7 +147,8 @@ class TestListManagement:
     # SERVICE ALERTS
 
     def test_save_unposted_alert(self):
-        self.list_mgmt_page.load_page()
+        self.status_board_admin_page.load_page()
+        self.status_board_admin_page.click_list_mgmt()
         self.list_mgmt_page.enter_service_alert(self.alert)
         if self.list_mgmt_page.is_service_alert_posted():
             self.list_mgmt_page.click_publish_alert_cbx()

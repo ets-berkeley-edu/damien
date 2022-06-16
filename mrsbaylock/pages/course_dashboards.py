@@ -56,7 +56,7 @@ class CourseDashboards(DamienPages):
 
     def wait_for_eval_rows(self):
         time.sleep(1)
-        Wait(self.driver, utils.get_short_timeout()).until(
+        Wait(self.driver, utils.get_medium_timeout()).until(
             ec.presence_of_all_elements_located(CourseDashboards.EVALUATION_ROW),
         )
         self.hit_tab()

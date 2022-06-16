@@ -105,7 +105,7 @@ class DamienPages(Page):
 
     def click_contact_dept_link(self, dept):
         app.logger.info(f'Clicking link for {dept.name}')
-        self.wait_for_element_and_click(DamienPages.contact_dept_link(dept))
+        self.wait_for_page_and_click(DamienPages.contact_dept_link(dept))
         time.sleep(0.5)
         self.mouseover(self.element(DamienPages.MENU_BUTTON))
 
