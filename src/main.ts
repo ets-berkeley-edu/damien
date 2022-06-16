@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import App from './App.vue'
 import axios from 'axios'
+import linkify from 'vue-linkify'
 import moment from 'moment-timezone'
 import router from './router'
 import store from './store'
@@ -18,6 +19,7 @@ import vSelect from 'vue-select'
 import 'vue-select/dist/vue-select.css'
 // Do not use the default v-select name for this component as that will conflict with Vuetify's v-select.
 Vue.component('vue-select', vSelect)
+Vue.directive('linkified', linkify)
 
 const apiBaseUrl = process.env.VUE_APP_API_BASE_URL
 const isDebugMode = _.trim(process.env.VUE_APP_DEBUG).toLowerCase() === 'true'
