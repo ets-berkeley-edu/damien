@@ -36,8 +36,10 @@
               id="select-all-evals-checkbox"
               class="align-center mt-0 pt-0"
               :disabled="$_.isEmpty(searchFilterResults)"
+              :false-value="!someEvaluationsSelected && !allEvaluationsSelected"
               hide-details
               :indeterminate="someEvaluationsSelected"
+              :input-value="someEvaluationsSelected || allEvaluationsSelected"
               :ripple="false"
               color="tertiary"
               :value="allEvaluationsSelected"
