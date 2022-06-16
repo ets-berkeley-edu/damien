@@ -41,6 +41,6 @@
 
 <style scoped>
 .footer {
-  z-index: 21;
+  z-index: 205;
 }
 </style>

@@ -102,6 +102,7 @@
     </div>
     <v-data-table
       id="evaluation-table"
+      class="mt-3"
       disable-pagination
       :headers="headers"
       :search="searchFilter"
@@ -337,6 +338,7 @@
                       v-model="selectedStartDate"
                       :min-date="minStartDate(evaluation)"
                       :max-date="maxStartDate(evaluation)"
+                      :popover="{positionFixed: true}"
                       title-position="left"
                     >
                       <template v-slot="{ inputValue, inputEvents }">
@@ -609,6 +611,9 @@ export default {
       if (this.$_.size(this.selectedEvaluationIds)) {
         this.filterSelectedEvaluations(searchFilterResults, this.enabledStatusFilterTypes)
       }
+      if (!this.$_.some(this.searchFilterResults, {'id': this.editRowId})) {
+        this.editRowId = null
+      }
     },
     onConfirm() {
       this.isConfirmingCancelEdit = false
@@ -671,6 +676,9 @@ export default {
           searchFilterResults: this.searchFilterResults,
           enabledStatuses: this.enabledStatusFilterTypes
         })
+      if (this.$_.some(this.evaluations, {'id': this.editRowId, 'status': type})) {
+        this.editRowId = null
+      }
       this.alertScreenReader(`Filter ${filter.label} ${filter.enabled ? 'enabled' : 'disabled'}.`)
     },
     toggleSelectAll() {
@@ -856,7 +864,7 @@ tr.border-top-none td {
 }
 .sticky {
   position: sticky;
-  top: 56px;
+  top: 60px;
   z-index: 10;
 }
 .sticky-dark {

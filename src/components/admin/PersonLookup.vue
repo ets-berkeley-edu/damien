@@ -75,7 +75,7 @@ export default {
   data: () => ({
     isSearching: false,
     menuProps: {
-      contentClass: 'v-sheet--outlined'
+      contentClass: 'v-sheet--outlined autocomplete-menu'
     },
     search: undefined,
     searchTokenMatcher: undefined,
@@ -121,7 +121,7 @@ export default {
 
 <style>
 .autocomplete-menu {
-  border: thin solid gray;
+  z-index: 203 !important;
 }
 .person-lookup.v-input--is-focused {
   appearance: auto !important;

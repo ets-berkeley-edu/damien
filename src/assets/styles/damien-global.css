@@ -132,6 +132,7 @@ input.vs__search:enabled {
 }
 .vue-select-override .vs__dropdown-menu {
   padding-left: 0;
+  z-index: 19 !important;
 }
 .vue-select-override .vs__dropdown-menu  .vs__dropdown-option{
   padding-left: 10px;

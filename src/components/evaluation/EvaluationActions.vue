@@ -74,6 +74,7 @@
               class="mx-3"
               :min-date="$moment($config.termDates.valid.begin).toDate()"
               :max-date="$moment($config.termDates.valid.end).subtract(13, 'days').toDate()"
+              :popover="{positionFixed: true}"
               title-position="left"
             >
               <template v-slot="{ inputValue, inputEvents }">
