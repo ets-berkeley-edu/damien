@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from datetime import datetime
 from itertools import groupby
+from urllib.parse import unquote
 
 from damien.api.errors import BadRequestError, InternalServerError
 from damien.api.util import admin_required
@@ -79,7 +80,7 @@ def get_validation():
 @admin_required
 def download_evaluation_export(key):
     def generator():
-        for chunk in stream_folder_zipped(key):
+        for chunk in stream_folder_zipped(unquote(key)):
             yield chunk
     response = Response(stream_with_context(generator()), mimetype='application/zip')
     timestamp = key[-19:]
