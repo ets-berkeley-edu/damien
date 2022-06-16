@@ -17,7 +17,7 @@
           v-for="(item, index) in navItems"
           :id="`sidebar-link-${index}`"
           :key="index"
-          class="primary-contrast--text"
+          class="primary-contrast--text sidebar-link pr-1"
           link
           @click="toRoute(item.path)"
           @keypress.enter.prevent="toRoute(item.path)"
@@ -30,13 +30,13 @@
               <component :is="item.icon" />
             </template>
           </v-list-item-icon>
-          <v-list-item-content class="sidebar-link-content">
-            <v-list-item-title class="text-wrap">{{ item.title }}</v-list-item-title>
+          <v-list-item-content class="py-2">
+            <v-list-item-title class="text-wrap sidebar-link-content">{{ item.title }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-list-item
           :id="`sidebar-link-${$_.size(navItems)}`"
-          class="primary-contrast--text"
+          class="primary-contrast--text sidebar-link pr-1"
           @click="toggleColorScheme"
           @keypress.enter.prevent="toggleColorScheme"
         >
@@ -202,8 +202,13 @@
   width: 100%;
   z-index: 2;
 }
+.sidebar-link {
+  height: 60px;
+  max-height: 60px;
+}
 .sidebar-link-content {
   height: 56px;
+  overflow: hidden;
 }
 .sr-debug {
   width: fit-content;
