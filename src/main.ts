@@ -18,7 +18,7 @@ Vue.use(VueMoment, {moment})
 import vSelect from 'vue-select'
 import 'vue-select/dist/vue-select.css'
 // Do not use the default v-select name for this component as that will conflict with Vuetify's v-select.
-Vue.component('vue-select', vSelect)
+Vue.component('VueSelect', vSelect)
 Vue.directive('linkified', linkify)
 
 const apiBaseUrl = process.env.VUE_APP_API_BASE_URL

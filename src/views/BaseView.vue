@@ -79,7 +79,7 @@
         </v-chip>
       </v-spacer>
       <v-menu offset-y rounded="lg">
-        <template v-slot:activator="{ on, attrs }">
+        <template #activator="{ on, attrs }">
           <v-btn
             id="btn-main-menu"
             v-bind="attrs"
