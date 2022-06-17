@@ -77,7 +77,7 @@
               :popover="{positionFixed: true}"
               title-position="left"
             >
-              <template v-slot="{ inputValue, inputEvents }">
+              <template #default="{ inputValue, inputEvents }">
                 <input
                   id="bulk-duplicate-start-date"
                   class="datepicker-input input-override my-0"

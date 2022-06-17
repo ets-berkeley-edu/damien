@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="model" width="500">
+  <v-dialog v-model="dialog" width="500">
     <v-card>
       <v-card-title id="confirm-dialog-title" tabindex="-1">{{ title }}</v-card-title>
       <v-card-text class="pt-3">{{ text }}</v-card-text>
@@ -56,6 +56,9 @@ export default {
       required: true,
       type: String
     }
-  }
+  },
+  data: () => ({
+    dialog: this.model,
+  }),
 }
 </script>

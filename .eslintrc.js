@@ -10,6 +10,7 @@ module.exports = {
     'eslint:recommended',
     'plugin:vue-a11y/recommended'
   ],
+  parser: 'vue-eslint-parser',
   parserOptions: {
     parser: require.resolve('@typescript-eslint/parser')
   },

@@ -45,7 +45,7 @@
               :value="allEvaluationsSelected"
               @change="toggleSelectAll"
             >
-              <template v-slot:label>
+              <template #label>
                 <div v-if="!(someEvaluationsSelected || allEvaluationsSelected)" class="text-nowrap pl-1 py-2">
                   Select all
                 </div>
@@ -341,7 +341,7 @@
                       :popover="{positionFixed: true}"
                       title-position="left"
                     >
-                      <template v-slot="{ inputValue, inputEvents }">
+                      <template #default="{ inputValue, inputEvents }">
                         <input
                           id="input-evaluation-start-date"
                           class="datepicker-input input-override light mt-0"

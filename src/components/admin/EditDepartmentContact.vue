@@ -79,7 +79,7 @@
         Department Forms
       </legend>
       <div :id="`deptForms-${contactId}`">
-        <vue-select
+        <VueSelect
           :id="`select-deptForms-${contactId}`"
           v-model="contactDepartmentForms"
           class="vue-select-override mt-2 mb-4"
@@ -113,7 +113,7 @@
               {{ option.name }}
             </v-chip>
           </template>
-        </vue-select>
+        </VueSelect>
       </div>
     </div>
     <v-btn
