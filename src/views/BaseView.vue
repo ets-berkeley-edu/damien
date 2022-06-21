@@ -31,7 +31,9 @@
             </template>
           </v-list-item-icon>
           <v-list-item-content class="py-2">
-            <v-list-item-title class="text-wrap sidebar-link-content">{{ item.title }}</v-list-item-title>
+            <v-list-item-title class="d-flex text-wrap sidebar-link-content">
+              <span class="align-self-center">{{ item.title }}</span>
+            </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-list-item
