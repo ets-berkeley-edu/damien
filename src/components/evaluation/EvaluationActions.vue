@@ -148,21 +148,22 @@ export default {
   }),
   created() {
     this.courseActions = {
+      // TO DO: Clean up dictionary keys and and statuses
       review: {
         apply: this.applyAction,
-        completedText: 'Marked for review',
-        inProgressText: 'Marking for review',
+        completedText: 'Marked as to-do',
+        inProgressText: 'Marking as to-do',
         key: 'review',
         status: 'review',
-        text: 'Mark for review'
+        text: 'Mark as to-do'
       },
       confirm: {
         apply: this.applyAction,
-        completedText: 'Marked as confirmed',
-        inProgressText: 'Marking as confirmed',
+        completedText: 'Marked as done',
+        inProgressText: 'Marking as done',
         key: 'confirm',
         status: 'confirmed',
-        text: 'Mark as confirmed'
+        text: 'Mark as done'
       },
       unmark: {
         apply: this.applyAction,
