@@ -327,8 +327,8 @@
       </v-row>
     </v-container>
     <ConfirmDialog
-      :model="isConfirming"
       :cancel-action="cancelDelete"
+      :confirming="isConfirming"
       :perform-action="() => onDelete().then(afterDelete)"
       :text="`Are you sure you want to delete ${$_.get(itemToDelete, 'name')}?`"
       :title="`Delete ${$_.get(itemToDelete, 'description')}?`"
