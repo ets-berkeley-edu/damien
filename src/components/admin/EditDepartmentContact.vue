@@ -78,43 +78,40 @@
       <legend :for="`select-deptForms-${contactId}`" class="form-label">
         Department Forms
       </legend>
-      <div :id="`deptForms-${contactId}`">
-        <VueSelect
-          :id="`select-deptForms-${contactId}`"
-          v-model="contactDepartmentForms"
-          class="vue-select-override mt-2 mb-4"
-          :class="$vuetify.theme.dark ? 'dark' : 'light'"
-          :clearable="false"
-          :disabled="disableControls"
-          label="name"
-          multiple
-          :options="availableDepartmentForms"
-          @option:selected="afterSelectDepartmentForm"
-        >
-          <template #search="{attributes, events}">
-            <input
-              :id="`input-deptForms-${contactId}`"
-              class="vs__search"
-              v-bind="attributes"
-              v-on="events"
-            />
-          </template>
-          <template #selected-option-container="{option}">
-            <v-chip
-              :id="`selected-deptForm-${option.id}-${contactId}`"
-              class="px-4 my-1"
-              :class="{'disabled': !disableControls}"
-              close
-              :close-label="`Remove ${option.name} from ${fullName}'s department forms`"
-              :disabled="disableControls"
-              :ripple="false"
-              @click:close="remove(option)"
-            >
-              {{ option.name }}
-            </v-chip>
-          </template>
-        </VueSelect>
-      </div>
+      <v-combobox
+        v-model="contactDepartmentForms"
+        auto-select-first
+        chips
+        class="my-2"
+        color="tertiary"
+        deletable-chips
+        :disabled="disableControls"
+        hide-details
+        hide-selected
+        item-color="secondary"
+        item-text="name"
+        :items="availableDepartmentForms"
+        multiple
+        outlined
+        return-object
+      >
+        <template #selection="data">
+          <v-chip
+            :id="`selected-deptForm-${data.item.id}-${contactId}`"
+            :key="data.item.id"
+            v-bind="data.attrs"
+            class="px-4 ma-1"
+            close
+            :close-label="`Remove ${data.item.name} from ${fullName}'s department forms`"
+            color="secondary"
+            :disabled="disableControls"
+            :ripple="false"
+            @click:close="remove(data.item)"
+          >
+            {{ data.item.name }}
+          </v-chip>
+        </template>
+      </v-combobox>
     </div>
     <v-btn
       :id="`save-dept-contact-${contactId}-btn`"
@@ -198,6 +195,18 @@ export default {
     this.populateForm(this.contact)
     this.alertScreenReader(`${this.contact ? 'Edit' : 'Add'} department contact form is ready`)
   },
+  watch: {
+    contactDepartmentForms(val, prev) {
+      if (!val || !prev || val.length === prev.length) return
+      this.contactDepartmentForms = val.map(item => {
+        if (typeof item === 'string') {
+          return this.$_.find(this.availableDepartmentForms, {'name': item})
+        } else {
+          return item
+        }
+      }).filter(v => v)
+    }
+  },
   methods: {
     afterSelectDepartmentForm(departmentForms) {
       const selected = this.$_.last(departmentForms)
@@ -261,6 +270,5 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-
 }
 </style>
