@@ -403,8 +403,8 @@
       </template>
     </v-data-table>
     <ConfirmDialog
-      :model="isConfirmingCancelEdit"
       :cancel-action="onCancelConfirm"
+      :confirming="isConfirmingCancelEdit"
       :perform-action="onConfirm"
       :text="'You have unsaved changes that will be lost.'"
       :title="'Cancel edit?'"

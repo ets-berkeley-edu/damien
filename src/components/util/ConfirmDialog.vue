@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" width="500">
+  <v-dialog v-model="model" width="500">
     <v-card>
       <v-card-title id="confirm-dialog-title" tabindex="-1">{{ title }}</v-card-title>
       <v-card-text class="pt-3">{{ text }}</v-card-text>
@@ -40,7 +40,7 @@ export default {
       required: true,
       type: Function
     },
-    model: {
+    confirming: {
       required: true,
       type: Boolean
     },
@@ -58,7 +58,15 @@ export default {
     }
   },
   data: () => ({
-    dialog: this.model,
+    model: false
   }),
+  watch: {
+    confirming() {
+      this.model = this.confirming
+    }
+  },
+  created() {
+    this.model = this.confirming
+  }
 }
 </script>

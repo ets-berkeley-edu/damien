@@ -67,8 +67,8 @@
           Delete
         </v-btn>
         <ConfirmDialog
-          :model="isConfirming"
           :cancel-action="onCancelDelete"
+          :confirming="isConfirming"
           :perform-action="onDelete"
           :text="`Are you sure you want to delete the ${$_.get(selectedTerm, 'name')} note?`"
           :title="'Delete note?'"
