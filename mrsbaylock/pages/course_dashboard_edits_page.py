@@ -100,18 +100,30 @@ class CourseDashboardEditsPage(CourseDashboards):
     USE_START_DATE_INPUT = (By.ID, 'bulk-duplicate-start-date')
     ACTION_APPLY_BUTTON = (By.XPATH, '//button[contains(., "Apply")]')
 
+    def click_bulk_done_button(self):
+        self.wait_for_element_and_click(CourseDashboardEditsPage.CONFIRM_BUTTON)
+
+    def click_bulk_to_do_button(self):
+        self.wait_for_element_and_click(CourseDashboardEditsPage.REVIEW_BUTTON)
+
+    def click_bulk_unmark_button(self):
+        self.wait_for_element_and_click(CourseDashboardEditsPage.UNMARK_BUTTON)
+
+    def click_bulk_ignore_button(self):
+        self.wait_for_element_and_click(CourseDashboardEditsPage.IGNORE_BUTTON)
+
     def bulk_set_row_status(self, evaluations, status):
         for evaluation in evaluations:
             app.logger.info(f'Setting CCN {evaluation.ccn} to {status}')
             self.click_eval_checkbox(evaluation)
         if status == EvaluationStatus.FOR_REVIEW:
-            self.wait_for_element_and_click(CourseDashboardEditsPage.REVIEW_BUTTON)
+            self.click_bulk_to_do_button()
         elif status == EvaluationStatus.CONFIRMED:
-            self.wait_for_element_and_click(CourseDashboardEditsPage.CONFIRM_BUTTON)
+            self.click_bulk_done_button()
         elif status == EvaluationStatus.UNMARKED:
-            self.wait_for_element_and_click(CourseDashboardEditsPage.UNMARK_BUTTON)
+            self.click_bulk_unmark_button()
         elif status == EvaluationStatus.IGNORED:
-            self.wait_for_element_and_click(CourseDashboardEditsPage.IGNORE_BUTTON)
+            self.click_bulk_ignore_button()
         time.sleep(1)
 
     def bulk_mark_for_review(self, evaluations):

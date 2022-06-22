@@ -23,8 +23,13 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import csv
+import glob
+import os
 import re
+import shutil
 import time
+import zipfile
 
 from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
@@ -91,3 +96,67 @@ class StatusBoardAdminPage(DamienPages):
                 self.notif_remove_recipient(dept, user)
         self.click_notif_send()
         self.when_not_present(DamienPages.NOTIF_SEND_BUTTON, utils.get_medium_timeout())
+
+    # PUBLISH
+
+    PUBLISH_BUTTON = (By.ID, 'publish-btn')
+    TERM_EXPORT_LINK = (By.XPATH, '//a[contains(@id, "term-export-")]')
+
+    def publish_to_blue(self):
+        initial_count = len(self.elements(StatusBoardAdminPage.TERM_EXPORT_LINK))
+        app.logger.info(f'There are currently {initial_count} previous export links')
+        tries = 0
+        retries = utils.get_medium_timeout()
+        app.logger.info('Publishing to Blue')
+        self.wait_for_page_and_click(StatusBoardAdminPage.PUBLISH_BUTTON)
+        time.sleep(1)
+        while tries <= retries:
+            tries += 1
+            try:
+                new_count = len(self.elements(StatusBoardAdminPage.TERM_EXPORT_LINK))
+                app.logger.info(f'There are now {new_count} export links')
+                assert new_count > initial_count
+                break
+            except AssertionError:
+                if tries == retries:
+                    app.logger.info('Timed out waiting for publishing to finish')
+                    raise
+                else:
+                    time.sleep(1)
+
+    def download_export_csvs(self):
+        app.logger.info(f'Downloading export CSVs to {utils.default_download_dir()}')
+
+        if os.path.isdir(utils.default_download_dir()):
+            shutil.rmtree(utils.default_download_dir())
+        os.mkdir(utils.default_download_dir())
+
+        self.publish_to_blue()
+        time.sleep(1)
+        el = self.elements(StatusBoardAdminPage.TERM_EXPORT_LINK)[0]
+        el.click()
+        tries = 0
+        max_tries = 15
+        while tries <= max_tries:
+            tries += 1
+            try:
+                assert len(glob.glob(f'{utils.default_download_dir()}/*.zip')) == 1
+                break
+            except AssertionError:
+                if tries == max_tries:
+                    raise
+                else:
+                    time.sleep(1)
+
+        file = glob.glob(f'{utils.default_download_dir()}/*.zip')[0]
+        with zipfile.ZipFile(file, 'r') as zip_ref:
+            zip_ref.extractall(utils.default_download_dir())
+
+    @staticmethod
+    def parse_csv(file_name):
+        file = f'{utils.default_download_dir()}/{file_name}.csv'
+        rows = []
+        with open(file) as csv_file:
+            for row in csv.DictReader(csv_file):
+                rows.append(row)
+        return rows

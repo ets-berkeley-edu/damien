@@ -82,13 +82,14 @@ def get_test_email_account():
 
 
 def default_download_dir():
-    return f'{app.config["BASE_DIR"]}/mrsbaylock/downloads'
+    return f'{app.config["BASE_DIR"]}/mrsbaylock/tmp'
 
 
 def get_current_term():
     return Term(
         term_id=app.config['CURRENT_TERM_ID'],
         name=app.config['CURRENT_TERM_NAME'],
+        prefix=app.config['CURRENT_TERM_PREFIX'],
         start_date=datetime.strptime(app.config['CURRENT_TERM_BEGIN'], '%Y-%m-%d'),
         end_date=datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d'),
     )
@@ -171,8 +172,6 @@ def get_all_users():
             dept_roles.append(role)
         user = User(data, dept_roles)
         users.append(user)
-        for r in user.dept_roles:
-            app.logger.info(f'{vars(r)}')
     return users
 
 
@@ -376,13 +375,15 @@ def delete_dept_note(term, dept):
 # TEST DATA
 
 
-def reset_test_data(term, dept):
-    sql = f"DELETE FROM evaluations WHERE term_id = '{term.term_id}' AND department_id = {dept.dept_id}"
+def reset_test_data(term, dept=None):
+    dept_clause = 'AND department_id = ' + dept.dept_id if dept else ''
+
+    sql = f"DELETE FROM evaluations WHERE term_id = '{term.term_id}'{dept_clause}"
     app.logger.info(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
-    sql = f"DELETE FROM supplemental_sections WHERE term_id = '{term.term_id}' AND department_id = {dept.dept_id}"
+    sql = f"DELETE FROM supplemental_sections WHERE term_id = '{term.term_id}'{dept_clause}"
     app.logger.info(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
@@ -401,3 +402,51 @@ def reset_test_data(term, dept):
     app.logger.info(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
+
+
+# CSV DATA
+
+
+def expected_course_students(evaluations):
+    ccns = "', '".join(e.ccn for e in evaluations)
+    term = get_current_term()
+    sql = f"""
+        SELECT ldap_uid, course_number
+          FROM unholy_loch.sis_enrollments
+         WHERE unholy_loch.sis_enrollments.term_id = '{term.term_id}'
+           AND unholy_loch.sis_enrollments.course_number IN('{ccns}')
+    """
+    app.logger.info(sql)
+    result = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    enrollments = []
+    for row in result:
+        data = {
+            'COURSE_ID': f'{term.prefix}-{row["course_number"]}',
+            'LDAP_UID': row['ldap_uid'],
+        }
+        enrollments.append(data)
+
+        eval_types = [e.eval_type for e in evaluations if e.ccn == row['course_number']]
+        if 'F' in eval_types and 'G' in eval_types:
+            gsi_data = {
+                'COURSE_ID': f'{term.prefix}-{row["course_number"]}_GSI',
+                'LDAP_UID': row['ldap_uid'],
+            }
+            enrollments.append(gsi_data)
+    return enrollments
+
+
+def expected_course_instructors(evaluations):
+    term = get_current_term()
+    instructors = []
+    for row in evaluations:
+        eval_types = [e.eval_type for e in evaluations if e.ccn == row.ccn]
+        suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        data = {
+            'COURSE_ID': f'{term.prefix}-{row.ccn}{suffix}',
+            'LDAP_UID': row.instructor.uid,
+            'ROLE': 'Faculty' if row.eval_type == 'F' else 'GSI' if row.eval_type == 'G' else row.eval_type,
+        }
+        instructors.append(data)
+    return instructors
