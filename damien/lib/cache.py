@@ -26,16 +26,32 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from damien import cache
 
 
+def clear_department_cache(department_id, term_id):
+    cache.delete(_department_cache_key(department_id, term_id))
+
+
 def clear_section_cache(department_id, term_id, course_number):
     cache.delete(_section_cache_key(department_id, term_id, course_number))
+
+
+def fetch_department_cache(department_id, term_id):
+    return cache.get(_department_cache_key(department_id, term_id))
 
 
 def fetch_section_cache(department_id, term_id, course_number):
     return cache.get(_section_cache_key(department_id, term_id, course_number))
 
 
+def set_department_cache(department_id, term_id, cached):
+    cache.set(_department_cache_key(department_id, term_id), cached, 86400)
+
+
 def set_section_cache(department_id, term_id, course_number, cached):
     cache.set(_section_cache_key(department_id, term_id, course_number), cached, 86400)
+
+
+def _department_cache_key(department_id, term_id):
+    return f'department/{department_id}/{term_id}'
 
 
 def _section_cache_key(department_id, term_id, course_number):

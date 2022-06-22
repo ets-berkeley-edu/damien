@@ -26,6 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from itertools import groupby
 
 from damien import db, std_commit
+from damien.lib.cache import fetch_department_cache, set_department_cache
 from damien.lib.queries import get_cross_listings, get_loch_instructors, get_loch_sections, get_loch_sections_by_ids, get_room_shares
 from damien.lib.util import isoformat
 from damien.merged.section import Section
@@ -242,13 +243,19 @@ class Department(Base):
             if include_evaluations:
                 feed['evaluations'] = evaluations
             if include_status:
-                confirmed_count = 0
-                invalid_count = 0
-                for evaluation in evaluations:
-                    if evaluation['status'] == 'confirmed':
-                        confirmed_count += 1
-                    elif not evaluation['valid']:
-                        invalid_count += 1
+                status = fetch_department_cache(self.id, term_id)
+                set_department_cache(self.id, term_id, status)
+                if status is None:
+                    confirmed_count = 0
+                    invalid_count = 0
+                    for evaluation in evaluations:
+                        if evaluation['status'] == 'confirmed':
+                            confirmed_count += 1
+                        elif not evaluation['valid']:
+                            invalid_count += 1
+                else:
+                    confirmed_count = status['confirmed']
+                    invalid_count = status['errors']
                 feed['totalConfirmed'] = confirmed_count
                 feed['totalEvaluations'] = len(evaluations)
                 feed['totalInError'] = invalid_count

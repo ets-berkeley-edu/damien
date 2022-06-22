@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from damien import db, std_commit
-from damien.lib.cache import clear_section_cache
+from damien.lib.cache import clear_department_cache, clear_section_cache
 from damien.lib.util import utc_now
 from damien.models.base import Base
 
@@ -71,6 +71,7 @@ class SupplementalSection(Base):
         db.session.add(section)
         std_commit()
         clear_section_cache(department_id, term_id, course_number)
+        clear_department_cache(department_id, term_id)
         return section
 
     @classmethod
