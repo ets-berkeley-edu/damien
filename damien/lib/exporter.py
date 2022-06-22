@@ -123,7 +123,7 @@ def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms
         for key in keys:
             course_rows.append(_export_course_row(course_ids[key], key, sections[course_number]))
             for instructor_uid in keys_to_instructor_uids[key]:
-                course_instructor_rows.append({'COURSE_ID': course_ids[key], 'LDAP_UID': instructor_uid})
+                course_instructor_rows.append(_export_course_instructor_row(key, course_ids, instructor_uid))
             for student_uid in course_numbers_to_uids.get(course_number, []):
                 course_student_rows.append({'COURSE_ID': course_ids[key], 'LDAP_UID': student_uid})
             for supervisor_uid in dept_forms_to_uids.get(key.department_form, []):
@@ -235,6 +235,7 @@ course_headers = [
 course_instructor_headers = [
     'COURSE_ID',
     'LDAP_UID',
+    'ROLE',
 ]
 
 
@@ -354,6 +355,20 @@ def _cross_listed_name(section):
         return '-'.join(sorted(s for s in course_numbers if s))
     else:
         return ''
+
+
+def _export_course_instructor_row(key, course_ids, instructor_uid):
+    if key.evaluation_type == 'F':
+        role = 'Faculty'
+    elif key.evaluation_type == 'G':
+        role = 'GSI'
+    else:
+        role = key.evaluation_type
+    return {
+        'COURSE_ID': course_ids[key],
+        'LDAP_UID': instructor_uid,
+        'ROLE': role,
+    }
 
 
 def _export_instructor_row(instructor):
