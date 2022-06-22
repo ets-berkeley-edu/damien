@@ -374,7 +374,7 @@ def _export_course_instructor_row(key, course_ids, instructor_uid):
 def _export_instructor_row(instructor):
     return {
         'LDAP_UID': instructor['uid'],
-        'SIS_ID': instructor['sisId'],
+        'SIS_ID': instructor['sisId'] or f"UID:{instructor['uid']}",
         'FIRST_NAME': instructor['firstName'],
         'LAST_NAME': instructor['lastName'],
         'EMAIL_ADDRESS': instructor['emailAddress'],
@@ -385,7 +385,7 @@ def _export_instructor_row(instructor):
 def _export_student_row(student):
     return {
         'LDAP_UID': student['uid'],
-        'SIS_ID': student['csid'],
+        'SIS_ID': student['csid'] or f"UID:{student['uid']}",
         'FIRST_NAME': student['first_name'],
         'LAST_NAME': student['last_name'],
         'EMAIL_ADDRESS': student['email'],
