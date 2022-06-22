@@ -54,6 +54,7 @@
             />
           </div>
           <v-checkbox
+            v-if="midtermFormAvailable"
             v-model="bulkUpdateOptions.midtermFormEnabled"
             class="text-nowrap"
             color="tertiary"
@@ -123,6 +124,7 @@
 </template>
 
 <script>
+import {getDepartmentForms} from '@/api/departmentForms'
 import {updateEvaluations} from '@/api/departments'
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
@@ -144,7 +146,8 @@ export default {
     courseActions: {},
     instructor: null,
     isDuplicating: false,
-    isLoading: false
+    isLoading: false,
+    midtermFormAvailable: true
   }),
   created() {
     this.courseActions = {
@@ -257,18 +260,29 @@ export default {
       this.instructor = suggestion
     },
     showDuplicateOptions() {
-      this.isDuplicating = true
+      const selectedEvals = this.$_.filter(this.evaluations, e => this.selectedEvaluationIds.includes(e.id))
 
-      /* Find all the dates from the selected evals, format them, then find if they're unique*/
-      const uniqueStartDates = this.evaluations
-                    .filter(ev => this.selectedEvaluationIds.includes(ev.id))
-                    .map(ev => new Date(ev.startDate).toDateString())
-                    .filter((date, idx, val) => val.indexOf(date) === idx)
-
+      // Pre-populate start date if shared by all selected evals.
+      const uniqueStartDates = this.$_.chain(selectedEvals).map(e => new Date(e.startDate).toDateString()).uniq().value()
       if (uniqueStartDates.length === 1) {
         this.bulkUpdateOptions.startDate = new Date(uniqueStartDates[0])
       }
-      this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
+
+      getDepartmentForms().then(allForms => {
+        // Show midterm form option only if a midterm form exists for all selected evals.
+        this.midtermFormAvailable = true
+        const availableFormNames = this.$_.map(allForms, 'name')
+        this.$_.each(selectedEvals, e => {
+          const formName = this.$_.get(e, 'departmentForm.name')
+          if (!formName || !(formName.endsWith('_MID') || availableFormNames.includes(formName + '_MID'))) {
+            this.midtermFormAvailable = false
+            return false
+          }
+        })
+
+        this.isDuplicating = true
+        this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
+      })
     },
     isInvalidAction(action) {
       const uniqueStatuses = this.$_.uniq(this.evaluations
