@@ -23,17 +23,28 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.api.errors import InternalServerError
-from damien.api.util import admin_required
-from damien.jobs.refresh_unholy_loch import refresh_from_api
-from damien.lib.http import tolerant_jsonify
-from flask import current_app as app
+
+non_admin_uid = '100'
+admin_uid = '200'
 
 
-@app.route('/api/job/refresh_unholy_loch')
-@admin_required
-def refresh_unholy_loch():
-    if refresh_from_api():
-        return tolerant_jsonify({'status': 'started'})
-    else:
-        raise InternalServerError('Refresh job failed.')
+def _api_clear_cache(client, expected_status_code=200):
+    response = client.get('/api/cache/clear')
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestJobClearCache:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_clear_cache(client, expected_status_code=401)
+
+    def test_unauthorized(self, client, fake_auth):
+        """Denies unauthorized user."""
+        fake_auth.login(non_admin_uid)
+        _api_clear_cache(client, expected_status_code=401)
+
+    def test_authorized(self, client, fake_auth):
+        fake_auth.login(admin_uid)
+        _api_clear_cache(client)

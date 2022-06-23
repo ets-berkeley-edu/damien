@@ -28,32 +28,10 @@ non_admin_uid = '100'
 admin_uid = '200'
 
 
-def _api_clear_cache(client, expected_status_code=200):
-    response = client.get('/api/job/clear_cache')
-    assert response.status_code == expected_status_code
-    return response.json
-
-
 def _api_refresh_loch(client, expected_status_code=200):
     response = client.get('/api/job/refresh_unholy_loch')
     assert response.status_code == expected_status_code
     return response.json
-
-
-class TestJobClearCache:
-
-    def test_anonymous(self, client):
-        """Denies anonymous user."""
-        _api_clear_cache(client, expected_status_code=401)
-
-    def test_unauthorized(self, client, fake_auth):
-        """Denies unauthorized user."""
-        fake_auth.login(non_admin_uid)
-        _api_clear_cache(client, expected_status_code=401)
-
-    def test_authorized(self, client, fake_auth):
-        fake_auth.login(admin_uid)
-        _api_clear_cache(client)
 
 
 class TestJobRefresh:

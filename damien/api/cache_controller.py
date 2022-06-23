@@ -23,17 +23,33 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from damien import cache
 from damien.api.errors import InternalServerError
 from damien.api.util import admin_required
-from damien.jobs.refresh_unholy_loch import refresh_from_api
 from damien.lib.http import tolerant_jsonify
 from flask import current_app as app
 
 
-@app.route('/api/job/refresh_unholy_loch')
+@app.route('/api/cache/clear')
 @admin_required
-def refresh_unholy_loch():
-    if refresh_from_api():
-        return tolerant_jsonify({'status': 'started'})
+def cache_clear():
+    if cache.clear():
+        return tolerant_jsonify({'status': 'cleared'})
     else:
-        raise InternalServerError('Refresh job failed.')
+        raise InternalServerError('Cache clear failed.')
+
+
+@app.route('/api/cache/delete/<key>')
+@admin_required
+def cache_delete(key):
+    if cache.delete(key):
+        return tolerant_jsonify({'key': key, 'status': 'deleted'})
+    else:
+        raise InternalServerError('Cache delete failed.')
+
+
+@app.route('/api/cache/inspect/<key>')
+@admin_required
+def cache_inspect(key):
+    value = cache.get(key)
+    return tolerant_jsonify({'key': key, 'value': value})

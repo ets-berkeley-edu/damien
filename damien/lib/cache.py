@@ -51,8 +51,8 @@ def set_section_cache(department_id, term_id, course_number, cached):
 
 
 def _department_cache_key(department_id, term_id):
-    return f'department/{department_id}/{term_id}'
+    return f'department_{department_id}_{term_id}'
 
 
 def _section_cache_key(department_id, term_id, course_number):
-    return f'section/{term_id}/{course_number}/dept/{department_id}'
+    return f'section_{term_id}_{course_number}_dept_{department_id}'
