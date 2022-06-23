@@ -81,7 +81,7 @@ def refresh_additional_instructors(uids=None):
 
 
 def get_confirmed_enrollments(term_id):
-    query = """SELECT enr.course_number, enr.ldap_uid
+    query = """SELECT DISTINCT enr.course_number, enr.ldap_uid
                FROM unholy_loch.sis_enrollments enr
                JOIN evaluations eval
                ON enr.term_id = :term_id AND eval.term_id = :term_id
