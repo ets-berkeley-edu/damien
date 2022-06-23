@@ -237,34 +237,32 @@ class Department(Base):
         feed['notes'] = {note.term_id: note.to_api_json() for note in self.notes}
         if include_contacts:
             feed['contacts'] = sorted([user.to_api_json() for user in self.members], key=lambda m: m['lastName'])
-
-        if include_evaluations or include_status:
+        status = include_status and fetch_department_cache(self.id, term_id)
+        if include_evaluations or (include_status and not status):
             evaluations = self.evaluations_feed(term_id)
             if include_evaluations:
                 feed['evaluations'] = evaluations
             if include_status:
-                status = fetch_department_cache(self.id, term_id)
-                if status is None:
-                    # A 'blocker' is an evaluation which is both confirmed and invalid, and therefore blocks publication to Blue.
-                    blocker_count = 0
-                    confirmed_count = 0
-                    invalid_count = 0
-                    for evaluation in evaluations:
+                # A 'blocker' is an evaluation which is both confirmed and invalid, and therefore blocks publication to Blue.
+                blocker_count = 0
+                confirmed_count = 0
+                invalid_count = 0
+                for evaluation in evaluations:
+                    if not evaluation['valid']:
+                        invalid_count += 1
+                    if evaluation['status'] == 'confirmed':
+                        confirmed_count += 1
                         if not evaluation['valid']:
-                            invalid_count += 1
-                        if evaluation['status'] == 'confirmed':
-                            confirmed_count += 1
-                            if not evaluation['valid']:
-                                blocker_count += 1
-                    set_department_cache(self.id, term_id, {'blockers': blocker_count, 'confirmed': confirmed_count, 'errors': invalid_count})
-                else:
-                    blocker_count = status['blockers']
-                    confirmed_count = status['confirmed']
-                    invalid_count = status['errors']
-                feed['totalBlockers'] = blocker_count
-                feed['totalConfirmed'] = confirmed_count
-                feed['totalEvaluations'] = len(evaluations)
-                feed['totalInError'] = invalid_count
+                            blocker_count += 1
+                status = {
+                    'totalBlockers': blocker_count,
+                    'totalConfirmed': confirmed_count,
+                    'totalEvaluations': len(evaluations),
+                    'totalInError': invalid_count,
+                }
+                set_department_cache(self.id, term_id, status)
+        if include_status:
+            feed.update(status)
         if include_sections:
             if self.row_count is None:
                 self.get_visible_sections()['sections']
