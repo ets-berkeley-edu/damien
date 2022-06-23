@@ -244,18 +244,24 @@ class Department(Base):
                 feed['evaluations'] = evaluations
             if include_status:
                 status = fetch_department_cache(self.id, term_id)
-                set_department_cache(self.id, term_id, status)
                 if status is None:
+                    # A 'blocker' is an evaluation which is both confirmed and invalid, and therefore blocks publication to Blue.
+                    blocker_count = 0
                     confirmed_count = 0
                     invalid_count = 0
                     for evaluation in evaluations:
+                        if not evaluation['valid']:
+                            invalid_count += 1
                         if evaluation['status'] == 'confirmed':
                             confirmed_count += 1
-                        elif not evaluation['valid']:
-                            invalid_count += 1
+                            if not evaluation['valid']:
+                                blocker_count += 1
+                    set_department_cache(self.id, term_id, {'blockers': blocker_count, 'confirmed': confirmed_count, 'errors': invalid_count})
                 else:
+                    blocker_count = status['blockers']
                     confirmed_count = status['confirmed']
                     invalid_count = status['errors']
+                feed['totalBlockers'] = blocker_count
                 feed['totalConfirmed'] = confirmed_count
                 feed['totalEvaluations'] = len(evaluations)
                 feed['totalInError'] = invalid_count

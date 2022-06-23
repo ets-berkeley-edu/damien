@@ -50,12 +50,23 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="auto" class="d-flex mr-auto">
+      <v-col cols="auto" class="mr-auto">
+        <div v-if="$_.size(blockers)">
+          <v-icon color="error">
+            mdi-alert-circle
+          </v-icon>
+          Publication is blocked by errors in departments:
+          <ul id="blocker-list" class="pl-4">
+            <li v-for="(count, deptName) in blockers" :key="deptName">
+              {{ deptName }} ({{ count }})
+            </li>
+          </ul>
+        </div>
         <v-btn
           id="publish-btn"
           class="align-self-end my-4"
           color="primary"
-          :disabled="isExporting || loading"
+          :disabled="isExporting || loading || !!$_.size(blockers)"
           @click="publish"
           @keypress.enter.prevent="publish"
         >
@@ -225,15 +236,16 @@ export default {
   mixins: [Context],
   data: () => ({
     availableTerms: [],
-    selectedTermId: null,
-    selectedTermName: null,
+    blockers: {},
     departments: [],
     exports: [],
     headers: [],
     isCreatingNotification: false,
     isExporting: false,
     isCurrentTermLocked: false,
-    selectedDepartmentIds: []
+    selectedDepartmentIds: [],
+    selectedTermId: null,
+    selectedTermName: null,
   }),
   computed: {
     allDepartmentsSelected() {
@@ -301,10 +313,19 @@ export default {
     isSelected(department) {
       return this.$_.includes(this.selectedDepartmentIds, department.id)
     },
+    loadBlockers() {
+      this.blockers = {}
+      this.$_.each(this.departments, d => {
+        if (d.totalBlockers) {
+          this.blockers[d.deptName] = d.totalBlockers
+        }
+      })
+    },
     loadSelectedTerm() {
       this.$loading()
       getDepartmentsEnrolled(false, false, true, this.selectedTermId).then(data => {
         this.departments = data
+        this.loadBlockers()
         this.$ready(`Status Dashboard for ${this.selectedTermName}`)
       })
       getEvaluationTerm(this.selectedTermId).then(data => {
