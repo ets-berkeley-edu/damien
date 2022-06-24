@@ -319,13 +319,7 @@ def _export_course_row(course_id, key, section):
     return {
         'COURSE_ID': course_id,
         'COURSE_ID_2': course_id,
-        'COURSE_NAME': ' '.join([
-            section.subject_area,
-            section.catalog_id,
-            section.instruction_format,
-            section.section_num,
-            section.course_title,
-        ]),
+        'COURSE_NAME': _course_name(section, course_id),
         'CROSS_LISTED_FLAG': _cross_listed_flag(section),
         'CROSS_LISTED_NAME': _cross_listed_name(section),
         'DEPT_NAME': section.subject_area,
@@ -342,6 +336,19 @@ def _export_course_row(course_id, key, section):
         'CANVAS_COURSE_ID': '',
         'QB_MAPPING': '-'.join([key.department_form, key.evaluation_type]),
     }
+
+
+def _course_name(section, course_id):
+    name = ' '.join([
+        section.subject_area,
+        section.catalog_id,
+        section.instruction_format,
+        section.section_num,
+        section.course_title,
+    ])
+    if course_id.endswith('_GSI'):
+        name = name + ' (EVAL FOR GSI)'
+    return name
 
 
 def _cross_listed_flag(section):
