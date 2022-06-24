@@ -234,35 +234,29 @@ class Department(Base):
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
         }
-        feed['notes'] = {note.term_id: note.to_api_json() for note in self.notes}
+        from damien.models.department_note import DepartmentNote
+        note = DepartmentNote.find_by_department_term(self.id, term_id)
+        feed['note'] = note.to_api_json() if note else None
+
         if include_contacts:
             feed['contacts'] = sorted([user.to_api_json() for user in self.members], key=lambda m: m['lastName'])
-        status = include_status and fetch_department_cache(self.id, term_id)
-        if include_evaluations or (include_status and not status):
+
+        if include_evaluations:
             evaluations = self.evaluations_feed(term_id)
-            if include_evaluations:
-                feed['evaluations'] = evaluations
-            if include_status:
-                # A 'blocker' is an evaluation which is both confirmed and invalid, and therefore blocks publication to Blue.
-                blocker_count = 0
-                confirmed_count = 0
-                invalid_count = 0
-                for evaluation in evaluations:
-                    if not evaluation['valid']:
-                        invalid_count += 1
-                    if evaluation['status'] == 'confirmed':
-                        confirmed_count += 1
-                        if not evaluation['valid']:
-                            blocker_count += 1
+            feed['evaluations'] = evaluations
+
+        if include_status:
+            status = fetch_department_cache(self.id, term_id)
+            if status is None:
                 status = {
-                    'totalBlockers': blocker_count,
-                    'totalConfirmed': confirmed_count,
-                    'totalEvaluations': len(evaluations),
-                    'totalInError': invalid_count,
+                    'totalBlockers': Evaluation.count_department_blockers(self.id, term_id),
+                    'totalConfirmed': Evaluation.count_department_confirmed(self.id, term_id),
+                    'totalInError': Evaluation.count_department_errors(self.id, term_id),
+                    'totalEvaluations': Evaluation.count_department_total(self.id, term_id),
                 }
                 set_department_cache(self.id, term_id, status)
-        if include_status:
             feed.update(status)
+
         if include_sections:
             if self.row_count is None:
                 self.get_visible_sections()['sections']

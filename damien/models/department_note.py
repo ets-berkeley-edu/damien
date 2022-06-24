@@ -56,6 +56,10 @@ class DepartmentNote(Base):
                     updated_at={self.updated_at}>"""
 
     @classmethod
+    def find_by_department_term(cls, department_id, term_id):
+        return cls.query.filter_by(department_id=department_id, term_id=term_id).first()
+
+    @classmethod
     def upsert(
         cls,
         department_id,

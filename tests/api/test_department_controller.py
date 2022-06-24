@@ -120,7 +120,7 @@ class TestGetDepartment:
         assert department['catalogListings'] == {'PHILOS': ['*']}
         assert department['deptName'] == 'Philosophy'
         assert department['isEnrolled'] is True
-        assert department['notes'] == {}
+        assert department['note'] is None
         assert 'contacts' in department
 
     def test_admin_authorized(self, client, fake_auth):
@@ -136,7 +136,7 @@ class TestGetDepartment:
         assert department['contacts'][0]['departmentForms'] == []
         assert department['deptName'] == 'Philosophy'
         assert department['isEnrolled'] is True
-        assert department['notes'] == {}
+        assert department['note'] is None
 
     def test_bad_term(self, client, fake_auth):
         """Rejects invalid term id."""

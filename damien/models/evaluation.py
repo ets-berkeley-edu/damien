@@ -144,6 +144,60 @@ class Evaluation(Base):
                 """
 
     @classmethod
+    def update_evaluation_status(cls, term_id, course_number, instructor_uid, status):
+        # Keep evaluation status from different departments in sync per term/course/instructor, unless that
+        # status is 'ignore' (or, if enabled, 'deleted'), which is confined to individual departments.
+        conditions = and_(
+            cls.term_id == term_id,
+            cls.course_number == course_number,
+            cls.instructor_uid == instructor_uid,
+            cls.status.in_(['confirmed', 'marked', None]),
+        )
+        dept_ids = set([r.department_id for r in cls.query.filter(conditions).with_entities(cls.department_id).all()])
+        db.session.execute(update(cls).where(conditions).values(status=status))
+        for dept_id in dept_ids:
+            clear_department_cache(dept_id, term_id)
+            clear_section_cache(dept_id, term_id, course_number)
+
+    @classmethod
+    def count_department_blockers(cls, department_id, term_id):
+        # A 'blocker' is an evaluation which is both confirmed and invalid, and therefore blocks publication to Blue.
+        filters = [
+            cls.department_id == department_id,
+            cls.status == 'confirmed',
+            cls.term_id == term_id,
+            cls.valid is False,
+        ]
+        return cls.query.where(and_(*filters)).count()
+
+    @classmethod
+    def count_department_confirmed(cls, department_id, term_id):
+        filters = [
+            cls.department_id == department_id,
+            cls.status == 'confirmed',
+            cls.term_id == term_id,
+            cls.valid is True,
+        ]
+        return cls.query.where(and_(*filters)).count()
+
+    @classmethod
+    def count_department_errors(cls, department_id, term_id):
+        filters = [
+            cls.department_id == department_id,
+            cls.term_id == term_id,
+            cls.valid is False,
+        ]
+        return cls.query.where(and_(*filters)).count()
+
+    @classmethod
+    def count_department_total(cls, department_id, term_id):
+        filters = [
+            cls.department_id == department_id,
+            cls.term_id == term_id,
+        ]
+        return cls.query.where(and_(*filters)).count()
+
+    @classmethod
     def create(
             cls,
             term_id,
@@ -297,22 +351,6 @@ class Evaluation(Base):
 
         std_commit()
         return [e.id for e in evaluations]
-
-    @classmethod
-    def update_evaluation_status(cls, term_id, course_number, instructor_uid, status):
-        # Keep evaluation status from different departments in sync per term/course/instructor, unless that
-        # status is 'ignore' (or, if enabled, 'deleted'), which is confined to individual departments.
-        conditions = and_(
-            cls.term_id == term_id,
-            cls.course_number == course_number,
-            cls.instructor_uid == instructor_uid,
-            cls.status.in_(['confirmed', 'marked', None]),
-        )
-        dept_ids = set([r.department_id for r in cls.query.filter(conditions).with_entities(cls.department_id).all()])
-        db.session.execute(update(cls).where(conditions).values(status=status))
-        for dept_id in dept_ids:
-            clear_department_cache(dept_id, term_id)
-            clear_section_cache(dept_id, term_id, course_number)
 
     @classmethod
     def get_confirmed(cls, term_id):

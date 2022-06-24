@@ -204,7 +204,7 @@
                   </span>
                 </td>
                 <td class="department-note">
-                  <pre class="body-2 text-condensed truncate-with-ellipsis">{{ $_.get(department, `notes.${selectedTermId}.note`) }}</pre>
+                  <pre class="body-2 text-condensed truncate-with-ellipsis">{{ $_.get(department, 'note.note') }}</pre>
                 </td>
               </tr>
             </template>
@@ -323,6 +323,7 @@ export default {
     },
     loadSelectedTerm() {
       this.$loading()
+      this.departments = []
       getDepartmentsEnrolled(false, false, true, this.selectedTermId).then(data => {
         this.departments = data
         this.loadBlockers()
