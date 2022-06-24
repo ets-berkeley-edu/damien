@@ -280,6 +280,7 @@ export default {
           }
         })
 
+        this.instructor = null
         this.isDuplicating = true
         this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
       })
