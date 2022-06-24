@@ -150,7 +150,7 @@
                     class="pill mx-auto"
                     :class="evaluationPillClass(evaluation, hover)"
                   >
-                    {{ evaluation.status }}
+                    {{ displayStatus(evaluation) }}
                   </div>
                   <div
                     v-if="allowEdits && !isEditing(evaluation) && (!readonly || !evaluation.status)"
@@ -552,6 +552,15 @@ export default {
     },
     clearPendingInstructor() {
       this.pendingInstructor = null
+    },
+    displayStatus(evaluation) {
+      if (evaluation.status === 'review') {
+        return 'To Do'
+      } else if (evaluation.status === 'confirmed') {
+        return 'Done'
+      } else {
+        return evaluation.status
+      }
     },
     evaluationClass(evaluation, hover) {
       return {
