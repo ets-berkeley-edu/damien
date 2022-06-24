@@ -17,9 +17,10 @@
         </v-col>
         <v-col cols="5" md="4" class="pt-2">
           <AddCourseSection
+            v-if="!readonly"
             id="add-course-section"
             :evaluations="evaluations"
-            :readonly="!allowEdits"
+            :allow-edits="allowEdits"
           />
         </v-col>
       </v-row>
@@ -440,7 +441,8 @@
     </v-dialog>
   </div>
   <div v-else class="no-eligible-sections">
-    <span>No eligible sections to load. You may still add a section manually.</span>
+    <span>No eligible sections to load.</span>
+    <span v-if="!readonly && allowEdits">You may still add a section manually.</span>
   </div>
 </template>
 
@@ -834,8 +836,8 @@ tr.border-top-none td {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  font-size: 40px;
+  height: 30vh;
+  font-size: 20px;
 }
 .pill {
   border: 1px solid #999;
