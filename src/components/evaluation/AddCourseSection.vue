@@ -5,7 +5,7 @@
       id="add-course-section-btn"
       class="text-capitalize pl-2 mr-3 mt-1"
       color="tertiary"
-      :disabled="readonly"
+      :disabled="!allowEdits"
       text
       @click="() => isAddingSection = true"
       @keypress.enter.prevent="() => isAddingSection = true"
@@ -114,7 +114,7 @@ export default {
   name: 'AddCourseSection',
   mixins: [Context, DepartmentEditSession],
   props: {
-    readonly: {
+    allowEdits: {
       required: false,
       type: Boolean
     }
