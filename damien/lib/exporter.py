@@ -331,8 +331,8 @@ def _export_course_row(course_id, key, section):
         'DEPT_FORM': key.department_form,
         'EVALUATION_TYPE': key.evaluation_type,
         'MODULAR_COURSE': 'Y' if is_modular(key.start_date, key.end_date) else '',
-        'START_DATE': safe_strftime(key.start_date, '%m-%d-%Y'),
-        'END_DATE': safe_strftime(key.end_date, '%m-%d-%Y'),
+        'START_DATE': safe_strftime(key.start_date, '%-m/%-d/%y'),
+        'END_DATE': safe_strftime(key.end_date, '%-m/%-d/%y'),
         'CANVAS_COURSE_ID': '',
         'QB_MAPPING': '-'.join([key.department_form, key.evaluation_type]),
     }
