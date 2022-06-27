@@ -161,6 +161,8 @@ def result_row_to_eval(row, term, dept):
         'catalog_id': row['catalog_id'],
         'instruction_format': row['instruction_format'],
         'section_num': row['section_num'],
+        'title': row['title'],
+        'primary': row['primary'],
         'course_start_date': course_start,
         'course_end_date': course_end,
         'eval_start_date': eval_start,
@@ -205,6 +207,8 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
                unholy_loch.sis_sections.catalog_id AS catalog_id,
                unholy_loch.sis_sections.instruction_format AS instruction_format,
                unholy_loch.sis_sections.section_num AS section_num,
+               unholy_loch.sis_sections.course_title AS title,
+               unholy_loch.sis_sections.is_primary AS primary,
                unholy_loch.sis_sections.instructor_uid AS uid,
                unholy_loch.sis_sections.instructor_role_code AS instructor_role,
                unholy_loch.sis_sections.meeting_start_date AS course_start_date,
@@ -234,6 +238,8 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
                unholy_loch.sis_sections.catalog_id,
                unholy_loch.sis_sections.instruction_format,
                unholy_loch.sis_sections.section_num,
+               unholy_loch.sis_sections.course_title,
+               unholy_loch.sis_sections.is_primary,
                unholy_loch.sis_sections.instructor_uid,
                unholy_loch.sis_sections.instructor_role_code,
                unholy_loch.sis_sections.enrollment_count,
@@ -313,6 +319,8 @@ def get_x_listings_and_shares(evals, term, dept):
                    unholy_loch.sis_sections.catalog_id AS catalog_id,
                    unholy_loch.sis_sections.instruction_format AS instruction_format,
                    unholy_loch.sis_sections.section_num AS section_num,
+                   unholy_loch.sis_sections.course_title AS title,
+                   unholy_loch.sis_sections.is_primary AS primary,
                    unholy_loch.sis_sections.instructor_uid AS uid,
                    unholy_loch.sis_sections.instructor_role_code AS instructor_role,
                    unholy_loch.sis_sections.meeting_start_date AS course_start_date,
@@ -335,6 +343,8 @@ def get_x_listings_and_shares(evals, term, dept):
                    unholy_loch.sis_sections.catalog_id,
                    unholy_loch.sis_sections.instruction_format,
                    unholy_loch.sis_sections.section_num,
+                   unholy_loch.sis_sections.course_title,
+                   unholy_loch.sis_sections.is_primary,
                    unholy_loch.sis_sections.instructor_uid,
                    unholy_loch.sis_sections.instructor_role_code,
                    unholy_loch.sis_sections.enrollment_count,
@@ -354,6 +364,8 @@ def get_manual_sections(evals, term, dept):
                unholy_loch.sis_sections.catalog_id AS catalog_id,
                unholy_loch.sis_sections.instruction_format AS instruction_format,
                unholy_loch.sis_sections.section_num AS section_num,
+               unholy_loch.sis_sections.course_title AS title,
+               unholy_loch.sis_sections.is_primary AS primary,
                unholy_loch.sis_sections.instructor_uid AS uid,
                unholy_loch.sis_sections.instructor_role_code AS instructor_role,
                unholy_loch.sis_sections.meeting_start_date AS course_start_date,
@@ -377,6 +389,8 @@ def get_edited_sections(term, dept):
                unholy_loch.sis_sections.catalog_id AS catalog_id,
                unholy_loch.sis_sections.instruction_format AS instruction_format,
                unholy_loch.sis_sections.section_num AS section_num,
+               unholy_loch.sis_sections.course_title AS title,
+               unholy_loch.sis_sections.is_primary AS primary,
                evaluations.instructor_uid AS uid,
                unholy_loch.sis_sections.instructor_role_code AS instructor_role,
                evaluations.start_date AS eval_start_date,
@@ -486,6 +500,7 @@ def get_instructors(evals):
         uids_string = list_to_str(uids)
         sql = f"""
             SELECT ldap_uid,
+                   sis_id,
                    first_name,
                    last_name,
                    email_address,
@@ -501,6 +516,7 @@ def get_instructors(evals):
             # TODO if not row['deleted_at']:
             instructors.append(Instructor({
                 'uid': row['ldap_uid'],
+                'csid': row['sis_id'],
                 'first_name': row['first_name'],
                 'last_name': row['last_name'],
                 'email': row['email_address'],
@@ -510,6 +526,7 @@ def get_instructors(evals):
         for e in evals:
             for i in instructors:
                 if e.instructor and e.instructor.uid == i.uid:
+                    e.instructor.csid = i.csid
                     e.instructor.first_name = i.first_name
                     e.instructor.last_name = i.last_name
                     e.instructor.email = i.email

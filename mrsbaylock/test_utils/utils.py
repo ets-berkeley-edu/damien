@@ -407,6 +407,58 @@ def reset_test_data(term, dept=None):
 # CSV DATA
 
 
+def verify_actual_matches_expected(actual, expected):
+    unexpected = [x for x in actual if x not in expected]
+    missing = [x for x in expected if x not in actual]
+    app.logger.info(f'Unexpected {unexpected}')
+    app.logger.info(f'Missing {missing}')
+    app.logger.info(f'Expecting {len(expected)} rows, got {len(actual)}')
+    assert not unexpected
+    assert not missing
+    assert len(actual) == len(expected)
+
+
+def expected_courses(evaluations):
+    term = get_current_term()
+    courses = []
+    for row in evaluations:
+        eval_types = [e.eval_type for e in evaluations if e.ccn == row.ccn]
+        suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        if row.x_listing_ccns:
+            flag = 'Y'
+            x_listed_name = row.x_listing_ccns.join('-')
+        elif row.room_share_ccns:
+            flag = 'RM SHARE'
+            x_listed_name = row.room_share_ccns.join('-')
+        else:
+            flag = ''
+            x_listed_name = ''
+        modular = 'Y' if (term.start_date != row.course_start_date or term.end_date != row.course_end_date) else 'N'
+        data = {
+            # TODO - COURSE_ID acct for dupes
+            'COURSE_ID': f'{term.prefix}-{row.ccn}{suffix}',
+            'COURSE_ID_2': f'{term.prefix}-{row.ccn}{suffix}',
+            'COURSE_NAME': f'{row.subject} {row.catalog_id} {row.instruction_format} {row.section_num} {row.title}',
+            'CROSS_LISTED_FLAG': flag,
+            'CROSS_LISTED_NAME': x_listed_name,
+            'DEPT_NAME': row.subject,
+            'CATALOG_ID': row.catalog_id,
+            'INSTRUCTION_FORMAT': row.instruction_format,
+            'SECTION_NUM': row.section_num,
+            'PRIMARY_SECONDARY_CD': ('P' if row.primary else 'S'),
+            'EVALUATE': 'Y',
+            'DEPT_FORM': row.dept_form,
+            'EVALUATION_TYPE': row.eval_type,
+            'MODULAR_COURSE': modular,
+            'START_DATE': row.eval_start_date.strftime('%-m/%-d/%y'),
+            'END_DATE': row.eval_end_date.strftime('%-m/%-d/%y'),
+            'CANVAS_COURSE_ID': '',
+            'QB_MAPPING': f'{row.dept_form}-{row.eval_type}',
+        }
+        courses.append(data)
+    return courses
+
+
 def expected_course_students(evaluations):
     ccns = "', '".join(e.ccn for e in evaluations)
     term = get_current_term()
@@ -437,6 +489,22 @@ def expected_course_students(evaluations):
     return enrollments
 
 
+def expected_instructors(evaluations):
+    instructors = []
+    for row in evaluations:
+        if row.instructor.uid:
+            data = {
+                'LDAP_UID': row.instructor.uid,
+                'SIS_ID': row.instructor.csid or f'UID:{row.instructor.uid}',
+                'FIRST_NAME': row.instructor.first_name,
+                'LAST_NAME': row.instructor.last_name,
+                'EMAIL_ADDRESS': row.instructor.email,
+                'BLUE_ROLE': '23',
+            }
+            instructors.append(data)
+    return {v['LDAP_UID']: v for v in instructors}.values()
+
+
 def expected_course_instructors(evaluations):
     term = get_current_term()
     instructors = []
@@ -450,3 +518,35 @@ def expected_course_instructors(evaluations):
         }
         instructors.append(data)
     return instructors
+
+
+def expected_course_supervisors(dept, evaluations):
+    term = get_current_term()
+    uids = []
+    sql = f"""
+        SELECT users.uid
+          FROM users
+          JOIN department_members
+            ON department_members.user_id = users.id
+         WHERE department_members.department_id = {dept.dept_id}
+    """
+    app.logger.info(sql)
+    result = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    for row in result:
+        uids.append(row['uid'])
+
+    supervisors = []
+    for row in evaluations:
+        eval_types = [e.eval_type for e in evaluations if e.ccn == row.ccn]
+        suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        for u in uids:
+            data = {
+                'COURSE_ID': f'{term.prefix}-{row.ccn}{suffix}',
+                'LDAP_UID': u,
+                'DEPT_NAME': row.subject,
+            }
+            app.logger.info(f'{data}')
+            supervisors.append(data)
+    uniq = list(map(dict, set(tuple(sorted(sup.items())) for sup in supervisors)))
+    return uniq
