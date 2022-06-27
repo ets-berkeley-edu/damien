@@ -66,6 +66,14 @@ class Evaluation(object):
         return self.data['section_num']
 
     @property
+    def title(self):
+        return self.data['title']
+
+    @property
+    def primary(self):
+        return self.data['primary']
+
+    @property
     def instructor(self):
         return self.data['instructor']
 

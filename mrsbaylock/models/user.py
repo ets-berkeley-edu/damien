@@ -53,6 +53,10 @@ class User(object):
     def csid(self):
         return self.data['csid']
 
+    @csid.setter
+    def csid(self, value):
+        self.data['csid'] = value
+
     @property
     def first_name(self):
         return self.data['first_name']

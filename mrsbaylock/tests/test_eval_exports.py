@@ -25,7 +25,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import time
 
-from flask import current_app as app
 from mrsbaylock.test_utils import evaluation_utils
 from mrsbaylock.test_utils import utils
 import pytest
@@ -40,6 +39,11 @@ class TestEvalExports:
     dept = utils.get_test_dept_1()
     evals = evaluation_utils.get_evaluations(term, dept)
     confirmed = []
+    expected_courses = []
+    expected_course_students = []
+    expected_course_instructors = []
+    expected_instructors = []
+    expected_course_supervisors = []
 
     def test_clear_cache(self):
         self.login_page.load_page()
@@ -60,22 +64,45 @@ class TestEvalExports:
         self.status_board_admin_page.load_page()
         self.status_board_admin_page.download_export_csvs()
 
+    def test_courses(self):
+        self.expected_courses.extend(utils.expected_courses(self.confirmed))
+        csv_courses = self.status_board_admin_page.parse_csv('courses')
+        utils.verify_actual_matches_expected(csv_courses, self.expected_courses)
+
     def test_course_students(self):
-        expected_course_students = utils.expected_course_students(self.confirmed)
-        actual_course_students = self.status_board_admin_page.parse_csv('course_students')
-        unexpected = [x for x in actual_course_students if x not in expected_course_students]
-        missing = [x for x in expected_course_students if x not in actual_course_students]
-        app.logger.info(f'Unexpected {unexpected}')
-        app.logger.info(f'Missing {missing}')
-        assert not unexpected
-        assert not missing
+        self.expected_course_students.extend(utils.expected_course_students(self.confirmed))
+        csv_course_students = self.status_board_admin_page.parse_csv('course_students')
+        utils.verify_actual_matches_expected(csv_course_students, self.expected_course_students)
+
+    def test_students(self):
+        csv_students = self.status_board_admin_page.parse_csv('students')
+        csv_uids = list(map(lambda d: d['LDAP_UID'], csv_students))
+        expected_uids = [u for u in set(list(map(lambda d: d['LDAP_UID'], self.expected_course_students)))]
+        utils.verify_actual_matches_expected(csv_uids, expected_uids)
+
+        csv_sids = list(map(lambda d: d['SIS_ID'], csv_students))
+        assert len(list(filter(None, csv_sids))) == len(expected_uids)
+
+        csv_first_names = list(map(lambda d: d['FIRST_NAME'], csv_students))
+        assert len(list(filter(None, csv_first_names))) == len(expected_uids)
+
+        csv_last_names = list(map(lambda d: d['LAST_NAME'], csv_students))
+        assert len(list(filter(None, csv_last_names))) == len(expected_uids)
+
+        csv_emails = list(map(lambda d: d['EMAIL_ADDRESS'], csv_students))
+        assert len(list(filter(None, csv_emails))) == len(expected_uids)
 
     def test_course_instructors(self):
-        expected_course_instructors = utils.expected_course_instructors(self.confirmed)
-        actual_course_instructors = self.status_board_admin_page.parse_csv('course_instructors')
-        unexpected = [x for x in actual_course_instructors if x not in expected_course_instructors]
-        missing = [x for x in expected_course_instructors if x not in actual_course_instructors]
-        app.logger.info(f'Unexpected {unexpected}')
-        app.logger.info(f'Missing {missing}')
-        assert not unexpected
-        assert not missing
+        self.expected_course_instructors.extend(utils.expected_course_instructors(self.confirmed))
+        csv_course_instructors = self.status_board_admin_page.parse_csv('course_instructors')
+        utils.verify_actual_matches_expected(csv_course_instructors, self.expected_course_instructors)
+
+    def test_instructors(self):
+        self.expected_instructors.extend(utils.expected_instructors(self.confirmed))
+        csv_instructors = self.status_board_admin_page.parse_csv('instructors')
+        utils.verify_actual_matches_expected(csv_instructors, self.expected_instructors)
+
+    def test_course_supervisors(self):
+        self.expected_course_supervisors.extend(utils.expected_course_supervisors(self.dept, self.confirmed))
+        csv_course_supervisors = self.status_board_admin_page.parse_csv('course_supervisors')
+        utils.verify_actual_matches_expected(csv_course_supervisors, self.expected_course_supervisors)
