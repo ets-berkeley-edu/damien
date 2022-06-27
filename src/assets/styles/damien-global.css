@@ -29,6 +29,8 @@
   border-radius: 4px;
   border: 1px solid #333;
   height: 40px;
+  max-height: 40px;
+  min-height: 40px;
   padding: 5px;
 }
 .input-override.dark {
@@ -38,6 +40,21 @@
 .input-override.light {
   background: #FFFFFF !important;
   border-color: rgba(0, 0, 0, 0.38);
+}
+.input-override:disabled {
+  cursor: default;
+}
+.input-override:disabled.dark {
+  color: rgba(255, 255, 255, 0.5);
+}
+.input-override:disabled.light {
+  color: rgba(0, 0, 0, 0.38);
+}
+.input-override:not(:disabled).dark:hover {
+  border-color: rgba(255, 255, 255) !important;
+}
+.input-override:not(:disabled).light:hover {
+  border-color: rgba(0, 0, 0, 0.86) !important;
 }
 .native-select-override {
   -webkit-appearance: menulist !important; /* override vuetify style */
