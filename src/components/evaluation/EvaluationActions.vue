@@ -45,6 +45,7 @@
         <v-card-text>
           <div class="d-flex align-center mt-2">
             <PersonLookup
+              v-if="isDuplicating"
               id="bulk-duplicate-instructor-lookup-autocomplete"
               :disabled="disableControls"
               :instructor-lookup="true"
@@ -258,6 +259,7 @@ export default {
     },
     selectInstructor(suggestion) {
       this.instructor = suggestion
+      this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
     },
     showDuplicateOptions() {
       const selectedEvals = this.$_.filter(this.evaluations, e => this.selectedEvaluationIds.includes(e.id))
