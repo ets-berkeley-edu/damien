@@ -655,9 +655,6 @@ export default {
         this.$putFocusNextTick(`${this.readonly ? '' : 'select-evaluation-status'}`)
       }
     },
-    setPendingInstructor(instructor) {
-      this.pendingInstructor = instructor
-    },
     saveEvaluation(evaluation) {
       const fields = {
         'departmentFormId': this.selectedDepartmentForm || this.$_.get(evaluation, 'defaultDepartmentForm.id'),
@@ -669,6 +666,10 @@ export default {
         fields.startDate = this.$moment(this.selectedStartDate).format('YYYY-MM-DD')
       }
       this.updateEvaluation(evaluation, fields)
+    },
+    setPendingInstructor(instructor) {
+      this.pendingInstructor = instructor
+      this.$putFocusNextTick('input-instructor-lookup-autocomplete')
     },
     selectInstructor(instructor) {
       if (instructor) {
