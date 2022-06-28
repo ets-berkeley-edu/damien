@@ -27,8 +27,7 @@ from datetime import date
 import re
 
 from damien.api.errors import BadRequestError, ResourceNotFoundError
-from damien.api.util import admin_required, department_membership_required
-from damien.lib.berkeley import available_term_ids
+from damien.api.util import admin_required, department_membership_required, get_term_id
 from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_valid_meeting_dates
 from damien.lib.util import get as get_param
@@ -66,7 +65,7 @@ def enrolled_departments():
     include_contacts = bool(get_param(request.args, 'c', False))
     include_sections = bool(get_param(request.args, 's', False))
     include_status = bool(get_param(request.args, 't', False))
-    term_id = get_param(request.args, 'i', None)
+    term_id = get_term_id(request)
     return tolerant_jsonify([d.to_api_json(
         include_contacts=include_contacts,
         include_sections=include_sections,
@@ -81,9 +80,7 @@ def get_department(department_id):
     department = Department.find_by_id(int(department_id))
     if not department:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
-    term_id = get_param(request.args, 'term_id', app.config['CURRENT_TERM_ID'])
-    if term_id not in available_term_ids():
-        raise BadRequestError('Invalid term id.')
+    term_id = get_term_id(request)
     feed = department.to_api_json(
         include_contacts=True,
         include_evaluations=True,
@@ -99,9 +96,7 @@ def get_section_evaluations(department_id, section_id):
     department = Department.find_by_id(int(department_id))
     if not department:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
-    term_id = get_param(request.args, 'term_id', app.config['CURRENT_TERM_ID'])
-    if term_id not in available_term_ids():
-        raise BadRequestError('Invalid term id.')
+    term_id = get_term_id(request)
     if not section_id or not re.match(r'\d{5}\Z', section_id):
         raise BadRequestError('Missing or invalid course number.')
     feed = department.evaluations_feed(term_id, section_id=section_id)
@@ -116,9 +111,7 @@ def update_note(department_id):
         raise ResourceNotFoundError(f'Department {department_id} not found.')
     params = request.get_json()
     note = get_param(params, 'note')
-    term_id = get_param(params, 'termId', app.config['CURRENT_TERM_ID'])
-    if term_id not in available_term_ids():
-        raise BadRequestError('Invalid term id.')
+    term_id = get_term_id(request)
     department_note = DepartmentNote.upsert(department_id, term_id=term_id, note=note)
     return tolerant_jsonify(department_note.to_api_json())
 

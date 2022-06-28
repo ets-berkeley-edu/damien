@@ -33,18 +33,18 @@
         </div>
         <div class="d-flex ml-4">
           <label for="toggle-term-locked" class="text-nowrap pr-4 py-2">
-            {{ `${isCurrentTermLocked ? 'Unlock' : 'Lock'} current term` }}
+            {{ `${isTermLocked ? 'Unlock' : 'Lock'} term` }}
           </label>
           <v-switch
             id="toggle-term-locked"
-            v-model="isCurrentTermLocked"
+            v-model="isTermLocked"
             class="my-auto"
             color="tertiary"
             dense
             :disabled="loading"
             hide-details
             inset
-            @change="toggleCurrentTermLocked"
+            @change="toggleTermLocked"
           />
         </div>
       </v-col>
@@ -82,29 +82,37 @@
         </v-btn>
       </v-col>
       <v-col cols="auto" class="pr-8 mb-2">
-        <h2>Term Exports</h2>
-        <ul id="term-exports-list" class="pl-2">
-          <li v-for="(e, index) in exports" :key="index">
-            <a
-              :id="`term-export-${index}`"
-              download
-              :href="`${$config.apiBaseUrl}/api/export/${encodeURIComponent(e.s3Path)}`"
-            >
-              <v-icon
-                aria-hidden="false"
-                aria-label="download"
-                class="pr-2"
-                color="anchor"
-                role="img"
-                small
-              >
-                mdi-tray-arrow-down
-              </v-icon>
-              {{ e.createdAt | moment('M/DD/YYYY HH:mm:SS') }}
-              <span class="sr-only">term export</span>
-            </a>
-          </li>
-        </ul>
+        <v-expansion-panels v-model="exportsPanel" flat>
+          <v-expansion-panel class="panel-override">
+            <v-expansion-panel-header class="term-exports-btn">
+              <h2>Term Exports</h2>
+            </v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <ul id="term-exports-list" class="pl-2">
+                <li v-for="(e, index) in termExports" :key="index">
+                  <a
+                    :id="`term-export-${index}`"
+                    download
+                    :href="`${$config.apiBaseUrl}/api/export/${encodeURIComponent(e.s3Path)}`"
+                  >
+                    <v-icon
+                      aria-hidden="false"
+                      aria-label="download"
+                      class="pr-2"
+                      color="anchor"
+                      role="img"
+                      small
+                    >
+                      mdi-tray-arrow-down
+                    </v-icon>
+                    {{ e.createdAt | moment('M/DD/YYYY HH:mm:SS') }}
+                    <span class="sr-only">term export</span>
+                  </a>
+                </li>
+              </ul>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+        </v-expansion-panels>
       </v-col>
     </v-row>
     <v-card outlined class="elevation-1">
@@ -238,14 +246,15 @@ export default {
     availableTerms: [],
     blockers: {},
     departments: [],
-    exports: [],
+    exportsPanel: undefined,
     headers: [],
     isCreatingNotification: false,
     isExporting: false,
-    isCurrentTermLocked: false,
+    isTermLocked: false,
     selectedDepartmentIds: [],
     selectedTermId: null,
     selectedTermName: null,
+    termExports: []
   }),
   computed: {
     allDepartmentsSelected() {
@@ -276,9 +285,6 @@ export default {
     this.selectedTermName = this.$config.currentTermName
     this.availableTerms = this.$config.availableTerms
     this.loadSelectedTerm()
-    getExports().then(data => {
-      this.exports = data
-    })
     this.headers = [
       {class: 'text-nowrap pt-12 pb-3', text: 'Department', value: 'deptName', width: '50%'},
       {class: 'text-nowrap pt-12 pb-3', text: 'Last Updated', value: 'updatedAt', width: '20%'},
@@ -330,7 +336,10 @@ export default {
         this.$ready(`Status Dashboard for ${this.selectedTermName}`)
       })
       getEvaluationTerm(this.selectedTermId).then(data => {
-        this.isCurrentTermLocked = data.isLocked === true
+        this.isTermLocked = data.isLocked === true
+      })
+      getExports(this.selectedTermId).then(data => {
+        this.termExports = data
       })
     },
     onChangeTerm(event) {
@@ -345,7 +354,7 @@ export default {
       this.isExporting = true
       this.alertScreenReader('Publishing.')
       exportEvaluations().then(data => {
-        this.exports.unshift(data)
+        this.termExports.unshift(data)
         this.isExporting = false
         this.alertScreenReader('Publication complete.')
       })
@@ -365,8 +374,8 @@ export default {
         this.selectedDepartmentIds = this.$_.map(this.departments, 'id')
       }
     },
-    toggleCurrentTermLocked() {
-      if (this.isCurrentTermLocked) {
+    toggleTermLocked() {
+      if (this.isTermLocked) {
         lockEvaluationTerm(this.selectedTermId).then(() => {
           this.alertScreenReader(`Locked ${this.selectedTermName}`)
         })
@@ -407,5 +416,8 @@ export default {
 }
 .select-term {
   max-width: 200px;
+}
+.term-exports-btn {
+  width: 225px;
 }
 </style>

@@ -24,6 +24,9 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 from functools import wraps
 
+from damien.api.errors import BadRequestError
+from damien.lib.berkeley import available_term_ids
+from damien.lib.util import get as get_param
 from flask import current_app as app, request
 from flask_login import current_user
 
@@ -52,3 +55,10 @@ def department_membership_required(func):
             app.logger.warning(f'Unauthorized request to {request.path}')
             return app.login_manager.unauthorized()
     return _department_membership_required
+
+
+def get_term_id(request):
+    term_id = get_param(request.args, 'term_id', app.config['CURRENT_TERM_ID'])
+    if term_id not in available_term_ids():
+        raise BadRequestError('Invalid term id.')
+    return term_id
