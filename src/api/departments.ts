@@ -21,7 +21,7 @@ export function getDepartmentsEnrolled(
   ) {
   let url = `${Vue.prototype.$config.apiBaseUrl}/api/departments/enrolled?c=${includeContacts ? 1 : 0}&s=${includeSections ? 1 : 0}&t=${includeStatus ? 1 : 0}`
   if (termId){
-    url = url + `&i=${termId}`
+    url = url + `&term_id=${termId}`
   }
   return axios.get(url)
 }

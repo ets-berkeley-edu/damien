@@ -44,7 +44,7 @@ def get_evaluation_term(term_id):
 @app.route('/api/evaluation_term/lock', methods=['POST'])
 @admin_required
 def lock_evaluation_term():
-    term_id = get_param(request.get_json(), 'term_id', app.config['CURRENT_TERM_ID'])
+    term_id = get_param(request.get_json(), 'termId', app.config['CURRENT_TERM_ID'])
     _validate(term_id)
     evaluation_term = EvaluationTerm.lock(term_id, current_user.get_uid())
     return tolerant_jsonify(evaluation_term.to_api_json())
@@ -53,7 +53,7 @@ def lock_evaluation_term():
 @app.route('/api/evaluation_term/unlock', methods=['POST'])
 @admin_required
 def unlock_evaluation_term():
-    term_id = get_param(request.get_json(), 'term_id', app.config['CURRENT_TERM_ID'])
+    term_id = get_param(request.get_json(), 'termId', app.config['CURRENT_TERM_ID'])
     _validate(term_id)
     evaluation_term = EvaluationTerm.unlock(term_id, current_user.get_uid())
     return tolerant_jsonify(evaluation_term.to_api_json())

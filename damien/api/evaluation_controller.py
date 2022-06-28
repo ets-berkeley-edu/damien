@@ -28,12 +28,10 @@ from itertools import groupby
 from urllib.parse import unquote
 
 from damien.api.errors import BadRequestError, InternalServerError
-from damien.api.util import admin_required
+from damien.api.util import admin_required, get_term_id
 from damien.externals.s3 import stream_folder_zipped
-from damien.lib.berkeley import available_term_ids
 from damien.lib.exporter import generate_exports
 from damien.lib.http import tolerant_jsonify
-from damien.lib.util import get as get_param
 from damien.models.department import Department
 from damien.models.evaluation import Evaluation
 from damien.models.export import Export
@@ -43,7 +41,7 @@ from flask import current_app as app, request, Response, stream_with_context
 @app.route('/api/evaluations/export', methods=['POST'])
 @admin_required
 def export_evaluations():
-    term_id = app.config['CURRENT_TERM_ID']
+    term_id = get_term_id(request)
     validation_errors = Evaluation.get_invalid(term_id, status='confirmed')
     if len(validation_errors):
         raise BadRequestError(f'Cannot export evaluations: {len(validation_errors)} validation errors')
@@ -58,9 +56,7 @@ def export_evaluations():
 @app.route('/api/evaluations/exports')
 @admin_required
 def get_term_evaluation_exports():
-    term_id = get_param(request.args, 'term_id', app.config['CURRENT_TERM_ID'])
-    if term_id not in available_term_ids():
-        raise BadRequestError('Invalid term id.')
+    term_id = get_term_id(request)
     exports = Export.get_for_term(term_id)
     return tolerant_jsonify([e.to_api_json() for e in exports])
 
