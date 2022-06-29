@@ -100,9 +100,16 @@ class StatusBoardAdminPage(DamienPages):
     # PUBLISH
 
     PUBLISH_BUTTON = (By.ID, 'publish-btn')
+    TERM_EXPORT_BUTTON = (By.XPATH, '//button[contains(., "Term Exports")]')
     TERM_EXPORT_LINK = (By.XPATH, '//a[contains(@id, "term-export-")]')
 
+    def expand_term_exports(self):
+        self.wait_for_element(StatusBoardAdminPage.TERM_EXPORT_BUTTON, utils.get_medium_timeout())
+        if not self.element(StatusBoardAdminPage.TERM_EXPORT_BUTTON).get_attribute('aria-expanded'):
+            self.click_element(StatusBoardAdminPage.TERM_EXPORT_BUTTON)
+
     def publish_to_blue(self):
+        self.expand_term_exports()
         initial_count = len(self.elements(StatusBoardAdminPage.TERM_EXPORT_LINK))
         app.logger.info(f'There are currently {initial_count} previous export links')
         tries = 0
@@ -159,4 +166,24 @@ class StatusBoardAdminPage(DamienPages):
         with open(file) as csv_file:
             for row in csv.DictReader(csv_file):
                 rows.append(row)
+        return rows
+
+    def parse_supervisors_csv(self):
+        csv = self.parse_csv('supervisors')
+        rows = []
+        for row in csv:
+            depts = list(row.values())[8::]
+            depts = list(filter(None, depts))
+            depts.sort()
+            rows.append({
+                'LDAP_UID': row['LDAP_UID'],
+                'SIS_ID': row['SIS_ID'],
+                'FIRST_NAME': row['FIRST_NAME'],
+                'LAST_NAME': row['LAST_NAME'],
+                'EMAIL_ADDRESS': row['EMAIL_ADDRESS'],
+                'SUPERVISOR_GROUP': row['SUPERVISOR_GROUP'],
+                'PRIMARY_ADMIN': row['PRIMARY_ADMIN'],
+                'SECONDARY_ADMIN': row['SECONDARY_ADMIN'],
+                'DEPTS': depts,
+            })
         return rows

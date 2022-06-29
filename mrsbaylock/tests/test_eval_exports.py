@@ -44,6 +44,7 @@ class TestEvalExports:
     expected_course_instructors = []
     expected_instructors = []
     expected_course_supervisors = []
+    expected_supervisors = []
 
     def test_clear_cache(self):
         self.login_page.load_page()
@@ -106,3 +107,13 @@ class TestEvalExports:
         self.expected_course_supervisors.extend(utils.expected_course_supervisors(self.dept, self.confirmed))
         csv_course_supervisors = self.status_board_admin_page.parse_csv('course_supervisors')
         utils.verify_actual_matches_expected(csv_course_supervisors, self.expected_course_supervisors)
+
+    def test_supervisors(self):
+        self.expected_supervisors.extend(utils.expected_supervisors())
+        csv_course_supervisors = self.status_board_admin_page.parse_supervisors_csv()
+        utils.verify_actual_matches_expected(csv_course_supervisors, self.expected_supervisors)
+
+    def test_dept_hierarchy(self):
+        expected_dept_hierarchy = utils.expected_dept_hierarchy()
+        csv_dept_hierarchy = self.status_board_admin_page.parse_csv('department_hierarchy')
+        utils.verify_actual_matches_expected(csv_dept_hierarchy, expected_dept_hierarchy)
