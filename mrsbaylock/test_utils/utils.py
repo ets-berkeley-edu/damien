@@ -34,6 +34,7 @@ from mrsbaylock.models.department_note import DepartmentNote
 from mrsbaylock.models.term import Term
 from mrsbaylock.models.user import User
 from mrsbaylock.models.user_dept_role import UserDeptRole
+from mrsbaylock.test_utils import evaluation_utils
 from sqlalchemy import text
 
 
@@ -424,6 +425,7 @@ def expected_courses(evaluations):
     for row in evaluations:
         eval_types = [e.eval_type for e in evaluations if e.ccn == row.ccn]
         suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        gsi = ' (EVAL FOR GSI)' if suffix else ''
         if row.x_listing_ccns:
             flag = 'Y'
             x_listed_name = row.x_listing_ccns.join('-')
@@ -438,7 +440,7 @@ def expected_courses(evaluations):
             # TODO - COURSE_ID acct for dupes
             'COURSE_ID': f'{term.prefix}-{row.ccn}{suffix}',
             'COURSE_ID_2': f'{term.prefix}-{row.ccn}{suffix}',
-            'COURSE_NAME': f'{row.subject} {row.catalog_id} {row.instruction_format} {row.section_num} {row.title}',
+            'COURSE_NAME': f'{row.subject} {row.catalog_id} {row.instruction_format} {row.section_num} {row.title}{gsi}',
             'CROSS_LISTED_FLAG': flag,
             'CROSS_LISTED_NAME': x_listed_name,
             'DEPT_NAME': row.subject,
@@ -456,7 +458,8 @@ def expected_courses(evaluations):
             'QB_MAPPING': f'{row.dept_form}-{row.eval_type}',
         }
         courses.append(data)
-    return courses
+    uniq = list(map(dict, set(tuple(sorted(crs.items())) for crs in courses)))
+    return uniq
 
 
 def expected_course_students(evaluations):
@@ -520,6 +523,49 @@ def expected_course_instructors(evaluations):
     return instructors
 
 
+def expected_supervisors():
+    sql = """
+        SELECT users.id,
+               users.uid,
+               users.csid,
+               users.first_name,
+               users.last_name,
+               users.email,
+               users.blue_permissions,
+               department_members.can_receive_communications,
+               ARRAY_TO_STRING(ARRAY_AGG(DISTINCT department_forms.name), ',') AS forms
+          FROM users
+     LEFT JOIN department_members ON department_members.user_id = users.id
+     LEFT JOIN departments ON departments.id = department_members.department_id
+     LEFT JOIN user_department_forms ON user_department_forms.user_id = users.id
+     LEFT JOIN department_forms ON department_forms.id = user_department_forms.department_form_id
+         WHERE users.is_admin IS FALSE
+      GROUP BY users.id, users.uid, users.csid, users.first_name, users.last_name, users.blue_permissions,
+               department_members.can_receive_communications
+      ORDER BY users.uid
+    """
+    app.logger.info(sql)
+    result = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    supervisors = []
+    for row in result:
+        forms = row['forms'].split(',')
+        forms.sort()
+        data = {
+            'LDAP_UID': row['uid'],
+            'SIS_ID': (row['csid'] or f"UID:{row['uid']}"),
+            'FIRST_NAME': row['first_name'],
+            'LAST_NAME': row['last_name'],
+            'EMAIL_ADDRESS': row['email'],
+            'SUPERVISOR_GROUP': 'DEPT_ADMIN',
+            'PRIMARY_ADMIN': ('Y' if row['blue_permissions'] == 'response_rates' else ''),
+            'SECONDARY_ADMIN': '',
+            'DEPTS': [i for i in forms if i],
+        }
+        supervisors.append(data)
+    return supervisors
+
+
 def expected_course_supervisors(dept, evaluations):
     term = get_current_term()
     uids = []
@@ -550,3 +596,23 @@ def expected_course_supervisors(dept, evaluations):
             supervisors.append(data)
     uniq = list(map(dict, set(tuple(sorted(sup.items())) for sup in supervisors)))
     return uniq
+
+
+def expected_dept_hierarchy():
+    forms = list(map(lambda f: f.name, evaluation_utils.get_all_dept_forms()))
+    rows = [{
+        'NODE_ID': 'UC Berkeley',
+        'NODE_CAPTION': 'UC Berkeley',
+        'PARENT_NODE_ID': '',
+        'PARENT_NODE_CAPTION': '',
+        'LEVEL': '1',
+    }]
+    for form in forms:
+        rows.append({
+            'NODE_ID': form,
+            'NODE_CAPTION': form,
+            'PARENT_NODE_ID': 'UC Berkeley',
+            'PARENT_NODE_CAPTION': 'UC Berkeley',
+            'LEVEL': '2',
+        })
+    return rows
