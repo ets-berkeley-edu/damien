@@ -78,6 +78,7 @@ class DamienPages(Page):
         if self.is_present(DamienPages.LOG_OUT_LINK):
             self.open_menu()
             self.wait_for_element_and_click(DamienPages.LOG_OUT_LINK)
+        time.sleep(2)
 
     def service_alert(self):
         time.sleep(1)

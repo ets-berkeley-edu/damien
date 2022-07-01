@@ -326,14 +326,14 @@ def get_dept(name, all_users=None):
     return dept
 
 
-def get_test_dept_1():
+def get_test_dept_1(all_contacts=None):
     name = app.config['TEST_DEPT_1']
-    return get_dept(name)
+    return get_dept(name, all_contacts)
 
 
-def get_test_dept_2():
+def get_test_dept_2(all_contacts=None):
     name = app.config['TEST_DEPT_2']
-    return get_dept(name)
+    return get_dept(name, all_contacts)
 
 
 def get_dept_sans_contacts():
@@ -377,7 +377,7 @@ def delete_dept_note(term, dept):
 
 
 def reset_test_data(term, dept=None):
-    dept_clause = 'AND department_id = ' + dept.dept_id if dept else ''
+    dept_clause = f'AND department_id = {dept.dept_id}' if dept else ''
 
     sql = f"DELETE FROM evaluations WHERE term_id = '{term.term_id}'{dept_clause}"
     app.logger.info(sql)
@@ -413,9 +413,10 @@ def verify_actual_matches_expected(actual, expected):
     missing = [x for x in expected if x not in actual]
     app.logger.info(f'Unexpected {unexpected}')
     app.logger.info(f'Missing {missing}')
-    app.logger.info(f'Expecting {len(expected)} rows, got {len(actual)}')
     assert not unexpected
     assert not missing
+    expected = list(map(dict, set(tuple(sorted(i.items())) for i in expected)))
+    app.logger.info(f'Expecting {len(expected)} rows, got {len(actual)}')
     assert len(actual) == len(expected)
 
 
@@ -428,14 +429,30 @@ def expected_courses(evaluations):
         gsi = ' (EVAL FOR GSI)' if suffix else ''
         if row.x_listing_ccns:
             flag = 'Y'
-            x_listed_name = row.x_listing_ccns.join('-')
+            ccns = []
+            ccns.extend(row.x_listing_ccns)
+            ccns.append(row.ccn)
+            ccns.sort()
+            x_listed_name = '-'.join(ccns)
         elif row.room_share_ccns:
             flag = 'RM SHARE'
-            x_listed_name = row.room_share_ccns.join('-')
+            ccns = []
+            ccns.extend(row.room_share_ccns)
+            ccns.append(row.ccn)
+            ccns.sort()
+            x_listed_name = '-'.join(row.room_share_ccns)
         else:
             flag = ''
             x_listed_name = ''
         modular = 'Y' if (term.start_date != row.course_start_date or term.end_date != row.course_end_date) else 'N'
+        if row.eval_end_date:
+            end_date = row.eval_end_date.strftime('%-m/%-d/%y')
+        else:
+            eval_end = evaluation_utils.row_eval_end_from_eval_start(row.course_end_date, row.course_start_date)
+            if eval_end:
+                end_date = eval_end.strftime('%-m/%-d/%y')
+            else:
+                end_date = ''
         data = {
             # TODO - COURSE_ID acct for dupes
             'COURSE_ID': f'{term.prefix}-{row.ccn}{suffix}',
@@ -452,14 +469,13 @@ def expected_courses(evaluations):
             'DEPT_FORM': row.dept_form,
             'EVALUATION_TYPE': row.eval_type,
             'MODULAR_COURSE': modular,
-            'START_DATE': row.eval_start_date.strftime('%-m/%-d/%y'),
-            'END_DATE': row.eval_end_date.strftime('%-m/%-d/%y'),
+            'START_DATE': (row.eval_start_date.strftime('%-m/%-d/%y') if row.eval_start_date else ''),
+            'END_DATE': end_date,
             'CANVAS_COURSE_ID': '',
             'QB_MAPPING': f'{row.dept_form}-{row.eval_type}',
         }
         courses.append(data)
-    uniq = list(map(dict, set(tuple(sorted(crs.items())) for crs in courses)))
-    return uniq
+    return courses
 
 
 def expected_course_students(evaluations):
@@ -566,36 +582,26 @@ def expected_supervisors():
     return supervisors
 
 
-def expected_course_supervisors(dept, evaluations):
+def expected_course_supervisors(evaluations, all_contacts):
     term = get_current_term()
-    uids = []
-    sql = f"""
-        SELECT users.uid
-          FROM users
-          JOIN department_members
-            ON department_members.user_id = users.id
-         WHERE department_members.department_id = {dept.dept_id}
-    """
-    app.logger.info(sql)
-    result = db.session.execute(text(sql))
-    std_commit(allow_test_environment=True)
-    for row in result:
-        uids.append(row['uid'])
+    forms_per_uid = []
+    for contact in all_contacts:
+        forms = list(map(lambda f: f.name, contact.dept_forms))
+        forms_per_uid.append({'uid': contact.uid, 'forms': forms})
 
     supervisors = []
     for row in evaluations:
         eval_types = [e.eval_type for e in evaluations if e.ccn == row.ccn]
         suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
-        for u in uids:
-            data = {
-                'COURSE_ID': f'{term.prefix}-{row.ccn}{suffix}',
-                'LDAP_UID': u,
-                'DEPT_NAME': row.subject,
-            }
-            app.logger.info(f'{data}')
-            supervisors.append(data)
-    uniq = list(map(dict, set(tuple(sorted(sup.items())) for sup in supervisors)))
-    return uniq
+        for uid in forms_per_uid:
+            if row.dept_form in uid['forms']:
+                data = {
+                    'COURSE_ID': f'{term.prefix}-{row.ccn}{suffix}',
+                    'LDAP_UID': uid['uid'],
+                    'DEPT_NAME': row.dept_form,
+                }
+                supervisors.append(data)
+    return supervisors
 
 
 def expected_dept_hierarchy():

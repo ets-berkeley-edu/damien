@@ -24,7 +24,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import copy
-import datetime
 import time
 
 from flask import current_app as app
@@ -375,21 +374,3 @@ class CourseDashboardEditsPage(CourseDashboards):
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.visibility_of_element_located((By.XPATH, f'//div[contains(text(), "{msg}")]')),
         )
-
-    CALENDAR_MONTH = (By.XPATH, '//div[@class="vc-title"]')
-    CALENDAR_BACK_BUTTON = (By.XPATH, '//div[@class="vc-arrow is-left"]')
-    CALENDAR_FORWARD_BUTTON = (By.XPATH, '//div[@class="vc-arrow is-right"]')
-
-    def navigate_to_datepicker_month(self, month):
-        while month != self.element(CourseDashboardEditsPage.CALENDAR_MONTH).text:
-            visible_month = datetime.datetime.strptime(self.element(CourseDashboardEditsPage.CALENDAR_MONTH).text, '%B %Y')
-            if visible_month > datetime.datetime.strptime(month, '%B %Y'):
-                self.wait_for_element_and_click(CourseDashboardEditsPage.CALENDAR_BACK_BUTTON)
-            else:
-                self.wait_for_element_and_click(CourseDashboardEditsPage.CALENDAR_FORWARD_BUTTON)
-            time.sleep(1)
-
-    def select_datepicker_date(self, date):
-        start_date_str = date.strftime('%Y-%m-%d')
-        self.navigate_to_datepicker_month(date.strftime('%B %Y'))
-        self.wait_for_element_and_click((By.XPATH, f'//div[contains(@class, "id-{start_date_str}")]'))

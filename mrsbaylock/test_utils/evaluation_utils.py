@@ -186,7 +186,7 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
 
     # Dept subjects
     sql = f"""
-        SELECT department_catalog_listings.subject_area
+        SELECT DISTINCT department_catalog_listings.subject_area
           FROM department_catalog_listings
          WHERE department_catalog_listings.department_id = '{dept.dept_id}'
     """
@@ -375,6 +375,7 @@ def get_manual_sections(evals, term, dept):
             ON unholy_loch.sis_sections.course_number = supplemental_sections.course_number
          WHERE supplemental_sections.department_id = '{dept.dept_id}'
            AND supplemental_sections.term_id = '{term.term_id}'
+           AND unholy_loch.sis_sections.term_id = '{term.term_id}'
     """
     app.logger.info(sql)
     result = db.session.execute(text(sql))
@@ -406,6 +407,7 @@ def get_edited_sections(term, dept):
      LEFT JOIN evaluation_types
             ON evaluation_types.id = evaluations.evaluation_type_id
          WHERE evaluations.term_id = '{term.term_id}'
+           AND unholy_loch.sis_sections.term_id = '{term.term_id}'
     """
     app.logger.info(sql)
     results = db.session.execute(text(sql))
@@ -424,7 +426,7 @@ def merge_edited_evals(evaluations, edited_evals):
         app.logger.info(f'Checking edited eval for {edit.ccn}-{uid}')
         match = None
         for e in evaluations:
-            if e.ccn == edit.ccn and e.instructor and e.instructor.uid == uid:
+            if e.ccn == edit.ccn and e.instructor and e.instructor.uid == uid and e.dept_form != edit.dept_form:
                 match = True
                 app.logger.info(f'Merging existing eval for {e.ccn}-{uid}')
                 e.status = edit.status
@@ -554,8 +556,6 @@ def get_eval_types(evals):
         if e.eval_type or e.dept.dept_id == '92':
             app.logger.info('Skipping eval type')
         else:
-            app.logger.info(f'Checking eval {vars(e)}')
-            app.logger.info(f'Instructor is {vars(e.instructor)}')
             if e.instructor.uid and e.instructor.affiliations:
                 affils = e.instructor.affiliations
                 if 'EMPLOYEE-TYPE-ACADEMIC' in affils:
