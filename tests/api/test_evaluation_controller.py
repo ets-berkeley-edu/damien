@@ -232,7 +232,7 @@ class TestExportEvaluations:
             instructors = _read_csv(exported_objects, '/instructors.csv')
             assert len(instructors) == 2
             assert instructors[0] == 'LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS,BLUE_ROLE'
-            assert instructors[1] == '326054,4159446,Kjsyobkui,Nxvlusjof,ietkoqrg@berkeley.edu,23'
+            assert instructors[1] == '326054,4159446,Donald,Smeet,ietkoqrg@berkeley.edu,23'
 
             course_students = _read_csv(exported_objects, '/course_students.csv')
             assert len(course_students) == 4

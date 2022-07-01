@@ -723,8 +723,8 @@ export default {
             this.afterEditEvaluation(evaluation)
             this.deselectAllEvaluations()
             resolve()
-          }, error => {
-            this.showErrorDialog(error)
+          }).catch(error => {
+            this.showErrorDialog(this.$_.get(error, 'response.data.message', 'An unknown error occurred.'))
             this.saving = false
             resolve()
           })

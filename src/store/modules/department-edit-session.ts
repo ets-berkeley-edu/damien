@@ -120,8 +120,7 @@ const actions = {
           commit('setEvaluationUpdate', {sectionIndex, sectionCount, updatedEvaluations})
           resolve()
         })
-      })
-      .catch(error => reject(error))
+      }, error => reject(error))
       .finally(() => commit('setDisableControls', false))
     })
   },
