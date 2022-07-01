@@ -228,6 +228,112 @@ class Evaluation(Base):
         return evaluation
 
     @classmethod
+    def duplicate_bulk(cls, department, evaluation_ids, fields=None):
+        original_feed = []
+        if fields:
+            original_feed = department.evaluations_feed(app.config['CURRENT_TERM_ID'], evaluation_ids=evaluation_ids)
+
+        evaluations = []
+        term_id = None
+        for evaluation_id in evaluation_ids:
+            evaluation = cls.from_id(evaluation_id)
+            if not evaluation:
+                continue
+
+            duplicate = evaluation.duplicate()
+            if fields:
+                filtered_fields = {k: v for k, v in fields.items() if k != 'status'}
+                original_evaluation_feed = next((f for f in original_feed if f['id'] == evaluation_id), None)
+                duplicate.set_fields(filtered_fields, original_evaluation_feed)
+
+            if not evaluation.department_id:
+                evaluation.department_id = department.id
+            duplicate.department_id = department.id
+
+            duplicate.created_by = current_user.get_uid()
+            duplicate.updated_by = current_user.get_uid()
+
+            db.session.add(evaluation)
+            db.session.add(duplicate)
+            evaluations.extend([evaluation, duplicate])
+
+            clear_section_cache(department.id, evaluation.term_id, evaluation.course_number)
+            term_id = evaluation.term_id
+
+        if term_id:
+            clear_department_cache(department.id, term_id)
+
+        std_commit()
+        return [e.id for e in evaluations]
+
+    @classmethod
+    def fetch_by_course_numbers(cls, term_id, course_numbers):
+        results = cls.query.filter(cls.term_id == term_id, cls.course_number.in_(course_numbers)).order_by(cls.course_number).all()
+        return {k: list(v) for k, v in groupby(results, key=lambda r: r.course_number)}
+
+    @classmethod
+    def find_by_id(cls, db_id):
+        query = cls.query.filter_by(id=db_id)
+        return query.first()
+
+    @classmethod
+    def find_potential_conflicts(cls, evaluation_ids, fields):
+        params = {'evaluation_ids': evaluation_ids}
+        if fields.get('departmentForm'):
+            params.update({'department_form_id': fields.get('departmentForm').id})
+        if fields.get('evaluationType'):
+            params.update({'evaluation_type_id': fields.get('evaluationType').id})
+        if fields.get('instructorUid'):
+            params.update({'instructor_uid': f"{fields.get('instructorUid')}"})
+        if fields.get('startDate'):
+            params.update({'start_date': f"{fields.get('startDate')}"})
+        query = f"""WITH confirming AS (
+                        SELECT * FROM evaluations e
+                        WHERE id = ANY(:evaluation_ids)
+                    )
+                    SELECT * FROM evaluations e
+                    JOIN confirming c
+                    ON e.department_id = c.department_id
+                    AND e.term_id = c.term_id
+                    AND e.course_number = c.course_number
+                    AND e.instructor_uid = {':instructor_uid' if params.get('instructor_uid') else 'c.instructor_uid'}
+                    AND (e.status = 'confirmed' OR e.id = ANY(:evaluation_ids))
+                    AND NOT e.id = c.id
+                    AND (
+                        e.department_form_id != {':department_form_id' if params.get('department_form_id') else 'c.department_form_id'}
+                        OR e.evaluation_type_id != {':evaluation_type_id' if params.get('evaluation_type_id') else 'c.evaluation_type_id'}
+                        OR e.start_date != {':start_date' if params.get('start_date') else 'c.start_date'}
+                    )"""
+        return db.session.execute(query, params).fetchall()
+
+    @classmethod
+    def from_id(cls, evaluation_id):
+        evaluation = None
+        parsed = _parse_transient_id(evaluation_id)
+        if parsed:
+            evaluation = cls(**parsed)
+        else:
+            try:
+                evaluation = cls.find_by_id(int(evaluation_id))
+            except ValueError:
+                evaluation = None
+        return evaluation
+
+    @classmethod
+    def get_confirmed(cls, term_id):
+        filters = [cls.term_id == term_id, cls.status == 'confirmed']
+        return cls.query.where(and_(*filters)).all()
+
+    @classmethod
+    def get_invalid(cls, term_id, status=None, evaluation_ids=None):
+        filters = [cls.term_id == term_id, cls.valid == False]  # noqa: E712
+        if status:
+            filters.append(cls.status == status)
+        if evaluation_ids:
+            filters.append(cls.id.in_(evaluation_ids))
+        return cls.query.where(and_(*filters)).all()
+
+    @classmethod
     def merge_transient(
         cls,
         uid,
@@ -269,68 +375,6 @@ class Evaluation(Base):
         return transient_evaluation
 
     @classmethod
-    def fetch_by_course_numbers(cls, term_id, course_numbers):
-        results = cls.query.filter(cls.term_id == term_id, cls.course_number.in_(course_numbers)).order_by(cls.course_number).all()
-        return {k: list(v) for k, v in groupby(results, key=lambda r: r.course_number)}
-
-    @classmethod
-    def find_by_id(cls, db_id):
-        query = cls.query.filter_by(id=db_id)
-        return query.first()
-
-    @classmethod
-    def from_id(cls, evaluation_id):
-        evaluation = None
-        parsed = _parse_transient_id(evaluation_id)
-        if parsed:
-            evaluation = cls(**parsed)
-        else:
-            try:
-                evaluation = cls.find_by_id(int(evaluation_id))
-            except ValueError:
-                evaluation = None
-        return evaluation
-
-    @classmethod
-    def duplicate_bulk(cls, department, evaluation_ids, fields=None):
-        original_feed = []
-        if fields:
-            original_feed = department.evaluations_feed(app.config['CURRENT_TERM_ID'], evaluation_ids=evaluation_ids)
-
-        evaluations = []
-        term_id = None
-        for evaluation_id in evaluation_ids:
-            evaluation = cls.from_id(evaluation_id)
-            if not evaluation:
-                continue
-
-            duplicate = evaluation.duplicate()
-            if fields:
-                filtered_fields = {k: v for k, v in fields.items() if k != 'status'}
-                original_evaluation_feed = next((f for f in original_feed if f['id'] == evaluation_id), None)
-                duplicate.set_fields(filtered_fields, original_evaluation_feed)
-
-            if not evaluation.department_id:
-                evaluation.department_id = department.id
-            duplicate.department_id = department.id
-
-            duplicate.created_by = current_user.get_uid()
-            duplicate.updated_by = current_user.get_uid()
-
-            db.session.add(evaluation)
-            db.session.add(duplicate)
-            evaluations.extend([evaluation, duplicate])
-
-            clear_section_cache(department.id, evaluation.term_id, evaluation.course_number)
-            term_id = evaluation.term_id
-
-        if term_id:
-            clear_department_cache(department.id, term_id)
-
-        std_commit()
-        return [e.id for e in evaluations]
-
-    @classmethod
     def update_bulk(cls, department_id, evaluation_ids, fields):
         evaluations = []
         term_id = None
@@ -352,19 +396,21 @@ class Evaluation(Base):
         std_commit()
         return [e.id for e in evaluations]
 
-    @classmethod
-    def get_confirmed(cls, term_id):
-        filters = [cls.term_id == term_id, cls.status == 'confirmed']
-        return cls.query.where(and_(*filters)).all()
+    def duplicate(self):
+        return self.__class__(
+            term_id=self.term_id,
+            course_number=self.course_number,
+            department_id=self.department_id,
+            instructor_uid=self.instructor_uid,
+            status=None,
+            department_form_id=self.department_form_id,
+            evaluation_type_id=self.evaluation_type_id,
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
 
-    @classmethod
-    def get_invalid(cls, term_id, status=None, evaluation_ids=None):
-        filters = [cls.term_id == term_id, cls.valid == False]  # noqa: E712
-        if status:
-            filters.append(cls.status == status)
-        if evaluation_ids:
-            filters.append(cls.id.in_(evaluation_ids))
-        return cls.query.where(and_(*filters)).all()
+    def get_id(self):
+        return self.id or self.transient_id()
 
     def is_transient(self):
         return self.id is None
@@ -384,73 +430,11 @@ class Evaluation(Base):
     def is_visible(self):
         return self.status != 'deleted'
 
-    def duplicate(self):
-        return self.__class__(
-            term_id=self.term_id,
-            course_number=self.course_number,
-            department_id=self.department_id,
-            instructor_uid=self.instructor_uid,
-            status=None,
-            department_form_id=self.department_form_id,
-            evaluation_type_id=self.evaluation_type_id,
-            start_date=self.start_date,
-            end_date=self.end_date,
-        )
-
-    def set_fields(self, fields, original_evaluation_feed=None):
-        if 'departmentForm' in fields:
-            self.department_form = fields['departmentForm']
-        if 'startDate' in fields:
-            self.start_date = fields['startDate']
-        if 'evaluationType' in fields:
-            self.evaluation_type = fields['evaluationType']
-        if 'instructorUid' in fields:
-            self.instructor_uid = fields['instructorUid']
-            refresh_additional_instructors([self.instructor_uid])
-        if 'status' in fields:
-            self.status = fields['status']
-            if fields['status'] in ('marked', 'confirmed', None):
-                self.__class__.update_evaluation_status(self.term_id, self.course_number, self.instructor_uid, fields['status'])
-
-        if fields.get('midterm'):
-            if original_evaluation_feed and original_evaluation_feed.get('departmentForm'):
-                midterm_form = DepartmentForm.find_by_name(original_evaluation_feed['departmentForm']['name'] + '_MID')
-                if midterm_form:
-                    self.department_form = midterm_form
-
-    def set_department_form(self, saved_evaluation, foreign_dept_evaluations, default_form):
-        if saved_evaluation and saved_evaluation.department_form:
-            self.department_form = saved_evaluation.department_form
-            for fde in foreign_dept_evaluations:
-                if fde.department_form and fde.department_form.id != self.department_form.id:
-                    self.mark_conflict(fde, 'departmentForm', saved_evaluation, self.department_form.name, fde.department_form.name)
-        else:
-            for fde in foreign_dept_evaluations:
-                if fde.department_form:
-                    self.department_form = fde.department_form
-                    break
-        if default_form and not self.department_form:
-            self.department_form = default_form
-
-    def set_evaluation_type(self, saved_evaluation, foreign_dept_evaluations, instructor, all_eval_types):
-        if saved_evaluation and saved_evaluation.evaluation_type:
-            self.evaluation_type = saved_evaluation.evaluation_type
-            for fde in foreign_dept_evaluations:
-                if fde.evaluation_type and fde.evaluation_type.id != self.evaluation_type.id:
-                    self.mark_conflict(fde, 'evaluationType', saved_evaluation, self.evaluation_type.name, fde.evaluation_type.name)
-        else:
-            for fde in foreign_dept_evaluations:
-                if fde.evaluation_type:
-                    self.evaluation_type = fde.evaluation_type
-                    break
-        if not self.evaluation_type:
-            # TODO Leave blank if department_form above is set to LAW or SPANISH, otherwise set based on instructor affiliation.
-            if self.department_form and self.department_form.name in ('LAW', 'SPANISH'):
-                return
-            elif instructor and 'STUDENT-TYPE' in instructor.get('affiliations', []):
-                self.evaluation_type = all_eval_types.get('G')
-            elif instructor and 'ACADEMIC' in instructor.get('affiliations', []):
-                self.evaluation_type = all_eval_types.get('F')
+    def mark_conflict(self, foreign_dept_evaluation, key, saved_evaluation, self_value, other_value):
+        self.conflicts[key].append({'department': foreign_dept_evaluation.department.dept_name, 'value': other_value})
+        foreign_dept_evaluation.conflicts[key].append({'department': saved_evaluation.department.dept_name, 'value': self_value})
+        clear_department_cache(foreign_dept_evaluation.department_id, self.term_id)
+        clear_section_cache(foreign_dept_evaluation.department_id, self.term_id, self.course_number)
 
     def set_dates(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
         self.meeting_start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
@@ -496,6 +480,67 @@ class Evaluation(Base):
             else:
                 self.start_date = self.end_date - timedelta(days=20)
 
+    def set_department_form(self, saved_evaluation, foreign_dept_evaluations, default_form):
+        if saved_evaluation and saved_evaluation.department_form:
+            self.department_form = saved_evaluation.department_form
+            for fde in foreign_dept_evaluations:
+                if fde.department_form and fde.department_form.id != self.department_form.id:
+                    self.mark_conflict(fde, 'departmentForm', saved_evaluation, self.department_form.name, fde.department_form.name)
+        else:
+            for fde in foreign_dept_evaluations:
+                if fde.department_form:
+                    self.department_form = fde.department_form
+                    break
+        if default_form and not self.department_form:
+            self.department_form = default_form
+
+    def set_evaluation_type(self, saved_evaluation, foreign_dept_evaluations, instructor, all_eval_types):
+        if saved_evaluation and saved_evaluation.evaluation_type:
+            self.evaluation_type = saved_evaluation.evaluation_type
+            for fde in foreign_dept_evaluations:
+                if fde.evaluation_type and fde.evaluation_type.id != self.evaluation_type.id:
+                    self.mark_conflict(fde, 'evaluationType', saved_evaluation, self.evaluation_type.name, fde.evaluation_type.name)
+        else:
+            for fde in foreign_dept_evaluations:
+                if fde.evaluation_type:
+                    self.evaluation_type = fde.evaluation_type
+                    break
+        if not self.evaluation_type:
+            # TODO Leave blank if department_form above is set to LAW or SPANISH, otherwise set based on instructor affiliation.
+            if self.department_form and self.department_form.name in ('LAW', 'SPANISH'):
+                return
+            elif instructor and 'STUDENT-TYPE' in instructor.get('affiliations', []):
+                self.evaluation_type = all_eval_types.get('G')
+            elif instructor and 'ACADEMIC' in instructor.get('affiliations', []):
+                self.evaluation_type = all_eval_types.get('F')
+
+    def set_fields(self, fields, original_evaluation_feed=None):
+        if 'departmentForm' in fields:
+            self.department_form = fields['departmentForm']
+        if 'startDate' in fields:
+            self.start_date = fields['startDate']
+        if 'evaluationType' in fields:
+            self.evaluation_type = fields['evaluationType']
+        if 'instructorUid' in fields:
+            self.instructor_uid = fields['instructorUid']
+            refresh_additional_instructors([self.instructor_uid])
+        if 'status' in fields:
+            self.status = fields['status']
+            if fields['status'] in ('marked', 'confirmed', None):
+                self.__class__.update_evaluation_status(self.term_id, self.course_number, self.instructor_uid, fields['status'])
+
+        if fields.get('midterm'):
+            if original_evaluation_feed and original_evaluation_feed.get('departmentForm'):
+                midterm_form = DepartmentForm.find_by_name(original_evaluation_feed['departmentForm']['name'] + '_MID')
+                if midterm_form:
+                    self.department_form = midterm_form
+
+    def set_last_updated(self, loch_rows, saved_evaluation):
+        updates = [r['created_at'] for r in loch_rows]
+        if saved_evaluation:
+            updates.append(saved_evaluation.updated_at)
+        self.last_updated = max(updates)
+
     def set_status(self, saved_evaluation, foreign_dept_evaluations):
         if saved_evaluation and saved_evaluation.status:
             self.status = saved_evaluation.status
@@ -505,44 +550,6 @@ class Evaluation(Base):
                     self.status = 'marked'
                 elif fde.status == 'confirmed' and self.status in ('confirmed', None):
                     self.status = 'confirmed'
-
-    def set_last_updated(self, loch_rows, saved_evaluation):
-        updates = [r['created_at'] for r in loch_rows]
-        if saved_evaluation:
-            updates.append(saved_evaluation.updated_at)
-        self.last_updated = max(updates)
-
-    def mark_conflict(self, foreign_dept_evaluation, key, saved_evaluation, self_value, other_value):
-        self.conflicts[key].append({'department': foreign_dept_evaluation.department.dept_name, 'value': other_value})
-        foreign_dept_evaluation.conflicts[key].append({'department': saved_evaluation.department.dept_name, 'value': self_value})
-        clear_department_cache(foreign_dept_evaluation.department_id, self.term_id)
-        clear_section_cache(foreign_dept_evaluation.department_id, self.term_id, self.course_number)
-
-    def update_validity(self, saved_evaluation, foreign_dept_evaluations):
-        self.valid = True
-        if saved_evaluation:
-            updated_validity = self.is_valid()
-            if updated_validity != saved_evaluation.valid:
-                saved_evaluation.valid = updated_validity
-                db.session.add(saved_evaluation)
-                clear_department_cache(self.department_id, self.term_id)
-                clear_section_cache(self.department_id, self.term_id, self.course_number)
-            self.valid = saved_evaluation.valid
-        for fde in foreign_dept_evaluations:
-            updated_validity = self.is_valid(fde)
-            if updated_validity != fde.valid:
-                fde.valid = updated_validity
-                db.session.add(fde)
-                clear_department_cache(fde.department_id, self.term_id)
-                clear_section_cache(fde.department_id, self.term_id, self.course_number)
-        std_commit()
-
-    # Fallback id string for Evaluation instances that are created for the department/section API but not saved to the database.
-    def transient_id(self):
-        return f'_{self.term_id}_{self.course_number}_{self.instructor_uid}'
-
-    def get_id(self):
-        return self.id or self.transient_id()
 
     def to_api_json(self, section):
         default_dept_form_feed = section.default_form.to_api_json() if section.default_form else None
@@ -590,6 +597,29 @@ class Evaluation(Base):
             start_date=self.start_date,
             end_date=self.end_date,
         )
+
+    # Fallback id string for Evaluation instances that are created for the department/section API but not saved to the database.
+    def transient_id(self):
+        return f'_{self.term_id}_{self.course_number}_{self.instructor_uid}'
+
+    def update_validity(self, saved_evaluation, foreign_dept_evaluations):
+        self.valid = True
+        if saved_evaluation:
+            updated_validity = self.is_valid()
+            if updated_validity != saved_evaluation.valid:
+                saved_evaluation.valid = updated_validity
+                db.session.add(saved_evaluation)
+                clear_department_cache(self.department_id, self.term_id)
+                clear_section_cache(self.department_id, self.term_id, self.course_number)
+            self.valid = saved_evaluation.valid
+        for fde in foreign_dept_evaluations:
+            updated_validity = self.is_valid(fde)
+            if updated_validity != fde.valid:
+                fde.valid = updated_validity
+                db.session.add(fde)
+                clear_department_cache(fde.department_id, self.term_id)
+                clear_section_cache(fde.department_id, self.term_id, self.course_number)
+        std_commit()
 
 
 def is_modular(start_date, end_date):

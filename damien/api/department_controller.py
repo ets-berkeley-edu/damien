@@ -152,19 +152,22 @@ def update_evaluations(department_id):  # noqa C901
     else:
         raise BadRequestError('Invalid update action.')
     if not updated_ids:
-        raise BadRequestError('Evaluation ids could not be updated.')
+        raise BadRequestError('Evaluations could not be updated.')
     response = department.evaluations_feed(app.config['CURRENT_TERM_ID'], evaluation_ids=updated_ids)
     return tolerant_jsonify(response)
 
 
-def _validate_confirmable(evaluation_ids, fields=None):
-    if fields and fields.get('departmentForm') and fields.get('evaluationType') and fields.get('instructorUid'):
-        return True
+def _validate_confirmable(evaluation_ids, fields={}):
     numeric_ids = [int(eid) for eid in evaluation_ids if re.match(r'\d+\Z', str(eid))]
     if numeric_ids:
-        validation_errors = Evaluation.get_invalid(app.config['CURRENT_TERM_ID'], evaluation_ids=numeric_ids)
-        if validation_errors:
-            raise BadRequestError('Could not confirm evaluations with errors.')
+        if not (fields.get('departmentForm') and fields.get('evaluationType') and fields.get('instructorUid') and fields.get('startDate')):
+            validation_errors = Evaluation.get_invalid(app.config['CURRENT_TERM_ID'], evaluation_ids=numeric_ids)
+            if validation_errors:
+                raise BadRequestError('Could not confirm evaluations with errors.')
+
+        conflicts = Evaluation.find_potential_conflicts(numeric_ids, fields)
+        if conflicts:
+            raise BadRequestError('Could not confirm duplicate rows with conflicting information.')
 
 
 def _validate_evaluation_fields(fields):  # noqa C901
