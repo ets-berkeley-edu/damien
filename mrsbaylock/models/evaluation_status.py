@@ -31,7 +31,7 @@ class EvaluationStatus(enum.Enum):
     CONFIRMED = {
         'db': 'confirmed',
         'option': 'Done',
-        'ui': 'CONFIRMED',
+        'ui': 'DONE',
     }
     DELETED = {
         'db': 'deleted',
@@ -41,7 +41,7 @@ class EvaluationStatus(enum.Enum):
     FOR_REVIEW = {
         'db': 'marked',
         'option': 'To-do',
-        'ui': 'REVIEW',
+        'ui': 'TO DO',
     }
     IGNORED = {
         'db': 'ignore',

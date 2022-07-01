@@ -22,6 +22,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
 ENHANCEMENTS, OR MODIFICATIONS.
 """
+import time
 
 from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
@@ -54,5 +55,6 @@ class LoginPage(DamienPages):
         self.wait_for_element_and_type(LoginPage.USERNAME_INPUT, uid)
         self.wait_for_element_and_type(LoginPage.PASSWORD_INPUT, app.config['DEVELOPER_AUTH_PASSWORD'])
         self.wait_for_element_and_click(LoginPage.DEV_AUTH_LOGIN_BUTTON)
+        time.sleep(1)
         if dept:
             self.click_contact_dept_link(dept)

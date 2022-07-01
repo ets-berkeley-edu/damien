@@ -104,7 +104,7 @@ class TestEvalExports:
         utils.verify_actual_matches_expected(csv_instructors, self.expected_instructors)
 
     def test_course_supervisors(self):
-        self.expected_course_supervisors.extend(utils.expected_course_supervisors(self.dept, self.confirmed))
+        self.expected_course_supervisors.extend(utils.expected_course_supervisors(self.confirmed, self.all_contacts))
         csv_course_supervisors = self.status_board_admin_page.parse_csv('course_supervisors')
         utils.verify_actual_matches_expected(csv_course_supervisors, self.expected_course_supervisors)
 
