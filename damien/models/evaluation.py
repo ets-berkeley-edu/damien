@@ -166,7 +166,7 @@ class Evaluation(Base):
             cls.department_id == department_id,
             cls.status == 'confirmed',
             cls.term_id == term_id,
-            cls.valid is False,
+            cls.valid.is_(False),
         ]
         return cls.query.where(and_(*filters)).count()
 
@@ -176,7 +176,7 @@ class Evaluation(Base):
             cls.department_id == department_id,
             cls.status == 'confirmed',
             cls.term_id == term_id,
-            cls.valid is True,
+            cls.valid.is_(True),
         ]
         return cls.query.where(and_(*filters)).count()
 
@@ -185,7 +185,7 @@ class Evaluation(Base):
         filters = [
             cls.department_id == department_id,
             cls.term_id == term_id,
-            cls.valid is False,
+            cls.valid.is_(False),
         ]
         return cls.query.where(and_(*filters)).count()
 
