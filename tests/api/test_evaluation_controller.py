@@ -171,7 +171,7 @@ class TestExportEvaluations:
             assert re.match('^exports/2222/\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2}$', eval_response['s3Path'])
             assert eval_response['createdAt']
 
-            exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
+            exported_objects = [o for o in s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all() if o.key.startswith('exports/2222')]
             assert len(exported_objects) == 10
 
             courses = _read_csv(exported_objects, '/courses.csv')
@@ -181,8 +181,10 @@ class TestExportEvaluations:
                                   'CANVAS_COURSE_ID,QB_MAPPING')
 
             course_instructors = _read_csv(exported_objects, '/course_instructors.csv')
-            assert len(course_instructors) == 1
+            assert len(course_instructors) == 3
             assert course_instructors[0] == 'COURSE_ID,LDAP_UID,ROLE'
+            assert course_instructors[1] == '2021-D-12345,666,Faculty'
+            assert course_instructors[2] == '2021-D-12345,8675309,GSI'
 
             course_students = _read_csv(exported_objects, '/course_students.csv')
             assert len(course_students) == 1
@@ -213,7 +215,7 @@ class TestExportEvaluations:
 
         with mock_s3_bucket(app) as s3:
             _api_export_evaluations(client)
-            exported_objects = list(s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all())
+            exported_objects = [o for o in s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all() if o.key.startswith('exports/2222')]
             assert len(exported_objects) == 10
 
             courses = _read_csv(exported_objects, '/courses.csv')
@@ -225,9 +227,11 @@ class TestExportEvaluations:
                                   'Y,30470-30643,HISTORY,C188C,LEC,001,P,Y,HISTORY,F,,4/27/22,5/17/22,,HISTORY-F')
 
             course_instructors = _read_csv(exported_objects, '/course_instructors.csv')
-            assert len(course_instructors) == 2
+            assert len(course_instructors) == 4
             assert course_instructors[0] == 'COURSE_ID,LDAP_UID,ROLE'
-            assert course_instructors[1] == '2022-B-30643,326054,Faculty'
+            assert course_instructors[1] == '2021-D-12345,666,Faculty'
+            assert course_instructors[2] == '2021-D-12345,8675309,GSI'
+            assert course_instructors[3] == '2022-B-30643,326054,Faculty'
 
             instructors = _read_csv(exported_objects, '/instructors.csv')
             assert len(instructors) == 2

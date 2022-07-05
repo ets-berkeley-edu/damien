@@ -34,7 +34,9 @@ def mock_s3_bucket(app):
     with moto.mock_s3():
         bucket = app.config['AWS_S3_BUCKET']
         s3 = boto3.resource('s3', app.config['AWS_S3_REGION'])
-        s3.create_bucket(Bucket=bucket, CreateBucketConfiguration={'LocationConstraint': app.config['AWS_S3_REGION']})
+        bucket = s3.create_bucket(Bucket=bucket, CreateBucketConfiguration={'LocationConstraint': app.config['AWS_S3_REGION']})
+        with open(f"{app.config['FIXTURES_PATH']}/legacy_course_instructors.csv", 'rb') as f:
+            bucket.put_object(Key='/exports/legacy/course_instructors.csv', Body=f)
         yield s3
 
 

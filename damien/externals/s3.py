@@ -24,9 +24,25 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import boto3
+from botocore.exceptions import ClientError, ConnectionError
 from flask import current_app as app
 import smart_open
 import zipstream
+
+
+def get_object_text(key):
+    s3 = _get_s3_client()
+    bucket = app.config['AWS_S3_BUCKET']
+    try:
+        _object = s3.get_object(Bucket=bucket, Key=key)
+        contents = _object.get('Body')
+        if not contents:
+            app.logger.error(f'Failed to get S3 object contents: bucket={bucket}, key={key})')
+            return None
+        return contents.read().decode('utf-8')
+    except (ClientError, ConnectionError, ValueError) as e:
+        app.logger.error(f'Error retrieving S3 object text: bucket={bucket}, key={key}, error={e}')
+        return None
 
 
 def get_s3_path(term_id, timestamp, filename=None):
@@ -48,9 +64,10 @@ def put_binary_data_to_s3(key, binary_data, content_type):
         return None
 
 
-def stream_object(s3_url):
+def stream_object_text(object_key):
+    s3_url = f"s3://{app.config['AWS_S3_BUCKET']}/{object_key}"
     try:
-        return smart_open.open(s3_url, 'rb', transport_params={'session': _get_session()})
+        return smart_open.open(s3_url, 'r', transport_params={'session': _get_session()})
     except Exception as e:
         app.logger.error(f'S3 stream operation failed (s3_url={s3_url})')
         app.logger.exception(e)
