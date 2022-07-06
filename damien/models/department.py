@@ -252,7 +252,7 @@ class Department(Base):
                     'totalBlockers': Evaluation.count_department_blockers(self.id, term_id),
                     'totalConfirmed': Evaluation.count_department_confirmed(self.id, term_id),
                     'totalInError': Evaluation.count_department_errors(self.id, term_id),
-                    'totalEvaluations': Evaluation.count_department_total(self.id, term_id),
+                    'totalEvaluations': self.row_count,
                 }
                 set_department_cache(self.id, term_id, status)
             feed.update(status)
