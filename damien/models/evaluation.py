@@ -293,11 +293,9 @@ class Evaluation(Base):
                     )
                     SELECT * FROM evaluations e
                     JOIN confirming c
-                    ON e.department_id = c.department_id
-                    AND e.term_id = c.term_id
+                    ON e.term_id = c.term_id
                     AND e.course_number = c.course_number
                     AND e.instructor_uid = {':instructor_uid' if params.get('instructor_uid') else 'c.instructor_uid'}
-                    AND (e.status = 'confirmed' OR e.id = ANY(:evaluation_ids))
                     AND NOT e.id = c.id
                     AND (
                         e.department_form_id != {':department_form_id' if params.get('department_form_id') else 'c.department_form_id'}

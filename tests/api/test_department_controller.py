@@ -255,13 +255,13 @@ class TestGetDepartment:
         assert feed[4]['startDate'] == '2022-04-18'
 
 
-def _api_update_evaluation(client, dept_id=None, params={}, expected_status_code=200):
+def _api_update_evaluation(client, dept_id=None, params=None, expected_status_code=200):
     if dept_id is None:
         dept = Department.find_by_name('Middle Eastern Languages and Cultures')
         dept_id = dept.id
     response = client.post(
         f'/api/department/{dept_id}/evaluations',
-        data=json.dumps(params),
+        data=json.dumps(params or {}),
         content_type='application/json',
     )
     assert response.status_code == expected_status_code
@@ -311,7 +311,7 @@ class TestUpdateEvaluationStatus:
         fake_auth.login(non_admin_uid)
         _api_update_evaluation(client, params={'evaluationIds': [incomplete_eval.id], 'action': 'confirm'}, expected_status_code=400)
 
-    def test_confirm_conflicts(self, client, fake_auth, history_id, form_melc_id, form_history_id, type_f_id, type_g_id):
+    def test_update_status_confirm_conflicts(self, client, fake_auth, history_id, form_melc_id, form_history_id, type_f_id, type_g_id):
         """Prevents duplicate evaluations for the same instructor from being confirmed with conflicting fields."""
         # First, create two evaluations with the same course and instructor but conflicting department form, evaluation type, and start date
         dept = Department.find_by_id(history_id)
@@ -336,8 +336,9 @@ class TestUpdateEvaluationStatus:
             start_date='2022-04-15',
         )
         std_commit(allow_test_environment=True)
+
         evals = Evaluation.fetch_by_course_numbers('2222', [course_number])[course_number]
-        evaluation_ids = [e.id for e in evals]
+        evaluation_ids = [e.id for e in sorted(evals, key=lambda e: e.start_date)]
         assert len(evals) == 2
 
         fake_auth.login(non_admin_uid)
@@ -345,10 +346,33 @@ class TestUpdateEvaluationStatus:
         # Try to confirm the two conflicting rows
         _api_update_evaluation(client, dept_id=dept.id, params={'evaluationIds': evaluation_ids, 'action': 'confirm'}, expected_status_code=400)
 
-        # Confirm one row, then try to confirm the other
-        _api_update_evaluation(client, dept_id=dept.id, params={'evaluationIds': [evaluation_ids[0]], 'action': 'confirm'})
-        std_commit(allow_test_environment=True)
+        # Try to confirm the rows invidually
+        _api_update_evaluation(client, dept_id=dept.id, params={'evaluationIds': [evaluation_ids[0]], 'action': 'confirm'}, expected_status_code=400)
         _api_update_evaluation(client, dept_id=dept.id, params={'evaluationIds': [evaluation_ids[1]], 'action': 'confirm'}, expected_status_code=400)
+
+        # Try to confirm while resolving some but not all conflicts
+        _api_update_evaluation(client, dept_id=dept.id, params={
+            'evaluationIds': [evaluation_ids[0]],
+            'fields': {'departmentFormId': form_history_id, 'status': 'confirmed'},
+            'action': 'edit',
+        }, expected_status_code=400)
+        _api_update_evaluation(client, dept_id=dept.id, params={
+            'evaluationIds': [evaluation_ids[0]],
+            'fields': {'departmentFormId': form_history_id, 'startDate': '2022-04-15', 'status': 'confirmed'},
+            'action': 'edit',
+        }, expected_status_code=400)
+        _api_update_evaluation(client, dept_id=dept.id, params={
+            'evaluationIds': [evaluation_ids[0]],
+            'fields': {'departmentFormId': form_history_id, 'evaluationTypeId': type_g_id, 'status': 'confirmed'},
+            'action': 'edit',
+        }, expected_status_code=400)
+
+        # Resolve all conflicts and evaluation succeeds
+        _api_update_evaluation(client, dept_id=dept.id, params={
+            'evaluationIds': [evaluation_ids[0]],
+            'fields': {'departmentFormId': form_history_id, 'evaluationTypeId': type_g_id, 'startDate': '2022-04-15', 'status': 'confirmed'},
+            'action': 'edit',
+        })
 
     def test_confirm(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
@@ -578,7 +602,7 @@ class TestEditEvaluation:
         assert response[0]['startDate'] == '2022-04-01'
         assert response[0]['endDate'] == '2022-04-14'
 
-    def test_confirm_conflicts(self, client, fake_auth, history_id, form_melc_id, form_history_id, type_f_id, type_g_id):
+    def test_edit_confirm_conflicts(self, client, fake_auth, history_id, form_melc_id, form_history_id, type_f_id, type_g_id):
         """Prevents duplicate evaluations for the same instructor from being confirmed with conflicting fields."""
         # First, create two identical evaluations in confirmed status
         dept = Department.find_by_id(history_id)

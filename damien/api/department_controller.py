@@ -167,7 +167,7 @@ def _validate_confirmable(evaluation_ids, fields={}):
 
         conflicts = Evaluation.find_potential_conflicts(numeric_ids, fields)
         if conflicts:
-            raise BadRequestError('Could not confirm duplicate rows with conflicting information.')
+            raise BadRequestError('Could not confirm evaluations with conflicting information.')
 
 
 def _validate_evaluation_fields(fields):  # noqa C901
