@@ -219,6 +219,32 @@ ALTER TABLE ONLY evaluation_terms ADD CONSTRAINT evaluation_terms_pkey PRIMARY K
 
 --
 
+CREATE TABLE json_cache (
+    id integer NOT NULL,
+    term_id VARCHAR(4) NOT NULL,
+    department_id INTEGER NOT NULL,
+    course_number VARCHAR(5),
+    json jsonb,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+CREATE SEQUENCE json_cache_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE json_cache_id_seq OWNED BY json_cache.id;
+ALTER TABLE ONLY json_cache ALTER COLUMN id SET DEFAULT nextval('json_cache_id_seq'::regclass);
+
+ALTER TABLE ONLY json_cache
+    ADD CONSTRAINT json_cache_pkey PRIMARY KEY (id);
+
+CREATE UNIQUE INDEX json_cache_idx ON json_cache USING btree(term_id, department_id, course_number);
+
+--
+
 CREATE TABLE supplemental_instructors (
     ldap_uid VARCHAR(80) NOT NULL,
     sis_id VARCHAR(80),

@@ -23,36 +23,28 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien import cache
+from damien.models.json_cache import JsonCache
 
 
 def clear_department_cache(department_id, term_id):
-    cache.delete(_department_cache_key(department_id, term_id))
+    JsonCache.clear_department(term_id, department_id)
 
 
 def clear_section_cache(department_id, term_id, course_number):
-    cache.delete(_section_cache_key(department_id, term_id, course_number))
+    JsonCache.clear_department_section(term_id, department_id, course_number)
 
 
 def fetch_department_cache(department_id, term_id):
-    return cache.get(_department_cache_key(department_id, term_id))
+    return JsonCache.fetch_department(term_id, department_id)
 
 
 def fetch_section_cache(department_id, term_id, course_number):
-    return cache.get(_section_cache_key(department_id, term_id, course_number))
+    return JsonCache.fetch_section(term_id, department_id, course_number)
 
 
 def set_department_cache(department_id, term_id, cached):
-    cache.set(_department_cache_key(department_id, term_id), cached, 86400)
+    JsonCache.set_department(term_id, department_id, cached)
 
 
 def set_section_cache(department_id, term_id, course_number, cached):
-    cache.set(_section_cache_key(department_id, term_id, course_number), cached, 86400)
-
-
-def _department_cache_key(department_id, term_id):
-    return f'department_{department_id}_{term_id}'
-
-
-def _section_cache_key(department_id, term_id, course_number):
-    return f'section_{term_id}_{course_number}_dept_{department_id}'
+    JsonCache.set_section(term_id, department_id, course_number, cached)
