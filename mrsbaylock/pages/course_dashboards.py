@@ -36,12 +36,21 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 class CourseDashboards(DamienPages):
     EVALUATION_ROW = (By.XPATH, '//tr[contains(@class, "evaluation-row")]')
     EVALUATION_STATUS = (By.XPATH, '//td[contains(@id, "-status")]')
+    NO_SECTIONS_MGS = (By.XPATH, '//span[text()="No eligible sections to load."]')
 
     @staticmethod
     def eval_row_xpath(evaluation):
-        uid = f'[contains(., "{evaluation.instructor.uid}")]' if evaluation.instructor.uid else ''
-        dept_form = f'[contains(., "{evaluation.dept_form}")]' if evaluation.dept_form else ''
-        return f'//tr[contains(., " {evaluation.ccn} ")]{uid}{dept_form}'
+        ccn = f'td[contains(@id, "courseNumber")][contains(., "{evaluation.ccn}")]'
+
+        if evaluation.instructor.uid:
+            uid = f'[contains(.,"{evaluation.instructor.uid}")]'
+        else:
+            uid = '[not(div)]'
+        instr = f'following-sibling::td[contains(@id, "instructor")]{uid}'
+
+        form_name = f'[contains(., "{evaluation.dept_form}")]' if evaluation.dept_form else '[not(text())]'
+        dept_form = f'following-sibling::td[contains(@id, "departmentForm")]{form_name}'
+        return f'//{ccn}/{instr}/{dept_form}/ancestor::tr'
 
     def rows_of_evaluation(self, evaluation):
         return self.elements((By.XPATH, self.eval_row_xpath(evaluation)))
@@ -62,6 +71,10 @@ class CourseDashboards(DamienPages):
         self.hit_tab()
         self.scroll_to_top()
         time.sleep(2)
+
+    def wait_for_no_sections(self):
+        time.sleep(1)
+        self.wait_for_element(CourseDashboards.NO_SECTIONS_MGS, utils.get_short_timeout())
 
     @staticmethod
     def expected_eval_data(evals):

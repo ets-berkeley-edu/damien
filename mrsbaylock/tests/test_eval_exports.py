@@ -23,6 +23,8 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import copy
+from datetime import timedelta
 import time
 
 from mrsbaylock.test_utils import evaluation_utils
@@ -37,7 +39,7 @@ class TestEvalExports:
     utils.reset_test_data(term)
     all_contacts = utils.get_all_users()
     dept = utils.get_test_dept_1()
-    evals = evaluation_utils.get_evaluations(term, dept)
+    evals = []
     confirmed = []
     expected_courses = []
     expected_course_students = []
@@ -46,11 +48,12 @@ class TestEvalExports:
     expected_course_supervisors = []
     expected_supervisors = []
 
-    def test_clear_cache(self):
+    def test_refresh_loch(self):
         self.login_page.load_page()
         self.login_page.dev_auth()
         self.status_board_admin_page.click_list_mgmt()
-        self.api_page.clear_cache()
+        self.api_page.refresh_unholy_loch()
+        self.evals.extend(evaluation_utils.get_evaluations(self.term, self.dept))
 
     def test_confirm_complete_evals(self):
         self.dept_details_admin_page.load_dept_page(self.dept)
@@ -117,3 +120,58 @@ class TestEvalExports:
         expected_dept_hierarchy = utils.expected_dept_hierarchy()
         csv_dept_hierarchy = self.status_board_admin_page.parse_csv('department_hierarchy')
         utils.verify_actual_matches_expected(csv_dept_hierarchy, expected_dept_hierarchy)
+
+    def test_report_viewers(self):
+        expected_viewers = utils.expected_report_viewers()
+        csv_viewers = self.status_board_admin_page.parse_csv('report_viewer_hierarchy')
+        utils.verify_actual_matches_expected(csv_viewers, expected_viewers)
+
+    # SIS DATA CHANGES
+
+    def test_section_deleted(self):
+        evaluation = self.confirmed[0]
+        evaluation_utils.set_section_deleted(evaluation)
+
+    def test_section_enrollment_zero(self):
+        evaluation = self.confirmed[1]
+        evaluation_utils.set_enrollment_count_zero(evaluation)
+        self.confirmed.remove(evaluation)
+
+    def test_section_dates_changed(self):
+        evaluation = self.confirmed[2]
+        evaluation.course_start_date = evaluation.course_start_date + timedelta(days=3)
+        evaluation.course_end_date = evaluation.course_end_date - timedelta(days=3)
+        evaluation.eval_start_date = None
+        evaluation.eval_end_date = None
+        evaluation_utils.calculate_eval_dates([evaluation])
+        evaluation_utils.set_section_dates(evaluation)
+
+    def test_instructor_removed(self):
+        evaluation = copy.deepcopy(self.confirmed[3])
+        evaluation.instructor.uid = None
+        evaluation.instructor.role_code = None
+        evaluation_utils.set_section_instructor(evaluation)
+        self.dept_details_admin_page.load_dept_page(self.dept)
+        self.dept_details_admin_page.wait_for_eval_row(evaluation)
+
+    def test_instructor_changed(self):
+        evaluation = copy.deepcopy(self.confirmed[4])
+        evaluation.instructor = self.confirmed[5].instructor
+        evaluation_utils.set_section_instructor(evaluation)
+        self.dept_details_admin_page.load_dept_page(self.dept)
+        self.dept_details_admin_page.wait_for_eval_row(evaluation)
+
+    def test_publish_sis_changes(self):
+        self.api_page.clear_cache()
+        self.status_board_admin_page.load_page()
+        self.status_board_admin_page.download_export_csvs()
+
+    def test_courses_updates(self):
+        expected = utils.expected_courses(self.confirmed)
+        csv_courses = self.status_board_admin_page.parse_csv('courses')
+        utils.verify_actual_matches_expected(csv_courses, expected)
+
+    def test_course_instructors_updates(self):
+        expected = utils.expected_course_instructors(self.confirmed)
+        csv_course_instructors = self.status_board_admin_page.parse_csv('course_instructors')
+        utils.verify_actual_matches_expected(csv_course_instructors, expected)

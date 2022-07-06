@@ -139,7 +139,7 @@ class StatusBoardAdminPage(DamienPages):
         os.mkdir(utils.default_download_dir())
 
         self.publish_to_blue()
-        time.sleep(1)
+        time.sleep(2)
         el = self.elements(StatusBoardAdminPage.TERM_EXPORT_LINK)[0]
         el.click()
         tries = 0

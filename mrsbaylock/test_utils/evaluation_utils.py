@@ -93,7 +93,7 @@ def row_instructor(row):
     try:
         instructor_data = {
             'uid': row['uid'],
-            'instructor_role': row['instructor_role'],
+            'role_code': row['instructor_role'],
             'affiliations': None,
         }
         return Instructor(instructor_data)
@@ -569,3 +569,55 @@ def get_eval_types(evals):
                     e.eval_type = None
             else:
                 e.eval_type = None
+
+
+def set_section_deleted(evaluation):
+    sql = f"""
+        UPDATE unholy_loch.sis_sections
+           SET deleted_at = NOW()
+         WHERE course_number = '{evaluation.ccn}'
+           AND term_id = '{evaluation.term.term_id}'
+    """
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+
+
+def set_enrollment_count_zero(evaluation):
+    sql = f"""
+        UPDATE unholy_loch.sis_sections
+           SET enrollment_count = 0
+         WHERE course_number = '{evaluation.ccn}'
+           AND term_id = '{evaluation.term.term_id}'
+    """
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+
+
+def set_section_dates(evaluation):
+    start = f"'{evaluation.course_start_date.strftime('%Y-%m-%d %H:%M:%S')}'" if evaluation.course_start_date else 'NULL'
+    end = f"'{evaluation.course_end_date.strftime('%Y-%m-%d %H:%M:%S')}'" if evaluation.course_end_date else 'NULL'
+    sql = f"""
+        UPDATE unholy_loch.sis_sections
+           SET meeting_start_date = {start},
+               meeting_end_date = {end}
+         WHERE course_number = '{evaluation.ccn}'
+           AND term_id = '{evaluation.term.term_id}'
+    """
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+
+
+def set_section_instructor(evaluation):
+    sql = f"""
+        UPDATE unholy_loch.sis_sections
+           SET instructor_uid = '{evaluation.instructor.uid}',
+               instructor_role_code = '{evaluation.instructor.role_code}'
+         WHERE course_number = '{evaluation.ccn}'
+           AND term_id = '{evaluation.term.term_id}'
+    """
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
