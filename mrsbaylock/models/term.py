@@ -26,7 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 class Term(object):
 
-    def __init__(self, term_id, name, prefix, start_date=None, end_date=None):
+    def __init__(self, term_id, name, prefix=None, start_date=None, end_date=None):
         self.term_id = term_id
         self.name = name
         self.prefix = prefix

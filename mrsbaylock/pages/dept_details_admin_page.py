@@ -57,14 +57,14 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
     CONTACT_NO_BLUE_RADIO = (By.XPATH, '//input[contains(@id, "radio-no-blue-")]/..')
     CONTACT_REPORTS_RADIO = (By.XPATH, '//input[contains(@id, "radio-reports-only-")]/..')
     CONTACT_RESPONSES_RADIO = (By.XPATH, '//input[contains(@id, "radio-response-rates-")]/..')
-    ADD_CONTACT_DEPT_FORM_INPUT = (By.ID, 'input-deptForms-add-contact')
+    ADD_CONTACT_DEPT_FORM_INPUT = (By.XPATH, '//legend[text()=" Department Forms "]/following-sibling::div//input')
     ADD_CONTACT_DEPT_FORM_OPTION = (By.XPATH, '//li[@role="option"]')
     ADD_CONTACT_SAVE_BUTTON = (By.ID, 'save-dept-contact-add-contact-btn')
     ADD_CONTACT_CANCEL_BUTTON = (By.ID, 'cancel-dept-contact-add-contact-btn')
 
     @staticmethod
     def dept_contact_form_option(form):
-        return By.XPATH, f'//li[@role="option"][text()=" {form.name} "]'
+        return By.XPATH, f'//div[@class="v-list-item__title"]/span[text()="{form.name}"]'
 
     @staticmethod
     def dept_contact_form_remove_button(form):
@@ -85,8 +85,10 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         if user:
             self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_edit_input(user))
         for form in dept_forms:
-            self.wait_for_element_and_click(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
-            self.click_element_js(DeptDetailsAdminPage.dept_contact_form_option(form))
+            self.wait_for_page_and_click_js(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
+            self.remove_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
+            self.enter_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT, form.name)
+            self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_option(form))
             Wait(self.driver, utils.get_short_timeout()).until(
                 ec.presence_of_element_located(DeptDetailsAdminPage.dept_contact_form_remove_button(form)),
             )
@@ -98,8 +100,9 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
 
     def enter_user_flags(self, user, dept):
         role = next(filter(lambda r: (r.dept_id == dept.dept_id), user.dept_roles))
-        if not role.receives_comms:
-            self.wait_for_element_and_click(DeptDetailsAdminPage.CONTACT_COMMS_CBX)
+        checked = True if self.element(DeptDetailsAdminPage.CONTACT_COMMS_CBX).get_attribute('aria-checked') == 'true' else False
+        if (not role.receives_comms and checked) or (role.receives_comms and not checked):
+            self.wait_for_page_and_click_js(DeptDetailsAdminPage.CONTACT_COMMS_CBX)
         if user.blue_permissions == BluePerm.NO_BLUE:
             self.element(DeptDetailsAdminPage.CONTACT_NO_BLUE_RADIO).click()
         elif user.blue_permissions == BluePerm.BLUE_REPORTS:
