@@ -28,6 +28,10 @@ CREATE TABLE tmp_sis_instructors AS SELECT * FROM unholy_loch.sis_instructors;
 
 --
 
+DELETE FROM public.json_cache WHERE term_id = '{term_id}';
+
+--
+
 DELETE FROM unholy_loch.sis_sections WHERE term_id = '{term_id}';
 
 INSERT INTO unholy_loch.sis_sections (term_id, course_number,

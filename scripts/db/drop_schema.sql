@@ -73,6 +73,9 @@ ALTER TABLE IF EXISTS public.evaluation_types ALTER COLUMN id DROP DEFAULT;
 
 ALTER TABLE IF EXISTS ONLY public.evaluations DROP CONSTRAINT IF EXISTS evaluations_pkey;
 
+ALTER TABLE IF EXISTS ONLY public.json_cache DROP CONSTRAINT IF EXISTS json_cache_pkey;
+ALTER TABLE IF EXISTS public.json_cache ALTER COLUMN id DROP DEFAULT;
+
 ALTER TABLE IF EXISTS ONLY public.supplemental_sections DROP CONSTRAINT IF EXISTS supplemental_sections_pkey;
 ALTER TABLE IF EXISTS public.supplemental_sections ALTER COLUMN id DROP DEFAULT;
 
@@ -116,6 +119,9 @@ DROP TABLE IF EXISTS public.evaluation_types CASCADE;
 
 DROP SEQUENCE IF EXISTS public.evaluations_id_seq CASCADE;
 DROP TABLE IF EXISTS public.evaluations CASCADE;
+
+DROP SEQUENCE IF EXISTS public.json_cache_id_seq CASCADE;
+DROP TABLE IF EXISTS public.json_cache CASCADE;
 
 DROP TABLE IF EXISTS public.supplemental_instructors CASCADE;
 
