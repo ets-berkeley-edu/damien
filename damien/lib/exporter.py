@@ -48,7 +48,7 @@ def generate_exports(term_id, timestamp):
 
     # Past terms are included in 1) course-instructor mappings; 2) course-supervisor mappings for cross-listed courses.
     past_term_ids = term_ids_range(app.config['EARLIEST_TERM_ID'], term_id)[:-1]
-    course_instructors = list(csv.DictReader(stream_object_text('/exports/legacy/course_instructors.csv') or []))
+    course_instructors = list(csv.DictReader(stream_object_text('exports/legacy/course_instructors.csv') or []))
     xlisted_course_supervisors = []
 
     for past_term_id in past_term_ids:
@@ -59,7 +59,7 @@ def generate_exports(term_id, timestamp):
             course_ids = _generate_course_id_map(keys, course_number, past_term_id)
             for key in keys:
                 course_instructors.extend(
-                    _generate_course_instructor_rows(course_ids[key], evaluation_keys_to_instructor_uids, key.evaluation_type))
+                    _generate_course_instructor_rows(course_ids[key], evaluation_keys_to_instructor_uids[key], key.evaluation_type))
                 xlisted_course_supervisors.extend(
                     _generate_xlisted_course_supervisor_rows(course_ids[key], course_number, sections, dept_forms_to_uids, all_catalog_listings))
 
