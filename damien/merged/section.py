@@ -259,8 +259,12 @@ class Section:
             exports[export_key].add(e.instructor_uid)
         return exports
 
-    def get_evaluation_feed(self, department, evaluation_ids=None):
-        evaluation_feed = fetch_section_cache(department.id, self.term_id, self.course_number)
+    def get_evaluation_feed(self, department, sections_cache=None, evaluation_ids=None):
+        if sections_cache:
+            evaluation_feed = sections_cache.get(self.course_number)
+        else:
+            evaluation_feed = fetch_section_cache(department.id, self.term_id, self.course_number)
+
         if not evaluation_feed:
             merged_evaluations = self.merge_evaluations(department=department)
             evaluation_feed = [e.to_api_json(section=self) for e in merged_evaluations]

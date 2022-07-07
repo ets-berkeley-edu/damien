@@ -38,6 +38,10 @@ def fetch_all_departments(term_id):
     return {d.department_id: d.json for d in JsonCache.fetch_all_departments(term_id)}
 
 
+def fetch_all_sections(department_id, term_id):
+    return {s.course_number: s.json for s in JsonCache.fetch_all_sections(term_id, department_id)}
+
+
 def fetch_department_cache(department_id, term_id):
     return JsonCache.fetch_department(term_id, department_id)
 

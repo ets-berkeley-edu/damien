@@ -26,7 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from itertools import groupby
 
 from damien import db, std_commit
-from damien.lib.cache import fetch_department_cache, set_department_cache
+from damien.lib.cache import fetch_all_sections, fetch_department_cache, set_department_cache
 from damien.lib.queries import get_cross_listings, get_loch_instructors, get_loch_sections, get_loch_sections_by_ids, get_room_shares
 from damien.lib.util import isoformat
 from damien.merged.section import Section
@@ -208,9 +208,12 @@ class Department(Base):
         return exports
 
     def evaluations_feed(self, term_id=None, section_id=None, evaluation_ids=None):
+        term_id = term_id or app.config['CURRENT_TERM_ID']
+        sections_cache = fetch_all_sections(self.id, term_id)
+
         feed = []
         for s in self.get_visible_sections(term_id, section_id)['sections']:
-            feed.extend(s.get_evaluation_feed(department=self, evaluation_ids=evaluation_ids))
+            feed.extend(s.get_evaluation_feed(department=self, sections_cache=sections_cache, evaluation_ids=evaluation_ids))
 
         if not section_id:
             self.row_count = len(feed)
