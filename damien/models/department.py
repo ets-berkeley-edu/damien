@@ -186,11 +186,6 @@ class Department(Base):
                     evaluation_type_cache=all_eval_types,
                 ))
 
-        if not section_id:
-            self.row_count = len(sections)
-            db.session.add(self)
-            std_commit()
-
         return {'sections': sections, 'instructors': instructors}
 
     def get_evaluation_exports(self, term_id, evaluation_ids):
@@ -216,6 +211,12 @@ class Department(Base):
         feed = []
         for s in self.get_visible_sections(term_id, section_id)['sections']:
             feed.extend(s.get_evaluation_feed(department=self, evaluation_ids=evaluation_ids))
+
+        if not section_id:
+            self.row_count = len(feed)
+            db.session.add(self)
+            std_commit()
+
         return feed
 
     def to_api_json(
@@ -264,7 +265,7 @@ class Department(Base):
 
         if include_sections:
             if self.row_count is None:
-                self.get_visible_sections()['sections']
+                self.evaluations_feed(term_id)
             feed['totalSections'] = self.row_count
         return feed
 
