@@ -211,6 +211,8 @@ class Department(Base):
         term_id = term_id or app.config['CURRENT_TERM_ID']
         sections_cache = fetch_all_sections(self.id, term_id)
 
+        app.logger.debug(
+            f'Generating evaluations feed (dept_id={self.id}, term_id={term_id}, section_id={section_id}, evaluation_ids={evaluation_ids}')
         feed = []
         for s in self.get_visible_sections(term_id, section_id)['sections']:
             feed.extend(s.get_evaluation_feed(department=self, sections_cache=sections_cache, evaluation_ids=evaluation_ids))
@@ -219,7 +221,18 @@ class Department(Base):
             self.row_count = len(feed)
             db.session.add(self)
             std_commit()
+            self.cache_summary_feed(term_id)
 
+        return feed
+
+    def cache_summary_feed(self, term_id):
+        feed = {
+            'totalBlockers': Evaluation.count_department_blockers(self.id, term_id),
+            'totalConfirmed': Evaluation.count_department_confirmed(self.id, term_id),
+            'totalInError': Evaluation.count_department_errors(self.id, term_id),
+            'totalEvaluations': self.row_count,
+        }
+        set_department_cache(self.id, term_id, feed)
         return feed
 
     def to_api_json(
@@ -263,13 +276,7 @@ class Department(Base):
             if status is None:
                 status = fetch_department_cache(self.id, term_id)
             if status is None:
-                status = {
-                    'totalBlockers': Evaluation.count_department_blockers(self.id, term_id),
-                    'totalConfirmed': Evaluation.count_department_confirmed(self.id, term_id),
-                    'totalInError': Evaluation.count_department_errors(self.id, term_id),
-                    'totalEvaluations': self.row_count,
-                }
-                set_department_cache(self.id, term_id, status)
+                status = self.cache_summary_feed(term_id)
             feed.update(status)
 
         if include_sections:

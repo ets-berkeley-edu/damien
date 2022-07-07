@@ -27,9 +27,10 @@ import os
 from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from damien import cache, db, std_commit
+from damien import db, std_commit
 from damien.lib.queries import refresh_additional_instructors
 from damien.lib.util import resolve_sql_template
+from damien.models.department import Department
 from sqlalchemy.sql import text
 
 
@@ -66,13 +67,18 @@ def _bg_refresh_unholy_loch(app):
     with app.app_context():
         app.logger.info('Starting unholy loch refresh...')
         try:
+            term_id = app.config['CURRENT_TERM_ID']
             template_sql = 'refresh_unholy_loch.template.sql'
-            resolved_ddl = resolve_sql_template(template_sql, term_id=app.config['CURRENT_TERM_ID'])
+            resolved_ddl = resolve_sql_template(template_sql, term_id=term_id)
             db.session().execute(text(resolved_ddl))
             refresh_additional_instructors()
             std_commit()
-            cache.clear()
-            app.logger.info('Unholy loch refresh completed, cache cleared.')
+
+            # Pre-populate term cache by generating full evaluation feeds for all departments.
+            for d in Department.all_enrolled():
+                d.evaluations_feed(term_id=term_id)
+
+            app.logger.info('Unholy loch refresh completed, cache refreshed.')
         except Exception as e:
             app.logger.error('Unholy loch refresh failed:')
             app.logger.exception(e)
