@@ -217,7 +217,7 @@ class Department(Base):
         for s in self.get_visible_sections(term_id, section_id)['sections']:
             feed.extend(s.get_evaluation_feed(department=self, sections_cache=sections_cache, evaluation_ids=evaluation_ids))
 
-        if not section_id:
+        if not section_id and not evaluation_ids:
             self.row_count = len(feed)
             db.session.add(self)
             std_commit()

@@ -157,7 +157,7 @@ class Evaluation(Base):
         db.session.execute(update(cls).where(conditions).values(status=status))
         for dept_id in dept_ids:
             clear_department_cache(dept_id, term_id)
-            clear_section_cache(dept_id, term_id, course_number)
+        clear_section_cache(term_id, course_number)
 
     @classmethod
     def count_department_blockers(cls, department_id, term_id):
@@ -257,7 +257,7 @@ class Evaluation(Base):
             db.session.add(duplicate)
             evaluations.extend([evaluation, duplicate])
 
-            clear_section_cache(department.id, evaluation.term_id, evaluation.course_number)
+            clear_section_cache(evaluation.term_id, evaluation.course_number)
             term_id = evaluation.term_id
 
         if term_id:
@@ -385,7 +385,7 @@ class Evaluation(Base):
             evaluation.updated_by = current_user.get_uid()
             db.session.add(evaluation)
             evaluations.append(evaluation)
-            clear_section_cache(department_id, evaluation.term_id, evaluation.course_number)
+            clear_section_cache(evaluation.term_id, evaluation.course_number)
             term_id = evaluation.term_id
 
         if term_id:
@@ -432,7 +432,7 @@ class Evaluation(Base):
         self.conflicts[key].append({'department': foreign_dept_evaluation.department.dept_name, 'value': other_value})
         foreign_dept_evaluation.conflicts[key].append({'department': saved_evaluation.department.dept_name, 'value': self_value})
         clear_department_cache(foreign_dept_evaluation.department_id, self.term_id)
-        clear_section_cache(foreign_dept_evaluation.department_id, self.term_id, self.course_number)
+        clear_section_cache(self.term_id, self.course_number)
 
     def set_dates(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
         self.meeting_start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
@@ -608,7 +608,6 @@ class Evaluation(Base):
                 saved_evaluation.valid = updated_validity
                 db.session.add(saved_evaluation)
                 clear_department_cache(self.department_id, self.term_id)
-                clear_section_cache(self.department_id, self.term_id, self.course_number)
             self.valid = saved_evaluation.valid
         for fde in foreign_dept_evaluations:
             updated_validity = self.is_valid(fde)
@@ -616,7 +615,7 @@ class Evaluation(Base):
                 fde.valid = updated_validity
                 db.session.add(fde)
                 clear_department_cache(fde.department_id, self.term_id)
-                clear_section_cache(fde.department_id, self.term_id, self.course_number)
+        clear_section_cache(self.term_id, self.course_number)
         std_commit()
 
 
