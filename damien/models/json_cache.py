@@ -50,7 +50,7 @@ class JsonCache(Base):
 
     @classmethod
     def clear_department(cls, term_id, department_id):
-        cls.query.filter_by(term_id=term_id, department_id=department_id).delete(synchronize_session=False)
+        cls.query.filter_by(term_id=term_id, department_id=department_id, course_number=None).delete(synchronize_session=False)
 
     @classmethod
     def clear_department_section(cls, term_id, department_id, course_number):
