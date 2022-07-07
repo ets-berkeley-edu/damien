@@ -65,6 +65,10 @@ class JsonCache(Base):
         cls.query.filter_by(term_id=term_id).delete(synchronize_session=False)
 
     @classmethod
+    def fetch_all_departments(cls, term_id):
+        return cls.query.filter_by(term_id=term_id, course_number=None).all()
+
+    @classmethod
     def fetch_department(cls, term_id, department_id):
         stowed = cls.query.filter_by(term_id=term_id, department_id=department_id, course_number=None).first()
         if stowed is not None:

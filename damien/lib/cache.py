@@ -34,6 +34,10 @@ def clear_section_cache(department_id, term_id, course_number):
     JsonCache.clear_department_section(term_id, department_id, course_number)
 
 
+def fetch_all_departments(term_id):
+    return {d.department_id: d.json for d in JsonCache.fetch_all_departments(term_id)}
+
+
 def fetch_department_cache(department_id, term_id):
     return JsonCache.fetch_department(term_id, department_id)
 
