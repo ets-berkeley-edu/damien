@@ -593,7 +593,7 @@ export default {
       const defaultEndDate = this.$moment(this.$config.termDates.default.end)
 
       let lastEndDate = courseEndDate > defaultEndDate ? courseEndDate : defaultEndDate
-      if (lastEndDate === defaultEndDate && !this.selectedTerm.name.includes('Summer')) {
+      if (lastEndDate === defaultEndDate && !this.selectedTermName.includes('Summer')) {
         lastEndDate = lastEndDate.add(2, 'day')
       }
 

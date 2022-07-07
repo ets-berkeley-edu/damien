@@ -7,10 +7,10 @@ export function getEvaluationTerm(termId: string) {
 
 export function lockEvaluationTerm(termId: string) {
   return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/evaluation_term/lock`, {termId})
-    .then(response => response.data)
+    .then(response => response)
 }
 
 export function unlockEvaluationTerm(termId: string) {
   return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/evaluation_term/unlock`, {termId})
-    .then(response => response.data)
+    .then(response => response)
 }

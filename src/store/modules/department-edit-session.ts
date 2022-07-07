@@ -9,6 +9,7 @@ import {
   updateEvaluations
 } from '@/api/departments'
 import {getDepartmentForms} from '@/api/departmentForms'
+import store from '@/store'
 import Vue from 'vue'
 
 const $_decorateEvaluation = e => {
@@ -39,8 +40,9 @@ const $_getDepartmentForms = async function(commit) {
   })
 }
 
-const $_refresh = (commit, {departmentId, termId}) => {
+const $_refresh = (commit, departmentId) => {
   return new Promise<void>(resolve => {
+    const termId = store.getters['context/selectedTermId'] || Vue.prototype.$config.currentTermId
     getDepartment(departmentId, termId).then((department: any) => {
       commit('reset', {department, termId})
       commit('updateSelectedEvaluationIds')
@@ -57,10 +59,8 @@ const state = {
   errorDialog: false,
   errorDialogText: null,
   evaluations: [],
-  isSelectedTermLocked: false,
   note: undefined,
-  selectedEvaluationIds: [],
-  selectedTerm: undefined
+  selectedEvaluationIds: []
 }
 
 const getters = {
@@ -71,10 +71,8 @@ const getters = {
   errorDialog: (state: any): boolean => state.errorDialog,
   errorDialogText: (state: any): boolean => state.errorDialogText,
   evaluations: (state: any): any[] => state.evaluations,
-  isSelectedTermLocked: (state: any): boolean => state.isSelectedTermLocked,
   note: (state: any): string => state.note,
-  selectedEvaluationIds: (state: any): any[] => state.selectedEvaluationIds,
-  selectedTerm: (state: any): any => state.selectedTerm
+  selectedEvaluationIds: (state: any): any[] => state.selectedEvaluationIds
 }
 
 const actions = {
@@ -95,7 +93,7 @@ const actions = {
   deleteContact: ({commit, state}, userId: number) => {
     commit('setDisableControls', true)
     return deleteContact(state.department.id, userId).then(() => {
-      $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id})
+      $_refresh(commit, state.department.id)
     })
   },
   deselectAllEvaluations: ({commit}) => {
@@ -127,17 +125,17 @@ const actions = {
   filterSelectedEvaluations: ({commit}, {searchFilterResults, enabledStatuses}) => {
     commit('filterSelectedEvaluations', {searchFilterResults, enabledStatuses})
   },
-  init: ({commit}, {departmentId: departmentId, termId: termId}) => {
+  init: ({commit}, departmentId: number) => {
     $_getDepartmentForms(commit)
     return new Promise<void>(resolve => {
-      $_refresh(commit, {departmentId, termId})
+      $_refresh(commit, departmentId)
         .then(commit('updateSelectedEvaluationIds'))
         .then(department => resolve(department))
     })
   },
   refreshAll: ({commit, state}) => {
     return new Promise<void>(resolve => {
-      $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id}).then(dept => resolve(dept))
+      $_refresh(commit, state.department.id).then(dept => resolve(dept))
     })
   },
   selectAllEvaluations: ({commit}, enabledStatuses: string[]) => {
@@ -160,15 +158,15 @@ const actions = {
     commit('setDisableControls', true)
     return new Promise<void>(resolve => {
       updateContact(state.department.id, contact).then(() => {
-        $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id}).then(dept => resolve(dept))
+        $_refresh(commit, state.department.id).then(dept => resolve(dept))
       })
     })
   },
-  updateNote: ({commit, state}, note: string) => {
+  updateNote: ({commit, state}, {note, termId}) => {
     commit('setDisableControls', true)
     return new Promise<void>(resolve => {
-      updateDepartmentNote(state.department.id, note, state.selectedTerm.id).then(() => {
-        $_refresh(commit, {departmentId: state.department.id, termId: state.selectedTerm.id}).then(dept => resolve(dept))
+      updateDepartmentNote(state.department.id, note, termId).then(() => {
+        $_refresh(commit, state.department.id).then(dept => resolve(dept))
       })
     })
   },
@@ -204,11 +202,9 @@ const mutations = {
       state.department = department
       _.each(department.evaluations, $_decorateEvaluation)
       state.evaluations = _.sortBy(department.evaluations, 'sortableCourseNumber')
-      state.isSelectedTermLocked = true === _.get(department, 'evaluationTerm.isLocked')
       state.note = _.get(department.notes, [termId, 'note'])
     }
     state.selectedEvaluationIds = []
-    state.selectedTerm = _.find(Vue.prototype.$config.availableTerms, {'id': termId})
     state.disableControls = false
   },
   selectAllEvaluations: (state: any, {searchFilterResults, enabledStatuses}) => {

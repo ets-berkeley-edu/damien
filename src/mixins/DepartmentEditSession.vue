@@ -17,10 +17,8 @@ export default {
       'errorDialog',
       'errorDialogText',
       'evaluations',
-      'isSelectedTermLocked',
       'note',
-      'selectedEvaluationIds',
-      'selectedTerm'
+      'selectedEvaluationIds'
     ])
   },
   methods: {

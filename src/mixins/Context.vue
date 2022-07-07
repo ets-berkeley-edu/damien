@@ -5,14 +5,18 @@ import {mapActions, mapGetters} from 'vuex'
 export default {
   name: 'Context',
   computed: {
-    ...mapGetters('context', ['loading', 'screenReaderAlert', 'serviceAnnouncement', 'snackbar']),
+    ...mapGetters('context', ['isSelectedTermLocked', 'loading', 'screenReaderAlert', 'selectedTermName', 'serviceAnnouncement', 'snackbar']),
     snackbarShow: {
       get: () => store.getters['context/snackbarShow'],
       set: show => store.dispatch(show ? 'context/snackbarOpen' : 'context/snackbarClose')
+    },
+    selectedTermId: {
+      get: () => store.getters['context/selectedTermId'],
+      set: termId => store.dispatch('context/selectTerm', {termId: termId})
     }
   },
   methods: {
-    ...mapActions('context', ['snackbarClose']),
+    ...mapActions('context', ['setIsSelectedTermLocked', 'snackbarClose', 'selectTerm']),
     alertScreenReader(message) {
       store.dispatch('context/alertScreenReader', '')
       Vue.nextTick(() => store.dispatch('context/alertScreenReader', message))
