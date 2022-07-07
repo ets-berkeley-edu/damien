@@ -227,6 +227,7 @@ class Department(Base):
         include_status=False,
         term_id=None,
         departments_cache=None,
+        notes_cache=None,
     ):
         feed = {
             'id': self.id,
@@ -236,8 +237,13 @@ class Department(Base):
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
         }
-        from damien.models.department_note import DepartmentNote
-        note = DepartmentNote.find_by_department_term(self.id, term_id)
+
+        note = None
+        if notes_cache:
+            note = notes_cache.get(self.id)
+        else:
+            from damien.models.department_note import DepartmentNote
+            note = DepartmentNote.find_by_department_term(self.id, term_id)
         feed['note'] = note.to_api_json() if note else None
 
         if include_contacts:

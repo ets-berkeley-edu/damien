@@ -27,7 +27,7 @@ from datetime import date
 import re
 
 from damien.api.errors import BadRequestError, ResourceNotFoundError
-from damien.api.util import admin_required, department_membership_required, get_term_id
+from damien.api.util import admin_required, department_membership_required, get_boolean_param, get_term_id
 from damien.lib import cache
 from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_valid_meeting_dates
@@ -64,9 +64,10 @@ def add_section(department_id):
 def enrolled_departments():
     enrolled_depts = Department.all_enrolled()
     cached = cache.fetch_all_departments(app.config['CURRENT_TERM_ID'])
-    include_contacts = bool(get_param(request.args, 'c', False))
-    include_sections = bool(get_param(request.args, 's', False))
-    include_status = bool(get_param(request.args, 't', False))
+    notes = DepartmentNote.find_by_term(app.config['CURRENT_TERM_ID'])
+    include_contacts = get_boolean_param(request.args, 'c', False)
+    include_sections = get_boolean_param(request.args, 's', False)
+    include_status = get_boolean_param(request.args, 't', False)
     term_id = get_term_id(request)
     return tolerant_jsonify([d.to_api_json(
         include_contacts=include_contacts,
@@ -74,6 +75,7 @@ def enrolled_departments():
         include_status=include_status,
         term_id=term_id,
         departments_cache=cached,
+        notes_cache=notes,
     ) for d in enrolled_depts])
 
 
