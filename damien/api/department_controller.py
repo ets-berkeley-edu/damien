@@ -28,6 +28,7 @@ import re
 
 from damien.api.errors import BadRequestError, ResourceNotFoundError
 from damien.api.util import admin_required, department_membership_required, get_term_id
+from damien.lib import cache
 from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_valid_meeting_dates
 from damien.lib.util import get as get_param
@@ -62,6 +63,7 @@ def add_section(department_id):
 @admin_required
 def enrolled_departments():
     enrolled_depts = Department.all_enrolled()
+    cached = cache.fetch_all_departments(app.config['CURRENT_TERM_ID'])
     include_contacts = bool(get_param(request.args, 'c', False))
     include_sections = bool(get_param(request.args, 's', False))
     include_status = bool(get_param(request.args, 't', False))
@@ -71,6 +73,7 @@ def enrolled_departments():
         include_sections=include_sections,
         include_status=include_status,
         term_id=term_id,
+        departments_cache=cached,
     ) for d in enrolled_depts])
 
 

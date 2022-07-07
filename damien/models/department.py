@@ -225,6 +225,7 @@ class Department(Base):
         include_sections=False,
         include_status=False,
         term_id=None,
+        departments_cache=None,
     ):
         feed = {
             'id': self.id,
@@ -246,7 +247,11 @@ class Department(Base):
             feed['evaluations'] = evaluations
 
         if include_status:
-            status = fetch_department_cache(self.id, term_id)
+            status = None
+            if departments_cache:
+                status = departments_cache.get(self.id)
+            if status is None:
+                status = fetch_department_cache(self.id, term_id)
             if status is None:
                 status = {
                     'totalBlockers': Evaluation.count_department_blockers(self.id, term_id),
