@@ -415,9 +415,10 @@ def verify_actual_matches_expected(actual, expected):
     app.logger.info(f'Missing {missing}')
     assert not unexpected
     assert not missing
-    expected = list(map(dict, set(tuple(sorted(i.items())) for i in expected)))
-    app.logger.info(f'Expecting {len(expected)} rows, got {len(actual)}')
-    assert len(actual) == len(expected)
+    unique = []
+    [unique.append(i) for i in expected if i not in unique]
+    app.logger.info(f'Expecting {len(unique)} rows, got {len(actual)}')
+    assert len(actual) == len(unique)
 
 
 def expected_courses(evaluations):
@@ -622,3 +623,29 @@ def expected_dept_hierarchy():
             'LEVEL': '2',
         })
     return rows
+
+
+def expected_report_viewers():
+    sql = """
+            SELECT DISTINCT users.uid,
+                            department_forms.name AS form
+                       FROM users
+                  LEFT JOIN department_members ON department_members.user_id = users.id
+                  LEFT JOIN departments ON departments.id = department_members.department_id
+                  LEFT JOIN user_department_forms ON user_department_forms.user_id = users.id
+                  LEFT JOIN department_forms ON department_forms.id = user_department_forms.department_form_id
+                      WHERE users.is_admin IS FALSE
+                        AND department_forms.name IS NOT NULL
+                   ORDER BY uid, form
+    """
+    app.logger.info(sql)
+    result = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    viewers = []
+    for row in result:
+        viewers.append({
+            'SOURCE': row['form'],
+            'TARGET': row['uid'],
+            'ROLE_ID': 'DEPT_ADMIN',
+        })
+    return viewers

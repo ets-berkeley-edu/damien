@@ -34,9 +34,9 @@ import pytest
 @pytest.mark.usefixtures('page_objects')
 class TestEvalErrors:
 
-    # TODO instructor conflicts
+    # TODO verify users cannot set to confirmed when conflicts (x-list and share)
     # TODO verify SL cannot publish while conflicts
-    # TODO resolve conflicts
+    # TODO publish with conflicts resolved
 
     term = utils.get_current_term()
     all_contacts = utils.get_all_users()
@@ -119,6 +119,10 @@ class TestEvalErrors:
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.x_list_contact_2, self.x_list_dept_2)
         self.dept_details_dept_page.wait_for_eval_rows()
+        assert self.dept_form_1.name not in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
+        assert self.eval_type_1.name not in self.dept_details_dept_page.eval_type(self.x_list_eval)
+        unexpected = f"{self.x_list_start_1.strftime('%m/%d/%y')} - {self.x_list_end_1.strftime('%m/%d/%y')}"
+        assert unexpected not in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
         assert 'Conflicts with' not in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
         assert 'Conflicts with' not in self.dept_details_dept_page.eval_type(self.x_list_eval)
         assert 'Conflicts with' not in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
@@ -127,8 +131,7 @@ class TestEvalErrors:
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth()
         self.dept_details_admin_page.click_course_errors()
-        self.course_errors_page.wait_for_eval_rows()
-        self.course_errors_page.when_not_present(self.course_errors_page.section_row(self.x_list_eval), utils.get_short_timeout())
+        self.course_errors_page.wait_for_no_sections()
 
     # Dept 2 makes selections on unmarked row; Dept 1 verifies no changes to corresponding row; SL verifies no errors
 
@@ -148,6 +151,24 @@ class TestEvalErrors:
         expected = f"{self.x_list_start_2.strftime('%m/%d/%y')} - {self.x_list_end_2.strftime('%m/%d/%y')}"
         assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
 
+    def test_x_list_unmarked_dept_2_verify_form_conflict(self):
+        conflict_form = f'Conflicts with value {self.dept_form_1.name} from {self.x_list_dept_1.name} department'
+        assert self.dept_form_2.name in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
+        assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
+
+    def test_x_list_unmarked_dept_2_verify_type_conflict(self):
+        conflict_type = f'Conflicts with value {self.eval_type_1.name} from {self.x_list_dept_1.name} department'
+        assert self.eval_type_2.name in self.dept_details_dept_page.eval_type(self.x_list_eval)
+        assert conflict_type in self.dept_details_dept_page.eval_type(self.x_list_eval)
+
+    def test_x_list_unmarked_dept_2_verify_date_conflict(self):
+        pd_1 = self.x_list_start_1.strftime('%m/%d/%y')
+        pd_2 = self.x_list_start_2.strftime('%m/%d/%y')
+        conflict_date = f'Conflicts with period starting {pd_1} from {self.x_list_dept_1.name} department'
+        expected = f"{pd_2} - {self.x_list_end_2.strftime('%m/%d/%y')}"
+        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+        assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+
     def test_x_list_unmarked_dept_1_view_log_in(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.x_list_contact_1, self.x_list_dept_1)
@@ -157,12 +178,29 @@ class TestEvalErrors:
         expected = f"{self.x_list_start_1.strftime('%m/%d/%y')} - {self.x_list_end_1.strftime('%m/%d/%y')}"
         assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
 
+    def test_x_list_unmarked_dept_1_verify_form_conflict(self):
+        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.x_list_dept_2.name} department'
+        assert self.dept_form_1.name in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
+        assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
+
+    def test_x_list_unmarked_dept_1_verify_type_conflict(self):
+        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.x_list_dept_2.name} department'
+        assert self.eval_type_1.name in self.dept_details_dept_page.eval_type(self.x_list_eval)
+        assert conflict_type in self.dept_details_dept_page.eval_type(self.x_list_eval)
+
+    def test_x_list_unmarked_dept_1_verify_date_conflict(self):
+        pd_1 = self.x_list_start_1.strftime('%m/%d/%y')
+        pd_2 = self.x_list_start_2.strftime('%m/%d/%y')
+        conflict_date = f'Conflicts with period starting {pd_2} from {self.x_list_dept_2.name} department'
+        expected = f"{pd_1} - {self.x_list_end_1.strftime('%m/%d/%y')}"
+        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+        assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+
     def test_x_list_unmarked_sl_verify_no_dept_2_errors(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth()
         self.dept_details_admin_page.click_course_errors()
-        self.course_errors_page.wait_for_eval_rows()
-        self.course_errors_page.when_not_present(self.course_errors_page.section_row(self.x_list_eval), utils.get_short_timeout())
+        self.course_errors_page.wait_for_no_sections()
 
     # Dept 1 sets status to review; Dept 1 & 2 verify visible errors; SL verifies course errors
 
@@ -351,7 +389,3 @@ class TestEvalErrors:
         assert expected in self.course_errors_page.eval_period_dates(self.share_eval)
         conflict_date = f'Conflicts with period starting {pd_1} from {self.share_dept_1.name} department'
         assert conflict_date in self.course_errors_page.eval_period_dates(self.share_eval)
-
-# TODO - verify dept 2 is listed on the row since it made last edits
-# TODO - verify SL cannot publish while conflict
-# TODO - dept 1 ignores row

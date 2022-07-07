@@ -23,6 +23,8 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import time
+
 from flask import current_app as app
 from mrsbaylock.pages.page import Page
 from mrsbaylock.test_utils import utils
@@ -38,3 +40,11 @@ class ApiPage(Page):
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.presence_of_element_located((By.XPATH, '//*[contains(text(), "cleared")]')),
         )
+
+    def refresh_unholy_loch(self):
+        app.logger.info('Refreshing the Unholy Loch')
+        self.driver.get(f'{app.config["BASE_URL"]}/api/job/refresh_unholy_loch')
+        Wait(self.driver, utils.get_short_timeout()).until(
+            ec.presence_of_element_located((By.XPATH, '//*[contains(text(), "started")]')),
+        )
+        time.sleep(utils.get_short_timeout())
