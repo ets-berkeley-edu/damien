@@ -57,6 +57,14 @@ def department_membership_required(func):
     return _department_membership_required
 
 
+def get_boolean_param(_dict, key, default_value=None):
+    param = get_param(_dict, key, default_value)
+    if param == '0' or param == 'f':
+        return False
+    else:
+        return bool(param)
+
+
 def get_term_id(request):
     term_id = get_param(request.args, 'term_id', app.config['CURRENT_TERM_ID'])
     if term_id not in available_term_ids():

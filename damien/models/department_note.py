@@ -60,6 +60,10 @@ class DepartmentNote(Base):
         return cls.query.filter_by(department_id=department_id, term_id=term_id).first()
 
     @classmethod
+    def find_by_term(cls, term_id):
+        return {n.department_id: n for n in cls.query.filter_by(term_id=term_id).all()}
+
+    @classmethod
     def upsert(
         cls,
         department_id,
