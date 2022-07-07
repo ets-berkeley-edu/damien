@@ -70,7 +70,7 @@
           :cancel-action="onCancelDelete"
           :confirming="isConfirming"
           :perform-action="onDelete"
-          :text="`Are you sure you want to delete the ${$_.get(selectedTerm, 'name')} note?`"
+          :text="`Are you sure you want to delete the ${selectedTermName || ''} note?`"
           :title="'Delete note?'"
         />
       </v-toolbar>
@@ -134,7 +134,7 @@ export default {
       this.reset()
     },
     onDelete() {
-      this.updateNote().then(() => {
+      this.updateNote(null, this.selectedTermId).then(() => {
         this.alertScreenReader('Note deleted.')
         this.$putFocusNextTick('delete-dept-note-btn')
         this.reset()
@@ -145,7 +145,7 @@ export default {
       this.$putFocusNextTick('dept-note-textarea')
     },
     onSave() {
-      this.updateNote(this.item).then(() => {
+      this.updateNote(this.item, this.selectedTermId).then(() => {
         this.alertScreenReader('Note saved.')
         this.$putFocusNextTick('edit-dept-note-btn')
         this.reset()
@@ -153,7 +153,7 @@ export default {
     },
     reset() {
       this.isConfirming = false
-      this.isEditable = this.selectedTerm.id === this.$config.currentTermId
+      this.isEditable = this.selectedTermId === this.$config.currentTermId
       this.isEditing = false
       this.item = this.note
     }

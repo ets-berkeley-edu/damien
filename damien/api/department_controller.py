@@ -31,7 +31,7 @@ from damien.api.util import admin_required, department_membership_required, get_
 from damien.lib import cache
 from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_valid_meeting_dates
-from damien.lib.util import get as get_param
+from damien.lib.util import get as get_param, safe_strftime
 from damien.models.department import Department
 from damien.models.department_form import DepartmentForm
 from damien.models.department_note import DepartmentNote
@@ -239,4 +239,5 @@ def _validate_evaluation_fields(fields):  # noqa C901
 def _validate_current_term_date(submitted_date):
     term_begin, term_end = get_valid_meeting_dates(app.config['CURRENT_TERM_ID'])
     if submitted_date < term_begin or submitted_date > term_end:
-        raise BadRequestError(f'Date {date} outside current term.')
+        submitted_date = safe_strftime(submitted_date, '%m/%d/%Y')
+        raise BadRequestError(f'Date {submitted_date} outside current term.')

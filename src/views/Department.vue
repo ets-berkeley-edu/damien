@@ -1,48 +1,19 @@
 <template>
   <div class="pt-2">
-    <div v-if="$_.get(department, 'deptName')" class="d-flex align-center justify-space-between flex-wrap">
-      <h1 id="page-title" class="d-flex align-baseline flex-wrap mr-5">
-        {{ department.deptName }}&MediumSpace;
-        <span v-if="department.catalogListings">
-          ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})&MediumSpace;
-        </span>
-        <span v-if="selectedTerm"> - {{ $_.get(selectedTerm, 'name') }}</span>
-      </h1>
-      <div class="d-flex align-baseline justify-space-between">
-        <div v-if="$currentUser.isAdmin" class="d-flex align-baseline mr-3">
-          <label
-            id="select-term-label"
-            for="select-term"
-            class="align-self-baseline text-nowrap pr-3"
-          >
-            Term:
-          </label>
-          <select
-            id="select-term"
-            v-model="selectedTermId"
-            class="native-select-override select-term my-2 px-3"
-            :class="this.$vuetify.theme.dark ? 'dark' : 'light'"
-            :disabled="disableControls || loading"
-            @change="onChangeTerm"
-          >
-            <option
-              v-for="term in availableTerms"
-              :id="`term-option-${term.id}`"
-              :key="term.id"
-              :value="term.id"
-            >
-              {{ term.name }}
-            </option>
-          </select>
-        </div>
-        <div v-if="!loading && isSelectedTermLocked" class="ml-auto">
-          <span class="sr-only">Evaluation term is locked.</span>
-          <v-icon large>
-            mdi-lock
-          </v-icon>
-        </div>
-      </div>
-    </div>
+    <v-row class="pb-2" no-gutters>
+      <v-col cols="12" lg="9" class="d-flex align-baseline">
+        <h1 v-if="$_.get(department, 'deptName')" id="page-title">
+          {{ department.deptName }}&MediumSpace;
+          <span v-if="department.catalogListings">
+            ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})&MediumSpace;
+          </span>
+          <span v-if="selectedTermName"> - {{ selectedTermName }}</span>
+        </h1>
+      </v-col>
+      <v-col cols="12" lg="3">
+        <TermSelect :after-select="refresh" />
+      </v-col>
+    </v-row>
     <v-container v-if="!loading" class="mx-0 px-0 pb-6" fluid>
       <v-row justify="start">
         <v-col cols="12" md="5">
@@ -147,6 +118,7 @@ import DepartmentNote from '@/components/admin/DepartmentNote'
 import EditDepartmentContact from '@/components/admin/EditDepartmentContact'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
 import NotificationForm from '@/components/admin/NotificationForm'
+import TermSelect from '@/components/util/TermSelect'
 
 export default {
   name: 'Department',
@@ -155,16 +127,15 @@ export default {
     DepartmentNote,
     EditDepartmentContact,
     EvaluationTable,
-    NotificationForm
+    NotificationForm,
+    TermSelect
   },
   mixins: [Context, DepartmentEditSession],
   data: () => ({
-    availableTerms: undefined,
     contactDetailsPanel: [],
     contactsPanel: undefined,
     isAddingContact: false,
     isCreatingNotification: false,
-    selectedTermId: undefined
   }),
   computed: {
     notificationRecipients() {
@@ -174,11 +145,6 @@ export default {
         'recipients': this.$_.filter(this.contacts, 'canReceiveCommunications')
       }
     }
-  },
-  created() {
-    this.availableTerms = this.$config.availableTerms
-    this.selectedTermId = this.$config.currentTermId
-    this.refresh()
   },
   methods: {
     afterSaveContact() {
@@ -205,18 +171,12 @@ export default {
       this.alertScreenReader('Canceled. Nothing saved.')
       this.$putFocusNextTick('add-dept-contact-btn')
     },
-    onChangeTerm(event) {
-      const term = this.$_.find(this.availableTerms, ['id', event.target.value])
-      this.alertScreenReader(`Loading ${this.$_.get(term, 'name', 'term')}`)
-      this.refresh()
-      this.$putFocusNextTick('select-term')
-    },
-    refresh(screenreaderAlert) {
+    refresh() {
       this.$loading()
+      this.alertScreenReader(`Loading ${this.selectedTermName}`)
       const departmentId = this.$_.get(this.$route, 'params.departmentId')
-      const termId = this.selectedTermId
-      this.init({departmentId, termId}).then(department => {
-        this.$ready(`${department.deptName} ${this.$_.get(this.selectedTerm, 'name')}`, screenreaderAlert)
+      this.init(departmentId).then(department => {
+        this.$ready(`${department.deptName} ${this.selectedTermName}`)
       })
     }
   }
@@ -224,9 +184,6 @@ export default {
 </script>
 
 <style scoped>
-.select-term {
-  max-width: 200px;
-}
 .w-fit-content {
   width: fit-content;
 }

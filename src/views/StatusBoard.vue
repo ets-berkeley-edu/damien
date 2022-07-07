@@ -4,115 +4,8 @@
       <v-col cols="12" md="9" class="d-flex align-baseline">
         <h1 id="page-title">Evaluation Status Dashboard - {{ selectedTermName }}</h1>
       </v-col>
-      <v-col cols="12" md="3" class="d-flex align-center justify-end flex-wrap">
-        <div v-if="$currentUser.isAdmin" class="d-flex align-baseline mr-3">
-          <label
-            id="select-term-label"
-            for="select-term"
-            class="align-self-baseline text-nowrap pr-3"
-          >
-            Term:
-          </label>
-          <select
-            id="select-term"
-            v-model="selectedTermId"
-            class="native-select-override select-term my-2 px-3"
-            :class="this.$vuetify.theme.dark ? 'dark' : 'light'"
-            :disabled="loading"
-            @change="onChangeTerm"
-          >
-            <option
-              v-for="term in availableTerms"
-              :id="`term-option-${term.id}`"
-              :key="term.id"
-              :value="term.id"
-            >
-              {{ term.name }}
-            </option>
-          </select>
-        </div>
-        <div class="d-flex ml-4">
-          <label for="toggle-term-locked" class="text-nowrap pr-4 py-2">
-            {{ `${isTermLocked ? 'Unlock' : 'Lock'} term` }}
-          </label>
-          <v-switch
-            id="toggle-term-locked"
-            v-model="isTermLocked"
-            class="my-auto"
-            color="tertiary"
-            dense
-            :disabled="loading"
-            hide-details
-            inset
-            @change="toggleTermLocked"
-          />
-        </div>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="auto" class="mr-auto">
-        <div v-if="$_.size(blockers)">
-          <v-icon color="error">
-            mdi-alert-circle
-          </v-icon>
-          Publication is blocked by errors in departments:
-          <ul id="blocker-list" class="pl-4">
-            <li v-for="(count, deptName) in blockers" :key="deptName">
-              {{ deptName }} ({{ count }})
-            </li>
-          </ul>
-        </div>
-        <v-btn
-          id="publish-btn"
-          class="align-self-end my-4"
-          color="primary"
-          :disabled="isExporting || loading || !!$_.size(blockers)"
-          @click="publish"
-          @keypress.enter.prevent="publish"
-        >
-          <span v-if="!isExporting">Publish</span>
-          <v-progress-circular
-            v-if="isExporting"
-            :indeterminate="true"
-            color="white"
-            rotate="5"
-            size="20"
-            width="3"
-          ></v-progress-circular>
-        </v-btn>
-      </v-col>
-      <v-col cols="auto" class="pr-8 mb-2">
-        <v-expansion-panels v-model="exportsPanel" flat>
-          <v-expansion-panel class="panel-override">
-            <v-expansion-panel-header class="term-exports-btn">
-              <h2>Term Exports</h2>
-            </v-expansion-panel-header>
-            <v-expansion-panel-content>
-              <ul id="term-exports-list" class="pl-2">
-                <li v-for="(e, index) in termExports" :key="index">
-                  <a
-                    :id="`term-export-${index}`"
-                    download
-                    :href="`${$config.apiBaseUrl}/api/export/${encodeURIComponent(e.s3Path)}`"
-                  >
-                    <v-icon
-                      aria-hidden="false"
-                      aria-label="download"
-                      class="pr-2"
-                      color="anchor"
-                      role="img"
-                      small
-                    >
-                      mdi-tray-arrow-down
-                    </v-icon>
-                    {{ e.createdAt | moment('M/DD/YYYY HH:mm:SS') }}
-                    <span class="sr-only">term export</span>
-                  </a>
-                </li>
-              </ul>
-            </v-expansion-panel-content>
-          </v-expansion-panel>
-        </v-expansion-panels>
+      <v-col cols="12" md="3">
+        <TermSelect :after-select="refresh" />
       </v-col>
     </v-row>
     <v-card outlined class="elevation-1">
@@ -233,28 +126,21 @@
 
 <script>
 import {getDepartmentsEnrolled} from '@/api/departments'
-import {exportEvaluations, getExports} from '@/api/evaluations'
-import {getEvaluationTerm, lockEvaluationTerm, unlockEvaluationTerm} from '@/api/evaluationTerms'
-import Context from '@/mixins/Context.vue'
+import Context from '@/mixins/Context'
 import NotificationForm from '@/components/admin/NotificationForm'
+import TermSelect from '@/components/util/TermSelect'
 
 export default {
   name: 'StatusBoard',
-  components: {NotificationForm},
+  components: {NotificationForm, TermSelect},
   mixins: [Context],
   data: () => ({
-    availableTerms: [],
     blockers: {},
     departments: [],
-    exportsPanel: undefined,
     headers: [],
     isCreatingNotification: false,
     isExporting: false,
-    isTermLocked: false,
-    selectedDepartmentIds: [],
-    selectedTermId: null,
-    selectedTermName: null,
-    termExports: []
+    selectedDepartmentIds: []
   }),
   computed: {
     allDepartmentsSelected() {
@@ -281,10 +167,6 @@ export default {
     }
   },
   created() {
-    this.selectedTermId = this.$config.currentTermId
-    this.selectedTermName = this.$config.currentTermName
-    this.availableTerms = this.$config.availableTerms
-    this.loadSelectedTerm()
     this.headers = [
       {class: 'text-nowrap pt-12 pb-3', text: 'Department', value: 'deptName', width: '50%'},
       {class: 'text-nowrap pt-12 pb-3', text: 'Last Updated', value: 'updatedAt', width: '20%'},
@@ -327,36 +209,14 @@ export default {
         }
       })
     },
-    loadSelectedTerm() {
+    refresh() {
       this.$loading()
+      this.alertScreenReader(`Loading ${this.selectedTermName}`)
       this.departments = []
       getDepartmentsEnrolled(false, false, true, this.selectedTermId).then(data => {
         this.departments = data
         this.loadBlockers()
-        this.$ready(`Status Dashboard for ${this.selectedTermName}`)
-      })
-      getEvaluationTerm(this.selectedTermId).then(data => {
-        this.isTermLocked = data.isLocked === true
-      })
-      getExports(this.selectedTermId).then(data => {
-        this.termExports = data
-      })
-    },
-    onChangeTerm(event) {
-      const term = this.$_.find(this.availableTerms, ['id', event.target.value])
-      this.selectedTermId = term.id
-      this.selectedTermName = term.name
-      this.alertScreenReader(`Loading ${this.$_.get(term, 'name', 'term')}`)
-      this.loadSelectedTerm()
-      this.$putFocusNextTick('select-term')
-    },
-    publish() {
-      this.isExporting = true
-      this.alertScreenReader('Publishing.')
-      exportEvaluations().then(data => {
-        this.termExports.unshift(data)
-        this.isExporting = false
-        this.alertScreenReader('Publication complete.')
+        this.$ready(`Evaluation Status Dashboard for ${this.selectedTermName}`)
       })
     },
     toggleSelect(department) {
@@ -372,17 +232,6 @@ export default {
         this.selectedDepartmentIds = []
       } else {
         this.selectedDepartmentIds = this.$_.map(this.departments, 'id')
-      }
-    },
-    toggleTermLocked() {
-      if (this.isTermLocked) {
-        lockEvaluationTerm(this.selectedTermId).then(() => {
-          this.alertScreenReader(`Locked ${this.selectedTermName}`)
-        })
-      } else {
-        unlockEvaluationTerm(this.selectedTermId).then(() => {
-          this.alertScreenReader(`Unlocked ${this.selectedTermName}`)
-        })
       }
     }
   }
@@ -413,11 +262,5 @@ export default {
 .notify-all {
   position: absolute;
   top: 0;
-}
-.select-term {
-  max-width: 200px;
-}
-.term-exports-btn {
-  width: 225px;
 }
 </style>

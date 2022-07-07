@@ -1,10 +1,10 @@
 import _ from 'lodash'
 import auth from './auth'
 import BaseView from '@/views/BaseView.vue'
-import CourseErrors from '@/views/CourseErrors.vue'
 import Department from '@/views/Department.vue'
 import Error from '@/views/Error.vue'
 import Login from '@/views/Login.vue'
+import Megiddo from '@/views/Megiddo.vue'
 import NannysRoom from '@/views/NannysRoom.vue'
 import NotFound from '@/views/NotFound.vue'
 import StatusBoard from '@/views/StatusBoard.vue'
@@ -87,10 +87,10 @@ const router = new Router({
           }
         },
         {
-          path: '/errors',
-          component: CourseErrors,
+          path: '/publish',
+          component: Megiddo,
           meta: {
-            title: 'Course Errors Board'
+            title: 'Publish'
           }
         },
         {
