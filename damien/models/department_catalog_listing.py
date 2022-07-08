@@ -35,6 +35,7 @@ class DepartmentCatalogListing(Base):
     subject_area = db.Column(db.String(255), nullable=False)
     catalog_id = db.Column(db.String(255))
     default_form_id = db.Column(db.Integer, db.ForeignKey('department_forms.id'), nullable=False)
+    custom_evaluation_types = db.Column(db.Boolean, nullable=False, default=False)
 
     department = db.relationship('Department', back_populates='catalog_listings')
     default_form = db.relationship('DepartmentForm', back_populates='catalog_listings')
@@ -45,18 +46,21 @@ class DepartmentCatalogListing(Base):
         subject_area,
         catalog_id,
         default_form_id,
+        custom_evaluation_types,
     ):
         self.department_id = department_id
         self.subject_area = subject_area
         self.catalog_id = catalog_id
         self.default_form_id = default_form_id
+        self.custom_evaluation_types = custom_evaluation_types
 
     def __repr__(self):
         return f"""<DepartmentCatalogListing id={self.id},
                     department_id={self.department_id},
                     subject_area={self.subject_area},
                     catalog_id={self.catalog_id}>,
-                    default_form_id={self.default_form_id}>
+                    default_form_id={self.default_form_id}>,
+                    custom_evaluation_type={self.custom_evaluation_types}
                 """
 
     @classmethod
@@ -66,12 +70,14 @@ class DepartmentCatalogListing(Base):
             subject_area,
             catalog_id,
             default_form_id,
+            custom_evaluation_types,
     ):
         department_catalog_listing = cls(
             department_id=department_id,
             subject_area=subject_area,
             catalog_id=catalog_id,
             default_form_id=default_form_id,
+            custom_evaluation_types=custom_evaluation_types,
         )
         db.session.add(department_catalog_listing)
         std_commit()

@@ -340,7 +340,7 @@ class Evaluation(Base):
         foreign_dept_evaluations=(),
         instructor=None,
         default_form=None,
-        evaluation_type_cache=None,
+        default_evaluation_types=None,
     ):
         transient_evaluation = cls(
             term_id=loch_rows[0].term_id,
@@ -355,10 +355,8 @@ class Evaluation(Base):
         else:
             transient_evaluation.department_id = None
 
-        all_eval_types = evaluation_type_cache or {et.name: et for et in EvaluationType.query.all()}
-
         transient_evaluation.set_department_form(saved_evaluation, foreign_dept_evaluations, default_form)
-        transient_evaluation.set_evaluation_type(saved_evaluation, foreign_dept_evaluations, instructor, all_eval_types)
+        transient_evaluation.set_evaluation_type(saved_evaluation, foreign_dept_evaluations, instructor, default_evaluation_types)
         transient_evaluation.set_dates(loch_rows, foreign_dept_evaluations, saved_evaluation)
         transient_evaluation.set_last_updated(loch_rows, saved_evaluation)
 
@@ -492,7 +490,7 @@ class Evaluation(Base):
         if default_form and not self.department_form:
             self.department_form = default_form
 
-    def set_evaluation_type(self, saved_evaluation, foreign_dept_evaluations, instructor, all_eval_types):
+    def set_evaluation_type(self, saved_evaluation, foreign_dept_evaluations, instructor, default_evaluation_types):
         if saved_evaluation and saved_evaluation.evaluation_type:
             self.evaluation_type = saved_evaluation.evaluation_type
             for fde in foreign_dept_evaluations:
@@ -504,13 +502,13 @@ class Evaluation(Base):
                     self.evaluation_type = fde.evaluation_type
                     break
         if not self.evaluation_type:
-            # TODO Leave blank if department_form above is set to LAW or SPANISH, otherwise set based on instructor affiliation.
-            if self.department_form and self.department_form.name in ('LAW', 'SPANISH'):
+            # Set default based on instructor affiliations, unless default types weren't passed in from the section object.
+            if not default_evaluation_types:
                 return
             elif instructor and 'STUDENT-TYPE' in instructor.get('affiliations', []):
-                self.evaluation_type = all_eval_types.get('G')
+                self.evaluation_type = default_evaluation_types.get('G')
             elif instructor and 'ACADEMIC' in instructor.get('affiliations', []):
-                self.evaluation_type = all_eval_types.get('F')
+                self.evaluation_type = default_evaluation_types.get('F')
 
     def set_fields(self, fields, original_evaluation_feed=None):
         if 'departmentForm' in fields:

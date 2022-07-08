@@ -210,6 +210,18 @@ class TestGetDepartment:
             assert hdr['crossListedWith'] == ['30643']
             assert hdr['departmentForm'] is None
 
+    def test_custom_evaluation_types(self, client, fake_auth):
+        """Refrain from supplying default evaluation types for catalog listings using custom evaluation types."""
+        fake_auth.login(non_admin_uid)
+        department = _api_get_melc(client)
+        for e in department['evaluations']:
+            if e['subjectArea'] == 'HISTORY':
+                print(e)
+                assert e['evaluationType'] is None
+            elif e.get('instructor', {}).get('affiliations'):
+                print(e)
+                assert e['evaluationType']
+
     def test_include_room_share(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         department = _api_get_melc(client)
