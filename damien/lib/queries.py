@@ -96,22 +96,24 @@ def get_confirmed_enrollments(term_id):
     return results
 
 
-def get_default_meeting_dates(term_id):
+def get_default_meeting_dates(term_ids):
     query = """SELECT
+        term_id,
         mode() WITHIN GROUP (ORDER BY meeting_start_date) AS start_date,
         mode() WITHIN GROUP (ORDER BY meeting_end_date) AS end_date
-        FROM unholy_loch.sis_sections where term_id = :term_id"""
-    results = db.session().execute(text(query), {'term_id': term_id}).all()
-    return results[0]
+        FROM unholy_loch.sis_sections WHERE term_id = ANY(:term_ids)
+        GROUP BY term_id"""
+    return db.session().execute(text(query), {'term_ids': term_ids}).all()
 
 
-def get_valid_meeting_dates(term_id):
+def get_valid_meeting_dates(term_ids):
     query = """SELECT
+        term_id,
         MIN(meeting_start_date) AS start_date,
         MAX(meeting_end_date) AS end_date
-        FROM unholy_loch.sis_sections where term_id = :term_id"""
-    results = db.session().execute(text(query), {'term_id': term_id}).all()
-    return results[0]
+        FROM unholy_loch.sis_sections WHERE term_id = ANY(:term_ids)
+        GROUP BY term_id"""
+    return db.session().execute(text(query), {'term_ids': term_ids}).all()
 
 
 def get_loch_basic_attributes(uids):

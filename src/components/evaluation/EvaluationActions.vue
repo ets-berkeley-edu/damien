@@ -87,8 +87,8 @@
             <c-date-picker
               v-model="bulkUpdateOptions.startDate"
               class="mx-3"
-              :min-date="$moment($config.termDates.valid.begin).toDate()"
-              :max-date="$moment($config.termDates.valid.end).subtract(13, 'days').toDate()"
+              :min-date="$moment(selectedTermValidDates.start).toDate()"
+              :max-date="$moment(selectedTermValidDates.end).subtract(13, 'days').toDate()"
               :popover="{positionFixed: true}"
               title-position="left"
             >
@@ -216,6 +216,10 @@ export default {
   computed: {
     allowEdits() {
       return this.$currentUser.isAdmin || !this.isSelectedTermLocked
+    },
+    selectedTermValidDates() {
+      const selectedTerm = this.$_.find(this.$config.availableTerms, {'id': this.selectedTermId})
+      return selectedTerm.validDates
     }
   },
   methods: {
@@ -254,6 +258,7 @@ export default {
           this.department.id,
           key,
           this.selectedEvaluationIds,
+          this.selectedTermId,
           fields
         ).then(response => this.afterApply(response), error => this.handleError(error))
       }

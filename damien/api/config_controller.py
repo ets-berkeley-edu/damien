@@ -36,12 +36,29 @@ from flask_login import current_user, login_required
 
 @app.route('/api/config')
 def app_config():
-    def _term_feed(term_id):
-        return {'id': term_id, 'name': term_name_for_sis_id(term_id)}
-    default_start, default_end = get_default_meeting_dates(app.config['CURRENT_TERM_ID'])
-    valid_start, valid_end = get_valid_meeting_dates(app.config['CURRENT_TERM_ID'])
+    def _term_feed(term_id, default_meeting_dates, valid_meeting_dates):
+        return {
+            'id': term_id,
+            'name': term_name_for_sis_id(term_id),
+            'defaultDates': {
+                'begin': safe_strftime(default_meeting_dates['start_date'], '%Y-%m-%d'),
+                'end': safe_strftime(default_meeting_dates['end_date'], '%Y-%m-%d'),
+            },
+            'validDates': {
+                'begin': safe_strftime(valid_meeting_dates['start_date'], '%Y-%m-%d'),
+                'end': safe_strftime(valid_meeting_dates['end_date'], '%Y-%m-%d'),
+            },
+        }
+
+    term_ids = available_term_ids()
+    default_meeting_dates = {row['term_id']: row for row in get_default_meeting_dates(term_ids)}
+    valid_meeting_dates = {row['term_id']: row for row in get_valid_meeting_dates(term_ids)}
     return tolerant_jsonify({
-        'availableTerms': [_term_feed(term_id) for term_id in available_term_ids()],
+        'availableTerms': [_term_feed(
+            term_id,
+            default_meeting_dates[term_id],
+            valid_meeting_dates[term_id],
+        ) for term_id in term_ids],
         'currentTermId': app.config['CURRENT_TERM_ID'],
         'currentTermName': term_name_for_sis_id(app.config['CURRENT_TERM_ID']),
         'damienEnv': app.config['DAMIEN_ENV'],
@@ -51,16 +68,6 @@ def app_config():
         'ebEnvironment': app.config['EB_ENVIRONMENT'] if 'EB_ENVIRONMENT' in app.config else None,
         'emailSupport': app.config['EMAIL_COURSE_EVALUATION_ADMIN'],
         'emailTestMode': app.config['EMAIL_TEST_MODE'],
-        'termDates': {
-            'default': {
-                'begin': safe_strftime(default_start, '%Y-%m-%d'),
-                'end': safe_strftime(default_end, '%Y-%m-%d'),
-            },
-            'valid': {
-                'begin': safe_strftime(valid_start, '%Y-%m-%d'),
-                'end': safe_strftime(valid_end, '%Y-%m-%d'),
-            },
-        },
         'timezone': app.config['TIMEZONE'],
     })
 

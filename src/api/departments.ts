@@ -1,8 +1,8 @@
 import axios from 'axios'
 import Vue from 'vue'
 
-export function addSection(departmentId: number, courseNumber: string) {
-  return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/section`, {courseNumber}).then(response => response.data, () => null)
+export function addSection(departmentId: number, courseNumber: string, termId: string) {
+  return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/section?term_id=${termId}`, {courseNumber}).then(response => response.data, () => null)
 }
 
 export function deleteContact(departmentId: number, userId: number) {
@@ -26,8 +26,8 @@ export function getDepartmentsEnrolled(
   return axios.get(url)
 }
 
-export function getSectionEvaluations(departmentId: number, courseNumber: string) {
-  return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/section_evaluations/${courseNumber}`)
+export function getSectionEvaluations(departmentId: number, courseNumber: string, termId: string) {
+  return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/section_evaluations/${courseNumber}?term_id=${termId}`)
 }
 
 export function notifyContacts(message: string, recipient: string[], subject: string) {
@@ -45,8 +45,8 @@ export function updateDepartmentNote(departmentId: number, note: string, termId?
   return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/note`, {termId, note}).then(response => response.data, () => null)
 }
 
-export function updateEvaluations(departmentId: number, action: string, evaluationIds: any[], fields?: Object) {
+export function updateEvaluations(departmentId: number, action: string, evaluationIds: any[], termId: string, fields?: Object) {
   return axios
-    .post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/evaluations`, {action, evaluationIds, fields})
+    .post(`${Vue.prototype.$config.apiBaseUrl}/api/department/${departmentId}/evaluations?term_id=${termId}`, {action, evaluationIds, fields})
     .then(response => response)
 }

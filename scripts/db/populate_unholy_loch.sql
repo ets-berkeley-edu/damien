@@ -68,6 +68,7 @@ VALUES
 
 INSERT INTO unholy_loch.sis_sections("term_id","course_number","subject_area","catalog_id","instruction_format","section_num","course_title","is_primary","instructor_uid","instructor_role_code","meeting_location","meeting_days","meeting_start_time","meeting_end_time","meeting_start_date","meeting_end_date","enrollment_count","created_at","deleted_at")
 VALUES
+('2218','30147','CUNEIF','101B','LEC','001','Selected Readings in Akkadian',TRUE,'606481','PI','Social Sciences Building 282','W','14:00','16:59','2021-08-25','2021-12-10',4,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30658','CUNEIF','101B','LEC','001','Selected Readings in Akkadian',TRUE,'606481','PI','Social Sciences Building 282','W','09:00','11:59','2022-01-18','2022-05-06',4,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30659','CUNEIF','102B','LEC','001','Elementary Sumerian',TRUE,'637739','PI','Haviland 214','TUTH','11:00','12:29','2022-01-18','2022-05-06',1,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30667','MELC','11','DIS','104','Middle Eastern Worlds: The Modern Middle East',FALSE,'688968','ICNT','Dwinelle 251','TU','12:00','12:59','2022-01-18','2022-05-06',22,'2022-01-19 17:01:10.324583-08',NULL),

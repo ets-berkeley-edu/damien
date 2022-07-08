@@ -66,8 +66,18 @@ class TestConfigController:
         assert response.status_code == 200
         data = response.json
         assert len(data['availableTerms']) == 2
-        assert data['availableTerms'][0] == {'id': '2218', 'name': 'Fall 2021'}
-        assert data['availableTerms'][1] == {'id': '2222', 'name': 'Spring 2022'}
+        assert data['availableTerms'][0] == {
+            'id': '2218',
+            'name': 'Fall 2021',
+            'defaultDates': {'begin': '2021-08-25', 'end': '2021-12-10'},
+            'validDates': {'begin': '2021-08-25', 'end': '2021-12-10'},
+        }
+        assert data['availableTerms'][1] == {
+            'id': '2222',
+            'name': 'Spring 2022',
+            'defaultDates': {'begin': '2022-01-18', 'end': '2022-05-06'},
+            'validDates': {'begin': '2022-01-18', 'end': '2022-05-06'},
+        }
 
     def test_current_term(self, app, client, fake_auth):
         fake_auth.login(non_admin_uid)
@@ -75,10 +85,7 @@ class TestConfigController:
         assert response.status_code == 200
         data = response.json
         assert data['currentTermId'] == '2222'
-        assert data['termDates']['default']['begin'] == '2022-01-18'
-        assert data['termDates']['default']['end'] == '2022-05-06'
-        assert data['termDates']['valid']['begin'] == '2022-01-18'
-        assert data['termDates']['valid']['end'] == '2022-05-06'
+        assert data['currentTermName'] == 'Spring 2022'
 
 
 class TestServiceAnnouncement:
