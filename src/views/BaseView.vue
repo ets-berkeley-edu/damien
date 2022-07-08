@@ -59,7 +59,7 @@
       dark
     >
       <div class="display-1 text-no-wrap">
-        Course Evaluation
+        Course Evaluations
         <a
           id="skip-to-content-link"
           href="#content"

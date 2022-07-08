@@ -10,14 +10,14 @@
         >
           <div class="text-center">
             <h1 id="page-title">
-              <strong>Welcome to Course Evaluation</strong>
+              <strong>Welcome to Course Evaluations</strong>
               {{ $config.currentTermName }}
             </h1>
           </div>
           <v-card-actions class="px-16 pt-12 d-flex flex-column">
             <v-btn
               id="log-in"
-              aria-label="Log in to Course Evaluation. (You will be sent to CalNet login page.)"
+              aria-label="Log in to Course Evaluations. (You will be sent to CalNet login page.)"
               block
               color="accent"
               large
@@ -54,7 +54,7 @@ export default {
     if (error) {
       this.reportError(error)
     } else {
-      this.alertScreenReader(`Welcome to Course Evaluation - ${this.$config.currentTermName}. Please log in.`)
+      this.alertScreenReader(`Welcome to Course Evaluations - ${this.$config.currentTermName}. Please log in.`)
     }
 
   },
