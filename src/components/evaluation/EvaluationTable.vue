@@ -794,7 +794,7 @@ tr.border-top-none td {
   min-width: 155px;
 }
 .evaluation-instructor {
-  min-width: 175p;
+  min-width: 175px;
 }
 .evaluation-last-updated {
   min-width: 100px;
