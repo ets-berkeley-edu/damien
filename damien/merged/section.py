@@ -37,9 +37,9 @@ class Section:
         self,
         loch_rows,
         evaluations=(),
-        instructors=None,
         catalog_listings=(),
-        evaluation_type_cache=None,
+        evaluation_types=None,
+        instructors=None,
     ):
         self.term_id = loch_rows[0].term_id
         self.course_number = loch_rows[0].course_number
@@ -56,10 +56,9 @@ class Section:
         self.loch_rows = loch_rows
         self.evaluations = evaluations
         self.instructors = instructors or {}
-        self.evaluation_type_cache = evaluation_type_cache
 
         self.set_cross_listed_status(loch_rows)
-        self.set_default_form(catalog_listings)
+        self.set_defaults(catalog_listings, evaluation_types)
 
     @classmethod
     def is_visible_by_default(cls, loch_row):
@@ -97,17 +96,25 @@ class Section:
         self.cross_listed_with = sorted(self.cross_listed_with)
         self.room_shared_with = sorted(self.room_shared_with)
 
-    def set_default_form(self, catalog_listings):
-        # Apply a default form value to courses not cross-listed or room shared.
-        if self.cross_listed_with or self.room_shared_with:
-            self.default_form = None
-        else:
-            self.default_form = self.find_default_form(catalog_listings)
-
-    def find_default_form(self, catalog_listings):
+    def find_catalog_listing(self, catalog_listings):
         for c in catalog_listings:
             if c.subject_area in (self.subject_area, '') and (c.catalog_id is None or re.match(c.catalog_id, self.catalog_id)):
-                return c.default_form
+                return c
+
+    def set_defaults(self, catalog_listings, evaluation_types):
+        catalog_listing = self.find_catalog_listing(catalog_listings)
+
+        # Apply a default form value to courses not cross-listed or room shared.
+        if catalog_listing and not self.cross_listed_with and not self.room_shared_with:
+            self.default_form = catalog_listing.default_form
+        else:
+            self.default_form = None
+
+        # Apply default evaluation types unless the catalog listing uses custom types.
+        if catalog_listing and not catalog_listing.custom_evaluation_types:
+            self.default_evaluation_types = evaluation_types
+        else:
+            self.default_evaluation_types = None
 
     def merge_evaluations(self, department):
         merged_evaluations = []
@@ -177,7 +184,7 @@ class Section:
                 foreign_dept_evaluations=foreign_dept_evals_by_uid.get(evaluation.instructor_uid, []),
                 instructor=self.instructors.get(evaluation.instructor_uid),
                 default_form=self.default_form,
-                evaluation_type_cache=self.evaluation_type_cache,
+                default_evaluation_types=self.default_evaluation_types,
             ))
 
     def merge_loch_evaluations(
@@ -203,7 +210,7 @@ class Section:
                 foreign_dept_evaluations=foreign_dept_evals_by_uid.get(instructor_uid, []),
                 instructor=self.instructors.get(instructor_uid),
                 default_form=self.default_form,
-                evaluation_type_cache=self.evaluation_type_cache,
+                default_evaluation_types=self.default_evaluation_types,
             ))
 
     def merge_foreign_dept_evaluations(
@@ -226,7 +233,7 @@ class Section:
                 foreign_dept_evaluations=evaluations_for_instructor_uid,
                 instructor=self.instructors.get(instructor_uid),
                 default_form=self.default_form,
-                evaluation_type_cache=self.evaluation_type_cache,
+                default_evaluation_types=self.default_evaluation_types,
             ))
 
     def to_api_json(self):

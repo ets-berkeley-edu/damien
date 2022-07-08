@@ -361,9 +361,13 @@ INSERT INTO listings (dept_name, subject_area, catalog_id, default_form) VALUES
 INSERT INTO department_forms (name) SELECT DISTINCT default_form FROM listings;
 
 INSERT INTO department_catalog_listings
-  (department_id, subject_area, catalog_id, default_form_id)
+  (department_id, subject_area, catalog_id, default_form_id, custom_evaluation_types)
 SELECT
-  departments.id, listings.subject_area, listings.catalog_id, department_forms.id
+  departments.id,
+  listings.subject_area,
+  listings.catalog_id,
+  department_forms.id,
+  CASE WHEN listings.subject_area = 'HISTORY' THEN TRUE ELSE FALSE END
 FROM listings
   JOIN departments ON departments.dept_name = listings.dept_name
   JOIN department_forms ON department_forms.name = listings.default_form;

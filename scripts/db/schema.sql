@@ -43,6 +43,7 @@ CREATE TABLE department_catalog_listings (
     subject_area VARCHAR(255) NOT NULL,
     catalog_id VARCHAR(255),
     default_form_id integer,
+    custom_evaluation_types boolean NOT NULL DEFAULT FALSE,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );

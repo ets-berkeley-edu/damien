@@ -170,6 +170,7 @@ class Department(Base):
         evaluations = Evaluation.fetch_by_course_numbers(term_id, sections_by_number.keys())
         instructors = _get_instructors(all_sections, evaluations)
         all_eval_types = {et.name: et for et in EvaluationType.query.all()}
+        all_catalog_listings = DepartmentCatalogListing.query.all()
 
         def _is_loch_row_visible(row):
             return Section.is_visible_by_default(row) or row['course_number'] in supplemental_section_ids or row['course_number'] == section_id
@@ -181,9 +182,9 @@ class Department(Base):
                 sections.append(Section(
                     visible_loch_rows,
                     section_evaluations,
-                    instructors=instructors,
-                    catalog_listings=self.catalog_listings,
-                    evaluation_type_cache=all_eval_types,
+                    all_catalog_listings,
+                    all_eval_types,
+                    instructors,
                 ))
 
         return {'sections': sections, 'instructors': instructors}
