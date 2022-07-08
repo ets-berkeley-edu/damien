@@ -22,7 +22,9 @@ const $_decorateEvaluation = e => {
   } else {
     e.sortableCourseNumber = e.courseNumber
   }
-  e.sortableCourseName = `${e.subjectArea} ${e.catalogId} ${e.instructionFormat} ${e.sectionNumber} ${e.courseTitle}`
+  // Sort catalog ids by numeric portion first.
+  const sortableCatalogId = `${e.catalogId.replace(/\D/g,'').padStart(3, '0')} ${e.catalogId}`
+  e.sortableCourseName = `${e.subjectArea} ${sortableCatalogId} ${e.instructionFormat} ${e.sectionNumber} ${e.courseTitle}`
   if (e.instructor) {
     e.sortableInstructor = `${e.instructor.lastName} ${e.instructor.firstName} ${e.instructor.uid} ${e.instructor.emailAddress}`
   } else {
