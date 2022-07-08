@@ -63,6 +63,19 @@
             hide-details="auto"
             label="Use midterm department forms"
           />
+          <div class="mt-3 mb-3 pb-2">
+            <label id="bulk-duplicate-select-type-label" for="bulk-duplicate-select-type">
+              Type:
+            </label>
+            <select 
+              id="bulk-duplicate-select-type" 
+              v-model="bulkUpdateOptions.evaluationType" 
+              class="native-select-override light d-block mx-auto"
+              :disabled="disableControls"
+            >
+              <option v-for="et in evaluationTypes" :key="et.id" :value="et.id">{{ et.name }}</option>
+            </select>
+          </div>
           <div class="d-flex align-center mt-2">
             <label
               for="bulk-duplicate-start-date"
@@ -126,6 +139,7 @@
 
 <script>
 import {getDepartmentForms} from '@/api/departmentForms'
+import {getEvaluationTypes} from '@/api/evaluationTypes'
 import {updateEvaluations} from '@/api/departments'
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
@@ -143,8 +157,10 @@ export default {
     bulkUpdateOptions: {
       midtermFormEnabled: false,
       startDate: null,
+      evaluationType: null,
     },
     courseActions: {},
+    evaluationTypes: [],
     instructor: null,
     isDuplicating: false,
     isLoading: false,
@@ -193,6 +209,9 @@ export default {
         text: 'Duplicate'
       }
     }
+    getEvaluationTypes().then(data => {
+      this.evaluationTypes = [{id: null, name: 'None'}].concat(data)
+    })
   },
   computed: {
     allowEdits() {
@@ -224,6 +243,9 @@ export default {
         if (this.bulkUpdateOptions.startDate) {
           fields.startDate = this.$moment(this.bulkUpdateOptions.startDate).format('YYYY-MM-DD')
         }
+        if (this.bulkUpdateOptions.evaluationType) {
+          fields.evaluationTypeId = this.bulkUpdateOptions.evaluationType
+        }
       }
       if (key !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds)) {
         this.setDisableControls(true)
@@ -251,6 +273,7 @@ export default {
       this.bulkUpdateOptions = {
         midtermFormEnabled: false,
         startDate: null,
+        evaluationType: null,
       }
       this.instructor = null
       this.isDuplicating = false
@@ -268,6 +291,12 @@ export default {
       const uniqueStartDates = this.$_.chain(selectedEvals).map(e => new Date(e.startDate).toDateString()).uniq().value()
       if (uniqueStartDates.length === 1) {
         this.bulkUpdateOptions.startDate = new Date(uniqueStartDates[0])
+      }
+
+      // Pre-populate type if shared by all selected evals
+      const uniqueTypes = this.$_.chain(selectedEvals).map(e => e.evaluationType.id).uniq().value()
+      if (uniqueTypes.length === 1) {
+        this.bulkUpdateOptions.evaluationType = selectedEvals[0].evaluationType.id
       }
 
       getDepartmentForms().then(allForms => {
