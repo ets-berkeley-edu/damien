@@ -284,8 +284,6 @@ class CourseDashboardEditsPage(CourseDashboards):
                 (By.XPATH, f'{self.eval_row_xpath(evaluation)}//button')),
         )
         self.hide_damien_footer()
-        if self.is_present(self.EVAL_CHANGE_CANCEL_BUTTON):
-            self.click_cancel_eval_changes()
         self.scroll_to_element(self.eval_row_el(evaluation))
         self.mouseover(self.eval_row_el(evaluation))
         self.wait_for_element_and_click((By.XPATH, f'{self.eval_row_xpath(evaluation)}//button'))

@@ -373,6 +373,21 @@ def delete_dept_note(term, dept):
     dept.note = None
 
 
+def get_dept_subject_areas(dept):
+    sql = f"""
+        SELECT subject_area
+          FROM department_catalog_listings
+         WHERE department_id = {dept.dept_id};
+    """
+    app.logger.info(sql)
+    results = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    subjects = []
+    for row in results:
+        subjects.append(row['subject_area'])
+    return subjects
+
+
 # TEST DATA
 
 
