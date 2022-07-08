@@ -437,7 +437,7 @@ class Evaluation(Base):
     def set_dates(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
         self.meeting_start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
         self.meeting_end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)
-        default_meeting_dates = get_default_meeting_dates(self.term_id)
+        default_meeting_dates = get_default_meeting_dates(term_ids=[self.term_id])[0]
         if not self.meeting_start_date:
             self.meeting_start_date = default_meeting_dates['start_date']
         if not self.meeting_end_date:

@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex align-center justify-end flex-wrap">
-    <div v-if="$currentUser.isAdmin" class="d-flex align-baseline mr-3">
+    <div class="d-flex align-baseline mr-3">
       <label
         id="select-term-label"
         for="select-term"
@@ -27,10 +27,15 @@
       </select>
     </div>
     <div class="d-flex ml-4">
-      <label for="toggle-term-locked" class="lock-label text-nowrap pr-4 py-2">
+      <label
+        v-if="$currentUser.isAdmin"
+        for="toggle-term-locked"
+        class="lock-label text-nowrap pr-4 py-2"
+      >
         {{ `${isSelectedTermLocked ? 'Unlock' : 'Lock'} term` }}
       </label>
       <v-switch
+        v-if="$currentUser.isAdmin"
         id="toggle-term-locked"
         class="my-auto"
         color="tertiary"

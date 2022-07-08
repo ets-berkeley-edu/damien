@@ -255,12 +255,12 @@ class TestGetDepartment:
         assert feed[4]['startDate'] == '2022-04-18'
 
 
-def _api_update_evaluation(client, dept_id=None, params=None, expected_status_code=200):
+def _api_update_evaluation(client, dept_id=None, params=None, term_id='2222', expected_status_code=200):
     if dept_id is None:
         dept = Department.find_by_name('Middle Eastern Languages and Cultures')
         dept_id = dept.id
     response = client.post(
-        f'/api/department/{dept_id}/evaluations',
+        f'/api/department/{dept_id}/evaluations?term_id={term_id}',
         data=json.dumps(params or {}),
         content_type='application/json',
     )
@@ -293,6 +293,12 @@ class TestUpdateEvaluationStatus:
     def test_bad_evaluation_ids(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         _api_update_evaluation(client, params={'evaluationIds': ['xxxx'], 'action': 'confirm'}, expected_status_code=400)
+
+    def test_invalid_term_id(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        params = {'evaluationIds': ['_2222_30659_637739'], 'action': 'confirm'}
+        _api_update_evaluation(client, params=params, term_id='abc', expected_status_code=400)
+        _api_update_evaluation(client, params=params, term_id='1234', expected_status_code=400)
 
     def test_confirm_invalid(self, client, fake_auth):
         # First, create an evaluation with missing instructor, department form and evaluation type

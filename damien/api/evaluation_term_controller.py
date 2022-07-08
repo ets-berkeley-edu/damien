@@ -61,4 +61,4 @@ def unlock_evaluation_term():
 
 def _validate(term_id):
     if term_id not in available_term_ids():
-        raise BadRequestError('Invalid term id.')
+        raise BadRequestError('Invalid term ID.')

@@ -590,7 +590,8 @@ export default {
     },
     maxStartDate(evaluation) {
       const courseEndDate = this.$moment(this.$_.get(evaluation, 'meetingDates.end'))
-      const defaultEndDate = this.$moment(this.$config.termDates.default.end)
+      const selectedTerm = this.$_.find(this.$config.availableTerms, {'id': this.selectedTermId})
+      const defaultEndDate = this.$moment(selectedTerm.defaultDates.end)
 
       let lastEndDate = courseEndDate > defaultEndDate ? courseEndDate : defaultEndDate
       if (lastEndDate === defaultEndDate && !this.selectedTermName.includes('Summer')) {
@@ -716,6 +717,7 @@ export default {
           this.editEvaluation({
             evaluationId: evaluation.id,
             sectionId: evaluation.courseNumber,
+            termId: this.selectedTermId,
             fields
           }).then(() => {
             this.alertScreenReader('Changes saved.')

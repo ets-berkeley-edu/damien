@@ -174,7 +174,10 @@ export default {
     },
     onSubmit(courseNumber) {
       this.alertScreenReader(`Adding section ${courseNumber}.`)
-      this.addSection(courseNumber).then(() => {
+      this.addSection({
+          sectionId: courseNumber,
+          termId: this.selectedTermId
+        }).then(() => {
         this.isAddingSection = false
         this.courseNumber = null
         this.section = null

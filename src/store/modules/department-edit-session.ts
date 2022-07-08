@@ -78,12 +78,12 @@ const getters = {
 }
 
 const actions = {
-  addSection: ({commit, state}, sectionId: string) => {
+  addSection: ({commit, state}, {sectionId, termId}) => {
     commit('setDisableControls', true)
     return new Promise((resolve: Function, reject) => {
-      addSection(state.department.id, sectionId)
+      addSection(state.department.id, sectionId, termId)
       .then(() => {
-        getSectionEvaluations(state.department.id, sectionId).then((data: any) => {
+        getSectionEvaluations(state.department.id, sectionId, termId).then((data: any) => {
           const updatedEvaluations = _.each(data, $_decorateEvaluation)
           commit('setEvaluationUpdate', {sectionIndex: 0, sectionCount: 0, updatedEvaluations})
           resolve()
@@ -105,12 +105,12 @@ const actions = {
     commit('setErrorDialog', false)
     commit('setErrorDialogText', null)
   },
-  editEvaluation: ({commit, state}, {evaluationId, sectionId, fields}) => {
+  editEvaluation: ({commit, state}, {evaluationId, sectionId, termId, fields}) => {
     commit('setDisableControls', true)
     return new Promise((resolve: Function, reject) => {
-      updateEvaluations(state.department.id, 'edit', [evaluationId], fields)
+      updateEvaluations(state.department.id, 'edit', [evaluationId], termId, fields)
       .then(() => {
-        getSectionEvaluations(state.department.id, sectionId).then((data: any) => {
+        getSectionEvaluations(state.department.id, sectionId, termId).then((data: any) => {
           let sectionIndex = _.findIndex(state.evaluations, ['courseNumber', sectionId])
           if (sectionIndex === -1) {
             sectionIndex = state.evaluations.length

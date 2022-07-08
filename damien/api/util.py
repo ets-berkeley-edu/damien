@@ -68,5 +68,5 @@ def get_boolean_param(_dict, key, default_value=None):
 def get_term_id(request):
     term_id = get_param(request.args, 'term_id', app.config['CURRENT_TERM_ID'])
     if term_id not in available_term_ids():
-        raise BadRequestError('Invalid term id.')
+        raise BadRequestError('Invalid term ID.')
     return term_id
