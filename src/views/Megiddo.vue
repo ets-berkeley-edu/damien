@@ -122,7 +122,7 @@ export default {
       this.$loading()
       this.alertScreenReader(`Loading ${this.selectedTermName}`)
       Promise.all([getValidation(), getExports(this.selectedTermId)]).then(responses => {
-        this.setEvaluations(this.$_.sortBy(responses[0], 'sortableCourseNumber'))
+        this.setEvaluations(this.$_.sortBy(responses[0], 'sortableCourseName'))
         this.termExports = responses[1]
         this.$ready(`Publish ${this.selectedTermName || ''}`)
       })

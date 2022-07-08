@@ -201,7 +201,7 @@ const mutations = {
       state.contacts = department.contacts
       state.department = department
       _.each(department.evaluations, $_decorateEvaluation)
-      state.evaluations = _.sortBy(department.evaluations, 'sortableCourseNumber')
+      state.evaluations = _.sortBy(department.evaluations, 'sortableCourseName')
       state.note = _.get(department.notes, [termId, 'note'])
     }
     state.selectedEvaluationIds = []
@@ -222,7 +222,7 @@ const mutations = {
   setErrorDialogText: (state: any, errorDialogText: string) => state.errorDialogText = errorDialogText,
   setEvaluations: (state: any, evaluations: any[]) => state.evaluations = evaluations,
   setEvaluationUpdate: (state: any, {sectionIndex, sectionCount, updatedEvaluations}) => {
-    const evaluations = _.sortBy(updatedEvaluations, 'sortableCourseNumber')
+    const evaluations = _.sortBy(updatedEvaluations, 'sortableCourseName')
     state.evaluations.splice(sectionIndex, sectionCount, ...evaluations)
   },
   setIsSelected: (state: any, evaluationId: any) => {
