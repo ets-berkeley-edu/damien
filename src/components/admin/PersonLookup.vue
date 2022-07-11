@@ -7,7 +7,7 @@
     :aria-disabled="disabled"
     :auto-select-first="true"
     :background-color="disabled ? 'disabled' : 'white'"
-    class="overflow-x-hidden person-lookup"
+    class="person-lookup"
     color="white"
     dense
     :disabled="disabled"
@@ -122,6 +122,9 @@ export default {
 <style>
 .autocomplete-menu {
   z-index: 203 !important;
+}
+.person-lookup {
+  overflow-x: clip;
 }
 .person-lookup.v-input--is-focused {
   appearance: auto !important;
