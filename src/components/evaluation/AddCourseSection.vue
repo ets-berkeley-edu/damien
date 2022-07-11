@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex align-baseline justify-end ml-auto add-course-section">
+  <div class="d-flex align-baseline add-course-section">
     <v-btn
       v-if="!isAddingSection"
       id="add-course-section-btn"
@@ -192,6 +192,8 @@ export default {
 <style scoped>
 .add-course-section {
   max-width: 300px;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 .form-label {
   font-size: 15px;
