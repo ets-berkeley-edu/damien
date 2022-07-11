@@ -441,8 +441,27 @@
     </v-dialog>
   </div>
   <div v-else class="no-eligible-sections">
-    <span>No eligible sections to load.</span>
-    <span v-if="!readonly && allowEdits">You may still add a section manually.</span>
+    <v-container class="grey lighten-5">
+      <v-row class="my-6">
+        <v-col align="center">
+          <div class="d-flex align-baseline justify-center">
+            <span>No eligible sections to load.</span>
+            <span v-if="!readonly && allowEdits">You may still add a section manually.</span>
+          </div>
+        </v-col>
+      </v-row>
+      <v-row class="my-6">
+        <v-col align="center">
+          <AddCourseSection
+            v-if="!readonly"
+            id="add-course-section"
+            :evaluations="evaluations"
+            :allow-edits="allowEdits"
+            class="d-flex align-baseline justify-center ml-0"
+          />
+        </v-col>
+      </v-row>
+    </v-container>
   </div>
 </template>
 
