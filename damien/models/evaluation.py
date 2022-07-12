@@ -36,7 +36,7 @@ from damien.models.department_form import DepartmentForm
 from damien.models.evaluation_type import EvaluationType
 from flask import current_app as app
 from flask_login import current_user
-from sqlalchemy import and_, orm, update
+from sqlalchemy import and_, func, orm, update
 from sqlalchemy.dialects.postgresql import ENUM
 
 
@@ -330,6 +330,14 @@ class Evaluation(Base):
         if evaluation_ids:
             filters.append(cls.id.in_(evaluation_ids))
         return cls.query.where(and_(*filters)).all()
+
+    @classmethod
+    def get_last_update(cls, department_id, term_id):
+        filters = [
+            cls.department_id == department_id,
+            cls.term_id == term_id,
+        ]
+        return db.session.query(func.max(cls.updated_at)).where(and_(*filters)).scalar()
 
     @classmethod
     def merge_transient(

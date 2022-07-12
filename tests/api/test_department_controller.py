@@ -82,6 +82,7 @@ class TestEnrolledDepartments:
         assert len(departments) == 82
         for d in departments:
             assert 'contacts' in d
+            assert 'lastUpdated' in d
             assert 'totalBlockers' in d
             assert 'totalConfirmed' in d
             assert 'totalEvaluations' in d
