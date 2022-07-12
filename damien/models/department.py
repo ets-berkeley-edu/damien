@@ -23,12 +23,13 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from datetime import datetime
 from itertools import groupby
 
 from damien import db, std_commit
 from damien.lib.cache import fetch_all_sections, fetch_department_cache, set_department_cache
 from damien.lib.queries import get_cross_listings, get_loch_instructors, get_loch_sections, get_loch_sections_by_ids, get_room_shares
-from damien.lib.util import isoformat
+from damien.lib.util import isoformat, safe_strftime
 from damien.merged.section import Section
 from damien.models.base import Base
 from damien.models.department_catalog_listing import DepartmentCatalogListing
@@ -46,6 +47,7 @@ class Department(Base):
     dept_name = db.Column(db.String(255), nullable=False)
     is_enrolled = db.Column(db.Boolean, nullable=False, default=False)
     row_count = db.Column(db.Integer)
+    last_updated = db.Column(db.Date)
 
     members = db.relationship(
         'DepartmentMember',
@@ -220,6 +222,7 @@ class Department(Base):
 
         if not section_id and not evaluation_ids:
             self.row_count = len(feed)
+            self.last_updated = datetime.strptime(max([e['lastUpdated'] for e in feed]), '%Y-%m-%d') if feed else None
             db.session.add(self)
             std_commit()
             self.cache_summary_feed(term_id)
@@ -251,6 +254,7 @@ class Department(Base):
             'deptName': self.dept_name,
             'isEnrolled': self.is_enrolled,
             'catalogListings': self.catalog_listings_map(),
+            'lastUpdated': safe_strftime(self.last_updated, '%Y-%m-%d'),
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
         }

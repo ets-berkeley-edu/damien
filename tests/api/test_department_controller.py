@@ -60,6 +60,7 @@ class TestEnrolledDepartments:
             assert d['isEnrolled']
             assert d['createdAt']
             assert d['updatedAt']
+            assert 'lastUpdated' in d
         agrs = next(d for d in departments if d['deptName'] == 'Ancient Greek and Roman Studies')
         assert agrs['catalogListings'] == {
             'AGRS': ['*'],

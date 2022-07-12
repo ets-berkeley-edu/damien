@@ -120,6 +120,7 @@ CREATE TABLE departments (
     dept_name character varying(255) NOT NULL,
     is_enrolled boolean NOT NULL DEFAULT FALSE,
     row_count integer,
+    last_updated DATE,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
