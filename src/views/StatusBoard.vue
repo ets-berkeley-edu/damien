@@ -67,7 +67,7 @@
                   </div>
                 </td>
                 <td :id="`last-updated-dept-${department.id}`" class="department-lastUpdated">
-                  {{ department.updatedAt | moment('MMM D, YYYY h:mma') }}
+                  {{ department.lastUpdated | moment('MMM D, YYYY') }}
                 </td>
                 <td class="department-errors">
                   <v-chip
