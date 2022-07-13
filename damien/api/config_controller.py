@@ -29,6 +29,8 @@ from damien.lib.berkeley import available_term_ids, term_name_for_sis_id
 from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_default_meeting_dates, get_valid_meeting_dates
 from damien.lib.util import safe_strftime, to_bool_or_none
+from damien.models.department_form import DepartmentForm
+from damien.models.evaluation_type import EvaluationType
 from damien.models.tool_setting import ToolSetting
 from flask import current_app as app, request
 from flask_login import current_user, login_required
@@ -53,6 +55,12 @@ def app_config():
     term_ids = available_term_ids()
     default_meeting_dates = {row['term_id']: row for row in get_default_meeting_dates(term_ids)}
     valid_meeting_dates = {row['term_id']: row for row in get_valid_meeting_dates(term_ids)}
+
+    department_forms = DepartmentForm.query.filter_by(deleted_at=None).order_by(DepartmentForm.name).all()
+    evaluation_types = EvaluationType.query.filter_by(deleted_at=None).order_by(EvaluationType.name).all()
+    # Force 'F' and 'G' to sort to the top of the list.
+    evaluation_types = sorted(evaluation_types, key=lambda e: {'F': '0', 'G': '00'}.get(e.name, e.name))
+
     return tolerant_jsonify({
         'availableTerms': [_term_feed(
             term_id,
@@ -62,12 +70,14 @@ def app_config():
         'currentTermId': app.config['CURRENT_TERM_ID'],
         'currentTermName': term_name_for_sis_id(app.config['CURRENT_TERM_ID']),
         'damienEnv': app.config['DAMIEN_ENV'],
+        'departmentForms': [d.to_api_json() for d in department_forms],
         'devAuthEnabled': app.config['DEVELOPER_AUTH_ENABLED'],
         'easterEggMonastery': app.config['EASTER_EGG_MONASTERY'],
         'easterEggNannysRoom': app.config['EASTER_EGG_NANNYSROOM'],
         'ebEnvironment': app.config['EB_ENVIRONMENT'] if 'EB_ENVIRONMENT' in app.config else None,
         'emailSupport': app.config['EMAIL_COURSE_EVALUATION_ADMIN'],
         'emailTestMode': app.config['EMAIL_TEST_MODE'],
+        'evaluationTypes': [e.to_api_json() for e in evaluation_types],
         'timezone': app.config['TIMEZONE'],
     })
 

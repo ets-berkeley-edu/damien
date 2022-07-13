@@ -138,8 +138,6 @@
 </template>
 
 <script>
-import {getDepartmentForms} from '@/api/departmentForms'
-import {getEvaluationTypes} from '@/api/evaluationTypes'
 import {updateEvaluations} from '@/api/departments'
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
@@ -209,9 +207,7 @@ export default {
         text: 'Duplicate'
       }
     }
-    getEvaluationTypes().then(data => {
-      this.evaluationTypes = [{id: null, name: 'None'}].concat(data)
-    })
+    this.evaluationTypes = [{id: null, name: 'None'}].concat(this.$config.evaluationTypes)
   },
   computed: {
     allowEdits() {
@@ -304,17 +300,15 @@ export default {
         this.bulkUpdateOptions.evaluationType = selectedEvals[0].evaluationType.id
       }
 
-      getDepartmentForms().then(allForms => {
-        // Show midterm form option only if a midterm form exists for all selected evals.
-        this.midtermFormAvailable = true
-        const availableFormNames = this.$_.map(allForms, 'name')
-        this.$_.each(selectedEvals, e => {
-          const formName = this.$_.get(e, 'departmentForm.name')
-          if (!formName || !(formName.endsWith('_MID') || availableFormNames.includes(formName + '_MID'))) {
-            this.midtermFormAvailable = false
-            return false
-          }
-        })
+      // Show midterm form option only if a midterm form exists for all selected evals.
+      this.midtermFormAvailable = true
+      const availableFormNames = this.$_.map(this.$config.departmentForms, 'name')
+      this.$_.each(selectedEvals, e => {
+        const formName = this.$_.get(e, 'departmentForm.name')
+        if (!formName || !(formName.endsWith('_MID') || availableFormNames.includes(formName + '_MID'))) {
+          this.midtermFormAvailable = false
+          return false
+        }
 
         this.instructor = null
         this.isDuplicating = true
