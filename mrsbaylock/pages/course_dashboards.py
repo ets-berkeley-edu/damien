@@ -83,12 +83,19 @@ class CourseDashboards(DamienPages):
             dates = ''
             if e.eval_start_date:
                 dates = f"{e.eval_start_date.strftime('%m/%d/%y')} - {e.eval_end_date.strftime('%m/%d/%y')}"
+            if e.instructor is None or e.instructor.uid is None:
+                uid = ''
+                name = ''
+            else:
+                uid = e.instructor.uid.strip()
+                name = f'{e.instructor.first_name} {e.instructor.last_name}'
             data.append(
                 {
                     'ccn': e.ccn,
                     'listings': (e.x_listing_ccns or e.room_share_ccns or ''),
                     'course': f'{e.subject} {e.catalog_id} {e.instruction_format} {e.section_num}',
-                    'uid': ('' if (e.instructor is None or e.instructor.uid is None) else e.instructor.uid.strip()),
+                    'uid': uid,
+                    'name': name,
                     'form': (e.dept_form or ''),
                     'type': (e.eval_type or ''),
                     'dates': dates,
@@ -103,10 +110,13 @@ class CourseDashboards(DamienPages):
             idx = el.get_attribute('id').split('-')[1]
             uid_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-instructor"]/div')
             uid = ''
+            name = ''
             if self.is_present(uid_loc):
-                uid = self.element(uid_loc).text.strip().split()[-1].replace('(', '').replace(')', '')
+                parts = self.element(uid_loc).text.strip().split()
+                uid = parts[-1].replace('(', '').replace(')', '')
+                name = parts[0:-1]
             listings_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-courseNumber"]/div[@class="xlisting-note"]')
-            listings = ''
+            listings = []
             if self.is_present(listings_loc):
                 listings = re.sub('[a-zA-Z()-]+', '', self.element(listings_loc).text).strip().split()
 
@@ -116,6 +126,7 @@ class CourseDashboards(DamienPages):
                     'listings': listings,
                     'course': self.element((By.ID, f'evaluation-{idx}-courseName')).text.strip(),
                     'uid': uid,
+                    'name': name,
                     'form': self.element((By.ID, f'evaluation-{idx}-departmentForm')).text.strip(),
                     'type': self.element((By.ID, f'evaluation-{idx}-evaluationType')).text.strip(),
                     'dates': self.element((By.ID, f'evaluation-{idx}-period')).text.split('\n')[0],
@@ -168,3 +179,155 @@ class CourseDashboards(DamienPages):
     def eval_period_duration(self, evaluation):
         xpath = f'{self.eval_row_xpath(evaluation)}/td[contains(@id, "period")]/span/div[2]'
         return self.element((By.XPATH, xpath)).text.strip()
+
+    # SORTING
+
+    def sort_asc(self, header_string):
+        el = self.element((By.XPATH, f'//th[contains(., "{header_string}")]'))
+        sort = el.get_attribute('aria-sort')
+        if sort == 'none' or sort == 'descending':
+            el.click()
+            if sort == 'descending':
+                time.sleep(utils.get_click_sleep())
+                el.click()
+        time.sleep(2)
+
+    def sort_desc(self, header_string):
+        el = self.element((By.XPATH, f'//th[contains(., "{header_string}")]'))
+        sort = el.get_attribute('aria-sort')
+        if sort == 'none' or sort == 'ascending':
+            el.click()
+            if sort == 'none':
+                time.sleep(utils.get_click_sleep())
+                el.click()
+        time.sleep(2)
+
+    @staticmethod
+    def insert_listings(evaluations, listings, reverse=False):
+        all_evaluations = []
+        for e in evaluations:
+            if not reverse:
+                all_evaluations.append(e)
+            matches = []
+            for x in listings:
+                if e.x_listing_ccns:
+                    if (x.ccn in e.x_listing_ccns) and (x.instructor.uid == e.instructor.uid):
+                        matches.append(x)
+                elif e.room_share_ccns:
+                    if (x.ccn in e.room_share_ccns) and (x.instructor.uid == e.instructor.uid):
+                        matches.append(x)
+            matches.sort(key=lambda l: l.ccn, reverse=reverse)
+            for m in matches:
+                all_evaluations.append(m)
+            if reverse:
+                all_evaluations.append(e)
+        return all_evaluations
+
+    @staticmethod
+    def get_catalog_id_suffix(evaluation):
+        num = ''.join([i for i in evaluation.catalog_id if i.isdigit()])
+        return evaluation.catalog_id.split(num)[1]
+
+    @staticmethod
+    def sort_by_course(evaluations, reverse=False):
+        evaluations.sort(
+            key=lambda e: (
+                e.subject,
+                int(''.join([i for i in e.catalog_id if i.isdigit()])),
+                (e.catalog_id.split(''.join([i for i in e.catalog_id if i.isdigit()]))[1]),
+                e.instruction_format,
+                e.section_num,
+                (e.eval_type or ''),
+                (e.dept_form or ''),
+                (e.instructor.last_name.lower() if e.instructor.uid else ''),
+                (e.instructor.first_name.lower() if e.instructor.uid else ''),
+                e.eval_start_date,
+            ),
+            reverse=reverse,
+        )
+
+    def sort_by_status(self, evaluations, reverse=False):
+        self.sort_by_course(evaluations)
+        evaluations.sort(
+            key=lambda e: (e.status.value['ui'] if e.status else ''),
+            reverse=reverse,
+        )
+
+    def sort_by_ccn(self, dept, evaluations, reverse=False):
+        dept_subj = utils.get_dept_subject_areas(dept)
+        dept_listings = list(filter(lambda e: e.subject in dept_subj, evaluations))
+        foreign_listings = [e for e in evaluations if e not in dept_listings]
+        dept_listings.sort(
+            key=lambda e: (
+                int(e.ccn),
+                (e.eval_type or ''),
+                (e.dept_form or ''),
+                (e.instructor.last_name.lower() if e.instructor.uid else ''),
+                (e.instructor.first_name.lower() if e.instructor.uid else ''),
+                e.eval_start_date,
+            ),
+            reverse=reverse,
+        )
+        return self.insert_listings(dept_listings, foreign_listings, reverse)
+
+    def sort_by_instructor(self, evaluations, reverse=False):
+        self.sort_by_course(evaluations)
+        evaluations.sort(
+            key=lambda e: (
+                (e.instructor.last_name.lower() if e.instructor.uid else ''),
+                (e.instructor.first_name.lower() if e.instructor.uid else ''),
+            ),
+            reverse=reverse,
+        )
+
+    def sort_by_dept_form(self, evaluations, reverse=False):
+        self.sort_by_course(evaluations)
+        evaluations.sort(
+            key=lambda e: (
+                (e.dept_form or ''),
+            ),
+            reverse=reverse,
+        )
+
+    def sort_by_eval_type(self, evaluations, reverse=False):
+        self.sort_by_course(evaluations)
+        evaluations.sort(
+            key=lambda e: (
+                (e.eval_type or ''),
+            ),
+            reverse=reverse,
+        )
+
+    def sort_by_eval_period(self, evaluations, reverse=False):
+        self.sort_by_course(evaluations)
+        evaluations.sort(
+            key=lambda e: (
+                e.eval_start_date,
+            ),
+            reverse=reverse,
+        )
+
+    @staticmethod
+    def sorted_eval_data(evaluations):
+        data = []
+        for e in evaluations:
+            data.append(
+                {
+                    'ccn': e.ccn,
+                    'listings': (e.x_listing_ccns or e.room_share_ccns),
+                    'course': f'{e.subject} {e.catalog_id} {e.instruction_format} {e.section_num}',
+                    'uid': (e.instructor.uid or ''),
+                    'form': (e.dept_form or ''),
+                    'type': (e.eval_type or ''),
+                },
+            )
+        unique = []
+        [unique.append(i) for i in data if i not in unique]
+        return unique
+
+    def visible_sorted_eval_data(self):
+        data = self.visible_eval_data()
+        for d in data:
+            d.pop('dates')
+            d.pop('name')
+        return data

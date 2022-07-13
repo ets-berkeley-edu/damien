@@ -35,15 +35,21 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 class ApiPage(Page):
 
-    def clear_cache(self):
+    def hit_cache_clear(self):
         self.driver.get(f'{app.config["BASE_URL"]}/api/cache/clear')
+
+    def clear_cache(self):
+        self.hit_cache_clear()
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.presence_of_element_located((By.XPATH, '//*[contains(text(), "cleared")]')),
         )
 
+    def hit_refresh_loch(self):
+        self.driver.get(f'{app.config["BASE_URL"]}/api/job/refresh_unholy_loch')
+
     def refresh_unholy_loch(self):
         app.logger.info('Refreshing the Unholy Loch')
-        self.driver.get(f'{app.config["BASE_URL"]}/api/job/refresh_unholy_loch')
+        self.hit_refresh_loch()
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.presence_of_element_located((By.XPATH, '//*[contains(text(), "started")]')),
         )

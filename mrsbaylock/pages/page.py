@@ -202,6 +202,7 @@ class Page(object):
 
     def wait_for_title(self, string):
         app.logger.info(f"'Waiting for page title '{string}'")
+        time.sleep(1)
         Wait(self.driver, utils.get_short_timeout()).until(
             method=(ec.title_is(string)),
             message=f'Failed wait_for_title: {string}',
