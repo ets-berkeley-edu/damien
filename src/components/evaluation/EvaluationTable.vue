@@ -466,8 +466,6 @@
 </template>
 
 <script>
-import {getDepartmentForms} from '@/api/departmentForms'
-import {getEvaluationTypes} from '@/api/evaluationTypes'
 import AddCourseSection from '@/components/evaluation/AddCourseSection'
 import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context'
@@ -765,12 +763,10 @@ export default {
     } else if (this.allowEdits) {
       this.headers = [{class: 'text-nowrap pr-1', text: 'Select', width: '30px'}].concat(this.headers)
     }
-    getDepartmentForms().then(data => {
-      this.departmentForms = [{id: null, name: 'Revert'}].concat(data)
-    })
-    getEvaluationTypes().then(data => {
-      this.evaluationTypes = [{id: null, name: 'None'}].concat(data)
-    })
+
+    this.departmentForms = [{id: null, name: 'Revert'}].concat(this.$config.departmentForms)
+    this.evaluationTypes = [{id: null, name: 'Revert'}].concat(this.$config.evaluationTypes)
+
     this.rules.instructorUid = () => {
       return this.$_.get(this.pendingInstructor, 'uid') ? true : 'Instructor is required.'}
   }

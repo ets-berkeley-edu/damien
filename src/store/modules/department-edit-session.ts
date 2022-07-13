@@ -8,7 +8,6 @@ import {
   updateDepartmentNote,
   updateEvaluations
 } from '@/api/departments'
-import {getDepartmentForms} from '@/api/departmentForms'
 import store from '@/store'
 import Vue from 'vue'
 
@@ -52,12 +51,6 @@ const $_decorateEvaluation = (e, allEvaluations) => {
   e.endDate = Vue.prototype.$moment(e.endDate).toDate()
   e.meetingDates.start = Vue.prototype.$moment(e.meetingDates.start).toDate()
   e.meetingDates.end = Vue.prototype.$moment(e.meetingDates.end).toDate()
-}
-
-const $_getDepartmentForms = async function(commit) {
-  getDepartmentForms().then((departmentForms: any) => {
-    commit('setAllDepartmentForms', departmentForms)
-  })
 }
 
 const $_refresh = (commit, departmentId) => {
@@ -146,7 +139,7 @@ const actions = {
     commit('filterSelectedEvaluations', {searchFilterResults, enabledStatuses})
   },
   init: ({commit}, departmentId: number) => {
-    $_getDepartmentForms(commit)
+    commit('setAllDepartmentForms', Vue.prototype.$config.departmentForms)
     return new Promise<void>(resolve => {
       $_refresh(commit, departmentId)
         .then(commit('updateSelectedEvaluationIds'))

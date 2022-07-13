@@ -87,6 +87,34 @@ class TestConfigController:
         assert data['currentTermId'] == '2222'
         assert data['currentTermName'] == 'Spring 2022'
 
+    def test_department_forms(self, app, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        response = client.get('/api/config')
+        assert response.status_code == 200
+        forms = response.json['departmentForms']
+        assert len(forms) == 195
+        for f in forms:
+            assert f['id']
+            assert f['name']
+            assert f['createdAt']
+            assert f['updatedAt']
+        assert next(f for f in forms if f['name'] == 'MUSIC')
+        assert next(f for f in forms if f['name'] == 'HUNGARI')
+
+    def test_evaluation_types(self, app, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        response = client.get('/api/config')
+        assert response.status_code == 200
+        eval_types = response.json['evaluationTypes']
+        assert len(eval_types) == 14
+        for e in eval_types:
+            assert e['id']
+            assert e['name']
+            assert e['createdAt']
+            assert e['updatedAt']
+        assert next(e for e in eval_types if e['name'] == 'F')
+        assert next(e for e in eval_types if e['name'] == '3A')
+
 
 class TestServiceAnnouncement:
     """Tool Settings API."""

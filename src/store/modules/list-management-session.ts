@@ -2,9 +2,12 @@ import {addDepartmentForm, deleteDepartmentForm, getDepartmentForms} from '@/api
 import {addEvaluationType, deleteEvaluationType, getEvaluationTypes} from '@/api/evaluationTypes'
 import {addInstructor, deleteInstructor, getInstructors} from '@/api/instructor'
 import store from '@/store'
+import Vue from 'vue'
 
 const $_refreshAll = (commit) => {
   return Promise.all([getDepartmentForms(), getEvaluationTypes(), getInstructors()]).then(response => {
+    Vue.prototype.$config.departmentForms = response[0]
+    Vue.prototype.$config.evaluationTypes = response[1]
     commit('setDepartmentForms', response[0])
     commit('setEvaluationTypes', response[1])
     commit('setInstructors', response[2])
@@ -13,12 +16,14 @@ const $_refreshAll = (commit) => {
 
 const $_refreshDepartmentForms = (commit) => {
   return getDepartmentForms().then((departmentForms: any) => {
+    Vue.prototype.$config.departmentForms = departmentForms
     commit('setDepartmentForms', departmentForms)
   })
 }
 
 const $_refreshEvaluationTypes = (commit) => {
   return getEvaluationTypes().then((evaluationTypes: any) => {
+    Vue.prototype.$config.evaluationTypes = evaluationTypes
     commit('setEvaluationTypes', evaluationTypes)
   })
 }
