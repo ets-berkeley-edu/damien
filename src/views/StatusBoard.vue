@@ -67,7 +67,9 @@
                   </div>
                 </td>
                 <td :id="`last-updated-dept-${department.id}`" class="department-lastUpdated">
-                  {{ department.lastUpdated | moment('MMM D, YYYY') }}
+                  <span v-if="department.lastUpdated">
+                    {{ department.lastUpdated | moment('MMM D, YYYY') }}
+                  </span>
                 </td>
                 <td class="department-errors">
                   <v-chip
@@ -169,21 +171,10 @@ export default {
   created() {
     this.headers = [
       {class: 'text-nowrap pt-12 pb-3', text: 'Department', value: 'deptName', width: '50%'},
-      {class: 'text-nowrap pt-12 pb-3', text: 'Last Updated', value: 'updatedAt', width: '20%'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Last Updated', value: 'lastUpdated', width: '20%'},
       {class: 'text-nowrap pt-12 pb-3', text: 'Errors', value: 'totalInError', width: '10%'},
       {class: 'text-nowrap pt-12 pb-3', text: 'Confirmed', value: 'totalConfirmed', width: '10%'},
-      {
-        class: 'text-nowrap pt-12 pb-3',
-        sort: (a, b) => {
-          const deptANote = this.$_.get(a, `${this.selectedTermId}.note`)
-          const deptBNote = this.$_.get(b, `${this.selectedTermId}.note`)
-          // Nulls last
-          return deptANote && deptBNote ? deptANote.localeCompare(deptBNote) : !deptANote - !deptBNote
-        },
-        text: 'Notes',
-        value: 'notes',
-        width: '30%'
-      },
+      {class: 'text-nowrap pt-12 pb-3', text: 'Notes', value: 'note.note', width: '30%'}
     ]
   },
   methods: {
