@@ -46,7 +46,7 @@ const $_refresh = (commit, departmentId) => {
   return new Promise<void>(resolve => {
     const termId = store.getters['context/selectedTermId'] || Vue.prototype.$config.currentTermId
     getDepartment(departmentId, termId).then((department: any) => {
-      commit('reset', {department, termId})
+      commit('reset', department)
       commit('updateSelectedEvaluationIds')
       return resolve(department)
     })
@@ -198,13 +198,13 @@ const mutations = {
       }
     })
   },
-  reset: (state, {department, termId}) => {
+  reset: (state, department) => {
     if (department) {
       state.contacts = department.contacts
       state.department = department
       _.each(department.evaluations, $_decorateEvaluation)
       state.evaluations = _.sortBy(department.evaluations, 'sortableCourseName')
-      state.note = _.get(department.notes, [termId, 'note'])
+      state.note = department.note.note
     }
     state.selectedEvaluationIds = []
     state.disableControls = false
