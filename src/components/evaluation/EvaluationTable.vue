@@ -107,6 +107,7 @@
       disable-pagination
       :headers="headers"
       :search="searchFilter"
+      :custom-filter="customFilter"
       hide-default-footer
       :items="evaluations"
       @current-items="onChangeSearchFilter"
@@ -569,6 +570,36 @@ export default {
     },
     clearPendingInstructor() {
       this.pendingInstructor = null
+    },
+    customFilter(value, search, item) {
+      if (!value || !search || typeof value === 'boolean') {
+        return false
+      }
+      if (value === item.lastUpdated) {
+        value = this.$moment(item.lastUpdated).format('MM/DD/YYYY')
+      }
+      if (value === item.sortableCourseName) {
+        value = item.searchableCourseName
+      }
+      if (value === item.sortableCourseNumber) {
+        value = item.courseNumber
+        if (item.crossListedWith) {
+          value += (' ' + item.crossListedWith.join(', '))
+        }
+        if (item.roomSharedWith) {
+          value += (' ' + item.roomSharedWith.join(', '))
+        }
+      }
+      if (value === item.startDate) {
+        value = [
+          this.$moment(item.startDate).format('MM/DD/YY'),
+          '-',
+          this.$moment(item.endDate).format('MM/DD/YY'),
+          (item.modular ? '2' : '3'),
+          'weeks'
+        ].join(' ')
+      }
+      return value.toString().toLocaleLowerCase().indexOf(search.toLocaleLowerCase()) !== -1
     },
     displayStatus(evaluation) {
       if (evaluation.status === 'review') {

@@ -14,6 +14,14 @@ import Vue from 'vue'
 const $_decorateEvaluation = (e, allEvaluations) => {
   e.isSelected = false
 
+  e.searchableCourseName = [
+    e.subjectArea,
+    e.catalogId,
+    e.instructionFormat,
+    e.sectionNumber,
+    e.courseTitle
+  ].join(' ')
+
   // Sort catalog ids by numeric portion first.
   const sortableCatalogId = `${e.catalogId.replace(/\D/g,'').padStart(3, '0')} ${e.catalogId}`
   e.sortableCourseName = [
