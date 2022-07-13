@@ -145,7 +145,7 @@ export default {
       this.$putFocusNextTick('dept-note-textarea')
     },
     onSave() {
-      this.updateNote(this.item, this.selectedTermId).then(() => {
+      this.updateNote({note: this.item, termId: this.selectedTermId}).then(() => {
         this.alertScreenReader('Note saved.')
         this.$putFocusNextTick('edit-dept-note-btn')
         this.reset()
