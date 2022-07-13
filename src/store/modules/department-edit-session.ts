@@ -12,24 +12,42 @@ import {getDepartmentForms} from '@/api/departmentForms'
 import store from '@/store'
 import Vue from 'vue'
 
-const $_decorateEvaluation = e => {
+const $_decorateEvaluation = (e, allEvaluations) => {
   e.isSelected = false
-  // When sorting by course number, keep cross-listings with home sections.
-  if (e.crossListedWith && e.foreignDepartmentCourse) {
-    e.sortableCourseNumber = `${e.crossListedWith}-${e.courseNumber}`
-  } else if (e.roomSharedWith && e.foreignDepartmentCourse) {
-    e.sortableCourseNumber = `${e.roomSharedWith}-${e.courseNumber}`
-  } else {
-    e.sortableCourseNumber = e.courseNumber
-  }
+
   // Sort catalog ids by numeric portion first.
   const sortableCatalogId = `${e.catalogId.replace(/\D/g,'').padStart(3, '0')} ${e.catalogId}`
-  e.sortableCourseName = `${e.subjectArea} ${sortableCatalogId} ${e.instructionFormat} ${e.sectionNumber} ${e.courseTitle}`
+  e.sortableCourseName = [
+    e.subjectArea,
+    sortableCatalogId,
+    e.instructionFormat,
+    e.sectionNumber
+  ].join(' ')
+  e.sortableCourseNumber = e.courseNumber
+
+  // When sorting by course number or name, keep cross-listings with home sections.
+  if (e.foreignDepartmentCourse && (e.crossListedWith || e.roomSharedWith)) {
+    const homeSectionNumber = (e.crossListedWith || e.roomSharedWith)[0]
+    e.sortableCourseNumber = `${homeSectionNumber}-${e.courseNumber}`
+    const homeSection = _.find(allEvaluations, {'courseNumber': homeSectionNumber})
+    if (homeSection) {
+      const homeSectionSortableCatalogId = `${homeSection.catalogId.replace(/\D/g,'').padStart(3, '0')} ${homeSection.catalogId}`
+      e.sortableCourseName = [
+        homeSection.subjectArea,
+        homeSectionSortableCatalogId,
+        homeSection.instructionFormat,
+        homeSection.sectionNumber,
+        e.sortableCourseName
+      ].join(' ')
+    }
+  }
+
   if (e.instructor) {
     e.sortableInstructor = `${e.instructor.lastName} ${e.instructor.firstName} ${e.instructor.uid} ${e.instructor.emailAddress}`
   } else {
     e.sortableInstructor = ''
   }
+
   e.startDate = Vue.prototype.$moment(e.startDate).toDate()
   e.endDate = Vue.prototype.$moment(e.endDate).toDate()
   e.meetingDates.start = Vue.prototype.$moment(e.meetingDates.start).toDate()
@@ -84,7 +102,7 @@ const actions = {
       addSection(state.department.id, sectionId, termId)
       .then(() => {
         getSectionEvaluations(state.department.id, sectionId, termId).then((data: any) => {
-          const updatedEvaluations = _.each(data, $_decorateEvaluation)
+          const updatedEvaluations = _.each(data, e => $_decorateEvaluation(e, state.evaluations))
           commit('setEvaluationUpdate', {sectionIndex: 0, sectionCount: 0, updatedEvaluations})
           resolve()
         })
@@ -116,7 +134,7 @@ const actions = {
             sectionIndex = state.evaluations.length
           }
           const sectionCount = _.filter(state.evaluations, ['courseNumber', sectionId]).length
-          const updatedEvaluations = _.each(data, $_decorateEvaluation)
+          const updatedEvaluations = _.each(data, e => $_decorateEvaluation(e, state.evaluations))
           commit('setEvaluationUpdate', {sectionIndex, sectionCount, updatedEvaluations})
           resolve()
         })
@@ -202,9 +220,9 @@ const mutations = {
     if (department) {
       state.contacts = department.contacts
       state.department = department
-      _.each(department.evaluations, $_decorateEvaluation)
+      _.each(department.evaluations, e => $_decorateEvaluation(e, department.evaluations))
       state.evaluations = _.sortBy(department.evaluations, 'sortableCourseName')
-      state.note = department.note.note
+      state.note = _.get(department, 'note.note')
     }
     state.selectedEvaluationIds = []
     state.disableControls = false
