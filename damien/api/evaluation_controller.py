@@ -50,7 +50,7 @@ def export_evaluations():
     if result:
         return tolerant_jsonify(result)
     else:
-        raise InternalServerError('Something went wrong.')
+        raise InternalServerError('There was an error connecting to external services during publication. Please try again.')
 
 
 @app.route('/api/evaluations/exports')
