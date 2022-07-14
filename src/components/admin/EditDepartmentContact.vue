@@ -14,7 +14,7 @@
         :on-select-result="onSelectSearchResult"
       />
     </div>
-    <div v-if="uid">
+    <div v-if="uid" class="department-contact-form">
       <label :for="`input-email-${contactId}`" class="form-label">
         Email Address
       </label>
@@ -263,6 +263,9 @@ export default {
 </script>
 
 <style>
+.department-contact-form {
+  z-index: 10;
+}
 .form-title {
   font-size: 18px;
   font-weight: 700;
