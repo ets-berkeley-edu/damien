@@ -75,24 +75,31 @@ def generate_exports(term_id, timestamp):
     supervisors = [_export_supervisor_row(u) for u in User.get_dept_contacts_with_blue_permissions()]
     department_hierarchy, report_viewer_hierarchy = _generate_hierarchy_rows(dept_forms_to_uids)
 
-    with get_sftp_client() as sftp:
-        upload(sftp, term_id, timestamp, 'courses', course_headers, courses)
-        upload(sftp, term_id, timestamp, 'course_instructors', course_instructor_headers, course_instructors)
-        upload(sftp, term_id, timestamp, 'course_students', course_student_headers, course_students)
-        upload(sftp, term_id, timestamp, 'course_supervisors', course_supervisor_headers, course_supervisors)
-        upload(sftp, term_id, timestamp, 'department_hierarchy', department_hierarchy_headers, department_hierarchy)
-        upload(sftp, term_id, timestamp, 'instructors', instructor_headers, instructors)
-        upload(sftp, term_id, timestamp, 'report_viewer_hierarchy', report_viewer_hierarchy_headers, report_viewer_hierarchy)
-        upload(sftp, term_id, timestamp, 'students', student_headers, students)
-        upload(sftp, term_id, timestamp, 'supervisors', supervisor_headers, supervisors)
-        upload(sftp, term_id, timestamp, 'xlisted_course_supervisors', xlisted_course_supervisor_headers, xlisted_course_supervisors)
+    try:
+        with get_sftp_client() as sftp:
+            upload(sftp, term_id, timestamp, 'courses', course_headers, courses)
+            upload(sftp, term_id, timestamp, 'course_instructors', course_instructor_headers, course_instructors)
+            upload(sftp, term_id, timestamp, 'course_students', course_student_headers, course_students)
+            upload(sftp, term_id, timestamp, 'course_supervisors', course_supervisor_headers, course_supervisors)
+            upload(sftp, term_id, timestamp, 'department_hierarchy', department_hierarchy_headers, department_hierarchy)
+            upload(sftp, term_id, timestamp, 'instructors', instructor_headers, instructors)
+            upload(sftp, term_id, timestamp, 'report_viewer_hierarchy', report_viewer_hierarchy_headers, report_viewer_hierarchy)
+            upload(sftp, term_id, timestamp, 'students', student_headers, students)
+            upload(sftp, term_id, timestamp, 'supervisors', supervisor_headers, supervisors)
+            upload(sftp, term_id, timestamp, 'xlisted_course_supervisors', xlisted_course_supervisor_headers, xlisted_course_supervisors)
 
-    s3_path = get_s3_path(term_id, timestamp)
-    export = Export.create(term_id, s3_path)
-    return export.to_api_json()
+            s3_path = get_s3_path(term_id, timestamp)
+            export = Export.create(term_id, s3_path)
+            return export.to_api_json()
+
+    except Exception as e:
+        app.logger.error(f'Error uploading exports: term_id={term_id}, timestamp={timestamp}, error={e}')
+        return None
 
 
 def upload(sftp, term_id, timestamp, filename, headers, rows):
+    success = False
+
     tmpfile = tempfile.NamedTemporaryFile()
     with open(tmpfile.name, mode='wt', encoding='utf-8') as f:
         csv_writer = csv.DictWriter(f, fieldnames=headers)
@@ -104,7 +111,11 @@ def upload(sftp, term_id, timestamp, filename, headers, rows):
         if sftp:
             sftp.putfo(f, f'{filename}.csv', file_size=filesize)
         f.seek(0)
-        put_binary_data_to_s3(get_s3_path(term_id, timestamp, filename), f, 'text/csv')
+        if put_binary_data_to_s3(get_s3_path(term_id, timestamp, filename), f, 'text/csv'):
+            success = True
+
+    if not success:
+        raise RuntimeError(f'Could not upload {filename}')
 
 
 def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms_to_uids, all_catalog_listings):
