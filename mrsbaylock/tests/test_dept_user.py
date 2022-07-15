@@ -139,25 +139,25 @@ class TestDeptUser:
 
     def test_sort_default(self):
         self.homepage.load_page()
-        self.dept_details_dept_page.sort_by_course(self.evaluations)
+        evals = self.dept_details_dept_page.sort_by_course(self.dept, self.evaluations)
         self.dept_details_dept_page.wait_for_eval_rows()
         self.dept_details_dept_page.select_ignored_filter()
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     def test_sort_by_status_asc(self):
         self.dept_details_dept_page.sort_asc('Status')
-        self.dept_details_dept_page.sort_by_status(self.evaluations)
+        evals = self.dept_details_dept_page.sort_by_status(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     def test_sort_by_status_desc(self):
         self.dept_details_dept_page.sort_desc('Status')
-        self.dept_details_dept_page.sort_by_status(self.evaluations, reverse=True)
+        evals = self.dept_details_dept_page.sort_by_status(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     # TODO def test_sort_by_updated_asc(self):
@@ -179,72 +179,108 @@ class TestDeptUser:
 
     def test_sort_by_course_asc(self):
         self.dept_details_dept_page.sort_asc('Course Name')
-        self.dept_details_dept_page.sort_by_course(self.evaluations)
+        evals = self.dept_details_dept_page.sort_by_course(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     def test_sort_by_course_desc(self):
         self.dept_details_dept_page.sort_desc('Course Name')
-        self.dept_details_dept_page.sort_by_course(self.evaluations, reverse=True)
+        evals = self.dept_details_dept_page.sort_by_course(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     def test_sort_by_instr_asc(self):
         self.dept_details_dept_page.sort_asc('Instructor')
-        self.dept_details_dept_page.sort_by_instructor(self.evaluations)
+        evals = self.dept_details_dept_page.sort_by_instructor(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     def test_sort_by_instr_desc(self):
         self.dept_details_dept_page.sort_desc('Instructor')
-        self.dept_details_dept_page.sort_by_instructor(self.evaluations, reverse=True)
+        evals = self.dept_details_dept_page.sort_by_instructor(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     def test_sort_by_dept_form_asc(self):
         self.dept_details_dept_page.sort_asc('Department Form')
-        self.dept_details_dept_page.sort_by_dept_form(self.evaluations)
+        evals = self.dept_details_dept_page.sort_by_dept_form(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     def test_sort_by_dept_form_desc(self):
         self.dept_details_dept_page.sort_desc('Department Form')
-        self.dept_details_dept_page.sort_by_dept_form(self.evaluations, reverse=True)
+        evals = self.dept_details_dept_page.sort_by_dept_form(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     def test_sort_by_eval_type_asc(self):
         self.dept_details_dept_page.sort_asc('Evaluation Type')
-        self.dept_details_dept_page.sort_by_eval_type(self.evaluations)
+        evals = self.dept_details_dept_page.sort_by_eval_type(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     def test_sort_by_eval_type_desc(self):
         self.dept_details_dept_page.sort_desc('Evaluation Type')
-        self.dept_details_dept_page.sort_by_eval_type(self.evaluations, reverse=True)
+        evals = self.dept_details_dept_page.sort_by_eval_type(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     def test_sort_by_eval_start_asc(self):
         self.dept_details_dept_page.sort_asc('Evaluation Period')
-        self.dept_details_dept_page.sort_by_eval_period(self.evaluations)
+        evals = self.dept_details_dept_page.sort_by_eval_period(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
     def test_sort_by_eval_start_desc(self):
         self.dept_details_dept_page.sort_desc('Evaluation Period')
-        self.dept_details_dept_page.sort_by_eval_period(self.evaluations, reverse=True)
+        evals = self.dept_details_dept_page.sort_by_eval_period(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(self.evaluations)
+        expected = self.dept_details_dept_page.sorted_eval_data(evals)
         assert visible == expected
 
-    # TODO Filter testing
+    # EVALUATION FILTERING
+
+    def test_filter_by_ccn(self):
+        evaluation = next(filter(lambda e: not e.x_listing_ccns and not e.room_share_ccns, self.evaluations))
+        self.dept_details_dept_page.filter_rows(evaluation.ccn)
+        self.dept_details_dept_page.wait_for_eval_row(evaluation)
+        assert len(self.dept_details_dept_page.visible_evaluation_rows()) == 1
+
+    def test_filter_x_listing(self):
+        evaluation = next(filter(lambda e: e.x_listing_ccns, self.evaluations))
+        listings = list(filter(lambda e: evaluation.ccn in e.x_listing_ccns, self.evaluations))
+        self.dept_details_dept_page.filter_rows(evaluation.ccn)
+        self.dept_details_dept_page.wait_for_eval_row(evaluation)
+        assert len(self.dept_details_dept_page.visible_evaluation_rows()) == (1 + len(listings))
+
+    def test_filter_by_course_code(self):
+        evaluation = next(filter(lambda e: not e.x_listing_ccns, self.evaluations))
+        string = f'{evaluation.subject} {evaluation.catalog_id}'
+        self.dept_details_dept_page.filter_rows(string)
+        expected = list(filter(lambda e: string in f'{e.subject} {e.catalog_id}', self.evaluations))
+        assert len(self.dept_details_dept_page.visible_evaluation_rows()) == len(expected)
+
+    def test_filter_by_instr_name(self):
+        evaluation = next(filter(lambda e: e.instructor.uid, self.evaluations))
+        evaluations = list(filter(lambda e: e.instructor.uid == evaluation.instructor.uid, self.evaluations))
+        string = f'{evaluation.instructor.first_name} {evaluation.instructor.last_name}'
+        self.dept_details_dept_page.filter_rows(string)
+        assert len(self.dept_details_dept_page.visible_evaluation_rows()) == len(evaluations)
+
+    def test_filter_by_period(self):
+        evaluation = next(filter(lambda e: e.eval_start_date, self.evaluations))
+        evaluations = list(filter(lambda e: e.eval_start_date == evaluation.eval_start_date, self.evaluations))
+        for ev in evaluations:
+            app.logger.info(f'{ev.ccn} {ev.instructor.uid} {ev.eval_start_date}')
+        string = f"{evaluation.eval_start_date.strftime('%m/%d')}"
+        self.dept_details_dept_page.filter_rows(string)
+        assert len(self.dept_details_dept_page.visible_evaluation_rows()) == len(evaluations)
