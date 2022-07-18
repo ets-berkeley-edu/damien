@@ -301,13 +301,14 @@ def get_matching_evals(subject, catalog_ids, all_evals, matching_evals, included
 
 
 def get_x_listings_and_shares(evals, term, dept):
+    all_ccns = list(map(lambda ev: ev.ccn, evals))
     ccns = []
     for i in evals:
         for x in i.x_listing_ccns:
-            if x != '':
+            if x != '' and x not in all_ccns:
                 ccns.append(x)
         for x in i.room_share_ccns:
-            if x != '':
+            if x != '' and x not in all_ccns:
                 ccns.append(x)
     if ccns:
         ccn_str = list_to_str(ccns)
