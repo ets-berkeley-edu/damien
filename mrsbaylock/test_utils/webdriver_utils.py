@@ -42,18 +42,22 @@ class WebDriverManager(object):
             p.set_preference(key='devtools.jsonview.enabled', value=False)
             options = Foptions()
             options.profile = p
-            return webdriver.Firefox(options=options)
+            options.headless = app.config['BROWSER_HEADLESS']
+            driver = webdriver.Firefox(options=options)
         else:
             d = DesiredCapabilities.CHROME
             d['loggingPrefs'] = {'browser': 'ALL'}
             options = Coptions()
+            options.headless = app.config['BROWSER_HEADLESS']
             prefs = {
                 'profile.default_content_settings.popups': 0,
                 'download.default_directory': utils.default_download_dir(),
                 'directory_upgrade': True,
             }
             options.add_experimental_option('prefs', prefs)
-            return webdriver.Chrome(desired_capabilities=d, options=options)
+            driver = webdriver.Chrome(desired_capabilities=d, options=options)
+        driver.set_window_size(1600, 900) if app.config['BROWSER_HEADLESS'] else driver.maximize_window()
+        return driver
 
     @classmethod
     def quit_browser(cls, driver):
