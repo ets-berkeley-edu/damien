@@ -294,7 +294,7 @@ class CourseDashboardEditsPage(CourseDashboards):
         el.select_by_visible_text(status.value['option'])
 
     def enter_instructor(self, evaluation, instructor):
-        app.logger.info(f'Adding UID {instructor.uid} as a instructor on CCN {evaluation.ccn}')
+        app.logger.info(f'Adding UID {instructor.uid} as instructor on CCN {evaluation.ccn}')
         self.look_up_uid(instructor.uid, CourseDashboardEditsPage.EVAL_CHANGE_INSTR_INPUT)
         self.click_look_up_result(instructor)
         evaluation.instructor = instructor
@@ -362,6 +362,10 @@ class CourseDashboardEditsPage(CourseDashboards):
     def click_save_eval_changes(self, evaluation):
         app.logger.info(f'Saving changes for CCN {evaluation.ccn}')
         self.wait_for_page_and_click(self.EVAL_CHANGE_SAVE_BUTTON)
+
+    def save_eval_changes(self, evaluation):
+        self.click_save_eval_changes(evaluation)
+        self.when_not_present(self.EVAL_CHANGE_SAVE_BUTTON, utils.get_short_timeout())
 
     def click_cancel_eval_changes(self):
         app.logger.info('Canceling changes')

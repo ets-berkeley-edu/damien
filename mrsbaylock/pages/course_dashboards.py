@@ -41,7 +41,7 @@ class CourseDashboards(DamienPages):
 
     @staticmethod
     def eval_row_xpath(evaluation):
-        ccn = f'td[contains(@id, "courseNumber")][contains(., "{evaluation.ccn}")]'
+        ccn = f'td[contains(@id, "courseNumber")][starts-with(., " {evaluation.ccn}")]'
 
         if evaluation.instructor.uid:
             uid = f'[contains(.,"{evaluation.instructor.uid}")]'

@@ -61,7 +61,7 @@ class TestEvaluationManagement:
         self.login_page.load_page()
         self.login_page.dev_auth()
         self.status_board_admin_page.click_list_mgmt()
-        self.api_page.clear_cache()
+        self.api_page.refresh_unholy_loch()
 
     def test_list_mgmt_page(self):
         self.homepage.load_page()
