@@ -536,7 +536,7 @@ def get_instructors(evals):
                     e.instructor.affiliations = i.affiliations
 
 
-def get_section_dept(ccn, all_users=None):
+def get_section_dept(term, ccn, all_users=None):
     sql = f"""
         SELECT dept_name
           FROM departments
@@ -545,6 +545,7 @@ def get_section_dept(ccn, all_users=None):
           JOIN unholy_loch.sis_sections
             ON unholy_loch.sis_sections.subject_area = department_catalog_listings.subject_area
          WHERE unholy_loch.sis_sections.course_number = '{ccn}'
+           AND unholy_loch.sis_sections.term_id = '{term.term_id}'
     """
     app.logger.info(sql)
     result = db.session.execute(text(sql)).first()

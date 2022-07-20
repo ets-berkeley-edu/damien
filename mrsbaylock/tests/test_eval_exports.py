@@ -65,21 +65,21 @@ class TestEvalExports:
         time.sleep(2)
 
     def test_publish(self):
-        self.status_board_admin_page.load_page()
-        self.status_board_admin_page.download_export_csvs()
+        self.publish_page.load_page()
+        self.publish_page.download_export_csvs()
 
     def test_courses(self):
         self.expected_courses.extend(utils.expected_courses(self.confirmed))
-        csv_courses = self.status_board_admin_page.parse_csv('courses')
+        csv_courses = self.publish_page.parse_csv('courses')
         utils.verify_actual_matches_expected(csv_courses, self.expected_courses)
 
     def test_course_students(self):
         self.expected_course_students.extend(utils.expected_course_students(self.confirmed))
-        csv_course_students = self.status_board_admin_page.parse_csv('course_students')
+        csv_course_students = self.publish_page.parse_csv('course_students')
         utils.verify_actual_matches_expected(csv_course_students, self.expected_course_students)
 
     def test_students(self):
-        csv_students = self.status_board_admin_page.parse_csv('students')
+        csv_students = self.publish_page.parse_csv('students')
         csv_uids = list(map(lambda d: d['LDAP_UID'], csv_students))
         expected_uids = [u for u in set(list(map(lambda d: d['LDAP_UID'], self.expected_course_students)))]
         utils.verify_actual_matches_expected(csv_uids, expected_uids)
@@ -96,34 +96,40 @@ class TestEvalExports:
         csv_emails = list(map(lambda d: d['EMAIL_ADDRESS'], csv_students))
         assert len(list(filter(None, csv_emails))) == len(expected_uids)
 
+    def test_course_instructors_past_term(self):
+        csv_course_instructors = self.publish_page.parse_csv('course_instructors')
+        past_term_rows = list(filter(lambda r: (r['COURSE_ID'].split('-')[0] != self.term.prefix), csv_course_instructors))
+        assert past_term_rows
+
     def test_course_instructors(self):
         self.expected_course_instructors.extend(utils.expected_course_instructors(self.confirmed))
-        csv_course_instructors = self.status_board_admin_page.parse_csv('course_instructors')
-        utils.verify_actual_matches_expected(csv_course_instructors, self.expected_course_instructors)
+        csv_course_instructors = self.publish_page.parse_csv('course_instructors')
+        current_term_rows = list(filter(lambda r: (r['COURSE_ID'].split('-')[0] == self.term.prefix), csv_course_instructors))
+        utils.verify_actual_matches_expected(current_term_rows, self.expected_course_instructors)
 
     def test_instructors(self):
         self.expected_instructors.extend(utils.expected_instructors(self.confirmed))
-        csv_instructors = self.status_board_admin_page.parse_csv('instructors')
+        csv_instructors = self.publish_page.parse_csv('instructors')
         utils.verify_actual_matches_expected(csv_instructors, self.expected_instructors)
 
     def test_course_supervisors(self):
         self.expected_course_supervisors.extend(utils.expected_course_supervisors(self.confirmed, self.all_contacts))
-        csv_course_supervisors = self.status_board_admin_page.parse_csv('course_supervisors')
+        csv_course_supervisors = self.publish_page.parse_csv('course_supervisors')
         utils.verify_actual_matches_expected(csv_course_supervisors, self.expected_course_supervisors)
 
     def test_supervisors(self):
         self.expected_supervisors.extend(utils.expected_supervisors())
-        csv_course_supervisors = self.status_board_admin_page.parse_supervisors_csv()
+        csv_course_supervisors = self.publish_page.parse_supervisors_csv()
         utils.verify_actual_matches_expected(csv_course_supervisors, self.expected_supervisors)
 
     def test_dept_hierarchy(self):
         expected_dept_hierarchy = utils.expected_dept_hierarchy()
-        csv_dept_hierarchy = self.status_board_admin_page.parse_csv('department_hierarchy')
+        csv_dept_hierarchy = self.publish_page.parse_csv('department_hierarchy')
         utils.verify_actual_matches_expected(csv_dept_hierarchy, expected_dept_hierarchy)
 
     def test_report_viewers(self):
         expected_viewers = utils.expected_report_viewers()
-        csv_viewers = self.status_board_admin_page.parse_csv('report_viewer_hierarchy')
+        csv_viewers = self.publish_page.parse_csv('report_viewer_hierarchy')
         utils.verify_actual_matches_expected(csv_viewers, expected_viewers)
 
     # SIS DATA CHANGES
@@ -163,15 +169,15 @@ class TestEvalExports:
 
     def test_publish_sis_changes(self):
         self.api_page.clear_cache()
-        self.status_board_admin_page.load_page()
-        self.status_board_admin_page.download_export_csvs()
+        self.publish_page.load_page()
+        self.publish_page.download_export_csvs()
 
     def test_courses_updates(self):
         expected = utils.expected_courses(self.confirmed)
-        csv_courses = self.status_board_admin_page.parse_csv('courses')
+        csv_courses = self.publish_page.parse_csv('courses')
         utils.verify_actual_matches_expected(csv_courses, expected)
 
     def test_course_instructors_updates(self):
         expected = utils.expected_course_instructors(self.confirmed)
-        csv_course_instructors = self.status_board_admin_page.parse_csv('course_instructors')
+        csv_course_instructors = self.publish_page.parse_csv('course_instructors')
         utils.verify_actual_matches_expected(csv_course_instructors, expected)

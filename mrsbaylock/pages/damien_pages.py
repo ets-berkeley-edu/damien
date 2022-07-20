@@ -36,7 +36,7 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 class DamienPages(Page):
 
     STATUS_LINK = (By.XPATH, '//div[contains(@id, "sidebar-link")][contains(., "Status Board")]')
-    COURSE_ERRORS_BOARD_LINK = (By.XPATH, '//div[contains(@id, "sidebar-link")][contains(., "Course Errors Board")]')
+    PUBLISH_PAGE_LINK = (By.XPATH, '//div[contains(@id, "sidebar-link")][contains(., "Publish")]')
     GRP_MGMT_LINK = (By.XPATH, '//div[contains(@id, "sidebar-link")][contains(., "Group Management")]')
     LIST_MGMT_LINK = (By.XPATH, '//div[contains(@id, "sidebar-link")][contains(., "List Management")]')
 
@@ -88,9 +88,9 @@ class DamienPages(Page):
         app.logger.info('Clicking link to the Status Board')
         self.wait_for_element_and_click(DamienPages.STATUS_LINK)
 
-    def click_course_errors(self):
-        app.logger.info('Clicking link to Courser Errors')
-        self.wait_for_element_and_click(DamienPages.COURSE_ERRORS_BOARD_LINK)
+    def click_publish_link(self):
+        app.logger.info('Clicking link to Publish page')
+        self.wait_for_element_and_click(DamienPages.PUBLISH_PAGE_LINK)
 
     def click_group_mgmt(self):
         app.logger.info('Clicking link to Group Mgmt')
