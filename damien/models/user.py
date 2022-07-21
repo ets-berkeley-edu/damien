@@ -100,7 +100,7 @@ class User(Base):
                 """
 
     @classmethod
-    def create(
+    def create_or_restore(
             cls,
             csid,
             uid,
@@ -109,16 +109,28 @@ class User(Base):
             email,
             is_admin=False,
             blue_permissions=None,
+            db_id=None,
     ):
-        user = cls(
-            csid=csid,
-            uid=uid,
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            is_admin=is_admin,
-            blue_permissions=blue_permissions,
-        )
+        user = None
+        if db_id:
+            user = cls.query.filter_by(id=db_id).first()
+        if not user:
+            user = cls.query.filter_by(uid=uid).first()
+        if user:
+            user.deleted_at = None
+            user.email = email
+            user.is_admin = is_admin
+            user.blue_permissions = blue_permissions
+        else:
+            user = cls(
+                csid=csid,
+                uid=uid,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                is_admin=is_admin,
+                blue_permissions=blue_permissions,
+            )
         db.session.add(user)
         std_commit()
         return user
@@ -137,6 +149,12 @@ class User(Base):
     def record_login(cls, db_id):
         user = cls.query.filter_by(id=db_id, deleted_at=None).first()
         user.login_at = datetime.now()
+        std_commit()
+
+    @classmethod
+    def restore(cls, db_id):
+        user = cls.query.filter_by(id=db_id).first()
+        user.deleted_at = None
         std_commit()
 
     @classmethod

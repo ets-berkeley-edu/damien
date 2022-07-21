@@ -86,12 +86,13 @@ def update_contact(department_id):
         csid = get_param(params, 'csid')
         first_name = get_param(params, 'firstName')
         last_name = get_param(params, 'lastName')
-        user = User.create(
+        user = User.create_or_restore(
             csid=csid,
             uid=uid,
             email=email,
             first_name=first_name,
             last_name=last_name,
+            db_id=user_id,
         )
     blue_permissions = None
     if can_view_response_rates:
