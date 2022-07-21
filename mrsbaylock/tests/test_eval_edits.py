@@ -115,6 +115,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_instr)
         self.dept_details_admin_page.enter_instructor(self.eval_sans_instr, instructor)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_instr)
+        self.eval_sans_instr.instructor = instructor
         self.dept_details_admin_page.wait_for_eval_rows()
         assert instructor.uid in self.dept_details_admin_page.eval_instructor(self.eval_sans_instr)
 
@@ -125,6 +126,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_form)
         self.dept_details_admin_page.change_dept_form(self.eval_sans_form, form)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_form)
+        self.eval_sans_form.dept_form = form.name
         self.dept_details_admin_page.wait_for_eval_rows()
         assert form.name in self.dept_details_admin_page.eval_dept_form(self.eval_sans_form)
 
@@ -132,6 +134,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_form)
         self.dept_details_admin_page.change_dept_form(self.eval_sans_form)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_form)
+        self.eval_sans_form.dept_form = None
         self.dept_details_admin_page.wait_for_eval_rows()
         assert not self.dept_details_admin_page.eval_dept_form(self.eval_sans_form)
 
@@ -140,15 +143,15 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_form)
         self.dept_details_admin_page.change_dept_form(self.eval_sans_form, form)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_form)
-        self.dept_details_admin_page.wait_for_eval_rows()
         self.eval_sans_form.dept_form = form.name
+        self.dept_details_admin_page.wait_for_eval_rows()
         assert form.name in self.dept_details_admin_page.eval_dept_form(self.eval_sans_form)
 
     def test_eval_types_available(self):
         e = next(filter(lambda row: row.dept_form, self.dept_1.evaluations))
         self.dept_details_admin_page.click_edit_evaluation(e)
         eval_names = list(map(lambda ev: ev.name, self.eval_types))
-        eval_names.append('None')
+        eval_names.append('Revert')
         eval_names.sort()
         visible = self.dept_details_admin_page.visible_eval_type_options()
         visible.sort()
@@ -159,6 +162,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_type)
         self.dept_details_admin_page.change_eval_type(self.eval_sans_type, eval_type)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_type)
+        self.eval_sans_type.eval_type = eval_type.name
         self.dept_details_admin_page.wait_for_eval_rows()
         assert eval_type.name in self.dept_details_admin_page.eval_type(self.eval_sans_type)
 
@@ -166,6 +170,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_type)
         self.dept_details_admin_page.change_eval_type(self.eval_sans_type)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_type)
+        self.eval_sans_type.eval_type = None
         self.dept_details_admin_page.wait_for_eval_rows()
         assert not self.dept_details_admin_page.eval_type(self.eval_sans_type)
 
@@ -174,6 +179,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_type)
         self.dept_details_admin_page.change_eval_type(self.eval_sans_type, eval_type)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_type)
+        self.eval_sans_type.eval_type = eval_type.name
         self.dept_details_admin_page.wait_for_eval_rows()
         assert eval_type.name in self.dept_details_admin_page.eval_type(self.eval_sans_type)
 
@@ -227,6 +233,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_dept_form(e, form)
         self.dept_details_admin_page.click_save_eval_changes(e)
+        e.dept_form = form.name
         self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.duplicate_section(e, self.dept_1.evaluations, midterm=True, start_date=date)
         self.dept_details_admin_page.wait_for_eval_rows()
@@ -371,6 +378,8 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.deselect_confirmed_filter()
         visible = self.dept_details_admin_page.visible_eval_data()
         visible = list(map(lambda e: e['ccn'], visible))
+        ignored.sort()
+        visible.sort()
         assert visible == ignored
 
     def test_filter_unmarked_status_only(self):
@@ -405,25 +414,26 @@ class TestEvaluationManagement:
         evals = evaluation_utils.get_evaluations(self.term, self.dept_1)
         confirmed = list(filter(lambda ev: (ev.status == EvaluationStatus.CONFIRMED), evals))
         self.confirmed.extend(confirmed)
-        self.status_board_admin_page.load_page()
-        self.status_board_admin_page.download_export_csvs()
+        self.publish_page.load_page()
+        self.publish_page.download_export_csvs()
 
     def test_courses(self):
         expected = utils.expected_courses(self.confirmed)
-        actual = self.status_board_admin_page.parse_csv('courses')
+        actual = self.publish_page.parse_csv('courses')
         utils.verify_actual_matches_expected(actual, expected)
 
     def test_course_instructors(self):
         expected = utils.expected_course_instructors(self.confirmed)
-        actual = self.status_board_admin_page.parse_csv('course_instructors')
-        utils.verify_actual_matches_expected(actual, expected)
+        actual = self.publish_page.parse_csv('course_instructors')
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), actual))
+        utils.verify_actual_matches_expected(current_term_rows, expected)
 
     def test_instructors(self):
         expected = utils.expected_instructors(self.confirmed)
-        actual = self.status_board_admin_page.parse_csv('instructors')
+        actual = self.publish_page.parse_csv('instructors')
         utils.verify_actual_matches_expected(actual, expected)
 
     def test_course_supervisors(self):
         expected = utils.expected_course_supervisors(self.confirmed, self.all_contacts)
-        actual = self.status_board_admin_page.parse_csv('course_supervisors')
+        actual = self.publish_page.parse_csv('course_supervisors')
         utils.verify_actual_matches_expected(actual, expected)

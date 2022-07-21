@@ -91,3 +91,21 @@ class StatusBoardAdminPage(DamienPages):
                 self.notif_remove_recipient(dept, user)
         self.click_notif_send()
         self.when_not_present(DamienPages.NOTIF_SEND_BUTTON, utils.get_medium_timeout())
+
+    @staticmethod
+    def dept_row_xpath(dept):
+        return f'//a[@href="/department/{dept.dept_id}"]/ancestor::tr'
+
+    def dept_errors_count(self, dept):
+        xpath = f'{StatusBoardAdminPage.dept_row_xpath(dept)}/td[@class="department-errors"]'
+        self.wait_for_element((By.XPATH, xpath), utils.get_short_timeout())
+        if self.is_present((By.XPATH, f'{xpath}/span/span')):
+            return int(self.element((By.XPATH, f'{xpath}/span/span')).text.strip())
+        elif self.is_present((By.XPATH, f'{xpath}/i[@aria-label="no errors"]')):
+            return 0
+
+    def dept_confirmed_count(self, dept):
+        xpath = f'{StatusBoardAdminPage.dept_row_xpath(dept)}/td[@class="department-confirmed"]/span/span'
+        self.wait_for_element((By.XPATH, xpath), utils.get_short_timeout())
+        count = self.element((By.XPATH, xpath)).text.split(' / ')
+        return int(count[0]), int(count[1])

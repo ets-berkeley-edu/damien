@@ -64,6 +64,12 @@ class TestEvalExports:
         self.dept_details_admin_page.click_bulk_done_button()
         time.sleep(2)
 
+    def test_confirm_confirmed_count(self):
+        self.dept_details_admin_page.click_status_board()
+        self.status_board_admin_page.wait_for_depts()
+        assert self.status_board_admin_page.dept_confirmed_count(self.dept)[0] == len(self.confirmed)
+        assert self.status_board_admin_page.dept_confirmed_count(self.dept)[1] == len(self.evals)
+
     def test_publish(self):
         self.publish_page.load_page()
         self.publish_page.download_export_csvs()
@@ -98,13 +104,13 @@ class TestEvalExports:
 
     def test_course_instructors_past_term(self):
         csv_course_instructors = self.publish_page.parse_csv('course_instructors')
-        past_term_rows = list(filter(lambda r: (r['COURSE_ID'].split('-')[0] != self.term.prefix), csv_course_instructors))
+        past_term_rows = list(filter(lambda r: (self.term.prefix not in r['COURSE_ID']), csv_course_instructors))
         assert past_term_rows
 
     def test_course_instructors(self):
         self.expected_course_instructors.extend(utils.expected_course_instructors(self.confirmed))
         csv_course_instructors = self.publish_page.parse_csv('course_instructors')
-        current_term_rows = list(filter(lambda r: (r['COURSE_ID'].split('-')[0] == self.term.prefix), csv_course_instructors))
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), csv_course_instructors))
         utils.verify_actual_matches_expected(current_term_rows, self.expected_course_instructors)
 
     def test_instructors(self):
@@ -180,4 +186,5 @@ class TestEvalExports:
     def test_course_instructors_updates(self):
         expected = utils.expected_course_instructors(self.confirmed)
         csv_course_instructors = self.publish_page.parse_csv('course_instructors')
-        utils.verify_actual_matches_expected(csv_course_instructors, expected)
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), csv_course_instructors))
+        utils.verify_actual_matches_expected(current_term_rows, expected)

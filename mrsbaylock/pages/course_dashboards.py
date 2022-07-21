@@ -35,7 +35,7 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class CourseDashboards(DamienPages):
-    EVALUATION_ROW = (By.XPATH, '//tr[contains(@class, "evaluation-row")]')
+    EVALUATION_ROW = (By.CLASS_NAME, 'evaluation-row')
     EVALUATION_STATUS = (By.XPATH, '//td[contains(@id, "-status")]')
     NO_SECTIONS_MGS = (By.XPATH, '//span[text()="No eligible sections to load."]')
 

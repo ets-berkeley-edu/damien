@@ -439,6 +439,8 @@ def merge_edited_evals(evaluations, edited_evals):
                     e.eval_start_date = edit.eval_start_date
                 if edit.eval_end_date:
                     e.eval_end_date = edit.eval_end_date
+                else:
+                    edit.eval_end_date = e.eval_end_date
         if not match and edit.ccn in eval_ccns:
             app.logger.info(f'CCN match but no UID match, adding new eval for {edit.ccn}-{uid}')
             evaluations.append(edit)

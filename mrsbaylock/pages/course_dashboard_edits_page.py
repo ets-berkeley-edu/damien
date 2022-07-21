@@ -123,7 +123,7 @@ class CourseDashboardEditsPage(CourseDashboards):
             self.click_bulk_unmark_button()
         elif status == EvaluationStatus.IGNORED:
             self.click_bulk_ignore_button()
-        time.sleep(1)
+        time.sleep(2)
 
     def bulk_mark_for_review(self, evaluations):
         self.bulk_set_row_status(evaluations, EvaluationStatus.FOR_REVIEW)
@@ -318,7 +318,7 @@ class CourseDashboardEditsPage(CourseDashboards):
             self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT,
                                                   dept_form.name)
         else:
-            app.logger.info('Setting eval type to None')
+            app.logger.info('Reverting evaluation type')
             self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT, 'Revert')
         time.sleep(1)
 
@@ -333,8 +333,8 @@ class CourseDashboardEditsPage(CourseDashboards):
             app.logger.info(f'Setting evaluation type {eval_type.name} on CCN {evaluation.ccn}')
             self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_EVAL_TYPE_SELECT, eval_type.name)
         else:
-            app.logger.info('Setting eval type to None')
-            self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_EVAL_TYPE_SELECT, 'None')
+            app.logger.info('Reverting evaluation type')
+            self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_EVAL_TYPE_SELECT, 'Revert')
         time.sleep(1)
 
     def enter_eval_start_date(self, date):
