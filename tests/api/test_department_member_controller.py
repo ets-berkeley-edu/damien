@@ -59,24 +59,28 @@ class TestDeleteDepartmentContact:
 
     def test_authorized(self, client, fake_auth, app):
         department = Department.find_by_name('Philosophy')
-        user = User.create(
+        user = User.create_or_restore(
             csid='14400',
             uid='40',
             email='dt@b.e',
             first_name='Dake',
             last_name='Traphagen',
         )
-        DepartmentMember.create(department.id, user.id)
+        user_id = user.id
+        DepartmentMember.create(department.id, user_id)
         std_commit(allow_test_environment=True)
         original_count = len(department.members)
 
         fake_auth.login(admin_uid)
-        response = _api_delete_contact(client, user_id=user.id)
+        response = _api_delete_contact(client, user_id=user_id)
         assert response['message']
 
         std_commit(allow_test_environment=True)
         department = Department.find_by_name('Philosophy')
         assert len(department.members) == original_count - 1
+
+        user = User.query.filter_by(id=user_id).first()
+        assert user.deleted_at is not None
 
     def test_invalid_dept_id(self, client, fake_auth):
         """Fails silently when department does not exist."""
@@ -150,6 +154,27 @@ class TestNotifyContacts:
         response = _api_notify_contacts(client, [history_id, melc_id])
         assert response['message'] == f'Email sent to {intended_recipient}'
 
+    def test_deleted_contact(self, client, fake_auth, history_id):
+        """A deleted contact does not receive notifications."""
+        fake_auth.login(admin_uid)
+        history_dept = Department.find_by_id(history_id)
+
+        deleted_contact = history_dept.members[0]
+        deleted_email = deleted_contact.user.email
+        DepartmentMember.delete(department_id=history_id, user_id=deleted_contact.user.id)
+        std_commit(allow_test_environment=True)
+
+        history_contacts = [m.to_api_json() for m in history_dept.members]
+        assert deleted_email not in [m['email'] for m in history_contacts]
+
+        intended_recipient = {
+            history_dept.dept_name: [c['email'] for c in history_contacts if c['canReceiveCommunications']],
+        }
+
+        response = _api_notify_contacts(client, [history_id])
+        assert response['message'] == f'Email sent to {intended_recipient}'
+        assert deleted_email not in response['message']
+
 
 def _api_update_contact(client, dept_id=None, params={}, expected_status_code=200):
     if dept_id is None:
@@ -207,7 +232,7 @@ class TestUpdateDepartmentContact:
         fake_auth.login(admin_uid)
         department = Department.find_by_name('Philosophy')
         original_count = len(department.members)
-        User.create(
+        User.create_or_restore(
             csid='126000',
             uid='4200',
             email='am@berkeley.edu',

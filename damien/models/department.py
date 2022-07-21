@@ -265,7 +265,7 @@ class Department(Base):
         feed['note'] = note.to_api_json() if note else None
 
         if include_contacts:
-            feed['contacts'] = sorted([user.to_api_json() for user in self.members], key=lambda m: m['lastName'])
+            feed['contacts'] = sorted([user.to_api_json() for user in self.members if user.user], key=lambda m: m['lastName'])
 
         if include_evaluations:
             evaluations = self.evaluations_feed(term_id)

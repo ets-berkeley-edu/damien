@@ -37,7 +37,11 @@ class DepartmentMember(Base):
     can_receive_communications = db.Column(db.Boolean, nullable=False, default=True)
 
     department = db.relationship(Department.__name__, back_populates='members', lazy='joined')
-    user = db.relationship('User', back_populates='department_memberships')
+    user = db.relationship(
+        'User',
+        back_populates='department_memberships',
+        primaryjoin='and_(User.id==DepartmentMember.user_id, User.deleted_at==None)',
+    )
 
     def __init__(
         self,
@@ -103,7 +107,6 @@ class DepartmentMember(Base):
         # Add a deleted_at timestamp to orphaned user objects.
         if len(dc.user.department_memberships) == 1:
             dc.user.deleted_at = utc_now()
-            db.session.add(dc.user)
         std_commit()
 
     def to_api_json(self):
