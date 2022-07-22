@@ -28,8 +28,18 @@ from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_loch_basic_attributes_by_uid_or_name
 from damien.lib.util import get as get_param
 from damien.models.user import User
+from damien.models.user_department_form import UserDepartmentForm
 from flask import current_app as app, request
 from flask_login import current_user
+
+
+@app.route('/api/user/<uid>/forms')
+@admin_required
+def get_user_department_forms(uid):
+    user = User.find_by_uid(uid)
+    department_forms = UserDepartmentForm.find_by_user_id(user.id)
+    results = [udf.to_api_json() for udf in department_forms]
+    return tolerant_jsonify(results)
 
 
 @app.route('/api/user/my_profile')

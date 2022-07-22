@@ -30,6 +30,31 @@ admin_uid = '200'
 non_admin_uid = '100'
 
 
+def _api_get_user_department_forms(client, uid, expected_status_code=200):
+    response = client.get(f'/api/user/{uid}/forms')
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestGetUserDepartmentForms:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_get_user_department_forms(client, non_admin_uid, expected_status_code=401)
+
+    def test_unauthorized(self, client, fake_auth):
+        """Denies unauthorized user."""
+        fake_auth.login(non_admin_uid)
+        _api_get_user_department_forms(client, non_admin_uid, expected_status_code=401)
+
+    def test_authenticated(self, client, fake_auth):
+        """Returns authenticated user profile."""
+        fake_auth.login(admin_uid)
+        api_json = _api_get_user_department_forms(client, non_admin_uid)
+        assert len(api_json) == 1
+        assert api_json[0]['name'] == 'PHILOS'
+
+
 def _api_my_profile(client, expected_status_code=200):
     response = client.get('/api/user/my_profile')
     assert response.status_code == expected_status_code

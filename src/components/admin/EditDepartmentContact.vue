@@ -141,6 +141,7 @@
 </template>
 
 <script>
+import {getUserDepartmentForms} from '@/api/user'
 import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import PersonLookup from '@/components/admin/PersonLookup'
@@ -213,6 +214,11 @@ export default {
       this.alertScreenReader(`Added ${selected.name}.`)
       this.$putFocusNextTick(`input-deptForms-${this.contactId}`)
     },
+    fetchUserDepartmentForms(uid) {
+      getUserDepartmentForms(uid).then(data => {
+        this.contactDepartmentForms = data
+      })
+    },
     onSave() {
       this.alertScreenReader('Saving')
       this.updateContact({
@@ -233,6 +239,7 @@ export default {
     },
     populateForm(contact) {
       if (contact) {
+        this.fetchUserDepartmentForms(contact.uid)
         this.csid = contact.csid
         this.contactDepartmentForms = this.$_.cloneDeep(this.$_.sortBy(contact.departmentForms, 'name'))
         this.email = contact.email

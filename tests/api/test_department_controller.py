@@ -134,7 +134,7 @@ class TestGetDepartment:
         assert department['contacts'][0]['firstName'] == 'Father'
         assert department['contacts'][0]['lastName'] == 'Brennan'
         assert department['contacts'][0]['email'] == 'fatherbrennan@berkeley.edu'
-        assert department['contacts'][0]['departmentForms'] == []
+        assert department['contacts'][0]['departmentForms'][0]['name'] == 'PHILOS'
         assert department['deptName'] == 'Philosophy'
         assert department['isEnrolled'] is True
         assert department['note'] is None
