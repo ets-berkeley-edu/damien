@@ -572,6 +572,7 @@ def expected_supervisors():
      LEFT JOIN user_department_forms ON user_department_forms.user_id = users.id
      LEFT JOIN department_forms ON department_forms.id = user_department_forms.department_form_id
          WHERE users.is_admin IS FALSE
+           AND users.deleted_at IS NULL
       GROUP BY users.id, users.uid, users.csid, users.first_name, users.last_name, users.blue_permissions,
                department_members.can_receive_communications
       ORDER BY users.uid
@@ -649,8 +650,7 @@ def expected_report_viewers():
                   LEFT JOIN departments ON departments.id = department_members.department_id
                   LEFT JOIN user_department_forms ON user_department_forms.user_id = users.id
                   LEFT JOIN department_forms ON department_forms.id = user_department_forms.department_form_id
-                      WHERE users.is_admin IS FALSE
-                        AND department_forms.name IS NOT NULL
+                      WHERE department_forms.name IS NOT NULL
                    ORDER BY uid, form
     """
     app.logger.info(sql)

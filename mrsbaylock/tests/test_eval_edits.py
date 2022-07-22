@@ -227,7 +227,7 @@ class TestEvaluationManagement:
 
     def test_duplicate_section_midterm(self):
         e = self.dept_1.evaluations[1]
-        date = e.course_end_date - timedelta(days=30)
+        date = e.course_end_date - timedelta(days=3)
         form = next(filter(lambda f: (f.name == self.midterm_form.name.replace('_MID', '')), self.dept_forms))
         self.dept_details_admin_page.load_dept_page(self.dept_1)
         self.dept_details_admin_page.click_edit_evaluation(e)

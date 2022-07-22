@@ -24,6 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import copy
+import datetime
 from datetime import timedelta
 import time
 
@@ -69,6 +70,9 @@ class TestEvalExports:
         self.status_board_admin_page.wait_for_depts()
         assert self.status_board_admin_page.dept_confirmed_count(self.dept)[0] == len(self.confirmed)
         assert self.status_board_admin_page.dept_confirmed_count(self.dept)[1] == len(self.evals)
+
+    def test_confirm_updated_date(self):
+        assert self.status_board_admin_page.dept_last_update_date(self.dept) == datetime.date.today()
 
     def test_publish(self):
         self.publish_page.load_page()
