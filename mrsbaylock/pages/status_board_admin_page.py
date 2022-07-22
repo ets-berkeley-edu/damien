@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import datetime
 import re
 import time
 
@@ -95,6 +96,14 @@ class StatusBoardAdminPage(DamienPages):
     @staticmethod
     def dept_row_xpath(dept):
         return f'//a[@href="/department/{dept.dept_id}"]/ancestor::tr'
+
+    def dept_last_update_date(self, dept):
+        xpath = f'{StatusBoardAdminPage.dept_row_xpath(dept)}/td[@class="department-lastUpdated"]'
+        self.wait_for_element((By.XPATH, xpath), utils.get_short_timeout())
+        if self.is_present((By.XPATH, f'{xpath}/span')):
+            return datetime.datetime.strptime(self.element((By.XPATH, f'{xpath}/span')).text.strip(), '%b %d, %Y').date()
+        else:
+            return None
 
     def dept_errors_count(self, dept):
         xpath = f'{StatusBoardAdminPage.dept_row_xpath(dept)}/td[@class="department-errors"]'
