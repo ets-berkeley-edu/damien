@@ -575,6 +575,9 @@ export default {
       if (!value || !search || typeof value === 'boolean') {
         return false
       }
+      if (value === item.sortableInstructor) {
+        value = item.searchableInstructor
+      }
       if (value === item.lastUpdated) {
         value = this.$moment(item.lastUpdated).format('MM/DD/YYYY')
       }
