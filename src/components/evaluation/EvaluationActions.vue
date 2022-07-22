@@ -63,13 +63,17 @@
             hide-details="auto"
             label="Use midterm department forms"
           />
-          <div class="mt-3 mb-3 pb-2">
-            <label id="bulk-duplicate-select-type-label" for="bulk-duplicate-select-type">
-              Type:
+          <div class="my-4">
+            <label
+              id="bulk-duplicate-select-type-label"
+              for="bulk-duplicate-select-type"
+              class="v-label d-block py-1"
+            >
+              Evaluation Type:
             </label>
-            <select 
-              id="bulk-duplicate-select-type" 
-              v-model="bulkUpdateOptions.evaluationType" 
+            <select
+              id="bulk-duplicate-select-type"
+              v-model="bulkUpdateOptions.evaluationType"
               class="native-select-override light d-block mx-auto"
               :disabled="disableControls"
             >
@@ -295,9 +299,9 @@ export default {
       }
 
       // Pre-populate type if shared by all selected evals
-      const uniqueTypes = this.$_.chain(selectedEvals).map(e => e.evaluationType.id).uniq().value()
+      const uniqueTypes = this.$_.chain(selectedEvals).map(e => this.$_.get(e, 'evaluationType.id')).uniq().value()
       if (uniqueTypes.length === 1) {
-        this.bulkUpdateOptions.evaluationType = selectedEvals[0].evaluationType.id
+        this.bulkUpdateOptions.evaluationType = this.$_.get(selectedEvals, '0.evaluationType.id')
       }
 
       // Show midterm form option only if a midterm form exists for all selected evals.
@@ -309,11 +313,10 @@ export default {
           this.midtermFormAvailable = false
           return false
         }
-
-        this.instructor = null
-        this.isDuplicating = true
-        this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
       })
+      this.instructor = null
+      this.isDuplicating = true
+      this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
     },
     isInvalidAction(action) {
       const uniqueStatuses = this.$_.uniq(this.evaluations
