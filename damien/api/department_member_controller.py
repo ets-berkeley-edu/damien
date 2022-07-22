@@ -70,8 +70,7 @@ def notify_contacts():
 @app.route('/api/department/<department_id>/contact', methods=['POST'])
 @admin_required
 def update_contact(department_id):
-    department = Department.find_by_id(department_id)
-    if not department:
+    if not Department.find_by_id(department_id):
         raise ResourceNotFoundError(f'Department {department_id} not found.')
     params = request.get_json()
     can_receive_communications = get_param(params, 'canReceiveCommunications')
@@ -82,18 +81,17 @@ def update_contact(department_id):
     uid = get_param(params, 'uid')
     user_id = get_param(params, 'userId')
     user = User.find_by_id(user_id) or User.find_by_uid(uid)
-    if not user:
-        csid = get_param(params, 'csid')
-        first_name = get_param(params, 'firstName')
-        last_name = get_param(params, 'lastName')
-        user = User.create_or_restore(
-            csid=csid,
-            uid=uid,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-            db_id=user_id,
-        )
+    csid = get_param(params, 'csid')
+    first_name = get_param(params, 'firstName')
+    last_name = get_param(params, 'lastName')
+    user = User.create_or_restore(
+        csid=csid,
+        uid=uid,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        db_id=user_id,
+    )
     blue_permissions = None
     if can_view_response_rates:
         blue_permissions = 'response_rates'
