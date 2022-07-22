@@ -50,8 +50,10 @@ const $_decorateEvaluation = (e, allEvaluations) => {
   }
 
   if (e.instructor) {
+    e.searchableInstructor = `${e.instructor.firstName} ${e.instructor.lastName} ${e.instructor.uid} ${e.instructor.emailAddress}`
     e.sortableInstructor = `${e.instructor.lastName} ${e.instructor.firstName} ${e.instructor.uid} ${e.instructor.emailAddress}`
   } else {
+    e.searchableInstructor = ''
     e.sortableInstructor = ''
   }
 
