@@ -291,8 +291,9 @@ class TestExportEvaluations:
             assert 'HISTORY,HISTORY,UC Berkeley,UC Berkeley,2' in department_hierarchy
 
             report_viewer_hierarchy = _read_csv(exported_objects, '/report_viewer_hierarchy.csv')
-            assert len(report_viewer_hierarchy) == 4
+            assert len(report_viewer_hierarchy) == 5
             assert report_viewer_hierarchy[0] == 'SOURCE,TARGET,ROLE_ID'
+            assert 'PHILOS,100,DEPT_ADMIN' in report_viewer_hierarchy
             assert 'HISTORY,5013530,DEPT_ADMIN' in report_viewer_hierarchy
             assert 'HISTORY,6982398,DEPT_ADMIN' in report_viewer_hierarchy
             assert 'MELC,1007025,DEPT_ADMIN' in report_viewer_hierarchy

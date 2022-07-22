@@ -224,13 +224,21 @@ INSERT INTO dept_uids VALUES
 INSERT INTO department_members (department_id, user_id, can_receive_communications, created_at, updated_at)
 SELECT
   d.id, u.id, du.can_receive_communications, now(), now()
-FROM 
+FROM
   dept_uids du
-JOIN 
+JOIN
   departments d ON du.dept_name = d.dept_name
-JOIN 
+JOIN
   users u on du.uid = u.uid;
 
 DROP TABLE dept_uids;
+
+INSERT INTO user_department_forms(user_id, department_form_id, created_at, updated_at)
+SELECT
+  u.id, df.id, now(), now()
+FROM
+  users u, department_forms df
+WHERE
+  u.uid = '100' AND df.name = 'PHILOS';
 
 COMMIT;
