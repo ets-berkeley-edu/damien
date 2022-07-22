@@ -41,6 +41,7 @@ class TestListManagement:
 
     test_id = f'{int(time.mktime(time.gmtime()))}'
     term = utils.get_current_term()
+    all_contacts = utils.get_all_users()
     dept = utils.get_test_dept_1()
     utils.reset_test_data(term, dept)
     dept.evaluations = evaluation_utils.get_evaluations(term, dept)
@@ -48,8 +49,9 @@ class TestListManagement:
     eval_unmarked = evaluations[0]
     eval_to_review = evaluations[1]
     eval_confirmed = evaluations[2]
-    form = DepartmentForm(f'Form {test_id}')
-    eval_type = EvaluationType(f'Type {test_id}')
+    confirmed = []
+    form = DepartmentForm(f'Form_{test_id}')
+    eval_type = EvaluationType(f'Type_{test_id}')
     alert = (f'FOO {test_id} ' * 15).strip()
 
     role = UserDeptRole(dept.dept_id, receives_comms=True)
@@ -58,11 +60,13 @@ class TestListManagement:
 
     utils.reset_test_data(term, dept)
 
-    def test_list_mgmt_page(self):
+    def test_clear_cache(self):
         self.login_page.load_page()
         self.login_page.dev_auth()
         self.status_board_admin_page.click_list_mgmt()
-        self.api_page.clear_cache()
+        self.api_page.refresh_unholy_loch()
+
+    def test_list_mgmt_page(self):
         self.homepage.load_page()
         self.status_board_admin_page.click_list_mgmt()
 
@@ -80,7 +84,9 @@ class TestListManagement:
         self.dept_details_admin_page.select_eval_status(self.eval_unmarked, EvaluationStatus.UNMARKED)
         self.dept_details_admin_page.change_dept_form(self.eval_unmarked, self.form)
         self.dept_details_admin_page.change_eval_type(self.eval_unmarked, self.eval_type)
-        self.dept_details_admin_page.click_save_eval_changes(self.eval_unmarked)
+        self.dept_details_admin_page.save_eval_changes(self.eval_unmarked)
+        self.eval_unmarked.dept_form = self.form.name
+        self.eval_unmarked.eval_type = self.eval_type.name
         self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.reload_page()
         self.dept_details_admin_page.wait_for_eval_rows()
@@ -93,7 +99,10 @@ class TestListManagement:
         self.dept_details_admin_page.select_eval_status(self.eval_to_review, EvaluationStatus.FOR_REVIEW)
         self.dept_details_admin_page.change_dept_form(self.eval_to_review, self.form)
         self.dept_details_admin_page.change_eval_type(self.eval_to_review, self.eval_type)
-        self.dept_details_admin_page.click_save_eval_changes(self.eval_to_review)
+        self.dept_details_admin_page.save_eval_changes(self.eval_to_review)
+        self.eval_to_review.dept_form = self.form.name
+        self.eval_to_review.eval_type = self.eval_type.name
+        self.eval_to_review.status = EvaluationStatus.FOR_REVIEW
         self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.reload_page()
         self.dept_details_admin_page.wait_for_eval_rows()
@@ -106,7 +115,10 @@ class TestListManagement:
         self.dept_details_admin_page.select_eval_status(self.eval_confirmed, EvaluationStatus.CONFIRMED)
         self.dept_details_admin_page.change_dept_form(self.eval_confirmed, self.form)
         self.dept_details_admin_page.change_eval_type(self.eval_confirmed, self.eval_type)
-        self.dept_details_admin_page.click_save_eval_changes(self.eval_confirmed)
+        self.dept_details_admin_page.save_eval_changes(self.eval_confirmed)
+        self.eval_confirmed.dept_form = self.form.name
+        self.eval_confirmed.eval_type = self.eval_type.name
+        self.eval_confirmed.status = EvaluationStatus.FOR_REVIEW
         self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.reload_page()
         self.dept_details_admin_page.wait_for_eval_rows()
@@ -143,6 +155,31 @@ class TestListManagement:
 
     def test_deleted_type_not_available(self):
         assert self.eval_type.name not in self.dept_details_admin_page.visible_eval_type_options()
+
+    # PUBLISH WITH DELETED FORM AND TYPE
+
+    def test_publish(self):
+        evals = evaluation_utils.get_evaluations(self.term, self.dept)
+        confirmed = list(filter(lambda ev: (ev.status == EvaluationStatus.CONFIRMED), evals))
+        self.confirmed.extend(confirmed)
+        self.publish_page.load_page()
+        self.publish_page.download_export_csvs()
+
+    def test_courses(self):
+        expected = utils.expected_courses(self.confirmed)
+        actual = self.publish_page.parse_csv('courses')
+        utils.verify_actual_matches_expected(actual, expected)
+
+    def test_course_instructors(self):
+        expected = utils.expected_course_instructors(self.confirmed)
+        actual = self.publish_page.parse_csv('course_instructors')
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), actual))
+        utils.verify_actual_matches_expected(current_term_rows, expected)
+
+    def test_course_supervisors(self):
+        expected = utils.expected_course_supervisors(self.confirmed, self.all_contacts)
+        actual = self.publish_page.parse_csv('course_supervisors')
+        utils.verify_actual_matches_expected(actual, expected)
 
     # SERVICE ALERTS
 

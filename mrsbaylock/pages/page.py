@@ -85,7 +85,6 @@ class Page(object):
         return self.element(locator).get_attribute('value')
 
     def is_present(self, locator):
-        app.logger.info(f'Checking for presence of element at {locator}')
         try:
             self.element(locator)
             return True

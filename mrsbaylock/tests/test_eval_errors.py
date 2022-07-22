@@ -36,6 +36,8 @@ import pytest
 @pytest.mark.usefixtures('page_objects')
 class TestEvalErrors:
 
+    # TODO - DUPLICATE SECTION
+
     term = utils.get_current_term()
     all_contacts = utils.get_all_users()
     dept = utils.get_dept('Environmental Science, Policy and Management', all_contacts)
@@ -56,7 +58,7 @@ class TestEvalErrors:
     share_dept_1 = evaluation_utils.get_section_dept(term, share_eval.ccn, all_contacts)
     share_dept_2 = evaluation_utils.get_section_dept(term, share_eval.room_share_ccns[-1], all_contacts)
 
-    no_listings_no_shares = list(filter(lambda c: (not c.x_listing_ccns and not c.room_share_ccns), evals))
+    no_listings_no_shares = list(filter(lambda c: (c.instructor.uid and not c.x_listing_ccns and not c.room_share_ccns), evals))
     manual_eval = no_listings_no_shares[0]
     dupe_eval = no_listings_no_shares[1]
 
@@ -92,6 +94,16 @@ class TestEvalErrors:
     share_start_2 = term.end_date.date() - timedelta(days=21)
     share_end_2 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_2)
 
+    # Test data for supplemental and duplicate sections
+    manual_dept_1 = x_list_dept_2
+    manual_contact_1 = x_list_contact_2
+    manual_dept_2 = x_list_dept_1
+    manual_contact_2 = x_list_contact_1
+
+    dupe_eval_has_instr = True if dupe_eval.instructor.uid else False
+    # TODO dupe_contact_1
+    # TODO dupe_contact_2
+
     def test_clear_cache(self):
         self.login_page.load_page()
         self.login_page.dev_auth()
@@ -104,7 +116,7 @@ class TestEvalErrors:
 
     # CROSS-LISTINGS
 
-    # Dept 1 makes selections on unmarked row; Dept 2 verifies no changes to corresponding row; SL verifies no errors
+    # Dept 1 makes selections on unmarked row; Dept 2 verifies corresponding row; SL verifies no errors
 
     def test_x_list_unmarked_dept_1_perform_edits(self):
         self.login_page.dev_auth(self.x_list_contact_1, self.x_list_dept_1)
@@ -139,10 +151,13 @@ class TestEvalErrors:
     def test_x_list_unmarked_sl_verify_no_dept_1_errors(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth()
+        self.status_board_admin_page.wait_for_depts()
+        assert self.status_board_admin_page.dept_errors_count(self.x_list_dept_1) == 0
+        assert self.status_board_admin_page.dept_errors_count(self.x_list_dept_2) == 0
         self.dept_details_admin_page.click_publish_link()
         self.publish_page.wait_for_no_sections()
 
-    # Dept 2 makes selections on unmarked row; Dept 1 verifies no changes to corresponding row; SL verifies errors
+    # Dept 2 makes selections on unmarked row; Dept 1 verifies corresponding row; SL verifies errors
 
     def test_x_list_unmarked_dept_2_perform_edits(self):
         self.publish_page.log_out()
@@ -205,13 +220,16 @@ class TestEvalErrors:
         assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
         assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
 
-    def test_x_list_unmarked_sl_verify_errors(self):
+    def test_x_list_unmarked_sl_verify_no_errors(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth()
+        self.status_board_admin_page.wait_for_depts()
+        assert self.status_board_admin_page.dept_errors_count(self.x_list_dept_1) == 0
+        assert self.status_board_admin_page.dept_errors_count(self.x_list_dept_2) == 0
         self.dept_details_admin_page.click_publish_link()
         self.publish_page.wait_for_no_sections()
 
-    # Dept 1 sets status to review; Dept 1 & 2 verify visible errors; SL verifies course errors
+    # Dept 1 sets status to review; Dept 1 & 2 verify errors; SL verifies course errors
 
     def test_x_list_dept_1_set_status_review(self):
         self.dept_details_dept_page.log_out()
@@ -259,9 +277,12 @@ class TestEvalErrors:
         assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
         assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
 
-    def test_x_list_review_sl_verify_no_dept_2_errors(self):
+    def test_x_list_review_sl_verify_errors(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth()
+        self.status_board_admin_page.wait_for_depts()
+        assert self.status_board_admin_page.dept_errors_count(self.x_list_dept_1) == 1
+        assert self.status_board_admin_page.dept_errors_count(self.x_list_dept_2) == 1
         self.dept_details_admin_page.click_publish_link()
         self.publish_page.wait_for_eval_rows()
 
@@ -291,7 +312,7 @@ class TestEvalErrors:
 
     # ROOM SHARES
 
-    # Dept 1 makes selections on unmarked row; Dept 2 verifies no changes to corresponding row; SL verifies no errors
+    # Dept 1 makes selections on unmarked row; Dept 2 verifies corresponding row; SL verifies no errors
 
     def test_share_unmarked_dept_1_perform_edits(self):
         self.dept_details_dept_page.hit_escape()
@@ -313,7 +334,7 @@ class TestEvalErrors:
         expected = f"{self.share_start_1.strftime('%m/%d/%y')} - {self.share_end_1.strftime('%m/%d/%y')}"
         assert expected in self.dept_details_dept_page.eval_period_dates(self.share_eval)
 
-    def test_share_unmarked_dept_2_verify_no_edits(self):
+    def test_share_unmarked_dept_2_verify_edits(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.share_contact_2, self.share_dept_2)
         self.dept_details_dept_page.wait_for_eval_rows()
@@ -328,12 +349,15 @@ class TestEvalErrors:
     def test_share_unmarked_sl_verify_no_dept_1_errors(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth()
+        self.status_board_admin_page.wait_for_depts()
+        assert self.status_board_admin_page.dept_errors_count(self.share_dept_1) == 1
+        assert self.status_board_admin_page.dept_errors_count(self.share_dept_2) == 0
         self.dept_details_admin_page.click_publish_link()
         self.publish_page.wait_for_eval_rows()
         self.publish_page.when_not_present(self.publish_page.section_row(self.share_eval), utils.get_short_timeout())
 
-    # Dept 2 marks row confirmed, and then edits the row; Dept 1 verifies confirmed status on corresponding row;
-    # SL verifies no errors
+    # Dept 2 marks row confirmed and tries to edit the row, then repeats as to-do; Dept 1 verifies corresponding row;
+    # SL verifies errors
 
     def test_share_dept_2_set_status_confirmed(self):
         self.dept_details_dept_page.log_out()
@@ -415,6 +439,9 @@ class TestEvalErrors:
     def test_share_confirmed_sl_verify_dept_2_errors(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth()
+        self.status_board_admin_page.wait_for_depts()
+        assert self.status_board_admin_page.dept_errors_count(self.share_dept_1) == 2
+        assert self.status_board_admin_page.dept_errors_count(self.share_dept_2) == 1
         self.dept_details_admin_page.click_publish_link()
         self.publish_page.wait_for_eval_rows()
 
@@ -438,20 +465,18 @@ class TestEvalErrors:
     def test_publish_ok_while_to_do_errors(self):
         assert self.publish_page.element(PublishPage.PUBLISH_BUTTON).is_enabled()
 
-    # TODO - DUPLICATE SECTION
-
     # ADD SECTION
 
-    def test_manual_section_dept_2_adds(self):
+    def test_manual_section_dept_1_adds(self):
         self.publish_page.log_out()
-        self.login_page.dev_auth(self.x_list_contact_2, self.x_list_dept_2)
+        self.login_page.dev_auth(self.manual_contact_1, self.manual_dept_1)
         self.dept_details_dept_page.click_add_section()
         self.dept_details_dept_page.look_up_section(self.manual_eval.ccn)
         self.dept_details_dept_page.click_confirm_add_section()
         self.dept_details_dept_page.wait_for_eval_rows()
         self.dept_details_dept_page.wait_for_eval_row(self.manual_eval)
 
-    def test_manual_section_dept_2_edits(self):
+    def test_manual_section_dept_1_edits(self):
         self.dept_details_dept_page.click_edit_evaluation(self.manual_eval)
         if not self.manual_eval:
             instr = User({'uid': self.instructor_uid})
@@ -462,19 +487,19 @@ class TestEvalErrors:
         self.manual_eval.dept_form = self.dept_form_2.name
         self.manual_eval.eval_type = self.eval_type_2.name
 
-    def test_manual_section_dept_2_verify_edits(self):
-        self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_2.name in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
-        assert self.eval_type_2.name in self.dept_details_dept_page.eval_type(self.manual_eval)
-
     def test_manual_section_dept_1_verify_edits(self):
-        self.dept_details_dept_page.log_out()
-        self.login_page.dev_auth(self.x_list_contact_1, self.x_list_dept_1)
         self.dept_details_dept_page.wait_for_eval_rows()
         assert self.dept_form_2.name in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
         assert self.eval_type_2.name in self.dept_details_dept_page.eval_type(self.manual_eval)
 
-    def test_manual_section_dept_1_edits(self):
+    def test_manual_section_dept_2_verify_edits(self):
+        self.dept_details_dept_page.log_out()
+        self.login_page.dev_auth(self.manual_contact_2, self.manual_dept_2)
+        self.dept_details_dept_page.wait_for_eval_rows()
+        assert self.dept_form_2.name in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
+        assert self.eval_type_2.name in self.dept_details_dept_page.eval_type(self.manual_eval)
+
+    def test_manual_section_dept_2_edits(self):
         self.dept_details_dept_page.click_edit_evaluation(self.manual_eval)
         self.dept_details_dept_page.change_dept_form(self.manual_eval, self.dept_form_1)
         self.dept_details_dept_page.change_eval_type(self.manual_eval, self.eval_type_1)
@@ -482,24 +507,28 @@ class TestEvalErrors:
         self.manual_eval.dept_form = self.dept_form_1.name
         self.manual_eval.eval_type = self.eval_type_1.name
 
-    def test_manual_section_dept_1_verify_form_conflict(self):
+    def test_manual_section_dept_2_verify_form_conflict(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.x_list_dept_2.name} department'
+        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.manual_dept_1.name} department'
         assert self.dept_form_1.name in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
         assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
 
-    def test_manual_section_dept_1_verify_type_conflict(self):
-        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.x_list_dept_2.name} department'
+    def test_manual_section_dept_2_verify_type_conflict(self):
+        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.manual_dept_1.name} department'
         assert self.eval_type_1.name in self.dept_details_dept_page.eval_type(self.manual_eval)
         assert conflict_type in self.dept_details_dept_page.eval_type(self.manual_eval)
 
-    def test_manual_section_dept_1_no_confirming(self):
+    def test_manual_section_dept_2_no_confirming(self):
         self.dept_details_dept_page.click_edit_evaluation(self.manual_eval)
         self.dept_details_dept_page.select_eval_status(self.manual_eval, EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.click_save_eval_changes(self.manual_eval)
         self.dept_details_dept_page.wait_for_validation_error('Could not confirm evaluations with conflicting information')
 
-    def test_manual_section_dept_1_resolve_conflict(self):
+    # RESOLVE CONFLICTS
+
+    # Manual section
+
+    def test_manual_section_dept_2_resolve_conflict(self):
         self.dept_details_dept_page.hit_escape()
         self.dept_details_dept_page.change_dept_form(self.manual_eval, self.dept_form_2)
         self.dept_details_dept_page.change_eval_type(self.manual_eval, self.eval_type_2)
@@ -507,18 +536,67 @@ class TestEvalErrors:
         self.manual_eval.dept_form = self.dept_form_2.name
         self.manual_eval.eval_type = self.eval_type_2.name
 
-    def test_manual_section_dept_1_no_form_conflict(self):
+    def test_manual_section_dept_2_no_form_conflict(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.x_list_dept_2.name} department'
+        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.manual_dept_1.name} department'
         assert self.dept_form_2.name in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
         assert conflict_form not in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
 
-    def test_manual_section_dept_1_no_type_conflict(self):
-        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.x_list_dept_2.name} department'
+    def test_manual_section_dept_2_no_type_conflict(self):
+        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.manual_dept_1.name} department'
         assert self.eval_type_2.name in self.dept_details_dept_page.eval_type(self.manual_eval)
         assert conflict_type not in self.dept_details_dept_page.eval_type(self.manual_eval)
 
-    def test_manual_section_dept_1_confirms(self):
+    def test_manual_section_dept_2_confirms(self):
         self.dept_details_dept_page.click_edit_evaluation(self.manual_eval)
         self.dept_details_dept_page.select_eval_status(self.manual_eval, EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.save_eval_changes(self.manual_eval)
+
+    # Cross-listings
+
+    def test_x_list_sl_resolve_conflict(self):
+        self.dept_details_dept_page.log_out()
+        self.login_page.dev_auth()
+        self.status_board_admin_page.click_publish_link()
+        self.status_board_admin_page.click_dept_link(self.x_list_dept_1)
+        self.dept_details_admin_page.click_edit_evaluation(self.x_list_eval)
+        self.dept_details_admin_page.change_dept_form(self.x_list_eval, self.dept_form_2)
+        self.dept_details_admin_page.change_eval_type(self.x_list_eval, self.eval_type_2)
+        self.dept_details_admin_page.change_eval_start_date(self.x_list_eval, self.x_list_start_2)
+        self.dept_details_admin_page.select_eval_status(self.x_list_eval, EvaluationStatus.CONFIRMED)
+        self.dept_details_admin_page.save_eval_changes(self.x_list_eval)
+
+    def test_x_list_sl_no_conflicts(self):
+        self.dept_details_admin_page.wait_for_eval_rows()
+        assert self.dept_form_2.name in self.dept_details_admin_page.eval_dept_form(self.x_list_eval)
+        assert self.eval_type_2.name in self.dept_details_admin_page.eval_type(self.x_list_eval)
+        expected = f"{self.x_list_start_2.strftime('%m/%d/%y')} - {self.x_list_end_2.strftime('%m/%d/%y')}"
+        assert expected in self.dept_details_admin_page.eval_period_dates(self.x_list_eval)
+        assert 'Conflicts with' not in self.dept_details_admin_page.eval_dept_form(self.x_list_eval)
+        assert 'Conflicts with' not in self.dept_details_admin_page.eval_type(self.x_list_eval)
+        assert 'Conflicts with' not in self.dept_details_admin_page.eval_period_dates(self.x_list_eval)
+
+    # Room shares
+
+    def test_share_sl_resolve_conflict(self):
+        self.status_board_admin_page.click_publish_link()
+        self.status_board_admin_page.click_dept_link(self.share_dept_2)
+        self.dept_details_admin_page.click_edit_evaluation(self.share_eval)
+        self.dept_details_admin_page.change_dept_form(self.share_eval, self.dept_form_1)
+        self.dept_details_admin_page.change_eval_type(self.share_eval, self.eval_type_1)
+        self.dept_details_admin_page.change_eval_start_date(self.share_eval, self.share_start_1)
+        self.dept_details_admin_page.save_eval_changes(self.share_eval)
+
+    def test_share_sl_confirm(self):
+        self.dept_details_admin_page.bulk_mark_as_confirmed([self.share_eval])
+
+    # Publish page is clean
+
+    def test_no_errors(self):
+        self.dept_details_admin_page.click_status_board()
+        self.status_board_admin_page.wait_for_depts()
+        assert self.status_board_admin_page.dept_errors_count(self.x_list_dept_1) == 0
+        assert self.status_board_admin_page.dept_errors_count(self.x_list_dept_2) == 0
+        assert self.status_board_admin_page.dept_errors_count(self.share_dept_2) == 0
+        self.dept_details_admin_page.click_publish_link()
+        self.publish_page.wait_for_no_sections()
