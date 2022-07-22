@@ -119,7 +119,6 @@ class User(Base):
         if user:
             user.deleted_at = None
             user.email = email
-            user.is_admin = is_admin
             user.blue_permissions = blue_permissions
         else:
             user = cls(
@@ -149,12 +148,6 @@ class User(Base):
     def record_login(cls, db_id):
         user = cls.query.filter_by(id=db_id, deleted_at=None).first()
         user.login_at = datetime.now()
-        std_commit()
-
-    @classmethod
-    def restore(cls, db_id):
-        user = cls.query.filter_by(id=db_id).first()
-        user.deleted_at = None
         std_commit()
 
     @classmethod
