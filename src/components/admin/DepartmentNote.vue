@@ -134,7 +134,7 @@ export default {
       this.reset()
     },
     onDelete() {
-      this.updateNote(null, this.selectedTermId).then(() => {
+      this.updateNote({note: null, termId: this.selectedTermId}).then(() => {
         this.alertScreenReader('Note deleted.')
         this.$putFocusNextTick('delete-dept-note-btn')
         this.reset()
