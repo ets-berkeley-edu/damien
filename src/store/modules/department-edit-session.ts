@@ -243,7 +243,10 @@ const mutations = {
   setDisableControls: (state: any, disable: boolean) => state.disableControls = disable,
   setErrorDialog: (state: any, errorDialog: boolean) => state.errorDialog = errorDialog,
   setErrorDialogText: (state: any, errorDialogText: string) => state.errorDialogText = errorDialogText,
-  setEvaluations: (state: any, evaluations: any[]) => state.evaluations = evaluations,
+  setEvaluations: (state: any, evaluations: any[]) => {
+    _.each(evaluations, e => $_decorateEvaluation(e, evaluations))
+    state.evaluations = evaluations
+  },
   setEvaluationUpdate: (state: any, {sectionIndex, sectionCount, updatedEvaluations}) => {
     const evaluations = _.sortBy(updatedEvaluations, 'sortableCourseName')
     state.evaluations.splice(sectionIndex, sectionCount, ...evaluations)
