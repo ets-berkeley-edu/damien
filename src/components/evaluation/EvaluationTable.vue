@@ -442,10 +442,10 @@
     </v-dialog>
   </div>
   <div v-else class="no-eligible-sections">
-    <v-container class="grey lighten-5">
+    <v-container>
       <v-row class="my-6">
         <v-col align="center">
-          <div class="d-flex align-baseline justify-center">
+          <div class="d-flex align-baseline justify-center muted--text">
             <span>No eligible sections to load.</span>
             <span v-if="!readonly && allowEdits">You may still add a section manually.</span>
           </div>
