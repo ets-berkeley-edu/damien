@@ -20,6 +20,7 @@
         :headers="headers"
         hide-default-footer
         :items="departments"
+        must-sort
       >
         <template #body="{items}">
           <tbody @mouseleave="() => hoveredDept = null" @focusout="() => hoveredDept = null">
@@ -123,13 +124,13 @@ export default {
   data: () => ({
     departments: [],
     headers: [
-      {class: 'text-nowrap', text: 'Department'},
-      {class: 'text-nowrap', text: 'Courses'},
-      {class: 'text-nowrap', text: 'Contacts'},
-      {class: 'text-nowrap', text: 'UID'},
-      {class: 'text-nowrap', text: 'Email Address'},
-      {text: 'Receives Notifications'},
-      {class: 'text-nowrap', text: 'Blue Access'},
+      {class: 'text-nowrap', text: 'Department', value: 'deptName'},
+      {class: 'text-nowrap', sortable: false, text: 'Courses'},
+      {class: 'text-nowrap', sortable: false, text: 'Contacts'},
+      {class: 'text-nowrap', sortable: false, text: 'UID'},
+      {class: 'text-nowrap', sortable: false, text: 'Email Address'},
+      {sortable: false, text: 'Receives Notifications'},
+      {class: 'text-nowrap', sortable: false, text: 'Blue Access'},
     ],
     hoveredDept: undefined
   }),
