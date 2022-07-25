@@ -441,29 +441,26 @@
       </v-card>
     </v-dialog>
   </div>
-  <div v-else class="no-eligible-sections">
-    <v-container>
-      <v-row class="my-6">
-        <v-col align="center">
-          <div class="d-flex align-baseline justify-center muted--text">
-            <span>No eligible sections to load.</span>
-            <span v-if="!readonly && allowEdits">You may still add a section manually.</span>
-          </div>
-        </v-col>
-      </v-row>
-      <v-row class="my-6">
-        <v-col align="center">
-          <AddCourseSection
-            v-if="!readonly"
-            id="add-course-section"
-            :evaluations="evaluations"
-            :allow-edits="allowEdits"
-            class="d-flex align-baseline justify-center ml-0"
-          />
-        </v-col>
-      </v-row>
-    </v-container>
-  </div>
+  <v-container v-else class="no-eligible-sections py-8">
+    <v-row>
+      <v-col align="center">
+        <div class="d-flex flex-column muted--text">
+          <span>No eligible sections to load.</span>
+          <span v-if="!readonly && allowEdits">You may still add a section manually.</span>
+        </div>
+      </v-col>
+    </v-row>
+    <v-row v-if="!readonly">
+      <v-col align="center">
+        <AddCourseSection
+          id="add-course-section"
+          :evaluations="evaluations"
+          :allow-edits="allowEdits"
+          class="d-flex align-baseline justify-center ml-0"
+        />
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -894,11 +891,8 @@ tr.border-top-none td {
   max-width: 168px !important;
 }
 .no-eligible-sections {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 30vh;
   font-size: 20px;
+  max-height: 30vh;
 }
 .pill {
   border: 1px solid #999;
