@@ -149,6 +149,7 @@ const actions = {
     commit('filterSelectedEvaluations', {searchFilterResults, enabledStatuses})
   },
   init: ({commit}, departmentId: number) => {
+    commit('setDepartment', null)
     commit('setAllDepartmentForms', Vue.prototype.$config.departmentForms)
     return new Promise<void>(resolve => {
       $_refresh(commit, departmentId)
@@ -240,6 +241,7 @@ const mutations = {
     })
   },
   setAllDepartmentForms: (state: any, departmentForms: any[]) => state.allDepartmentForms = departmentForms,
+  setDepartment: (state: any, department: any) => state.department = department,
   setDisableControls: (state: any, disable: boolean) => state.disableControls = disable,
   setErrorDialog: (state: any, errorDialog: boolean) => state.errorDialog = errorDialog,
   setErrorDialogText: (state: any, errorDialogText: string) => state.errorDialogText = errorDialogText,

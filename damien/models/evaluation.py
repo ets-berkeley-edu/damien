@@ -301,7 +301,11 @@ class Evaluation(Base):
                         e.department_form_id != {':department_form_id' if params.get('department_form_id') else 'c.department_form_id'}
                         OR e.evaluation_type_id != {':evaluation_type_id' if params.get('evaluation_type_id') else 'c.evaluation_type_id'}
                         OR e.start_date != {':start_date' if params.get('start_date') else 'c.start_date'}
-                    )"""
+                    )
+                    JOIN department_forms edf ON e.department_form_id = edf.id
+                    JOIN department_forms cdf ON c.department_form_id = cdf.id
+                    WHERE edf.name <> cdf.name || '_MID'
+                    AND cdf.name <> edf.name || '_MID'"""
         return db.session.execute(query, params).fetchall()
 
     @classmethod
