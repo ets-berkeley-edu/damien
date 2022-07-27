@@ -25,7 +25,7 @@
         </div>
         <v-btn
           id="publish-btn"
-          class="align-self-end my-4"
+          class="publish-btn align-self-end my-4"
           color="primary"
           :disabled="isExporting || loading || !!$_.size(blockers)"
           @click="publish"
@@ -132,6 +132,9 @@ export default {
 </script>
 
 <style scoped>
+.publish-btn {
+  width: 8rem;
+}
 .term-exports {
   width: 325px;
 }

@@ -158,11 +158,13 @@ def _generate_course_id_map(keys, course_number, term_id):
     # One key per course number makes life easy.
     if len(keys) == 1:
         return {keys[0]: course_id_prefix}
-    # A couple of common cases.
-    elif len(keys) == 2 and keys[0].evaluation_type == 'F' and keys[1].evaluation_type == 'G':
-        return {keys[0]: course_id_prefix, keys[1]: f'{course_id_prefix}_GSI'}
-    elif len(keys) == 2 and not keys[0].department_form.endswith('_MID') and keys[1].department_form.endswith('_MID'):
-        return {keys[0]: course_id_prefix, keys[1]: f'{course_id_prefix}_MID'}
+    # Try generating unique IDs by evaluation type and/or department form.
+    course_id_map = {}
+    for key in keys:
+        postfix = f"{'_GSI' if key.evaluation_type == 'G' else ''}{'_MID' if key.department_form.endswith('_MID') else ''}"
+        course_id_map[key] = f'{course_id_prefix}{postfix}'
+    if len(set(course_id_map.values())) == len(keys):
+        return course_id_map
     # If we can't make sense of how the eval keys differ, just use the alphabet.
     else:
         return {key: f'{course_id_prefix}_{chr(65 + index)}' for index, key in enumerate(keys)}
@@ -237,7 +239,13 @@ def _generate_xlisted_course_supervisor_rows(course_id, course_number, sections,
     cln = _cross_listed_name(sections[course_number])
     if cln:
         for n in cln.split('-'):
-            catalog_listing = sections[n].find_catalog_listing(all_catalog_listings)
+            catalog_listing = None
+            try:
+                catalog_listing = sections[n].find_catalog_listing(all_catalog_listings)
+            except KeyError as e:
+                app.logger.error(
+                    f'Error exporting xlisted course supervisors: course_number={course_number}, xlisted_name={cln}, error=KeyError: {e}',
+                )
             if catalog_listing and catalog_listing.default_form:
                 for supervisor_uid in dept_forms_to_uids.get(catalog_listing.default_form.name, []):
                     rows.append({'COURSE_ID': course_id, 'LDAP_UID': supervisor_uid})
