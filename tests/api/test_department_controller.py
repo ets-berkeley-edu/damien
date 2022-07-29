@@ -437,6 +437,7 @@ class TestDuplicateEvaluation:
             assert r['instructor']['uid'] == '637739'
             assert r['transientId'] == '_2222_30659_637739'
             assert r['id'] == int(r['id'])
+            assert r['startDate'] == '2022-04-18'
 
     def test_duplicate_for_midterm(self, client, fake_auth):
         from tests.api.test_department_form_controller import _api_add_department_form
@@ -465,6 +466,44 @@ class TestDuplicateEvaluation:
         assert final_eval['courseTitle'] == 'Elementary Sumerian'
         assert final_eval['instructor']['uid'] == '637739'
         assert final_eval['departmentForm']['name'] == 'CUNEIF'
+
+    def test_duplicate_create_conflict(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        response = _api_update_evaluation(
+            client,
+            params={
+                'evaluationIds': ['_2222_30457_824122'],
+                'action': 'duplicate',
+                'fields': {'startDate': '2022-04-20'},
+            },
+        )
+        assert len(response) == 2
+        assert response[0]['id'] != response[1]['id']
+        assert response[0]['startDate'] == '2022-04-18'
+        assert response[1]['startDate'] == '2022-04-20'
+        for r in response:
+            assert r['termId'] == '2222'
+            assert r['courseNumber'] == '30457'
+            assert r['courseTitle'] == 'Introduction to Ancient Egypt'
+            assert r['instructor']['uid'] == '824122'
+            assert r['transientId'] == '_2222_30457_824122'
+            assert r['id'] == int(r['id'])
+            assert r['valid'] is True
+
+        # mark the two conflicting rows for review
+        response = _api_update_evaluation(
+            client,
+            params={
+                'evaluationIds': [response[0]['id'], response[1]['id']],
+                'action': 'review',
+                'fields': None,
+            },
+        )
+        assert response[0]['conflicts']['evaluationPeriod'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': '2022-04-20'}]
+        assert response[1]['conflicts']['evaluationPeriod'] == [{'department': 'Middle Eastern Languages and Cultures', 'value': '2022-04-18'}]
+        for r in response:
+            assert r['status'] == 'review'
+            assert r['valid'] is False
 
 
 class TestEditEvaluation:

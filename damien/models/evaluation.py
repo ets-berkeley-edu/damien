@@ -279,14 +279,24 @@ class Evaluation(Base):
     @classmethod
     def find_potential_conflicts(cls, evaluation_ids, fields):
         params = {'evaluation_ids': evaluation_ids}
+        confirming_fields = {
+            'department_form_id': 'COALESCE(c.department_form_id, 0)',
+            'evaluation_type_id': 'COALESCE(c.evaluation_type_id, 0)',
+            'instructor_uid': 'c.instructor_uid',
+            'start_date': "COALESCE(c.start_date, 'epoch')",
+        }
         if fields.get('departmentForm'):
             params.update({'department_form_id': fields.get('departmentForm').id})
+            confirming_fields.update({'department_form_id': ':department_form_id'})
         if fields.get('evaluationType'):
             params.update({'evaluation_type_id': fields.get('evaluationType').id})
+            confirming_fields.update({'evaluation_type_id': ':evaluation_type_id'})
         if fields.get('instructorUid'):
             params.update({'instructor_uid': f"{fields.get('instructorUid')}"})
+            confirming_fields.update({'instructor_uid': ':instructor_uid'})
         if fields.get('startDate'):
             params.update({'start_date': f"{fields.get('startDate')}"})
+            confirming_fields.update({'start_date': ':start_date'})
         query = f"""WITH confirming AS (
                         SELECT * FROM evaluations e
                         WHERE id = ANY(:evaluation_ids)
@@ -295,17 +305,23 @@ class Evaluation(Base):
                     JOIN confirming c
                     ON e.term_id = c.term_id
                     AND e.course_number = c.course_number
-                    AND e.instructor_uid = {':instructor_uid' if params.get('instructor_uid') else 'c.instructor_uid'}
+                    AND e.instructor_uid = {confirming_fields['instructor_uid']}
                     AND NOT e.id = c.id
                     AND (
-                        e.department_form_id != {':department_form_id' if params.get('department_form_id') else 'c.department_form_id'}
-                        OR e.evaluation_type_id != {':evaluation_type_id' if params.get('evaluation_type_id') else 'c.evaluation_type_id'}
-                        OR e.start_date != {':start_date' if params.get('start_date') else 'c.start_date'}
+                        COALESCE(e.department_form_id, 0) != {confirming_fields['department_form_id']}
+                        OR COALESCE(e.evaluation_type_id, 0) != {confirming_fields['evaluation_type_id']}
+                        OR COALESCE(e.start_date, 'epoch') != {confirming_fields['start_date']}
                     )
-                    JOIN department_forms edf ON e.department_form_id = edf.id
-                    JOIN department_forms cdf ON c.department_form_id = cdf.id
-                    WHERE edf.name <> cdf.name || '_MID'
-                    AND cdf.name <> edf.name || '_MID'"""
+                    LEFT JOIN department_forms edf ON e.department_form_id = edf.id
+                    LEFT JOIN department_forms cdf ON c.department_form_id = cdf.id
+                    WHERE (
+                        e.status IN ('marked', 'confirmed')
+                        OR e.status IS NULL
+                    )
+                    AND (
+                        (e.department_form_id IS NULL OR c.department_form_id IS NULL)
+                        OR (edf.name <> cdf.name || '_MID' AND cdf.name <> edf.name || '_MID')
+                    )"""
         return db.session.execute(query, params).fetchall()
 
     @classmethod
@@ -325,6 +341,17 @@ class Evaluation(Base):
     def get_confirmed(cls, term_id):
         filters = [cls.term_id == term_id, cls.status == 'confirmed']
         return cls.query.where(and_(*filters)).all()
+
+    @classmethod
+    def get_duplicates(cls, evaluation):
+        conditions = and_(
+            cls.id != evaluation.id,
+            cls.term_id == evaluation.term_id,
+            cls.course_number == evaluation.course_number,
+            cls.instructor_uid == evaluation.instructor_uid,
+            cls.status.in_(['confirmed', 'marked']),
+        )
+        return cls.query.filter(conditions).all()
 
     @classmethod
     def get_invalid(cls, term_id, status=None, evaluation_ids=None):
@@ -372,6 +399,23 @@ class Evaluation(Base):
         transient_evaluation.set_dates(loch_rows, foreign_dept_evaluations, saved_evaluation)
         transient_evaluation.set_last_updated(loch_rows, saved_evaluation)
 
+        if saved_evaluation and transient_evaluation.status in ['marked', 'confirmed']:
+            duplicate_evaluations = cls.get_duplicates(saved_evaluation)
+            for duplicate in duplicate_evaluations:
+                duplicate_evaluation_start_date = duplicate.start_date
+                if not duplicate_evaluation_start_date:
+                    default_evaluation_dates = get_default_meeting_dates(term_ids=[transient_evaluation.term_id])[0]
+                    duplicate_evaluation_start_date = duplicate.get_default_evaluation_dates(default_evaluation_dates)[0]
+                if (transient_evaluation.start_date and transient_evaluation.start_date != duplicate_evaluation_start_date):
+                    transient_evaluation.mark_conflict(
+                        duplicate,
+                        'evaluationPeriod',
+                        saved_evaluation,
+                        safe_strftime(transient_evaluation.start_date, '%Y-%m-%d'),
+                        safe_strftime(duplicate_evaluation_start_date, '%Y-%m-%d'),
+                    )
+            transient_evaluation.update_validity(saved_evaluation, duplicate_evaluations)
+
         transient_evaluation.update_validity(saved_evaluation, foreign_dept_evaluations)
 
         if saved_evaluation:
@@ -417,6 +461,18 @@ class Evaluation(Base):
             end_date=self.end_date,
         )
 
+    def get_default_evaluation_dates(self, default_meeting_dates):
+        end_date = self.meeting_end_date or default_meeting_dates['end_date']
+        # The most common meeting end date is the Friday before finals week. During Spring and Fall terms, we bump these two days forward
+        # to the Sunday before finals.
+        if end_date == default_meeting_dates['end_date'] and self.term_id[-1:] in {'2', '8'}:
+            end_date = end_date + timedelta(days=2)
+        if (end_date - (self.meeting_start_date or default_meeting_dates['start_date'])) < timedelta(days=90):
+            start_date = end_date - timedelta(days=13)
+        else:
+            start_date = end_date - timedelta(days=20)
+        return (start_date, end_date)
+
     def get_id(self):
         return self.id or self.transient_id()
 
@@ -438,10 +494,10 @@ class Evaluation(Base):
     def is_visible(self):
         return self.status != 'deleted'
 
-    def mark_conflict(self, foreign_dept_evaluation, key, saved_evaluation, self_value, other_value):
-        self.conflicts[key].append({'department': foreign_dept_evaluation.department.dept_name, 'value': other_value})
-        foreign_dept_evaluation.conflicts[key].append({'department': saved_evaluation.department.dept_name, 'value': self_value})
-        clear_department_cache(foreign_dept_evaluation.department_id, self.term_id)
+    def mark_conflict(self, other_evaluation, key, saved_evaluation, self_value, other_value):
+        self.conflicts[key].append({'department': other_evaluation.department.dept_name, 'value': other_value})
+        other_evaluation.conflicts[key].append({'department': saved_evaluation.department.dept_name, 'value': self_value})
+        clear_department_cache(other_evaluation.department_id, self.term_id)
         clear_section_cache(self.term_id, self.course_number)
 
     def set_dates(self, loch_rows, foreign_dept_evaluations, saved_evaluation):
@@ -476,17 +532,7 @@ class Evaluation(Base):
             else:
                 self.end_date = self.start_date + timedelta(days=20)
         else:
-            self.end_date = self.meeting_end_date
-
-            # The most common meeting end date is the Friday before finals week. During Spring and Fall terms, we bump these two days forward
-            # to the Sunday before finals.
-            if self.end_date == default_meeting_dates['end_date'] and self.term_id[-1:] in {'2', '8'}:
-                self.end_date = self.end_date + timedelta(days=2)
-
-            if (self.end_date - self.meeting_start_date) < timedelta(days=90):
-                self.start_date = self.end_date - timedelta(days=13)
-            else:
-                self.start_date = self.end_date - timedelta(days=20)
+            self.start_date, self.end_date = self.get_default_evaluation_dates(default_meeting_dates)
 
     def set_department_form(self, saved_evaluation, foreign_dept_evaluations, default_form):
         if saved_evaluation and saved_evaluation.department_form:

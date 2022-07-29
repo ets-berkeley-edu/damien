@@ -231,6 +231,8 @@ def get_room_shares(term_id, course_numbers):
 
 
 def get_loch_instructors(uids):
+    if not len(uids):
+        return []
     query = """SELECT distinct *
             FROM unholy_loch.sis_instructors i
             WHERE ldap_uid = ANY(:uids)
