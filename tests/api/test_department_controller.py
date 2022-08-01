@@ -365,31 +365,31 @@ class TestUpdateEvaluationStatus:
         # Try to confirm the two conflicting rows
         _api_update_evaluation(client, dept_id=dept.id, params={'evaluationIds': evaluation_ids, 'action': 'confirm'}, expected_status_code=400)
 
-        # Try to confirm the rows invidually
-        _api_update_evaluation(client, dept_id=dept.id, params={'evaluationIds': [evaluation_ids[0]], 'action': 'confirm'}, expected_status_code=400)
+        # Confirm the first row, then try to confirm the second row
+        _api_update_evaluation(client, dept_id=dept.id, params={'evaluationIds': [evaluation_ids[0]], 'action': 'confirm'})
         _api_update_evaluation(client, dept_id=dept.id, params={'evaluationIds': [evaluation_ids[1]], 'action': 'confirm'}, expected_status_code=400)
 
-        # Try to confirm while resolving some but not all conflicts
+        # Try to confirm the second row while resolving some but not all conflicts
         _api_update_evaluation(client, dept_id=dept.id, params={
-            'evaluationIds': [evaluation_ids[0]],
-            'fields': {'departmentFormId': form_history_id, 'status': 'confirmed'},
+            'evaluationIds': [evaluation_ids[1]],
+            'fields': {'departmentFormId': form_melc_id, 'status': 'confirmed'},
             'action': 'edit',
         }, expected_status_code=400)
         _api_update_evaluation(client, dept_id=dept.id, params={
-            'evaluationIds': [evaluation_ids[0]],
-            'fields': {'departmentFormId': form_history_id, 'startDate': '2022-04-15', 'status': 'confirmed'},
+            'evaluationIds': [evaluation_ids[1]],
+            'fields': {'startDate': '2022-03-15', 'status': 'confirmed'},
             'action': 'edit',
         }, expected_status_code=400)
         _api_update_evaluation(client, dept_id=dept.id, params={
-            'evaluationIds': [evaluation_ids[0]],
-            'fields': {'departmentFormId': form_history_id, 'evaluationTypeId': type_g_id, 'status': 'confirmed'},
+            'evaluationIds': [evaluation_ids[1]],
+            'fields': {'evaluationTypeId': type_f_id, 'status': 'confirmed'},
             'action': 'edit',
         }, expected_status_code=400)
 
-        # Resolve all conflicts and evaluation succeeds
+        # Resolve all conflicts and confirm succeeds
         _api_update_evaluation(client, dept_id=dept.id, params={
-            'evaluationIds': [evaluation_ids[0]],
-            'fields': {'departmentFormId': form_history_id, 'evaluationTypeId': type_g_id, 'startDate': '2022-04-15', 'status': 'confirmed'},
+            'evaluationIds': [evaluation_ids[1]],
+            'fields': {'departmentFormId': form_melc_id, 'evaluationTypeId': type_f_id, 'startDate': '2022-03-15', 'status': 'confirmed'},
             'action': 'edit',
         })
 

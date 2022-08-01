@@ -316,7 +316,7 @@ class Evaluation(Base):
                     LEFT JOIN department_forms cdf ON c.department_form_id = cdf.id
                     WHERE (
                         e.status IN ('marked', 'confirmed')
-                        OR e.status IS NULL
+                        OR e.id = ANY(:evaluation_ids)
                     )
                     AND (
                         (e.department_form_id IS NULL OR c.department_form_id IS NULL)
@@ -386,7 +386,6 @@ class Evaluation(Base):
             course_number=loch_rows[0].course_number,
             instructor_uid=uid,
         )
-
         transient_evaluation.set_status(saved_evaluation, foreign_dept_evaluations)
 
         if saved_evaluation and saved_evaluation.department_id:
@@ -394,29 +393,15 @@ class Evaluation(Base):
         else:
             transient_evaluation.department_id = None
 
-        transient_evaluation.set_department_form(saved_evaluation, foreign_dept_evaluations, default_form)
-        transient_evaluation.set_evaluation_type(saved_evaluation, foreign_dept_evaluations, instructor, default_evaluation_types)
-        transient_evaluation.set_dates(loch_rows, foreign_dept_evaluations, saved_evaluation)
-        transient_evaluation.set_last_updated(loch_rows, saved_evaluation)
-
+        related_evaluations = foreign_dept_evaluations
         if saved_evaluation and transient_evaluation.status in ['marked', 'confirmed']:
-            duplicate_evaluations = cls.get_duplicates(saved_evaluation)
-            for duplicate in duplicate_evaluations:
-                duplicate_evaluation_start_date = duplicate.start_date
-                if not duplicate_evaluation_start_date:
-                    default_evaluation_dates = get_default_meeting_dates(term_ids=[transient_evaluation.term_id])[0]
-                    duplicate_evaluation_start_date = duplicate.get_default_evaluation_dates(default_evaluation_dates)[0]
-                if (transient_evaluation.start_date and transient_evaluation.start_date != duplicate_evaluation_start_date):
-                    transient_evaluation.mark_conflict(
-                        duplicate,
-                        'evaluationPeriod',
-                        saved_evaluation,
-                        safe_strftime(transient_evaluation.start_date, '%Y-%m-%d'),
-                        safe_strftime(duplicate_evaluation_start_date, '%Y-%m-%d'),
-                    )
-            transient_evaluation.update_validity(saved_evaluation, duplicate_evaluations)
+            related_evaluations = related_evaluations + cls.get_duplicates(saved_evaluation)
 
-        transient_evaluation.update_validity(saved_evaluation, foreign_dept_evaluations)
+        transient_evaluation.set_department_form(saved_evaluation, related_evaluations, default_form)
+        transient_evaluation.set_evaluation_type(saved_evaluation, related_evaluations, instructor, default_evaluation_types)
+        transient_evaluation.set_dates(loch_rows, related_evaluations, saved_evaluation)
+        transient_evaluation.set_last_updated(loch_rows, saved_evaluation)
+        transient_evaluation.update_validity(saved_evaluation, related_evaluations)
 
         if saved_evaluation:
             transient_evaluation.id = saved_evaluation.id
@@ -509,16 +494,17 @@ class Evaluation(Base):
         if not self.meeting_end_date:
             self.meeting_end_date = default_meeting_dates['end_date']
 
-        if saved_evaluation and saved_evaluation.start_date:
-            self.start_date = saved_evaluation.start_date
+        if saved_evaluation:
+            self.start_date = saved_evaluation.start_date or self.get_default_evaluation_dates(default_meeting_dates)[0]
             for fde in foreign_dept_evaluations:
-                if fde.start_date and fde.start_date != self.start_date:
+                fde_start_date = fde.start_date or fde.get_default_evaluation_dates(default_meeting_dates)[0]
+                if fde_start_date and fde_start_date != self.start_date:
                     self.mark_conflict(
                         fde,
                         'evaluationPeriod',
                         saved_evaluation,
                         safe_strftime(self.start_date, '%Y-%m-%d'),
-                        safe_strftime(fde.start_date, '%Y-%m-%d'),
+                        safe_strftime(fde_start_date, '%Y-%m-%d'),
                     )
         else:
             for fde in foreign_dept_evaluations:
