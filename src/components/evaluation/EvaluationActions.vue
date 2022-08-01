@@ -91,7 +91,7 @@
             <c-date-picker
               v-model="bulkUpdateOptions.startDate"
               class="mx-3"
-              :min-date="$moment(selectedTermValidDates.start).toDate()"
+              :min-date="$moment(selectedTermValidDates.begin).toDate()"
               :max-date="$moment(selectedTermValidDates.end).subtract(13, 'days').toDate()"
               :popover="{positionFixed: true}"
               title-position="left"
