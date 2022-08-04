@@ -63,6 +63,9 @@ class PublishPage(CourseDashboards):
         while tries <= retries:
             tries += 1
             try:
+                self.reload_page()
+                time.sleep(1)
+                self.expand_term_exports()
                 new_count = len(self.elements(PublishPage.TERM_EXPORT_LINK))
                 app.logger.info(f'There are now {new_count} export links')
                 assert new_count > initial_count
@@ -72,7 +75,7 @@ class PublishPage(CourseDashboards):
                     app.logger.info('Timed out waiting for publishing to finish')
                     raise
                 else:
-                    time.sleep(1)
+                    time.sleep(3)
 
     def download_export_csvs(self):
         app.logger.info(f'Downloading export CSVs to {utils.default_download_dir()}')
