@@ -37,9 +37,11 @@ from flask_login import current_user
 @admin_required
 def get_user_department_forms(uid):
     user = User.find_by_uid(uid)
-    department_forms = UserDepartmentForm.find_by_user_id(user.id)
-    results = [udf.to_api_json() for udf in department_forms]
-    return tolerant_jsonify(results)
+    if user:
+        department_forms = UserDepartmentForm.find_by_user_id(user.id)
+        results = [udf.to_api_json() for udf in department_forms]
+        return tolerant_jsonify(results)
+    return tolerant_jsonify([])
 
 
 @app.route('/api/user/my_profile')

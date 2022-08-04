@@ -17,85 +17,87 @@
     <v-container v-if="!loading" class="mx-0 px-0 pb-6" fluid>
       <v-row justify="start">
         <v-col cols="12" md="5">
-          <v-expansion-panels v-model="contactsPanel" disable-icon-rotate flat>
-            <v-expansion-panel class="panel-override">
-              <template #default>
-                <div class="d-flex" :class="$currentUser.isAdmin ? 'flex-column' : 'align-center justify-space-between flex-wrap'">
-                  <h2 class="pb-1 px-2">Department Contacts</h2>
-                  <div class="d-flex height-unset" :class="{'flex-column': isCreatingNotification, 'align-center justify-space-between': !isCreatingNotification}">
-                    <v-btn
-                      v-if="$currentUser.isAdmin && !isCreatingNotification"
-                      id="open-notification-form-btn"
-                      class="ma-2 secondary text-capitalize"
-                      :disabled="disableControls || $_.isEmpty(contacts)"
-                      @click="() => isCreatingNotification = true"
-                    >
-                      Send notification
-                    </v-btn>
-                    <NotificationForm
-                      v-if="$currentUser.isAdmin && isCreatingNotification"
-                      :after-send="afterSendNotification"
-                      :on-cancel="cancelSendNotification"
-                      :recipients="[notificationRecipients]"
-                    />
-                    <v-expansion-panel-header
-                      class="w-fit-content ml-auto mr-3"
-                      hide-actions
-                      text
-                      @click="collapseAllContacts"
-                    >
-                      <template #default="{open}">
-                        <span v-if="!open">
-                          Expand
-                          <v-icon class="rotate-180 ml-1">mdi-plus-box-multiple-outline</v-icon>
-                        </span>
-                        <span v-if="open">
-                          Collapse All
-                          <v-icon class="rotate-180 ml-1">mdi-minus-box-multiple-outline</v-icon>
-                        </span>
-                      </template>
-                    </v-expansion-panel-header>
+          <div class="contacts-container">
+            <v-expansion-panels v-model="contactsPanel" disable-icon-rotate flat>
+              <v-expansion-panel class="panel-override">
+                <template #default>
+                  <div class="d-flex" :class="$currentUser.isAdmin ? 'flex-column' : 'align-center justify-space-between flex-wrap'">
+                    <h2 class="pb-1 px-2">Department Contacts</h2>
+                    <div class="d-flex height-unset" :class="{'flex-column': isCreatingNotification, 'align-center justify-space-between': !isCreatingNotification}">
+                      <v-btn
+                        v-if="$currentUser.isAdmin && !isCreatingNotification"
+                        id="open-notification-form-btn"
+                        class="ma-2 secondary text-capitalize"
+                        :disabled="disableControls || $_.isEmpty(contacts)"
+                        @click="() => isCreatingNotification = true"
+                      >
+                        Send notification
+                      </v-btn>
+                      <NotificationForm
+                        v-if="$currentUser.isAdmin && isCreatingNotification"
+                        :after-send="afterSendNotification"
+                        :on-cancel="cancelSendNotification"
+                        :recipients="[notificationRecipients]"
+                      />
+                      <v-expansion-panel-header
+                        class="w-fit-content ml-auto mr-3"
+                        hide-actions
+                        text
+                        @click="collapseAllContacts"
+                      >
+                        <template #default="{open}">
+                          <span v-if="!open">
+                            Expand
+                            <v-icon class="rotate-180 ml-1">mdi-plus-box-multiple-outline</v-icon>
+                          </span>
+                          <span v-if="open">
+                            Collapse All
+                            <v-icon class="rotate-180 ml-1">mdi-minus-box-multiple-outline</v-icon>
+                          </span>
+                        </template>
+                      </v-expansion-panel-header>
+                    </div>
                   </div>
-                </div>
-                <v-expansion-panel-content class="panel-content-override">
-                  <v-expansion-panels
-                    v-model="contactDetailsPanel"
-                    flat
-                    focusable
-                    hover
-                    multiple
-                    tile
-                  >
-                    <DepartmentContact
-                      v-for="(contact, index) in contacts"
-                      :key="contact.id"
-                      :contact="contact"
-                      :index="index"
-                      :is-expanded="$_.includes(contactDetailsPanel, index)"
-                    />
-                  </v-expansion-panels>
-                </v-expansion-panel-content>
-              </template>
-            </v-expansion-panel>
-          </v-expansion-panels>
-          <v-btn
-            v-if="$currentUser.isAdmin && !isAddingContact"
-            id="add-dept-contact-btn"
-            class="text-capitalize pl-2 my-1 mx-2"
-            color="tertiary"
-            text
-            @click="() => isAddingContact = true"
-            @keypress.enter.prevent="() => isAddingContact = true"
-          >
-            <v-icon>mdi-plus-thick</v-icon>
-            Add Contact
-          </v-btn>
-          <EditDepartmentContact
-            v-if="$currentUser.isAdmin && isAddingContact"
-            :id="`add-department-contact`"
-            :after-save="afterSaveContact"
-            :on-cancel="onCancelAddContact"
-          />
+                  <v-expansion-panel-content class="panel-content-override">
+                    <v-expansion-panels
+                      v-model="contactDetailsPanel"
+                      flat
+                      focusable
+                      hover
+                      multiple
+                      tile
+                    >
+                      <DepartmentContact
+                        v-for="(contact, index) in contacts"
+                        :key="contact.id"
+                        :contact="contact"
+                        :index="index"
+                        :is-expanded="$_.includes(contactDetailsPanel, index)"
+                      />
+                    </v-expansion-panels>
+                  </v-expansion-panel-content>
+                </template>
+              </v-expansion-panel>
+            </v-expansion-panels>
+            <v-btn
+              v-if="$currentUser.isAdmin && !isAddingContact"
+              id="add-dept-contact-btn"
+              class="text-capitalize pl-2 my-1 mx-2"
+              color="tertiary"
+              text
+              @click="() => isAddingContact = true"
+              @keypress.enter.prevent="() => isAddingContact = true"
+            >
+              <v-icon>mdi-plus-thick</v-icon>
+              Add Contact
+            </v-btn>
+            <EditDepartmentContact
+              v-if="$currentUser.isAdmin && isAddingContact"
+              :id="`add-department-contact`"
+              :after-save="afterSaveContact"
+              :on-cancel="onCancelAddContact"
+            />
+          </div>
         </v-col>
         <v-col cols="12" md="7">
           <DepartmentNote />
@@ -184,6 +186,9 @@ export default {
 </script>
 
 <style scoped>
+.contacts-container {
+  max-width: 500px;
+}
 .w-fit-content {
   width: fit-content;
 }
@@ -195,6 +200,5 @@ export default {
 }
 .panel-override {
   background-color: unset !important;
-
 }
 </style>
