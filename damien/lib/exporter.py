@@ -42,7 +42,18 @@ from damien.models.user import User
 from flask import current_app as app
 
 
+def background_generate_exports(app_arg, term_id, timestamp):
+    with app_arg.app_context():
+        try:
+            generate_exports(term_id, timestamp)
+        except Exception as e:
+            app.logger.error('Background thread is stopping')
+            raise e
+
+
 def generate_exports(term_id, timestamp):
+    s3_path = get_s3_path(term_id, timestamp)
+    export = Export.create(term_id, s3_path)
     all_catalog_listings = DepartmentCatalogListing.query.all()
     dept_forms_to_uids = {df.name: [udf.user.uid for udf in df.users] for df in DepartmentForm.query.filter_by(deleted_at=None).all()}
 
@@ -88,12 +99,12 @@ def generate_exports(term_id, timestamp):
             upload(sftp, term_id, timestamp, 'supervisors', supervisor_headers, supervisors)
             upload(sftp, term_id, timestamp, 'xlisted_course_supervisors', xlisted_course_supervisor_headers, xlisted_course_supervisors)
 
-            s3_path = get_s3_path(term_id, timestamp)
-            export = Export.create(term_id, s3_path)
+            export = Export.update_status(s3_path, 'success')
             return export.to_api_json()
 
     except Exception as e:
         app.logger.error(f'Error uploading exports: term_id={term_id}, timestamp={timestamp}, error={e}')
+        Export.update_status(s3_path, 'error')
         return None
 
 

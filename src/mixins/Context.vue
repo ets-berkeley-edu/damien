@@ -22,7 +22,7 @@ export default {
       Vue.nextTick(() => store.dispatch('context/alertScreenReader', message))
     },
     reportError: message => store.dispatch('context/snackbarReportError', message),
-    snackbarOpen: message => store.dispatch('context/snackbarOpen', message)
+    snackbarOpen: (text, color) => store.dispatch('context/snackbarOpen', {text, color})
   }
 }
 </script>

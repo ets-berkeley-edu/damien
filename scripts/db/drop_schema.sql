@@ -137,4 +137,5 @@ DROP TABLE IF EXISTS public.users CASCADE;
 --
 
 DROP TYPE IF EXISTS public.evaluation_status;
+DROP TYPE IF EXISTS public.export_status;
 DROP TYPE IF EXISTS public.user_blue_permissions;

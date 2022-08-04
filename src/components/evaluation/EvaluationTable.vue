@@ -921,7 +921,7 @@ tr.border-top-none td {
 }
 .sticky {
   position: sticky;
-  top: 60px;
+  top: 56px;
   z-index: 10;
 }
 .sticky-dark {

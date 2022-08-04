@@ -25,7 +25,7 @@
         </div>
         <v-btn
           id="publish-btn"
-          class="publish-btn align-self-end my-4"
+          class="publish-btn align-self-end my-4 mr-2"
           color="primary"
           :disabled="isExporting || loading || !!$_.size(blockers)"
           @click="publish"
@@ -40,6 +40,22 @@
             size="20"
             width="3"
           ></v-progress-circular>
+        </v-btn>
+        <v-slide-x-reverse-transition>
+          <span v-if="isExporting" class="mx-2">Publishing in progress.</span>
+        </v-slide-x-reverse-transition>
+        <v-btn
+          id="status-btn"
+          class="mx-2"
+          color="secondary"
+          :disabled="isUpdatingStatus || !isExporting || loading"
+          fab
+          x-small
+          @click="onUpdateStatus"
+          @keypress.enter.prevent="onUpdateStatus"
+        >
+          <v-icon>mdi-refresh</v-icon>
+          <span class="sr-only">Refresh</span>
         </v-btn>
       </v-col>
       <v-col cols="auto" class="pr-4 mb-2">
@@ -72,7 +88,7 @@
                     >
                       mdi-tray-arrow-down
                     </v-icon>
-                    {{ e.createdAt | moment('M/DD/YYYY HH:mm:SS') }}
+                    {{ e.createdAt | moment(dateFormat) }}
                     <span class="sr-only">term export</span>
                   </a>
                 </li>
@@ -89,7 +105,7 @@
 </template>
 
 <script>
-import {exportEvaluations, getExports, getValidation} from '@/api/evaluations'
+import {exportEvaluations, getExportStatus, getExports, getValidation} from '@/api/evaluations'
 import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
@@ -104,18 +120,27 @@ export default {
   mixins: [Context, DepartmentEditSession],
   data: () => ({
     blockers: {},
+    dateFormat: 'M/DD/YYYY HH:mm:SS',
     exportsPanel: undefined,
     isExporting: false,
+    isUpdatingStatus: false,
     termExports: []
   }),
+  created() {
+    this.updateStatus()
+  },
   methods: {
+    onUpdateStatus() {
+      this.isUpdatingStatus = true
+      this.updateStatus()
+      this.$putFocusNextTick('status-btn')
+    },
     publish() {
       this.isExporting = true
       this.alertScreenReader('Publishing.')
-      exportEvaluations().then(data => {
-        this.termExports.unshift(data)
-        this.isExporting = false
-        this.alertScreenReader('Publication complete.')
+      exportEvaluations().then(() => {
+        this.snackbarOpen('Publication has started and will run in the background.')
+        this.$putFocusNextTick('publish-btn')
       })
     },
     refresh() {
@@ -126,6 +151,37 @@ export default {
         this.termExports = responses[1]
         this.$ready(`Publish ${this.selectedTermName || ''}`)
       })
+    },
+    updateStatus() {
+      getExportStatus().then(response => {
+        this.isExporting = false
+        if (this.$_.isEmpty(response)) {
+          return false
+        }
+        const lastUpdate = this.$moment(response.updatedAt)
+        const now = this.$moment()
+        if (now.diff(lastUpdate, 'hours') < 1) {
+          this.showStatus(response)
+        }
+      }).finally(() => {
+        this.$nextTick(() => {
+          this.isUpdatingStatus = false
+        })
+      })
+    },
+    showStatus(termExport) {
+      const exportLabel = this.$moment(termExport.createdAt).format(this.dateFormat)
+      const term = this.$_.find(this.$config.availableTerms, {'id': termExport.termId})
+      if (termExport.status === 'success') {
+        this.snackbarOpen(
+          `Success! Publication of ${term.name} term export <b>${exportLabel || ''}</b> is complete.`,
+          'success'
+        )
+      } else if (termExport.status === 'error') {
+        this.reportError(`Error: Publication of ${term.name} term export <b>${exportLabel || ''}</b> failed.`)
+      } else {
+        this.isExporting = true
+      }
     }
   }
 }

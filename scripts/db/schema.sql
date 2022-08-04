@@ -138,11 +138,14 @@ ALTER TABLE ONLY departments
 
 --
 
+CREATE TYPE export_status AS ENUM ('started', 'success', 'error');
+
 CREATE TABLE exports (
     term_id VARCHAR(4) NOT NULL,
     s3_path VARCHAR(255) NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    status export_status
 );
 
 --

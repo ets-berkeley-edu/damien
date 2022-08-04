@@ -25,12 +25,14 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from datetime import datetime
 from itertools import groupby
+import os
+from threading import Thread
 from urllib.parse import unquote
 
 from damien.api.errors import BadRequestError, InternalServerError
 from damien.api.util import admin_required, get_term_id
-from damien.externals.s3 import stream_folder_zipped
-from damien.lib.exporter import generate_exports
+from damien.externals.s3 import get_s3_path, stream_folder_zipped
+from damien.lib.exporter import background_generate_exports, generate_exports
 from damien.lib.http import tolerant_jsonify
 from damien.models.department import Department
 from damien.models.evaluation import Evaluation
@@ -46,11 +48,38 @@ def export_evaluations():
     if len(validation_errors):
         raise BadRequestError(f'Cannot export evaluations: {len(validation_errors)} validation errors')
     timestamp = datetime.now()
-    result = generate_exports(term_id, timestamp)
-    if result:
-        return tolerant_jsonify(result)
+    if os.environ.get('DAMIEN_ENV') == 'test':
+        app.logger.info('Test run in progress; will not muddy the waters by actually kicking off a background thread.')
+        result = generate_exports(term_id, timestamp)
+        if result:
+            return tolerant_jsonify(result)
+        else:
+            raise InternalServerError('There was an error connecting to external services during publication. Please try again.')
     else:
-        raise InternalServerError('There was an error connecting to external services during publication. Please try again.')
+        app.logger.warn('About to start background thread')
+        thread = Thread(
+            target=background_generate_exports,
+            daemon=True,
+            kwargs={
+                'app_arg': app._get_current_object(),
+                'term_id': term_id,
+                'timestamp': timestamp,
+            },
+        )
+        try:
+            thread.start()
+        except Exception as e:
+            app.logger.error(e)
+            raise InternalServerError('There was an error connecting to external services during publication. Please try again.')
+    export = Export.find_by_s3_key(get_s3_path(term_id, timestamp))
+    return tolerant_jsonify(export.to_api_json() if export else {})
+
+
+@app.route('/api/evaluations/export/status')
+@admin_required
+def get_export_status():
+    export = Export.get_latest()
+    return tolerant_jsonify(export.to_api_json() if export else {})
 
 
 @app.route('/api/evaluations/exports')
