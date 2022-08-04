@@ -162,6 +162,7 @@ export default {
     },
     onCancel() {
       this.courseNumber = null
+      this.sectionError = null
       if (this.section) {
         this.section = null
         this.alertScreenReader('Canceled. Add course section form is ready.')
