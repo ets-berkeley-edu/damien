@@ -178,6 +178,10 @@ class TestDeptMgmt:
         self.dept_details_admin_page.click_cancel_contact_edits(test_user)
         self.dept_details_admin_page.edit_contact(test_user, test_dept)
 
+    # TODO - add same contact, different department
+    # TODO - edit same contact, different department
+    # TODO - remove same contact, different department
+
     # NOTIFICATIONS - DEPT
 
     def test_send_notif_cancel(self):
