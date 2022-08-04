@@ -26,18 +26,20 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import re
 
 from damien.api.errors import BadRequestError, ResourceNotFoundError
+from damien.api.util import get_term_id
 from damien.lib.http import tolerant_jsonify
 from damien.merged.section import Section
-from flask import current_app as app
+from flask import current_app as app, request
 from flask_login import login_required
 
 
 @app.route('/api/section/<course_number>')
 @login_required
 def get_section(course_number):
+    term_id = get_term_id(request)
     if not re.match(r'\d{5}\Z', str(course_number)):
         raise BadRequestError(f'Malformed course number {course_number}.')
-    section = Section.for_id(app.config['CURRENT_TERM_ID'], str(course_number))
+    section = Section.for_id(term_id, str(course_number))
     if section:
         return tolerant_jsonify(section)
     else:

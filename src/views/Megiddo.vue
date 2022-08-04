@@ -138,7 +138,7 @@ export default {
     publish() {
       this.isExporting = true
       this.alertScreenReader('Publishing.')
-      exportEvaluations().then(() => {
+      exportEvaluations(this.selectedTermId).then(() => {
         this.snackbarOpen('Publication has started and will run in the background.')
         this.$putFocusNextTick('publish-btn')
       })
@@ -146,7 +146,7 @@ export default {
     refresh() {
       this.$loading()
       this.alertScreenReader(`Loading ${this.selectedTermName}`)
-      Promise.all([getValidation(), getExports(this.selectedTermId)]).then(responses => {
+      Promise.all([getValidation(this.selectedTermId), getExports(this.selectedTermId)]).then(responses => {
         this.setEvaluations(this.$_.sortBy(responses[0], 'sortableCourseName'))
         this.termExports = responses[1]
         this.$ready(`Publish ${this.selectedTermName || ''}`)

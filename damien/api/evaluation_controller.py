@@ -93,7 +93,7 @@ def get_term_evaluation_exports():
 @app.route('/api/evaluations/validate')
 @admin_required
 def get_validation():
-    term_id = app.config['CURRENT_TERM_ID']
+    term_id = get_term_id(request)
     evals = Evaluation.get_invalid(term_id)
     feed = []
     for dept_id, dept_evals in groupby(evals, key=lambda e: e.department_id):
