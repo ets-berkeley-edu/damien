@@ -373,6 +373,7 @@ class CourseDashboardEditsPage(CourseDashboards):
             self.wait_for_page_and_click(self.EVAL_CHANGE_CANCEL_BUTTON)
 
     def wait_for_validation_error(self, msg):
+        app.logger.info(f'Waiting for validation error at //div[contains(text(), "{msg}")]')
         Wait(self.driver, utils.get_short_timeout()).until(
-            ec.visibility_of_element_located((By.XPATH, f'//div[contains(text(), "{msg}")]')),
+            ec.presence_of_element_located((By.XPATH, f'//div[contains(text(), "{msg}")]')),
         )
