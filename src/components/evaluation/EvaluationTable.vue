@@ -892,7 +892,8 @@ tr.border-top-none td {
 }
 .no-eligible-sections {
   font-size: 20px;
-  max-height: 30vh;
+  height: fit-content;
+
 }
 .pill {
   border: 1px solid #999;
