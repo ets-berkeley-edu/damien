@@ -5,17 +5,18 @@
     :color="snackbar.color"
     content-class="align-center"
     light
+    max-width="unset"
+    multi-line
     outlined
     :timeout="snackbar.timeout"
     text
     :top="true"
-    max-width="unset"
   >
     <div class="d-flex align-center justify-space-between">
       <div
         id="alert-text"
         aria-live="polite"
-        class="ml-4 mr-4 title"
+        class="ml-4 mr-4 title text-condensed"
         role="alert"
         v-html="snackbar.text"
       >

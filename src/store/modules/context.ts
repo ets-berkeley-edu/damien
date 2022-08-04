@@ -58,9 +58,9 @@ const mutations = {
     state.snackbar.text = undefined
     state.screenReaderAlert = 'Message closed'
   },
-  snackbarOpen: (state: any, text: string) => {
+  snackbarOpen: (state: any, {text, color}) => {
     state.snackbar.text = text
-    state.snackbar.color = 'secondary'
+    state.snackbar.color = color || 'secondary'
     state.snackbarShow = true
   },
   snackbarReportError: (state: any, text: string) => {
@@ -82,7 +82,7 @@ const actions = {
   selectTerm: ({ commit }, termId) => commit('setSelectedTerm', termId),
   setIsSelectedTermLocked: ({ commit }, isLocked: boolean) => commit('setIsSelectedTermLocked', isLocked),
   snackbarClose: ({ commit }) => commit('snackbarClose'),
-  snackbarOpen: ({ commit }, text: string) => commit('snackbarOpen', text),
+  snackbarOpen: ({ commit }, {text, color}) => commit('snackbarOpen', {text, color}),
   snackbarReportError: ({ commit }, text: string) => commit('snackbarReportError', text)
 }
 

@@ -25,6 +25,8 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import re
 
+from damien import std_commit
+from damien.models.export import Export
 from moto import mock_s3
 from tests.api.test_department_controller import \
     _api_get_evaluation, _api_update_evaluation, _api_update_history_evaluation, _api_update_melc_evaluation
@@ -33,6 +35,48 @@ from tests.util import mock_s3_bucket
 
 non_admin_uid = '100'
 admin_uid = '200'
+
+
+def _api_get_export_status(client, expected_status_code=200):
+    response = client.get('/api/evaluations/export/status')
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestGetExportStatus:
+
+    def test_anonymous(self, client):
+        _api_get_export_status(client, expected_status_code=401)
+
+    def test_unauthorized(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_get_export_status(client, expected_status_code=401)
+
+    def test_nonexistent_export(self, client, fake_auth):
+        fake_auth.login(admin_uid)
+        response = _api_get_export_status(client)
+        assert response == {}
+
+    def test_export_in_progress(self, client, fake_auth):
+        Export.create('2222', 'exports/2222/2022_04_29_17_33_44')
+        std_commit(allow_test_environment=True)
+
+        fake_auth.login(admin_uid)
+        response = _api_get_export_status(client)
+        assert response['s3Path'] == 'exports/2222/2022_04_29_17_33_44'
+        assert response['status'] == 'started'
+        assert response['termId'] == '2222'
+
+    def test_export_complete(self, client, fake_auth):
+        export = Export.create('2218', 'exports/2218/2021_12_21_03_03_03')
+        export.update_status('exports/2218/2021_12_21_03_03_03', 'success')
+        std_commit(allow_test_environment=True)
+
+        fake_auth.login(admin_uid)
+        response = _api_get_export_status(client)
+        assert response['s3Path'] == 'exports/2218/2021_12_21_03_03_03'
+        assert response['status'] == 'success'
+        assert response['termId'] == '2218'
 
 
 def _api_get_validations(client, expected_status_code=200):

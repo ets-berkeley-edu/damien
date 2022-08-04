@@ -26,6 +26,16 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from damien import db, std_commit
 from damien.lib.util import isoformat
 from damien.models.base import Base
+from sqlalchemy.dialects.postgresql import ENUM
+
+
+export_status_enum = ENUM(
+    'started',
+    'success',
+    'error',
+    name='export_status',
+    create_type=False,
+)
 
 
 class Export(Base):
@@ -33,36 +43,56 @@ class Export(Base):
 
     term_id = db.Column(db.String(4), nullable=False)
     s3_path = db.Column(db.String(255), nullable=False, primary_key=True)
+    status = db.Column(export_status_enum)
 
     def __init__(
         self,
         term_id,
         s3_path,
+        status,
     ):
         self.term_id = term_id
         self.s3_path = s3_path
+        self.status = status
 
     def __repr__(self):
         return f"""<Export term_id={self.term_id},
                     s3_path={self.s3_path},
-                    created_at={self.created_at}>
+                    created_at={self.created_at},
+                    status={self.status}>
                 """
 
     @classmethod
     def create(cls, term_id, s3_path):
-        export = cls(term_id=term_id, s3_path=s3_path)
+        export = cls(term_id=term_id, s3_path=s3_path, status='started')
         db.session.add(export)
         std_commit()
         return export
 
     @classmethod
+    def find_by_s3_key(cls, s3_path):
+        return cls.query.filter_by(s3_path=s3_path).first()
+
+    @classmethod
     def get_for_term(cls, term_id):
-        return cls.query.filter_by(term_id=term_id).order_by(cls.created_at.desc()).all()
+        return cls.query.filter_by(term_id=term_id, status='success').order_by(cls.created_at.desc()).all()
+
+    @classmethod
+    def get_latest(cls):
+        return cls.query.order_by(cls.created_at.desc()).first()
+
+    @classmethod
+    def update_status(cls, s3_path, status):
+        export = cls.query.filter_by(s3_path=s3_path).first()
+        export.status = status
+        std_commit()
+        return export
 
     def to_api_json(self):
         return {
             'termId': self.term_id,
             's3Path': self.s3_path,
+            'status': self.status,
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
         }
