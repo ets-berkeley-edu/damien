@@ -147,7 +147,7 @@ export default {
   },
   methods: {
     lookupSection() {
-      getSection(this.courseNumber).then(data => {
+      getSection(this.courseNumber, this.selectedTermId).then(data => {
         this.alertScreenReader(`Section ${this.courseNumber} found.`)
         this.courseNumber = null
         this.section = data
