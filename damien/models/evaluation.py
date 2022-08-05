@@ -348,6 +348,7 @@ class Evaluation(Base):
             cls.id != evaluation.id,
             cls.term_id == evaluation.term_id,
             cls.course_number == evaluation.course_number,
+            cls.department_id == evaluation.department_id,
             cls.instructor_uid == evaluation.instructor_uid,
             cls.status.in_(['confirmed', 'marked']),
         )
@@ -624,9 +625,9 @@ class Evaluation(Base):
                 'id': dept.id,
                 'name': dept.dept_name,
             }
-        for k, v in self.conflicts.items():
-            if v:
-                feed['conflicts'][k] = v
+        for field, conflicts in self.conflicts.items():
+            if conflicts:
+                feed['conflicts'][field] = list({v['department']: v for v in conflicts}.values())
         return feed
 
     def to_export_key(self):
