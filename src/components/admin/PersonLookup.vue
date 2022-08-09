@@ -1,39 +1,49 @@
 <template>
-  <v-autocomplete
-    :id="id"
-    v-model="selected"
-    :allow-overflow="false"
-    :append-icon="null"
-    :aria-disabled="disabled"
-    :auto-select-first="true"
-    :background-color="disabled ? 'disabled' : 'white'"
-    class="person-lookup"
-    color="white"
-    dense
-    :disabled="disabled"
-    :hide-no-data="true"
-    :items="suggestions"
-    light
-    :loading="isSearching"
-    :menu-props="menuProps"
-    no-data-text="No results found."
-    no-filter
-    outlined
-    :placeholder="placeholder"
-    return-object
-    :search-input.sync="search"
-    single-line
-    hide-details="auto"
-  >
-    <template #selection>
-      <span class="text-nowrap">{{ toLabel(selected) }}</span>
-    </template>
-    <template #item="data">
-      <v-list-item-content class="tertiary--text">
-        <span v-html="suggest(data.item)" />
-      </v-list-item-content>
-    </template>
-  </v-autocomplete>
+  <div class="d-flex flex-column flex-grow-1">
+    <v-autocomplete
+      :id="id"
+      v-model="selected"
+      :allow-overflow="false"
+      :append-icon="null"
+      :aria-disabled="disabled"
+      auto-select-first
+      :background-color="disabled ? 'disabled' : 'white'"
+      class="person-lookup"
+      dense
+      :disabled="disabled"
+      :error="required && !selected"
+      :error-messages="errors"
+      hide-details
+      hide-no-data
+      :items="suggestions"
+      :loading="isSearching"
+      :menu-props="menuProps"
+      no-data-text="No results found."
+      no-filter
+      outlined
+      :placeholder="placeholder"
+      return-object
+      :search-input.sync="search"
+      single-line
+    >
+      <template #selection>
+        <span class="text-nowrap">{{ toLabel(selected) }}</span>
+      </template>
+      <template #item="data">
+        <v-list-item-content class="tertiary--text">
+          <span v-html="suggest(data.item)" />
+        </v-list-item-content>
+      </template>
+    </v-autocomplete>
+    <div
+      v-if="errors && errors[0]"
+      :id="`${id}-error`"
+      class="v-messages error--text px-3 mt-1"
+      role="alert"
+    >
+      {{ errors[0] }}
+    </div>
+  </div>
 </template>
 
 <script>
@@ -57,6 +67,11 @@ export default {
       required: false,
       type: String
     },
+    initialValue: {
+      default: () => {},
+      required: false,
+      type: Object
+    },
     instructorLookup: {
       required: false,
       type: Boolean
@@ -70,9 +85,15 @@ export default {
       default: 'Name or UID',
       required: false,
       type: String
+    },
+    required: {
+      required: false,
+      type: Boolean
     }
   },
   data: () => ({
+    errors: [],
+    initialized: false,
     isSearching: false,
     menuProps: {
       contentClass: 'v-sheet--outlined autocomplete-menu'
@@ -80,13 +101,18 @@ export default {
     search: undefined,
     searchTokenMatcher: undefined,
     selected: undefined,
-    suggestions: undefined
+    suggestions: []
   }),
   watch: {
     search(snippet) {
       this.debouncedSearch(snippet)
     },
     selected(suggestion) {
+      if (!suggestion && this.required) {
+        this.errors = ['Required']
+      } else {
+        this.errors = []
+      }
       this.onSelectResult(suggestion)
     }
   },
@@ -101,19 +127,27 @@ export default {
           this.suggestions = results
           this.isSearching = false
         })
-      } else {
+      } else if (this.initialized) {
         this.searchTokenMatcher = null
         this.suggestions = []
       }
+      this.initialized = true
     },
     suggest(user) {
       return this.toLabel(user).replace(this.searchTokenMatcher, match => `<strong>${match}</strong>`)
     },
     toLabel(user) {
-      return `${user.firstName} ${user.lastName} (${user.uid})`
+      return user ? `${user.firstName || ''} ${user.lastName || ''} (${user.uid})`.trim() : ''
     }
   },
   created() {
+    if (this.$_.get(this.initialValue, 'uid')) {
+      this.suggestions = [this.initialValue]
+      this.selected = this.suggestions[0]
+      this.search = this.toLabel(this.initialValue)
+    } else if (this.required) {
+      this.errors = ['Required']
+    }
     this.debouncedSearch = this.$_.debounce(this.executeSearch, 300)
   }
 }
@@ -125,6 +159,10 @@ export default {
 }
 .person-lookup {
   overflow-x: clip;
+}
+.person-lookup .v-select__selections,
+.person-lookup .v-select__selections input {
+  color: rgba(0, 0, 0, 0.87) !important;
 }
 .person-lookup.v-input--is-focused {
   appearance: auto !important;

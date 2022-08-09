@@ -48,9 +48,11 @@
               v-if="isDuplicating"
               id="bulk-duplicate-instructor-lookup-autocomplete"
               :disabled="disableControls"
+              :initial-value="bulkUpdateOptions.instructor"
               :instructor-lookup="true"
               placeholder="Instructor name or UID"
               :on-select-result="selectInstructor"
+              :required="requireInstructor"
               solo
             />
           </div>
@@ -60,8 +62,9 @@
             class="text-nowrap"
             color="tertiary"
             :disabled="disableControls"
-            hide-details="auto"
+            hide-details
             label="Use midterm department forms"
+            :ripple="false"
           />
           <div class="my-4">
             <label
@@ -119,7 +122,7 @@
               id="apply-course-action-btn"
               class="mt-2 mr-2"
               color="secondary"
-              :disabled="disableControls || !allowEdits || $_.isEmpty(selectedEvaluationIds)"
+              :disabled="disableApplyDuplicate"
               @click="applyAction('duplicate')"
               @keypress.enter.prevent="applyAction('duplicate')"
             >
@@ -157,16 +160,17 @@ export default {
   data: () => ({
     applyingAction: null,
     bulkUpdateOptions: {
+      instructor: {},
       midtermFormEnabled: false,
-      startDate: null,
-      evaluationType: null,
+      startDate: undefined,
+      evaluationType: undefined,
     },
     courseActions: {},
     evaluationTypes: [],
-    instructor: null,
     isDuplicating: false,
     isLoading: false,
-    midtermFormAvailable: true
+    midtermFormAvailable: false,
+    requireInstructor: false
   }),
   created() {
     this.courseActions = {
@@ -217,6 +221,12 @@ export default {
     allowEdits() {
       return this.$currentUser.isAdmin || !this.isSelectedTermLocked
     },
+    disableApplyDuplicate() {
+      return this.disableControls
+          || !this.allowEdits
+          || this.$_.isEmpty(this.selectedEvaluationIds)
+          || (this.requireInstructor && !this.$_.get(this.bulkUpdateOptions.instructor, 'uid'))
+    },
     selectedTermValidDates() {
       const selectedTerm = this.$_.find(this.$config.availableTerms, {'id': this.selectedTermId})
       return selectedTerm.validDates
@@ -234,12 +244,13 @@ export default {
     },
     applyAction(key) {
       let fields = null
+      let valid = true
       const target = `${this.selectedEvaluationIds.length || 0} ${this.selectedEvaluationIds.length === 1 ? 'row' : 'rows'}`
       this.applyingAction = this.courseActions[key]
       this.alertScreenReader(`${this.applyingAction.inProgressText} ${target}`)
       if (key === 'duplicate') {
         fields = {
-          instructorUid: this.$_.get(this.instructor, 'uid')
+          instructorUid: this.$_.get(this.bulkUpdateOptions.instructor, 'uid')
         }
         if (this.bulkUpdateOptions.midtermFormEnabled) {
           fields.midterm = 'true'
@@ -250,8 +261,11 @@ export default {
         if (this.bulkUpdateOptions.evaluationType) {
           fields.evaluationTypeId = this.bulkUpdateOptions.evaluationType
         }
+        valid = this.validateDuplicable(this.selectedEvaluationIds, fields)
+      } else if (key === 'confirm') {
+        valid = this.validateConfirmable(this.selectedEvaluationIds)
       }
-      if (key !== 'confirm' || this.validateConfirmable(this.selectedEvaluationIds)) {
+      if (valid) {
         this.setDisableControls(true)
         this.isLoading = true
         updateEvaluations(
@@ -274,23 +288,39 @@ export default {
       this.applyingAction = null
       this.isLoading = false
     },
+    isInvalidAction(action) {
+      const uniqueStatuses = this.$_.uniq(this.evaluations
+                  .filter(e => this.selectedEvaluationIds.includes(e.id))
+                  .map(e => e.status))
+
+      return (uniqueStatuses.length === 1 && uniqueStatuses[0] === action.status)
+    },
     reset() {
       this.bulkUpdateOptions = {
+        instructor: {},
         midtermFormEnabled: false,
         startDate: null,
         evaluationType: null,
       }
-      this.instructor = null
       this.isDuplicating = false
       this.applyingAction = null
       this.isLoading = false
+      this.midtermFormAvailable = false
+      this.requireInstructor = false
     },
     selectInstructor(suggestion) {
-      this.instructor = suggestion
+      this.bulkUpdateOptions.instructor = suggestion
       this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
     },
     showDuplicateOptions() {
       const selectedEvals = this.$_.filter(this.evaluations, e => this.selectedEvaluationIds.includes(e.id))
+
+      // Pre-populate instructor if shared by all selected evals.
+      const uniqueInstructorUids = this.$_.chain(selectedEvals).map(e => this.$_.get(e, 'instructor.uid')).uniq().value()
+      if (uniqueInstructorUids.length === 1) {
+        this.bulkUpdateOptions.instructor = this.$_.get(selectedEvals, '0.instructor')
+        this.requireInstructor = true
+      }
 
       // Pre-populate start date if shared by all selected evals.
       const uniqueStartDates = this.$_.chain(selectedEvals).map(e => new Date(e.startDate).toDateString()).uniq().value()
@@ -314,16 +344,8 @@ export default {
           return false
         }
       })
-      this.instructor = null
       this.isDuplicating = true
       this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
-    },
-    isInvalidAction(action) {
-      const uniqueStatuses = this.$_.uniq(this.evaluations
-                  .filter(e => this.selectedEvaluationIds.includes(e.id))
-                  .map(e => e.status))
-
-      return (uniqueStatuses.length === 1 && uniqueStatuses[0] === action.status)
     }
   }
 }
