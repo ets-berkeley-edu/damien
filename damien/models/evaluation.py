@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from collections import namedtuple
-from datetime import timedelta
+from datetime import date, timedelta
 from itertools import groupby
 
 from damien import db, std_commit
@@ -228,27 +228,34 @@ class Evaluation(Base):
         return evaluation
 
     @classmethod
-    def duplicate_bulk(cls, department, evaluation_ids, fields=None):
+    def duplicate_bulk(cls, department, term_id, evaluation_ids, fields=None):
         original_feed = []
         if fields:
-            original_feed = department.evaluations_feed(app.config['CURRENT_TERM_ID'], evaluation_ids=evaluation_ids)
+            original_feed = department.evaluations_feed(term_id, evaluation_ids=evaluation_ids)
 
         evaluations = []
-        term_id = None
         for evaluation_id in evaluation_ids:
             evaluation = cls.from_id(evaluation_id)
             if not evaluation:
                 continue
 
+            original_evaluation_feed = next((f for f in original_feed if f['id'] == evaluation_id), None)
             duplicate = evaluation.duplicate()
             if fields:
                 filtered_fields = {k: v for k, v in fields.items() if k != 'status'}
-                original_evaluation_feed = next((f for f in original_feed if f['id'] == evaluation_id), None)
                 duplicate.set_fields(filtered_fields, original_evaluation_feed)
 
             if not evaluation.department_id:
                 evaluation.department_id = department.id
             duplicate.department_id = department.id
+
+            if original_evaluation_feed:
+                if not evaluation.department_form_id and original_evaluation_feed['departmentForm']:
+                    evaluation.department_form_id = original_evaluation_feed['departmentForm']['id']
+                if not evaluation.evaluation_type_id and original_evaluation_feed['evaluationType']:
+                    evaluation.evaluation_type_id = original_evaluation_feed['evaluationType']['id']
+                if not evaluation.start_date and original_evaluation_feed['startDate']:
+                    evaluation.start_date = date.fromisoformat(original_evaluation_feed['startDate'])
 
             duplicate.created_by = current_user.get_uid()
             duplicate.updated_by = current_user.get_uid()
@@ -257,12 +264,9 @@ class Evaluation(Base):
             db.session.add(duplicate)
             evaluations.extend([evaluation, duplicate])
 
-            clear_section_cache(evaluation.term_id, evaluation.course_number)
-            term_id = evaluation.term_id
+            clear_section_cache(term_id, evaluation.course_number)
 
-        if term_id:
-            clear_department_cache(department.id, term_id)
-
+        clear_department_cache(department.id, term_id)
         std_commit()
         return [e.id for e in evaluations]
 
@@ -277,52 +281,81 @@ class Evaluation(Base):
         return query.first()
 
     @classmethod
-    def find_potential_conflicts(cls, evaluation_ids, fields):
+    def find_potential_conflicts(cls, evaluation_ids, fields, defaults):
+        if defaults and len(defaults):
+            defaults_cte = f"""
+                    default_values (evaluation_id, department_form_id, evaluation_type_id, start_date) AS (
+                        VALUES {','.join([str(v) for v in defaults])}
+                    ),"""
+            defaults_join = 'LEFT JOIN default_values d ON e.id = d.evaluation_id'
+            existing = {
+                'department_form_id': 'COALESCE(e.department_form_id, d.department_form_id)',
+                'evaluation_type_id': 'COALESCE(e.evaluation_type_id, d.evaluation_type_id)',
+                'start_date': 'COALESCE(e.start_date, DATE(d.start_date))',
+            }
+        else:
+            defaults_cte = ''
+            defaults_join = ''
+            existing = {
+                'department_form_id': 'e.department_form_id',
+                'evaluation_type_id': 'e.evaluation_type_id',
+                'start_date': 'e.start_date',
+            }
         params = {'evaluation_ids': evaluation_ids}
-        confirming_fields = {
-            'department_form_id': 'COALESCE(c.department_form_id, 0)',
-            'evaluation_type_id': 'COALESCE(c.evaluation_type_id, 0)',
+        confirming = {
+            'department_form_id': existing['department_form_id'],
+            'evaluation_type_id': existing['evaluation_type_id'],
             'instructor_uid': 'c.instructor_uid',
-            'start_date': "COALESCE(c.start_date, 'epoch')",
+            'start_date': existing['start_date'],
         }
         if fields.get('departmentForm'):
             params.update({'department_form_id': fields.get('departmentForm').id})
-            confirming_fields.update({'department_form_id': ':department_form_id'})
+            confirming.update({'department_form_id': ':department_form_id'})
         if fields.get('evaluationType'):
             params.update({'evaluation_type_id': fields.get('evaluationType').id})
-            confirming_fields.update({'evaluation_type_id': ':evaluation_type_id'})
+            confirming.update({'evaluation_type_id': ':evaluation_type_id'})
         if fields.get('instructorUid'):
             params.update({'instructor_uid': f"{fields.get('instructorUid')}"})
-            confirming_fields.update({'instructor_uid': ':instructor_uid'})
+            confirming.update({'instructor_uid': ':instructor_uid'})
         if fields.get('startDate'):
             params.update({'start_date': f"{fields.get('startDate')}"})
-            confirming_fields.update({'start_date': ':start_date'})
-        query = f"""WITH confirming AS (
-                        SELECT * FROM evaluations e
-                        WHERE id = ANY(:evaluation_ids)
+            confirming.update({'start_date': 'DATE(:start_date)'})
+
+        query = f"""WITH {defaults_cte}
+                    confirming AS (
+                        SELECT e.id, e.term_id, e.course_number, e.instructor_uid, e.status,
+                                {confirming['department_form_id']} AS department_form_id,
+                                {confirming['evaluation_type_id']} AS evaluation_type_id,
+                                {confirming['start_date']} AS start_date,
+                                df.name AS department_form_name
+                        FROM evaluations e
+                        {defaults_join}
+                        JOIN department_forms df ON {confirming['department_form_id']} = df.id
+                        WHERE e.id = ANY(:evaluation_ids)
                     )
                     SELECT * FROM evaluations e
+                    {defaults_join}
                     JOIN confirming c
-                    ON e.term_id = c.term_id
-                    AND e.course_number = c.course_number
-                    AND e.instructor_uid = {confirming_fields['instructor_uid']}
-                    AND NOT e.id = c.id
-                    AND (
-                        COALESCE(e.department_form_id, 0) != {confirming_fields['department_form_id']}
-                        OR COALESCE(e.evaluation_type_id, 0) != {confirming_fields['evaluation_type_id']}
-                        OR COALESCE(e.start_date, 'epoch') != {confirming_fields['start_date']}
-                    )
-                    LEFT JOIN department_forms edf ON e.department_form_id = edf.id
-                    LEFT JOIN department_forms cdf ON c.department_form_id = cdf.id
+                      ON e.term_id = c.term_id
+                      AND e.course_number = c.course_number
+                      AND e.instructor_uid = {confirming['instructor_uid']}
+                      AND NOT e.id = c.id
+                      AND (
+                          {existing['department_form_id']} != c.department_form_id
+                          OR {existing['evaluation_type_id']} != c.evaluation_type_id
+                          OR {existing['start_date']} != c.start_date
+                      )
+                    JOIN department_forms edf ON {existing['department_form_id']} = edf.id
                     WHERE (
                         e.status IN ('marked', 'confirmed')
                         OR e.id = ANY(:evaluation_ids)
                     )
                     AND (
-                        (e.department_form_id IS NULL OR c.department_form_id IS NULL)
-                        OR (edf.name <> cdf.name || '_MID' AND cdf.name <> edf.name || '_MID')
+                        edf.name <> c.department_form_name || '_MID' AND c.department_form_name <> edf.name || '_MID'
                     )"""
-        return db.session.execute(query, params).fetchall()
+        results = db.session.execute(query, params).fetchall()
+        app.logger.info(f'Evaluation find_potential_conflicts query returned {len(results)} results: {query}\n{params}')
+        return results
 
     @classmethod
     def from_id(cls, evaluation_id):
@@ -344,15 +377,23 @@ class Evaluation(Base):
 
     @classmethod
     def get_duplicates(cls, evaluation):
-        conditions = and_(
+        conditions = [
             cls.id != evaluation.id,
             cls.term_id == evaluation.term_id,
             cls.course_number == evaluation.course_number,
             cls.department_id == evaluation.department_id,
             cls.instructor_uid == evaluation.instructor_uid,
             cls.status.in_(['confirmed', 'marked']),
-        )
-        return cls.query.filter(conditions).all()
+        ]
+        join_conditions = []
+        if evaluation.department_form:
+            join_conditions.extend([
+                DepartmentForm.name != f'{evaluation.department_form.name}_MID',
+                DepartmentForm.name.concat('_MID') != evaluation.department_form.name,
+            ])
+        results = cls.query.outerjoin(Evaluation.department_form.and_(*join_conditions)).filter(and_(*conditions)).all()
+        app.logger.info(f'Evaluation get_duplicates query returned {len(results)} results.')
+        return results
 
     @classmethod
     def get_invalid(cls, term_id, status=None, evaluation_ids=None):
@@ -509,7 +550,7 @@ class Evaluation(Base):
                     )
         else:
             for fde in foreign_dept_evaluations:
-                if fde.start_date:
+                if fde.start_date and self.department_id != fde.department_id:
                     self.start_date = fde.start_date
                     break
 
@@ -529,7 +570,7 @@ class Evaluation(Base):
                     self.mark_conflict(fde, 'departmentForm', saved_evaluation, self.department_form.name, fde.department_form.name)
         else:
             for fde in foreign_dept_evaluations:
-                if fde.department_form:
+                if fde.department_form and self.department_id != fde.department_id:
                     self.department_form = fde.department_form
                     break
         if default_form and not self.department_form:
@@ -543,7 +584,7 @@ class Evaluation(Base):
                     self.mark_conflict(fde, 'evaluationType', saved_evaluation, self.evaluation_type.name, fde.evaluation_type.name)
         else:
             for fde in foreign_dept_evaluations:
-                if fde.evaluation_type:
+                if fde.evaluation_type and self.department_id != fde.department_id:
                     self.evaluation_type = fde.evaluation_type
                     break
         if not self.evaluation_type:
