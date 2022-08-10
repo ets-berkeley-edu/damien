@@ -136,7 +136,7 @@ def update_evaluations(department_id):  # noqa C901
     term_id = get_term_id(request)
     updated_ids = []
     if action == 'confirm':
-        _validate_confirmable(evaluation_ids, term_id)
+        _validate_confirmable(department, evaluation_ids, term_id)
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'confirmed'})
     elif action == 'delete':
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'deleted'})
@@ -144,11 +144,11 @@ def update_evaluations(department_id):  # noqa C901
         fields = None
         if params.get('fields'):
             fields = _validate_evaluation_fields(params.get('fields'), term_id)
-        updated_ids = Evaluation.duplicate_bulk(department=department, evaluation_ids=evaluation_ids, fields=fields)
+        updated_ids = Evaluation.duplicate_bulk(department=department, term_id=term_id, evaluation_ids=evaluation_ids, fields=fields)
     elif action == 'edit':
         fields = _validate_evaluation_fields(params.get('fields'), term_id)
         if fields.get('status') == 'confirmed':
-            _validate_confirmable(evaluation_ids, term_id, fields=fields)
+            _validate_confirmable(department, evaluation_ids, term_id, fields=fields)
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields=fields)
     elif action == 'review':
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'marked'})
@@ -164,15 +164,28 @@ def update_evaluations(department_id):  # noqa C901
     return tolerant_jsonify(response)
 
 
-def _validate_confirmable(evaluation_ids, term_id, fields={}):
-    numeric_ids = [int(eid) for eid in evaluation_ids if re.match(r'\d+\Z', str(eid))]
+def _validate_confirmable(department, evaluation_ids, term_id, fields={}):
+
+    def _is_numeric(eid):
+        return re.match(r'\d+\Z', str(eid))
+    numeric_ids = [int(eid) for eid in evaluation_ids if _is_numeric(eid)]
     if numeric_ids:
         if not (fields.get('departmentForm') and fields.get('evaluationType') and fields.get('instructorUid') and fields.get('startDate')):
             validation_errors = Evaluation.get_invalid(term_id, evaluation_ids=numeric_ids)
             if validation_errors:
                 raise BadRequestError('Could not confirm evaluations with errors.')
 
-        conflicts = Evaluation.find_potential_conflicts(numeric_ids, fields)
+        evaluations_feed = department.evaluations_feed(term_id=term_id)
+
+        def _defaults(e):
+            return (
+                e['id'],
+                e['departmentForm']['id'],
+                e['evaluationType']['id'],
+                e['startDate'],
+            )
+        defaults = [_defaults(e) for e in evaluations_feed if (_is_numeric(e['id']) and e['departmentForm'] and e['evaluationType'])]
+        conflicts = Evaluation.find_potential_conflicts(numeric_ids, fields, defaults)
         if conflicts:
             raise BadRequestError('Could not confirm evaluations with conflicting information.')
 

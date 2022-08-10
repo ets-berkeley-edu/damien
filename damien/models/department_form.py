@@ -54,7 +54,8 @@ class DepartmentForm(Base):
 
     def __repr__(self):
         return f"""<DepartmentForm id={self.id},
-                    name={self.name}>
+                    name={self.name},
+                    deleted_at={self.deleted_at}>
                 """
 
     @classmethod

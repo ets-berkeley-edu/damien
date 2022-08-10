@@ -254,8 +254,10 @@ class TestExportEvaluations:
     def test_confirmed_course(self, client, app, fake_auth, history_id, form_history_id, type_f_id):
         fake_auth.login(admin_uid)
         _api_update_history_evaluation(client, history_id, form_history_id, type_f_id)
+        std_commit(allow_test_environment=True)
         evaluation = _api_get_evaluation(client, history_id, '30643', '326054')
         _api_update_evaluation(client, history_id, params={'evaluationIds': [evaluation['id']], 'action': 'confirm'})
+        std_commit(allow_test_environment=True)
 
         with mock_s3_bucket(app) as s3:
             _api_export_evaluations(client)

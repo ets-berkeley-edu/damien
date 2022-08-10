@@ -60,6 +60,22 @@ class Section:
         self.set_cross_listed_status(loch_rows)
         self.set_defaults(catalog_listings, evaluation_types)
 
+    def __repr__(self):
+        return f"""<Section term_id={self.term_id},
+                    course_number={self.course_number},
+                    subject_area={self.subject_area},
+                    catalog_id={self.catalog_id},
+                    instruction_format={self.instruction_format},
+                    section_num={self.section_num},
+                    course_title={self.course_title},
+                    is_primary={self.is_primary},
+                    start_date={self.start_date},
+                    end_date={self.end_date},
+                    default_evaluation_types={self.default_evaluation_types},
+                    default_form={self.default_form},
+                    foreign_department_course={self.foreign_department_course}>
+                """
+
     @classmethod
     def is_visible_by_default(cls, loch_row):
         return (
