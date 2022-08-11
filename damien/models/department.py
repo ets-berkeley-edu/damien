@@ -28,7 +28,7 @@ from itertools import groupby
 from damien import db, std_commit
 from damien.lib.cache import fetch_all_sections, fetch_department_cache, set_department_cache
 from damien.lib.queries import get_cross_listings, get_loch_instructors, get_loch_sections, get_loch_sections_by_ids, get_room_shares
-from damien.lib.util import isoformat, safe_strftime
+from damien.lib.util import extract_int, isoformat, safe_strftime
 from damien.merged.section import Section
 from damien.models.base import Base
 from damien.models.department_catalog_listing import DepartmentCatalogListing
@@ -37,6 +37,7 @@ from damien.models.evaluation_type import EvaluationType
 from damien.models.supplemental_instructor import SupplementalInstructor
 from damien.models.supplemental_section import SupplementalSection
 from flask import current_app as app
+from sqlalchemy.orm import joinedload
 
 
 class Department(Base):
@@ -104,13 +105,15 @@ class Department(Base):
         return query.first()
 
     @classmethod
-    def all_enrolled(cls):
-        query = cls.query.filter_by(is_enrolled=True)
+    def all_enrolled(cls, load_contacts=False):
+        query = cls.query.filter_by(is_enrolled=True).order_by(cls.dept_name)
+        if load_contacts:
+            query = query.options(joinedload(cls.members).joinedload('user'))
         return query.all()
 
     def catalog_listings_map(self):
         listings_map = {}
-        for listing in self.catalog_listings:
+        for listing in sorted(self.catalog_listings, key=lambda cl: [cl.subject_area, extract_int(cl.catalog_id)]):
             if listing.subject_area not in listings_map:
                 listings_map[listing.subject_area] = []
             listings_map[listing.subject_area].append(listing.catalog_id or '*')

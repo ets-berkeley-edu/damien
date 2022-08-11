@@ -204,7 +204,7 @@ export default {
       this.$loading()
       this.alertScreenReader(`Loading ${this.selectedTermName}`)
       this.departments = []
-      getDepartmentsEnrolled(false, false, true, this.selectedTermId).then(data => {
+      getDepartmentsEnrolled(true, false, true, this.selectedTermId).then(data => {
         this.departments = data
         this.loadBlockers()
         this.$ready(`Evaluation Status Dashboard for ${this.selectedTermName}`)

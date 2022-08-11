@@ -39,6 +39,11 @@ def camelize(string):
     return ''.join(next(string_transform)(segment) for segment in string.split('_'))
 
 
+def extract_int(string):
+    numeric_only = ''.join(filter(str.isdigit, string)) if string else None
+    return to_int(numeric_only) or 0
+
+
 def get(_dict, key, default_value=None):
     return _dict[key] if key in _dict else default_value
 
