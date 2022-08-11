@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from datetime import timedelta
 
+from flask import current_app as app
 from mrsbaylock.models.user import User
 from mrsbaylock.pages.publish_page import PublishPage
 from mrsbaylock.test_utils import evaluation_utils
@@ -37,7 +38,7 @@ class TestEvalErrors:
 
     term = utils.get_current_term()
     all_contacts = utils.get_all_users()
-    dept = utils.get_dept('Environmental Science, Policy and Management', all_contacts)
+    dept = utils.get_dept('Computing, Data Science, and Society', all_contacts)
     evals = evaluation_utils.get_evaluations(term, dept)
     instructor_uid = utils.get_test_user().uid
     types = evaluation_utils.get_all_eval_types()
@@ -50,6 +51,8 @@ class TestEvalErrors:
     share_eval = next(filter(lambda s1: (s1.room_share_ccns and not s1.x_listing_ccns), evals))
     share_dept_1 = evaluation_utils.get_section_dept(term, share_eval.ccn, all_contacts)
     share_dept_2 = evaluation_utils.get_section_dept(term, share_eval.room_share_ccns[-1], all_contacts)
+    share_contact_1 = share_dept_1.users[0]
+    share_contact_2 = utils.get_dept_users(share_dept_2, exclude_uid=share_contact_1.uid)[0]
 
     utils.reset_test_data(term)
 
@@ -59,12 +62,14 @@ class TestEvalErrors:
             share_eval = e
 
     share_eval_has_instr = True if share_eval.instructor.uid else False
-    share_contact_1 = share_dept_1.users[0]
     share_start_1 = term.end_date.date() - timedelta(days=22)
-    share_end_1 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_1)
-    share_contact_2 = share_dept_2.users[0]
+    share_end_1 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_1, share_eval.course_end_date)
     share_start_2 = term.end_date.date() - timedelta(days=21)
-    share_end_2 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_2)
+    share_end_2 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_2, share_eval.course_end_date)
+
+    app.logger.info(f'Department 1 is {share_dept_1.name}, UID {share_contact_1.uid}')
+    app.logger.info(f'Department 2 is {share_dept_2.name}, UID {share_contact_2.uid}')
+    app.logger.info(f'Room share CCN is {share_eval.ccn}')
 
     def test_clear_cache(self):
         self.login_page.load_page()

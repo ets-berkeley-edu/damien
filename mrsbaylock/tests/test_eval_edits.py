@@ -79,7 +79,7 @@ class TestEvaluationManagement:
 
     def test_verify_locked_admin_edits(self):
         self.status_board_admin_page.click_dept_link(self.dept_1)
-        self.status_board_admin_page.wait_for_element(CourseDashboardEditsPage.ADD_SECTION_BUTTON, utils.get_short_timeout())
+        self.status_board_admin_page.wait_for_element(CourseDashboardEditsPage.ADD_SECTION_BUTTON, utils.get_medium_timeout())
         assert self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
 
     def test_verify_no_locked_dept_edits(self):
@@ -186,7 +186,7 @@ class TestEvaluationManagement:
     def test_change_start_date(self):
         e = self.dept_1.evaluations[0]
         e.eval_start_date = e.eval_start_date - timedelta(days=1)
-        e.eval_end_date = evaluation_utils.row_eval_end_from_eval_start(e.course_start_date, e.eval_start_date)
+        e.eval_end_date = evaluation_utils.row_eval_end_from_eval_start(e.course_start_date, e.eval_start_date, e.course_end_date)
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_eval_start_date(e, e.eval_start_date)
         self.dept_details_admin_page.click_save_eval_changes(e)
@@ -201,11 +201,13 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.hit_escape()
         self.dept_details_admin_page.wait_for_element(CourseDashboardEditsPage.EVAL_CHANGE_START_REQ_MSG, utils.get_short_timeout())
 
-    def test_duplicate_section_new_instructor(self):
+    def test_duplicate_section_new_instructor_and_eval_type(self):
         instructor = utils.get_test_user()
+        eval_type = next(filter(lambda t: t.name == 'WRIT', self.eval_types))
         e = next(filter(lambda ev: ev.dept_form, self.dept_1.evaluations))
         self.dept_details_admin_page.click_cancel_eval_changes()
-        e_dupe = self.dept_details_admin_page.duplicate_section(e, self.dept_1.evaluations, instructor=instructor)
+        e_dupe = self.dept_details_admin_page.duplicate_section(e, self.dept_1.evaluations, instructor=instructor,
+                                                                eval_type=eval_type)
         self.dept_details_admin_page.wait_for_eval_rows()
         els = self.dept_details_admin_page.rows_of_evaluation(e)
         assert len(els) == 1

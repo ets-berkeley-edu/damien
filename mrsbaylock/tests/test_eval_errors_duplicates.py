@@ -27,6 +27,7 @@ import copy
 from datetime import timedelta
 import time
 
+from flask import current_app as app
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.test_utils import evaluation_utils
 from mrsbaylock.test_utils import utils
@@ -57,6 +58,9 @@ class TestEvalErrors:
         duped_eval = e
     dupe_eval = copy.deepcopy(duped_eval)
 
+    app.logger.info(f'Department is {dept.name}, UID {contact.uid}')
+    app.logger.info(f'Duplicated CCN is {duped_eval.ccn}')
+
     def test_clear_cache(self):
         self.login_page.load_page()
         self.login_page.dev_auth()
@@ -82,11 +86,11 @@ class TestEvalErrors:
         pd_start = self.term.end_date.date() - timedelta(days=22)
         self.dept_details_dept_page.change_eval_start_date(self.dupe_eval, pd_start)
         self.dept_details_dept_page.save_eval_changes(self.dupe_eval)
-        self.dupe_eval.dept_form = form
-        self.dupe_eval.eval_type = eval_type
+        self.dupe_eval.dept_form = form.name
+        self.dupe_eval.eval_type = eval_type.name
         self.dupe_eval.eval_start_date = pd_start
         self.dupe_eval.eval_end_date = evaluation_utils.row_eval_end_from_eval_start(self.dupe_eval.course_start_date,
-                                                                                     pd_start)
+                                                                                     pd_start, self.dupe_eval.course_end_date)
 
     def test_dupe_unmarked_verify_edits(self):
         self.dept_details_dept_page.wait_for_eval_rows()

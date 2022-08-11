@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from datetime import timedelta
 
+from flask import current_app as app
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.models.user import User
 from mrsbaylock.test_utils import evaluation_utils
@@ -37,7 +38,7 @@ class TestEvalErrors:
 
     term = utils.get_current_term()
     all_contacts = utils.get_all_users()
-    dept = utils.get_dept('Environmental Science, Policy and Management', all_contacts)
+    dept = utils.get_dept('Economics', all_contacts)
     evals = evaluation_utils.get_evaluations(term, dept)
     instructor_uid = utils.get_test_user().uid
     types = evaluation_utils.get_all_eval_types()
@@ -50,21 +51,25 @@ class TestEvalErrors:
     x_list_eval = next(filter(lambda x1: x1.x_listing_ccns, evals))
     x_list_dept_1 = evaluation_utils.get_section_dept(term, x_list_eval.ccn, all_contacts)
     x_list_dept_2 = evaluation_utils.get_section_dept(term, x_list_eval.x_listing_ccns[-1], all_contacts)
+    x_list_contact_1 = x_list_dept_1.users[0]
+    x_list_contact_2 = utils.get_dept_users(x_list_dept_2, exclude_uid=x_list_contact_1.uid)[0]
 
     utils.reset_test_data(term)
 
-    evals = evaluation_utils.get_evaluations(term, dept)
+    evals = evaluation_utils.get_evaluations(term, x_list_dept_1)
     for e in evals:
         if e.ccn == x_list_eval.ccn:
             x_list_eval = e
 
     x_list_eval_has_instr = True if x_list_eval.instructor.uid else False
-    x_list_contact_1 = x_list_dept_1.users[0]
     x_list_start_1 = term.end_date.date() - timedelta(days=22)
-    x_list_end_1 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_1)
-    x_list_contact_2 = x_list_dept_2.users[0]
+    x_list_end_1 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_1, x_list_eval.course_end_date)
     x_list_start_2 = term.end_date.date() - timedelta(days=21)
-    x_list_end_2 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_2)
+    x_list_end_2 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_2, x_list_eval.course_end_date)
+
+    app.logger.info(f'Department 1 is {x_list_dept_1.name}, UID {x_list_contact_1.uid}')
+    app.logger.info(f'Department 2 is {x_list_dept_2.name}, UID {x_list_contact_2.uid}')
+    app.logger.info(f'Cross-listed CCN is {x_list_eval.ccn}')
 
     def test_clear_cache(self):
         self.login_page.load_page()

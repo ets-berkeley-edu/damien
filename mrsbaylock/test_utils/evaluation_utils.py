@@ -101,15 +101,15 @@ def row_instructor(row):
         return None
 
 
-def row_eval_end_from_eval_start(course_start, eval_start):
-    if course_start:
-        return eval_start + timedelta(days=20) if (eval_start - course_start).days > 90 else eval_start + timedelta(days=13)
+def row_eval_end_from_eval_start(course_start, eval_start, course_end):
+    if course_start and course_end:
+        return eval_start + timedelta(days=20) if (course_end - course_start).days > 90 else eval_start + timedelta(days=13)
     else:
         return None
 
 
 def row_eval_start_from_course_end(course_end, course_start):
-    if course_start:
+    if course_start and course_end:
         return course_end - timedelta(days=20) if (course_end - course_start).days > 90 else course_end - timedelta(days=13)
     else:
         return None
@@ -123,7 +123,10 @@ def remove_listing_dept_forms(evals):
 
 def calculate_eval_dates(evals):
     for e in evals:
-        e.eval_end_date = row_eval_end_from_eval_start(e.course_start_date, e.eval_start_date) if e.eval_start_date else e.course_end_date
+        if e.eval_start_date:
+            e.eval_end_date = row_eval_end_from_eval_start(e.course_start_date, e.eval_start_date, e.course_end_date)
+        else:
+            e.eval_end_date = e.course_end_date
         e.eval_start_date = e.eval_start_date or row_eval_start_from_course_end(e.course_end_date, e.course_start_date)
 
 
@@ -557,7 +560,8 @@ def get_section_dept(term, ccn, all_users=None):
 
 def get_eval_types(evals):
     for e in evals:
-        if e.eval_type or e.dept.dept_id == '92':
+        if e.eval_type or e.dept.name in ['French', 'East Asian Languages and Cultures', 'Social Welfare',
+                                          'Spanish and Portuguese']:
             app.logger.info('Skipping eval type')
         else:
             if e.instructor.uid and e.instructor.affiliations:

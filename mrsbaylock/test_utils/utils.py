@@ -192,7 +192,7 @@ def get_user_id(user):
     return result['id']
 
 
-def get_dept_users(dept, all_users=None):
+def get_dept_users(dept, all_users=None, exclude_uid=None):
     dept_users = []
     users = all_users or get_all_users()
     for u in users:
@@ -203,6 +203,8 @@ def get_dept_users(dept, all_users=None):
         app.logger.info(f'{vars(u)}')
         for r in u.dept_roles:
             app.logger.info(f'{vars(r)}')
+    if exclude_uid:
+        dept_users = [u for u in dept_users if u.uid != exclude_uid]
     return dept_users
 
 
@@ -464,7 +466,7 @@ def expected_courses(evaluations):
         if row.eval_end_date:
             end_date = row.eval_end_date.strftime('%-m/%-d/%y')
         else:
-            eval_end = evaluation_utils.row_eval_end_from_eval_start(row.course_end_date, row.course_start_date)
+            eval_end = evaluation_utils.row_eval_end_from_eval_start(row.course_start_date, row.course_start_date, row.course_end_date)
             if eval_end:
                 end_date = eval_end.strftime('%-m/%-d/%y')
             else:
