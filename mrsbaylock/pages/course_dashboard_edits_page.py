@@ -75,10 +75,12 @@ class CourseDashboardEditsPage(CourseDashboards):
         return self.element(self.dept_contact_email_loc(user)).text.strip()
 
     def dept_contact_comms_perms(self, user):
-        return self.element((By.XPATH, f'{self.dept_contact_xpath(user)}//div[contains(@id, "notifications")]')).text.strip()
+        return self.element(
+            (By.XPATH, f'{self.dept_contact_xpath(user)}//div[contains(@id, "notifications")]')).text.strip()
 
     def dept_contact_blue_perms(self, user):
-        return self.element((By.XPATH, f'{self.dept_contact_xpath(user)}//div[contains(@id, "permissions")]')).text.strip()
+        return self.element(
+            (By.XPATH, f'{self.dept_contact_xpath(user)}//div[contains(@id, "permissions")]')).text.strip()
 
     def dept_contact_dept_forms(self, user):
         els = self.elements((By.XPATH, f'{self.dept_contact_xpath(user)}//span[contains(@id, "-form-")]'))
@@ -95,6 +97,7 @@ class CourseDashboardEditsPage(CourseDashboards):
     IGNORE_BUTTON = (By.ID, 'apply-course-action-btn-ignore')
     DUPE_BUTTON = (By.ID, 'apply-course-action-btn-duplicate')
     DUPE_SECTION_INSTR_INPUT = (By.ID, 'bulk-duplicate-instructor-lookup-autocomplete')
+    DUPE_EVAL_TYPE_SELECT = (By.ID, 'bulk-duplicate-select-type')
     USE_MIDTERM_FORM_CBX = (By.XPATH, '//label[text()="Use midterm department forms"]/preceding-sibling::div')
     USE_START_DATE_INPUT = (By.ID, 'bulk-duplicate-start-date')
     ACTION_APPLY_BUTTON = (By.XPATH, '//button[contains(., "Apply")]')
@@ -145,7 +148,8 @@ class CourseDashboardEditsPage(CourseDashboards):
         for evaluation in evaluations:
             evaluation.status = EvaluationStatus.UNMARKED
 
-    def duplicate_section(self, evaluation, evaluations, midterm=None, start_date=None, instructor=None):
+    def duplicate_section(self, evaluation, evaluations, midterm=None, start_date=None, instructor=None,
+                          eval_type=None):
         app.logger.info(f'Duplicating row for CCN {evaluation.ccn}')
         self.click_eval_checkbox(evaluation)
         self.wait_for_element_and_click(CourseDashboardEditsPage.DUPE_BUTTON)
@@ -160,6 +164,11 @@ class CourseDashboardEditsPage(CourseDashboards):
             self.wait_for_element_and_type(CourseDashboardEditsPage.USE_START_DATE_INPUT, s)
         self.hit_tab()
         self.hit_tab()
+        if eval_type:
+            app.logger.info(f'Setting evaluation type {eval_type.name}')
+            self.wait_for_select_and_click_option(CourseDashboardEditsPage.DUPE_EVAL_TYPE_SELECT, eval_type.name)
+        # TODO - 'None' option or 'Revert' or no such option?
+        time.sleep(1)
         self.wait_for_page_and_click_js(CourseDashboardEditsPage.ACTION_APPLY_BUTTON)
         dupe = copy.deepcopy(evaluation)
         if instructor:
@@ -168,6 +177,8 @@ class CourseDashboardEditsPage(CourseDashboards):
             dupe.dept_form = f'{evaluation.dept_form}_MID'
         if start_date:
             dupe.eval_start_date = start_date
+        if eval_type:
+            dupe.eval_type = eval_type.name
         evaluations.append(dupe)
         return dupe
 
@@ -274,6 +285,7 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def click_eval_checkbox(self, evaluation):
         xpath = f'{self.eval_row_xpath(evaluation)}//input[contains(@id, "checkbox")]'
+        app.logger.info(f'Selecting {evaluation.ccn}')
         self.wait_for_page_and_click_js((By.XPATH, xpath))
 
     def click_edit_evaluation(self, evaluation):

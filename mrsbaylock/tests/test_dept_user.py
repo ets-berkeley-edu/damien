@@ -134,7 +134,8 @@ class TestDeptUser:
         self.dept_details_dept_page.change_eval_start_date(change_date, new_start)
         self.dept_details_dept_page.click_save_eval_changes(change_date)
         change_date.eval_start_date = new_start
-        new_end = evaluation_utils.row_eval_end_from_eval_start(change_date.course_start_date, change_date.eval_start_date)
+        new_end = evaluation_utils.row_eval_end_from_eval_start(change_date.course_start_date, change_date.eval_start_date,
+                                                                change_date.course_end_date)
         change_date.eval_end_date = new_end
 
     def test_sort_default(self):
