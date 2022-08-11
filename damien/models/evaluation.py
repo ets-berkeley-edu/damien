@@ -536,10 +536,10 @@ class Evaluation(Base):
         if not self.meeting_end_date:
             self.meeting_end_date = default_meeting_dates['end_date']
 
-        if saved_evaluation:
-            self.start_date = saved_evaluation.start_date or self.get_default_evaluation_dates(default_meeting_dates)[0]
+        if saved_evaluation and saved_evaluation.start_date:
+            self.start_date = saved_evaluation.start_date
             for fde in foreign_dept_evaluations:
-                fde_start_date = fde.start_date or fde.get_default_evaluation_dates(default_meeting_dates)[0]
+                fde_start_date = fde.start_date
                 if fde_start_date and fde_start_date != self.start_date:
                     self.mark_conflict(
                         fde,
@@ -548,6 +548,8 @@ class Evaluation(Base):
                         safe_strftime(self.start_date, '%Y-%m-%d'),
                         safe_strftime(fde_start_date, '%Y-%m-%d'),
                     )
+                else:
+                    fde.start_date = self.start_date
         else:
             for fde in foreign_dept_evaluations:
                 if fde.start_date and self.department_id != fde.department_id:

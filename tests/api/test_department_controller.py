@@ -799,6 +799,19 @@ class TestEditEvaluationMultipleDepartments:
         assert history_eval['departmentForm']['id'] == 13
         assert history_eval['evaluationType']['id'] == 3
         assert history_eval['startDate'] == '2022-04-27'
+        _api_update_evaluation(client, dept_id=history_id, params={'evaluationIds': ['_2222_30643_326054'], 'action': 'confirm'})
+        history_eval_confirmed = _api_get_evaluation(client, history_id, '30643', '326054')
+        assert history_eval_confirmed['status'] == 'confirmed'
+        assert history_eval_confirmed['conflicts'] == {}
+        assert history_eval_confirmed['departmentForm']['id'] == 13
+        assert history_eval_confirmed['evaluationType']['id'] == 3
+        assert history_eval_confirmed['startDate'] == '2022-04-27'
+        melc_eval_confirmed = _api_get_evaluation(client, melc_id, '30643', '326054')
+        assert melc_eval_confirmed['status'] == 'confirmed'
+        assert melc_eval_confirmed['conflicts'] == {}
+        assert melc_eval_confirmed['departmentForm']['id'] == 13
+        assert melc_eval_confirmed['evaluationType']['id'] == 3
+        assert melc_eval_confirmed['startDate'] == '2022-04-27'
 
     def test_evaluation_edits_show_conflicts(
         self,
