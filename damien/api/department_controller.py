@@ -63,11 +63,11 @@ def add_section(department_id):
 @app.route('/api/departments/enrolled')
 @admin_required
 def enrolled_departments():
-    enrolled_depts = Department.all_enrolled()
+    include_contacts = get_boolean_param(request.args, 'c', False)
+    enrolled_depts = Department.all_enrolled(load_contacts=include_contacts)
     term_id = get_term_id(request)
     cached = cache.fetch_all_departments(term_id)
     notes = DepartmentNote.find_by_term(term_id)
-    include_contacts = get_boolean_param(request.args, 'c', False)
     include_sections = get_boolean_param(request.args, 's', False)
     include_status = get_boolean_param(request.args, 't', False)
     return tolerant_jsonify([d.to_api_json(
