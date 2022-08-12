@@ -48,11 +48,10 @@
               v-if="isDuplicating"
               id="bulk-duplicate-instructor-lookup-autocomplete"
               :disabled="disableControls"
-              :initial-value="bulkUpdateOptions.instructor"
               :instructor-lookup="true"
               placeholder="Instructor name or UID"
               :on-select-result="selectInstructor"
-              :required="requireInstructor"
+              :required="true"
               solo
             />
           </div>
@@ -170,7 +169,6 @@ export default {
     isDuplicating: false,
     isLoading: false,
     midtermFormAvailable: false,
-    requireInstructor: false
   }),
   created() {
     this.courseActions = {
@@ -225,7 +223,7 @@ export default {
       return this.disableControls
           || !this.allowEdits
           || this.$_.isEmpty(this.selectedEvaluationIds)
-          || (this.requireInstructor && !this.$_.get(this.bulkUpdateOptions.instructor, 'uid'))
+          || !this.$_.get(this.bulkUpdateOptions.instructor, 'uid')
     },
     selectedTermValidDates() {
       const selectedTerm = this.$_.find(this.$config.availableTerms, {'id': this.selectedTermId})
@@ -306,7 +304,6 @@ export default {
       this.applyingAction = null
       this.isLoading = false
       this.midtermFormAvailable = false
-      this.requireInstructor = false
     },
     selectInstructor(suggestion) {
       this.bulkUpdateOptions.instructor = suggestion
@@ -314,13 +311,6 @@ export default {
     },
     showDuplicateOptions() {
       const selectedEvals = this.$_.filter(this.evaluations, e => this.selectedEvaluationIds.includes(e.id))
-
-      // Pre-populate instructor if shared by all selected evals.
-      const uniqueInstructorUids = this.$_.chain(selectedEvals).map(e => this.$_.get(e, 'instructor.uid')).uniq().value()
-      if (uniqueInstructorUids.length === 1) {
-        this.bulkUpdateOptions.instructor = this.$_.get(selectedEvals, '0.instructor')
-        this.requireInstructor = true
-      }
 
       // Pre-populate start date if shared by all selected evals.
       const uniqueStartDates = this.$_.chain(selectedEvals).map(e => new Date(e.startDate).toDateString()).uniq().value()
