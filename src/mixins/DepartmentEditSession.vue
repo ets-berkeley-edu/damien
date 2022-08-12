@@ -34,11 +34,9 @@ export default {
         return true
       }
       const duplicatingEvaluations = this.$_.filter(this.evaluations, e => this.$_.includes(evaluationIds, e.id))
-      const conflicts = this.$_.intersectionWith(duplicatingEvaluations, this.evaluations, (e, dupe) => {
+      const conflicts = this.$_.intersectionWith(duplicatingEvaluations, this.evaluations, (dupe, e) => {
         return e.courseNumber === dupe.courseNumber
             && this.$_.get(e.instructor, 'uid', NaN) === (fields.instructorUid || this.$_.get(dupe.instructor, 'uid', NaN))
-            && this.$_.get(e.evaluationType, 'id', NaN) === (fields.evaluationTypeId || this.$_.get(dupe.evaluationType, 'id', NaN))
-            && this.$moment(e.startDate).isSame(fields.startDate || dupe.startDate)
       })
       if (conflicts.length) {
         this.showErrorDialog('Cannot create identical duplicate evaluations.')

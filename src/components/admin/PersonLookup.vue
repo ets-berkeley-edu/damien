@@ -11,7 +11,7 @@
       class="person-lookup"
       dense
       :disabled="disabled"
-      :error="required && !selected"
+      :error="!!$_.size(errors)"
       :error-messages="errors"
       hide-details
       hide-no-data
@@ -25,6 +25,7 @@
       return-object
       :search-input.sync="search"
       single-line
+      @blur="validate(selected)"
     >
       <template #selection>
         <span class="text-nowrap">{{ toLabel(selected) }}</span>
@@ -39,6 +40,7 @@
       v-if="errors && errors[0]"
       :id="`${id}-error`"
       class="v-messages error--text px-3 mt-1"
+      :class="$vuetify.theme.dark ? 'text--lighten-2' : ''"
       role="alert"
     >
       {{ errors[0] }}
@@ -67,11 +69,6 @@ export default {
       required: false,
       type: String
     },
-    initialValue: {
-      default: () => {},
-      required: false,
-      type: Object
-    },
     instructorLookup: {
       required: false,
       type: Boolean
@@ -93,7 +90,6 @@ export default {
   },
   data: () => ({
     errors: [],
-    initialized: false,
     isSearching: false,
     menuProps: {
       contentClass: 'v-sheet--outlined autocomplete-menu'
@@ -108,11 +104,7 @@ export default {
       this.debouncedSearch(snippet)
     },
     selected(suggestion) {
-      if (!suggestion && this.required) {
-        this.errors = ['Required']
-      } else {
-        this.errors = []
-      }
+      this.validate(suggestion)
       this.onSelectResult(suggestion)
     }
   },
@@ -127,27 +119,26 @@ export default {
           this.suggestions = results
           this.isSearching = false
         })
-      } else if (this.initialized) {
+      } else {
         this.searchTokenMatcher = null
         this.suggestions = []
       }
-      this.initialized = true
     },
     suggest(user) {
       return this.toLabel(user).replace(this.searchTokenMatcher, match => `<strong>${match}</strong>`)
     },
     toLabel(user) {
       return user ? `${user.firstName || ''} ${user.lastName || ''} (${user.uid})`.trim() : ''
+    },
+    validate(suggestion) {
+      if (!suggestion && this.required) {
+        this.errors = ['Required']
+      } else {
+        this.errors = []
+      }
     }
   },
   created() {
-    if (this.$_.get(this.initialValue, 'uid')) {
-      this.suggestions = [this.initialValue]
-      this.selected = this.suggestions[0]
-      this.search = this.toLabel(this.initialValue)
-    } else if (this.required) {
-      this.errors = ['Required']
-    }
     this.debouncedSearch = this.$_.debounce(this.executeSearch, 300)
   }
 }
