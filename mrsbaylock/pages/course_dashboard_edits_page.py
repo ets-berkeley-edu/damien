@@ -59,6 +59,7 @@ class CourseDashboardEditsPage(CourseDashboards):
         Wait(self.driver, utils.get_medium_timeout()).until(
             ec.presence_of_element_located((By.XPATH, self.dept_contact_xpath(user))),
         )
+        time.sleep(1)
 
     def dept_contact_name(self, user):
         return self.element((By.XPATH, f'{self.dept_contact_xpath(user)}//strong')).text

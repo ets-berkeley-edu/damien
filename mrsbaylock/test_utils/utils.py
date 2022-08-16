@@ -91,8 +91,8 @@ def get_current_term():
         term_id=app.config['CURRENT_TERM_ID'],
         name=app.config['CURRENT_TERM_NAME'],
         prefix=app.config['CURRENT_TERM_PREFIX'],
-        start_date=datetime.strptime(app.config['CURRENT_TERM_BEGIN'], '%Y-%m-%d'),
-        end_date=datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d'),
+        start_date=datetime.strptime(app.config['CURRENT_TERM_BEGIN'], '%Y-%m-%d').date(),
+        end_date=datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d').date(),
     )
 
 
@@ -462,17 +462,19 @@ def expected_courses(evaluations):
         else:
             flag = ''
             x_listed_name = ''
-        modular = 'Y' if (term.start_date != row.course_start_date or term.end_date != row.course_end_date) else 'N'
+        if row.course_start_date and row.course_end_date:
+            modular = 'Y' if (term.start_date != row.course_start_date or term.end_date != row.course_end_date) else ''
+        else:
+            modular = ''
         if row.eval_end_date:
             end_date = row.eval_end_date.strftime('%-m/%-d/%y')
         else:
-            eval_end = evaluation_utils.row_eval_end_from_eval_start(row.course_start_date, row.course_start_date, row.course_end_date)
+            eval_end = evaluation_utils.row_eval_end_from_eval_start(row.course_start_date, row.eval_start_date, row.course_end_date)
             if eval_end:
                 end_date = eval_end.strftime('%-m/%-d/%y')
             else:
                 end_date = ''
         data = {
-            # TODO - COURSE_ID acct for dupes
             'COURSE_ID': f'{term.prefix}-{row.ccn}{suffix}',
             'COURSE_ID_2': f'{term.prefix}-{row.ccn}{suffix}',
             'COURSE_NAME': f'{row.subject} {row.catalog_id} {row.instruction_format} {row.section_num} {row.title}{gsi}',
@@ -487,7 +489,7 @@ def expected_courses(evaluations):
             'DEPT_FORM': row.dept_form,
             'EVALUATION_TYPE': row.eval_type,
             'MODULAR_COURSE': modular,
-            'START_DATE': (row.eval_start_date.strftime('%-m/%-d/%y') if row.eval_start_date else ''),
+            'START_DATE': row.eval_start_date.strftime('%-m/%-d/%y'),
             'END_DATE': end_date,
             'CANVAS_COURSE_ID': '',
             'QB_MAPPING': f'{row.dept_form}-{row.eval_type}',
@@ -575,6 +577,7 @@ def expected_supervisors():
      LEFT JOIN department_forms ON department_forms.id = user_department_forms.department_form_id
          WHERE users.is_admin IS FALSE
            AND users.deleted_at IS NULL
+           AND users.blue_permissions IS NOT NULL
       GROUP BY users.id, users.uid, users.csid, users.first_name, users.last_name, users.blue_permissions,
                department_members.can_receive_communications
       ORDER BY users.uid
@@ -653,6 +656,7 @@ def expected_report_viewers():
                   LEFT JOIN user_department_forms ON user_department_forms.user_id = users.id
                   LEFT JOIN department_forms ON department_forms.id = user_department_forms.department_form_id
                       WHERE department_forms.name IS NOT NULL
+                        AND department_forms.deleted_at IS NULL
                    ORDER BY uid, form
     """
     app.logger.info(sql)

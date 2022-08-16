@@ -45,7 +45,7 @@ class CalNetPage(Page):
 
     def log_in(self, username, password):
         Wait(self.driver, utils.get_short_timeout()).until(
-            ec.title_contains('CAS – Central Authentication Service'),
+            ec.title_contains('CAS - Central Authentication Service'),
         )
         if username == 'secret' or password == 'secret':
             if utils.browser_is_headless():

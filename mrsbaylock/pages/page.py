@@ -86,9 +86,9 @@ class Page(object):
 
     def is_present(self, locator):
         try:
-            self.element(locator)
+            self.element(locator).size
             return True
-        except exceptions.NoSuchElementException:
+        except (AttributeError, exceptions.NoSuchElementException):
             return False
 
     def when_not_present(self, locator, timeout):

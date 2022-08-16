@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import datetime
 from datetime import timedelta
 import re
 
@@ -102,17 +103,18 @@ def row_instructor(row):
 
 
 def row_eval_end_from_eval_start(course_start, eval_start, course_end):
-    if course_start and course_end:
-        return eval_start + timedelta(days=20) if (course_end - course_start).days > 90 else eval_start + timedelta(days=13)
-    else:
-        return None
+    start = course_start or datetime.datetime.strptime(app.config['CURRENT_TERM_BEGIN'], '%Y-%m-%d').date()
+    end = course_end or datetime.datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d').date()
+    return eval_start + timedelta(days=20) if (end - start).days > 90 else eval_start + timedelta(days=13)
 
 
 def row_eval_start_from_course_end(course_end, course_start):
-    if course_start and course_end:
-        return course_end - timedelta(days=20) if (course_end - course_start).days > 90 else course_end - timedelta(days=13)
-    else:
-        return None
+    term_end_date = datetime.datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d').date()
+    start = course_start or datetime.datetime.strptime(app.config['CURRENT_TERM_BEGIN'], '%Y-%m-%d').date()
+    end = course_end or term_end_date
+    # TODO - fix this to handle summer logic
+    grace_pd = 2 if (end == term_end_date) else 0
+    return (end + timedelta(days=grace_pd)) - timedelta(days=20) if (end - start).days > 90 else end - timedelta(days=13)
 
 
 def remove_listing_dept_forms(evals):
@@ -123,11 +125,8 @@ def remove_listing_dept_forms(evals):
 
 def calculate_eval_dates(evals):
     for e in evals:
-        if e.eval_start_date:
-            e.eval_end_date = row_eval_end_from_eval_start(e.course_start_date, e.eval_start_date, e.course_end_date)
-        else:
-            e.eval_end_date = e.course_end_date
         e.eval_start_date = e.eval_start_date or row_eval_start_from_course_end(e.course_end_date, e.course_start_date)
+        e.eval_end_date = row_eval_end_from_eval_start(e.course_start_date, e.eval_start_date, e.course_end_date)
 
 
 def result_row_to_eval(row, term, dept):

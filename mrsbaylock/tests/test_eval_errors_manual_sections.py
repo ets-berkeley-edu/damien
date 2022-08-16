@@ -110,12 +110,12 @@ class TestEvalErrors:
 
     def test_manual_section_dept_2_verify_form_conflict(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.manual_dept_1.name} department'
+        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.dept_1.name} department'
         assert self.dept_form_1.name in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
         assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
 
     def test_manual_section_dept_2_verify_type_conflict(self):
-        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.manual_dept_1.name} department'
+        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.dept_1.name} department'
         assert self.eval_type_1.name in self.dept_details_dept_page.eval_type(self.manual_eval)
         assert conflict_type in self.dept_details_dept_page.eval_type(self.manual_eval)
 
@@ -135,12 +135,12 @@ class TestEvalErrors:
 
     def test_manual_section_dept_2_no_form_conflict(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.manual_dept_1.name} department'
+        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.dept_1.name} department'
         assert self.dept_form_2.name in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
         assert conflict_form not in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
 
     def test_manual_section_dept_2_no_type_conflict(self):
-        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.manual_dept_1.name} department'
+        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.dept_1.name} department'
         assert self.eval_type_2.name in self.dept_details_dept_page.eval_type(self.manual_eval)
         assert conflict_type not in self.dept_details_dept_page.eval_type(self.manual_eval)
 

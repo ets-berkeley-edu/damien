@@ -74,7 +74,7 @@ class StatusBoardAdminPage(DamienPages):
 
     def check_dept_notif_cbx(self, dept):
         app.logger.info(f'Clicking the notification checkbox for {dept.name}')
-        self.wait_for_element_and_click(StatusBoardAdminPage.notif_select_dept_cbx(dept))
+        self.wait_for_page_and_click_js(StatusBoardAdminPage.notif_select_dept_cbx(dept))
 
     def check_all_dept_notif_cbx(self):
         app.logger.info('Clicking the select-all notification checkbox')
@@ -92,6 +92,7 @@ class StatusBoardAdminPage(DamienPages):
                 self.notif_remove_recipient(dept, user)
         self.click_notif_send()
         self.when_not_present(DamienPages.NOTIF_SEND_BUTTON, utils.get_medium_timeout())
+        time.sleep(2)
 
     @staticmethod
     def dept_row_xpath(dept):

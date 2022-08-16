@@ -167,18 +167,16 @@ class TestEvalExports:
         evaluation.instructor.uid = None
         evaluation.instructor.role_code = None
         evaluation_utils.set_section_instructor(evaluation)
-        self.dept_details_admin_page.load_dept_page(self.dept)
-        self.dept_details_admin_page.wait_for_eval_row(evaluation)
 
     def test_instructor_changed(self):
         evaluation = copy.deepcopy(self.confirmed[4])
         evaluation.instructor = self.confirmed[5].instructor
         evaluation_utils.set_section_instructor(evaluation)
+        self.api_page.refresh_unholy_loch()
         self.dept_details_admin_page.load_dept_page(self.dept)
         self.dept_details_admin_page.wait_for_eval_row(evaluation)
 
     def test_publish_sis_changes(self):
-        self.api_page.clear_cache()
         self.publish_page.load_page()
         self.publish_page.download_export_csvs()
 
