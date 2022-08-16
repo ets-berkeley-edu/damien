@@ -164,6 +164,29 @@ class TestGetValidations:
             assert r['valid'] is False
 
 
+def _api_get_confirmed(client, expected_status_code=200):
+    response = client.get('/api/evaluations/confirmed')
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestGetConfirmed:
+
+    def test_anonymous(self, client):
+        _api_get_confirmed(client, expected_status_code=401)
+
+    def test_unauthorized(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        _api_get_confirmed(client, expected_status_code=401)
+
+    def test_confirmed_course(self, client, app, fake_auth):
+        fake_auth.login(admin_uid)
+        response = _api_get_confirmed(client)
+        assert len(response) == 1
+        assert response[0]['deptName'] == 'History'
+        assert response[0]['count'] == 2
+
+
 def _api_export_evaluations(client, expected_status_code=200):
     response = client.post('/api/evaluations/export')
     assert response.status_code == expected_status_code
