@@ -213,7 +213,7 @@ export default {
         text: 'Duplicate'
       }
     }
-    this.evaluationTypes = [{id: null, name: 'None'}].concat(this.$config.evaluationTypes)
+    this.evaluationTypes = [{id: null, name: 'Default'}].concat(this.$config.evaluationTypes)
   },
   computed: {
     allowEdits() {
