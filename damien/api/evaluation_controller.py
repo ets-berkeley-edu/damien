@@ -82,6 +82,17 @@ def get_export_status():
     return tolerant_jsonify(export.to_api_json() if export else {})
 
 
+@app.route('/api/evaluations/confirmed')
+@admin_required
+def get_confirmed():
+    term_id = get_term_id(request)
+    confirmed = Evaluation.get_confirmed(term_id)
+    feed = []
+    for dept_name, evals in groupby(confirmed, lambda c: c.department.dept_name):
+        feed.append({'deptName': dept_name, 'count': len(list(evals))})
+    return tolerant_jsonify(feed)
+
+
 @app.route('/api/evaluations/exports')
 @admin_required
 def get_term_evaluation_exports():

@@ -12,6 +12,14 @@
     </v-row>
     <v-row>
       <v-col cols="auto" class="mr-auto">
+        <div v-if="$_.size(confirmed)">
+          Rows confirmed for publication:
+          <ul id="confirmed-list" class="pl-4">
+            <li v-for="(department, index) in confirmed" :key="index">
+              {{ department.deptName }} ({{ department.count }})
+            </li>
+          </ul>
+        </div>
         <div v-if="$_.size(blockers)">
           <v-icon color="error">
             mdi-alert-circle
@@ -105,7 +113,7 @@
 </template>
 
 <script>
-import {exportEvaluations, getExportStatus, getExports, getValidation} from '@/api/evaluations'
+import {exportEvaluations, getConfirmed, getExportStatus, getExports, getValidation} from '@/api/evaluations'
 import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
@@ -120,6 +128,7 @@ export default {
   mixins: [Context, DepartmentEditSession],
   data: () => ({
     blockers: {},
+    confirmed: [],
     dateFormat: 'M/DD/YYYY HH:mm:SS',
     exportsPanel: undefined,
     isExporting: false,
@@ -146,9 +155,10 @@ export default {
     refresh() {
       this.$loading()
       this.alertScreenReader(`Loading ${this.selectedTermName}`)
-      Promise.all([getValidation(this.selectedTermId), getExports(this.selectedTermId)]).then(responses => {
+      Promise.all([getValidation(this.selectedTermId), getConfirmed(this.selectedTermId), getExports(this.selectedTermId)]).then(responses => {
         this.setEvaluations(this.$_.sortBy(responses[0], 'sortableCourseName'))
-        this.termExports = responses[1]
+        this.confirmed = responses[1]
+        this.termExports = responses[2]
         this.$ready(`Publish ${this.selectedTermName || ''}`)
       })
     },

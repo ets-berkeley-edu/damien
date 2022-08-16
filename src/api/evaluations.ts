@@ -5,6 +5,10 @@ export function exportEvaluations(termId: string) {
   return axios.post(`${Vue.prototype.$config.apiBaseUrl}/api/evaluations/export?term_id=${termId}`)
 }
 
+export function getConfirmed(termId: string) {
+  return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/evaluations/confirmed?term_id=${termId}`)
+}
+
 export function getExportStatus() {
   return axios.get(`${Vue.prototype.$config.apiBaseUrl}/api/evaluations/export/status`)
 }

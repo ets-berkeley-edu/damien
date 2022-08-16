@@ -373,7 +373,7 @@ class Evaluation(Base):
     @classmethod
     def get_confirmed(cls, term_id):
         filters = [cls.term_id == term_id, cls.status == 'confirmed']
-        return cls.query.where(and_(*filters)).all()
+        return cls.query.where(and_(*filters)).order_by(cls.department_id, cls.id).all()
 
     @classmethod
     def get_duplicates(cls, evaluation):
