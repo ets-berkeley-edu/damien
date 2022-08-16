@@ -189,7 +189,7 @@ class DamienPages(Page):
     def click_notif_send(self):
         app.logger.info('Clicking send button')
         self.wait_for_element_and_click(DamienPages.NOTIF_SEND_BUTTON)
-        time.sleep(2)  # TODO - wait for confirmation
+        time.sleep(2)
 
     def click_notif_cxl(self):
         app.logger.info('Clicking cancel button')

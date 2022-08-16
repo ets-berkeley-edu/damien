@@ -410,7 +410,7 @@ class TestEvaluationManagement:
             if row.instructor.uid and row.dept_form and row.eval_type:
                 self.dept_details_admin_page.click_eval_checkbox(row)
         self.dept_details_admin_page.click_bulk_done_button()
-        time.sleep(4)
+        time.sleep(utils.get_short_timeout())
 
     def test_publish(self):
         evals = evaluation_utils.get_evaluations(self.term, self.dept_1)

@@ -43,7 +43,7 @@ class TestUserAuthentication:
         self.login_page.click_sign_in()
         self.calnet_page.log_in(self.username, self.password)
         self.login_page.wait_for_element(LoginPage.SIGN_IN_BUTTON, utils.get_medium_timeout())
-        # TODO - wait for proper messaging
+        self.login_page.wait_for_not_auth()
 
     def test_add_user(self):
         utils.create_admin_user(self.user)
@@ -64,7 +64,7 @@ class TestUserAuthentication:
         self.login_page.click_sign_in()
         self.calnet_page.log_in(self.username, self.password)
         self.login_page.wait_for_element(LoginPage.SIGN_IN_BUTTON, utils.get_medium_timeout())
-        # TODO - wait for proper messaging
+        self.login_page.wait_for_not_auth()
 
     def test_undelete_user(self):
         utils.restore_user(self.user)

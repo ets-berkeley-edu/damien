@@ -62,7 +62,7 @@ class CourseDashboards(DamienPages):
 
     def wait_for_eval_row(self, evaluation):
         time.sleep(1)
-        self.wait_for_element((By.XPATH, self.eval_row_xpath(evaluation)), utils.get_short_timeout())
+        self.wait_for_element((By.XPATH, self.eval_row_xpath(evaluation)), utils.get_medium_timeout())
 
     def visible_evaluation_rows(self):
         return self.elements(CourseDashboards.EVALUATION_ROW)

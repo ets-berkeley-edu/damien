@@ -43,13 +43,13 @@ class PublishPage(CourseDashboards):
         self.driver.get(f'{app.config["BASE_URL"]}/publish')
 
     PUBLISH_BUTTON = (By.ID, 'publish-btn')
-    TERM_EXPORT_BUTTON = (By.XPATH, '//button[contains(., "Term Exports")]')
+    TERM_EXPORT_BUTTON = (By.ID, 'term-exports-btn')
     TERM_EXPORT_LINK = (By.XPATH, '//a[contains(@id, "term-export-")]')
 
     def expand_term_exports(self):
         self.wait_for_element(PublishPage.TERM_EXPORT_BUTTON, utils.get_medium_timeout())
         if not self.element(PublishPage.TERM_EXPORT_BUTTON).get_attribute('aria-expanded'):
-            self.click_element(PublishPage.TERM_EXPORT_BUTTON)
+            self.click_element_js(PublishPage.TERM_EXPORT_BUTTON)
 
     def publish_to_blue(self):
         self.expand_term_exports()

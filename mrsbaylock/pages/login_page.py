@@ -28,6 +28,8 @@ from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class LoginPage(DamienPages):
@@ -36,6 +38,7 @@ class LoginPage(DamienPages):
     USERNAME_INPUT = (By.ID, 'dev-auth-uid')
     PASSWORD_INPUT = (By.ID, 'dev-auth-password')
     DEV_AUTH_LOGIN_BUTTON = (By.ID, 'btn-dev-auth-login')
+    NOT_AUTH_MSG = (By.XPATH, '//*[contains(., "Sorry, you are not registered to use Course Evaluations")]')
 
     @staticmethod
     def dept_link(dept):
@@ -58,3 +61,6 @@ class LoginPage(DamienPages):
         time.sleep(1)
         if dept:
             self.click_contact_dept_link(dept)
+
+    def wait_for_not_auth(self):
+        Wait(self.driver, utils.get_short_timeout()).until(ec.visibility_of_element_located(LoginPage.NOT_AUTH_MSG))

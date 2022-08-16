@@ -137,6 +137,7 @@ class TestEvalErrors:
         assert 'Conflicts with' not in self.dept_details_dept_page.eval_period_dates(self.share_eval)
 
     def test_share_confirmed_dept_2_attempt_edits(self):
+        self.share_eval.dept_form = self.dept_form_1.name
         self.dept_details_dept_page.click_edit_evaluation(self.share_eval)
         self.dept_details_dept_page.change_dept_form(self.share_eval, self.dept_form_2)
         self.dept_details_dept_page.change_eval_type(self.share_eval, self.eval_type_2)

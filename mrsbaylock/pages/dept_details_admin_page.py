@@ -84,9 +84,12 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
     def select_dept_forms(self, dept_forms, user=None):
         if user:
             self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_edit_input(user))
+        Wait(self.driver, utils.get_short_timeout()).until(
+            ec.presence_of_element_located(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT),
+        )
+        self.wait_for_page_and_click_js(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
+        self.remove_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
         for form in dept_forms:
-            self.wait_for_page_and_click_js(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
-            self.remove_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
             self.enter_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT, form.name)
             self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_option(form))
             Wait(self.driver, utils.get_short_timeout()).until(
@@ -181,7 +184,7 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
 
     def confirm_delete_contact(self, user):
         self.wait_for_element_and_click(DeptDetailsAdminPage.DELETE_CONFIRM_BUTTON)
-        time.sleep(2)
+        time.sleep(1)
 
     def cancel_delete_contact(self):
         self.wait_for_element_and_click(DeptDetailsAdminPage.DELETE_CANCEL_BUTTON)
@@ -195,7 +198,7 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
 
     def edit_dept_note(self, note):
         app.logger.info(f'Setting dept note to "{note}"')
-        self.wait_for_element_and_click(DeptDetailsAdminPage.DEPT_NOTE_EDIT_BUTTON)
+        self.wait_for_page_and_click(DeptDetailsAdminPage.DEPT_NOTE_EDIT_BUTTON)
         self.wait_for_element_and_type(DeptDetailsAdminPage.DEPT_NOTE_TEXTAREA, note)
 
     def save_dept_note(self):
@@ -238,4 +241,3 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
                 self.notif_remove_recipient(dept, recip)
         self.click_notif_send()
         time.sleep(3)
-        # TODO - wait for confirmation
