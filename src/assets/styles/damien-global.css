@@ -143,6 +143,9 @@ input.vs__search:enabled {
   outline-style: auto !important;
   outline-width: 1px !important;
 }
+.v-text-field--placeholder input::placeholder {
+  color: #999999 !important;
+}
 .vue-select-override {
   border-radius: 4px;
   padding: 9px 0;
