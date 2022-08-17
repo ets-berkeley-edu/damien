@@ -162,6 +162,15 @@ const actions = {
       $_refresh(commit, state.department.id).then(dept => resolve(dept))
     })
   },
+  refreshSection: ({commit, state}, {sectionId, termId}) => {
+    return new Promise((resolve: Function) => {
+      getSectionEvaluations(state.department.id, sectionId, termId).then((data: any) => {
+        const updatedEvaluations = _.each(data, e => $_decorateEvaluation(e, state.evaluations))
+        commit('setEvaluationUpdate', {sectionIndex: 0, sectionCount: 0, updatedEvaluations})
+        resolve()
+      })
+    })
+  },
   selectAllEvaluations: ({commit}, enabledStatuses: string[]) => {
     commit('selectAllEvaluations', enabledStatuses)
   },

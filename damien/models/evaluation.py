@@ -327,7 +327,7 @@ class Evaluation(Base):
 
         query = f"""WITH {defaults_cte}
                     confirming AS (
-                        SELECT e.id, e.term_id, e.course_number, e.instructor_uid, e.status,
+                        SELECT e.id, e.term_id, e.course_number, e.instructor_uid, e.status, e.department_id,
                                 {confirming['department_form_id']} AS department_form_id,
                                 {confirming['evaluation_type_id']} AS evaluation_type_id,
                                 {confirming['start_date']} AS start_date,
@@ -352,6 +352,7 @@ class Evaluation(Base):
                     JOIN department_forms edf ON {existing['department_form_id']} = edf.id
                     WHERE (
                         e.status IN ('marked', 'confirmed')
+                        OR (e.status IS NULL AND e.department_id <> c.department_id)
                         OR e.id = ANY(:evaluation_ids)
                     )
                     AND (
@@ -359,6 +360,7 @@ class Evaluation(Base):
                     )"""
         results = db.session.execute(query, params).fetchall()
         app.logger.info(f'Evaluation find_potential_conflicts query returned {len(results)} results: {query}\n{params}')
+        app.logger.warning(results)
         return results
 
     @classmethod
@@ -453,6 +455,7 @@ class Evaluation(Base):
         )
         results = orm_sql.all()
         app.logger.info(f'Evaluation get_duplicates query returned {len(results)} results: {query}\n{params}')
+        app.logger.warning(results)
         return results
 
     @classmethod

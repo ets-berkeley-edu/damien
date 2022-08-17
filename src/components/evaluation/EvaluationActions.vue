@@ -282,9 +282,12 @@ export default {
     },
     handleError(error) {
       this.showErrorDialog(this.$_.get(error, 'response.data.message', 'An unknown error occurred.'))
-      this.setDisableControls(false)
-      this.applyingAction = null
-      this.isLoading = false
+      this.refreshEvaluations().then(() => {
+        this.setDisableControls(false)
+        this.applyingAction = null
+        this.isLoading = false
+      })
+
     },
     isInvalidAction(action) {
       const uniqueStatuses = this.$_.uniq(this.evaluations
@@ -292,6 +295,15 @@ export default {
                   .map(e => e.status))
 
       return (uniqueStatuses.length === 1 && uniqueStatuses[0] === action.status)
+    },
+    refreshEvaluations() {
+      const selectedCourseNumbers = this.$_.uniq(this.evaluations
+                  .filter(e => this.selectedEvaluationIds.includes(e.id))
+                  .map(e => e.courseNumber))
+      if (selectedCourseNumbers.length === 1) {
+        return this.refreshSection({sectionId: selectedCourseNumbers[0], termId: this.selectedTermId})
+      }
+      return this.refreshAll()
     },
     reset() {
       this.bulkUpdateOptions = {
