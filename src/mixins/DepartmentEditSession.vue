@@ -53,6 +53,7 @@ export default {
       'filterSelectedEvaluations',
       'init',
       'refreshAll',
+      'refreshSection',
       'selectAllEvaluations',
       'setDisableControls',
       'setEvaluations',
