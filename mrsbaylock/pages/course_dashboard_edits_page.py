@@ -168,7 +168,9 @@ class CourseDashboardEditsPage(CourseDashboards):
         if eval_type:
             app.logger.info(f'Setting evaluation type {eval_type.name}')
             self.wait_for_select_and_click_option(CourseDashboardEditsPage.DUPE_EVAL_TYPE_SELECT, eval_type.name)
-        # TODO - 'None' option or 'Revert' or no such option?
+        else:
+            app.logger.info('Setting default evaluation type')
+            self.wait_for_select_and_click_option(CourseDashboardEditsPage.DUPE_EVAL_TYPE_SELECT, 'Default')
         time.sleep(1)
         self.wait_for_page_and_click_js(CourseDashboardEditsPage.ACTION_APPLY_BUTTON)
         dupe = copy.deepcopy(evaluation)

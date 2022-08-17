@@ -28,7 +28,7 @@ import time
 from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.models.evaluation_type import EvaluationType
-from mrsbaylock.models.user_dept_role import UserDeptRole
+from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
 from mrsbaylock.test_utils import evaluation_utils
 from mrsbaylock.test_utils import utils
 import pytest
@@ -36,8 +36,6 @@ import pytest
 
 @pytest.mark.usefixtures('page_objects')
 class TestListManagement:
-
-    # TODO - manual instructor
 
     test_id = f'{int(time.mktime(time.gmtime()))}'
     term = utils.get_current_term()
@@ -49,14 +47,16 @@ class TestListManagement:
     eval_unmarked = evaluations[0]
     eval_to_review = evaluations[1]
     eval_confirmed = evaluations[2]
+    eval_duped = evaluations[3]
     confirmed = []
     form = DepartmentForm(f'Form_{test_id}')
     eval_type = EvaluationType(f'Type_{test_id}')
     alert = (f'FOO {test_id} ' * 15).strip()
 
-    role = UserDeptRole(dept.dept_id, receives_comms=True)
-    instructor = utils.get_test_user(role)
+    instructor = utils.get_test_user()
     utils.hard_delete_user(instructor)
+    instructor.first_name = instructor.first_name[::-1]
+    instructor.last_name = instructor.last_name[::-1]
 
     utils.reset_test_data(term, dept)
 
@@ -77,6 +77,10 @@ class TestListManagement:
     def test_add_eval_type(self):
         self.list_mgmt_page.add_eval_type(self.eval_type)
         assert self.eval_type.name in self.list_mgmt_page.visible_eval_type_names()
+
+    def test_add_instructor(self):
+        self.list_mgmt_page.add_manual_instructor(self.instructor)
+        self.list_mgmt_page.wait_for_manual_instructor(self.instructor)
 
     def test_unmarked_add_form_and_type(self):
         self.dept_details_admin_page.load_dept_page(self.dept)
@@ -126,6 +130,23 @@ class TestListManagement:
         assert self.form.name in self.dept_details_admin_page.eval_dept_form(self.eval_confirmed)
         assert self.eval_type.name in self.dept_details_admin_page.eval_type(self.eval_confirmed)
 
+    def test_confirmed_dupe_instructor(self):
+        self.dept_details_admin_page.duplicate_section(self.eval_duped, self.evaluations,
+                                                       instructor=self.instructor, eval_type=self.eval_type)
+        dupe = self.evaluations[-1]
+        self.dept_details_admin_page.click_edit_evaluation(dupe)
+        self.dept_details_admin_page.select_eval_status(self.eval_confirmed, EvaluationStatus.CONFIRMED)
+        self.dept_details_admin_page.change_dept_form(self.eval_confirmed, self.form)
+        self.dept_details_admin_page.save_eval_changes(self.eval_confirmed)
+        dupe.dept_form = self.form.name
+        dupe.status = EvaluationStatus.CONFIRMED
+        self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.reload_page()
+        self.dept_details_admin_page.wait_for_eval_rows()
+        assert self.instructor.uid in self.dept_details_admin_page.eval_instructor(dupe)
+        assert self.instructor.first_name in self.dept_details_admin_page.eval_instructor(dupe)
+        assert self.instructor.last_name in self.dept_details_admin_page.eval_instructor(dupe)
+
     def test_delete_dept_form(self):
         self.dept_details_admin_page.click_list_mgmt()
         self.list_mgmt_page.delete_dept_form(self.form)
@@ -134,6 +155,9 @@ class TestListManagement:
     def test_delete_eval_type(self):
         self.list_mgmt_page.delete_eval_type(self.eval_type)
         assert self.eval_type.name not in self.list_mgmt_page.visible_eval_type_names()
+
+    def test_delete_manual_instructor(self):
+        self.list_mgmt_page.delete_manual_instructor(self.instructor)
 
     def test_unmarked_form_and_type_deleted(self):
         self.dept_details_admin_page.load_dept_page(self.dept)
@@ -156,7 +180,19 @@ class TestListManagement:
     def test_deleted_type_not_available(self):
         assert self.eval_type.name not in self.dept_details_admin_page.visible_eval_type_options()
 
-    # PUBLISH WITH DELETED FORM AND TYPE
+    def test_deleted_instructor_not_available(self):
+        self.dept_details_admin_page.load_dept_page(self.dept)
+        e = next(filter(lambda ev: (ev.instructor.uid is None), self.dept.evaluations))
+        self.dept_details_admin_page.click_edit_evaluation(e)
+        self.dept_details_admin_page.look_up_uid(self.instructor.uid, CourseDashboardEditsPage.EVAL_CHANGE_INSTR_INPUT)
+        self.dept_details_admin_page.wait_for_element(
+            self.dept_details_admin_page.add_contact_lookup_result(self.instructor),
+            utils.get_short_timeout())
+        result_text = self.dept_details_admin_page.element(self.dept_details_admin_page.add_contact_lookup_result(self.instructor)).text
+        assert self.instructor.first_name not in result_text
+        assert self.instructor.last_name not in result_text
+
+    # PUBLISH WITH DELETED FORM, TYPE, AND INSTRUCTOR
 
     def test_publish(self):
         evals = evaluation_utils.get_evaluations(self.term, self.dept)
