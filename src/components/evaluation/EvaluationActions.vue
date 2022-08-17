@@ -51,7 +51,7 @@
               :instructor-lookup="true"
               placeholder="Instructor name or UID"
               :on-select-result="selectInstructor"
-              :required="true"
+              :required="isInstructorRequired"
               solo
             />
           </div>
@@ -167,6 +167,7 @@ export default {
     courseActions: {},
     evaluationTypes: [],
     isDuplicating: false,
+    isInstructorRequired: false,
     isLoading: false,
     midtermFormAvailable: false,
   }),
@@ -215,6 +216,16 @@ export default {
     }
     this.evaluationTypes = [{id: null, name: 'Default'}].concat(this.$config.evaluationTypes)
   },
+  watch: {
+    bulkUpdateOptions: {
+      handler(options) {
+        if (this.midtermFormAvailable) {
+          this.isInstructorRequired = !options.midtermFormEnabled
+        }
+      },
+      deep: true
+    }
+  },
   computed: {
     allowEdits() {
       return this.$currentUser.isAdmin || !this.isSelectedTermLocked
@@ -223,7 +234,7 @@ export default {
       return this.disableControls
           || !this.allowEdits
           || this.$_.isEmpty(this.selectedEvaluationIds)
-          || !this.$_.get(this.bulkUpdateOptions.instructor, 'uid')
+          || (this.isInstructorRequired && !this.$_.get(this.bulkUpdateOptions.instructor, 'uid'))
     },
     selectedTermValidDates() {
       const selectedTerm = this.$_.find(this.$config.availableTerms, {'id': this.selectedTermId})
@@ -346,6 +357,9 @@ export default {
           return false
         }
       })
+      if (!this.midtermFormAvailable) {
+        this.isInstructorRequired = true
+      }
       this.isDuplicating = true
       this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
     }
