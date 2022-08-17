@@ -11,8 +11,8 @@
       class="person-lookup"
       dense
       :disabled="disabled"
-      :error="!!$_.size(errors)"
-      :error-messages="errors"
+      :error="required && !!$_.size(errors)"
+      :error-messages="required ? errors : []"
       hide-details
       hide-no-data
       :items="suggestions"
@@ -37,7 +37,7 @@
       </template>
     </v-autocomplete>
     <div
-      v-if="errors && errors[0]"
+      v-if="required && errors && errors[0]"
       :id="`${id}-error`"
       class="v-messages error--text px-3 mt-1"
       :class="$vuetify.theme.dark ? 'text--lighten-2' : ''"
