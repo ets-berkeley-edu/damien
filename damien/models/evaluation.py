@@ -36,7 +36,7 @@ from damien.models.department_form import DepartmentForm
 from damien.models.evaluation_type import EvaluationType
 from flask import current_app as app
 from flask_login import current_user
-from sqlalchemy import and_, func, orm, update
+from sqlalchemy import and_, func, orm, text, update
 from sqlalchemy.dialects.postgresql import ENUM
 
 
@@ -233,6 +233,14 @@ class Evaluation(Base):
         if fields:
             original_feed = department.evaluations_feed(term_id, evaluation_ids=evaluation_ids)
 
+        def _set_defaults(evaluation, evaluation_feed):
+            if not evaluation.department_form_id and evaluation_feed['departmentForm']:
+                evaluation.department_form_id = evaluation_feed['departmentForm']['id']
+            if not evaluation.evaluation_type_id and evaluation_feed['evaluationType']:
+                evaluation.evaluation_type_id = evaluation_feed['evaluationType']['id']
+            if not evaluation.start_date and evaluation_feed['startDate']:
+                evaluation.start_date = date.fromisoformat(evaluation_feed['startDate'])
+
         evaluations = []
         for evaluation_id in evaluation_ids:
             evaluation = cls.from_id(evaluation_id)
@@ -250,12 +258,8 @@ class Evaluation(Base):
             duplicate.department_id = department.id
 
             if original_evaluation_feed:
-                if not evaluation.department_form_id and original_evaluation_feed['departmentForm']:
-                    evaluation.department_form_id = original_evaluation_feed['departmentForm']['id']
-                if not evaluation.evaluation_type_id and original_evaluation_feed['evaluationType']:
-                    evaluation.evaluation_type_id = original_evaluation_feed['evaluationType']['id']
-                if not evaluation.start_date and original_evaluation_feed['startDate']:
-                    evaluation.start_date = date.fromisoformat(original_evaluation_feed['startDate'])
+                _set_defaults(evaluation, original_evaluation_feed)
+                _set_defaults(duplicate, original_evaluation_feed)
 
             duplicate.created_by = current_user.get_uid()
             duplicate.updated_by = current_user.get_uid()
@@ -376,23 +380,79 @@ class Evaluation(Base):
         return cls.query.where(and_(*filters)).order_by(cls.department_id, cls.id).all()
 
     @classmethod
-    def get_duplicates(cls, evaluation):
-        conditions = [
-            cls.id != evaluation.id,
-            cls.term_id == evaluation.term_id,
-            cls.course_number == evaluation.course_number,
-            cls.department_id == evaluation.department_id,
-            cls.instructor_uid == evaluation.instructor_uid,
-            cls.status.in_(['confirmed', 'marked']),
-        ]
-        join_conditions = []
-        if evaluation.department_form:
-            join_conditions.extend([
-                DepartmentForm.name != f'{evaluation.department_form.name}_MID',
-                DepartmentForm.name.concat('_MID') != evaluation.department_form.name,
-            ])
-        results = cls.query.outerjoin(Evaluation.department_form.and_(*join_conditions)).filter(and_(*conditions)).all()
-        app.logger.info(f'Evaluation get_duplicates query returned {len(results)} results.')
+    def get_duplicates(cls, evaluation, default_form):
+        department_form = evaluation.department_form or default_form
+        if not department_form:
+            return []
+        params = {
+            'department_form_name': department_form.name,
+            'department_form_name_mid': f'{department_form.name}_MID',
+            'evaluation_id': evaluation.id,
+            'term_id': evaluation.term_id,
+            'course_number': evaluation.course_number,
+            'department_id': evaluation.department_id,
+            'instructor_uid': evaluation.instructor_uid,
+        }
+        query = text(
+            """SELECT e.id, e.term_id, e.course_number, e.instructor_uid, e.status, e.department_form_id, e.evaluation_type_id,
+                e.start_date, e.end_date, e.created_at, e.created_by, e.updated_at, e.updated_by, e.department_id, e.valid,
+                df.id AS df_department_form_id,
+                df.name AS department_form_name,
+                df.created_at AS department_form_created_at,
+                df.updated_at AS department_form_updated_at,
+                df.deleted_at AS department_form_deleted_at,
+                et.id AS et_evaluation_type_id,
+                et.name AS evaluation_type_name,
+                et.created_at AS evaluation_type_created_at,
+                et.updated_at AS evaluation_type_updated_at,
+                et.deleted_at AS evaluation_type_deleted_at
+            FROM evaluations e
+            LEFT JOIN department_forms df
+                ON e.department_form_id = df.id
+            LEFT JOIN evaluation_types et
+                ON e.evaluation_type_id = et.id
+            WHERE e.id <> :evaluation_id
+            AND e.term_id = :term_id
+            AND e.course_number = :course_number
+            AND e.department_id = :department_id
+            AND e.instructor_uid = :instructor_uid
+            AND e.status IN ('confirmed', 'marked')
+            AND NOT (df.name = :department_form_name_mid OR df.name || '_MID' = :department_form_name)
+            """,
+        ).columns(
+            Evaluation.id,
+            Evaluation.term_id,
+            Evaluation.course_number,
+            Evaluation.instructor_uid,
+            Evaluation.status,
+            Evaluation.department_form_id,
+            Evaluation.evaluation_type_id,
+            Evaluation.start_date,
+            Evaluation.end_date,
+            Evaluation.created_at,
+            Evaluation.created_by,
+            Evaluation.updated_at,
+            Evaluation.updated_by,
+            Evaluation.department_id,
+            Evaluation.valid,
+            DepartmentForm.id,
+            DepartmentForm.name,
+            DepartmentForm.created_at,
+            DepartmentForm.updated_at,
+            DepartmentForm.deleted_at,
+            EvaluationType.id,
+            EvaluationType.name,
+            EvaluationType.created_at,
+            EvaluationType.updated_at,
+            EvaluationType.deleted_at,
+        ).bindparams(**params)
+        orm_sql = cls.query.from_statement(query).options(
+            orm.contains_eager(Evaluation.department_form),
+        ).options(
+            orm.contains_eager(Evaluation.evaluation_type),
+        )
+        results = orm_sql.all()
+        app.logger.info(f'Evaluation get_duplicates query returned {len(results)} results: {query}\n{params}')
         return results
 
     @classmethod
@@ -437,7 +497,7 @@ class Evaluation(Base):
 
         related_evaluations = foreign_dept_evaluations
         if saved_evaluation and transient_evaluation.status in ['marked', 'confirmed']:
-            related_evaluations = related_evaluations + cls.get_duplicates(saved_evaluation)
+            related_evaluations = related_evaluations + cls.get_duplicates(saved_evaluation, default_form)
 
         transient_evaluation.set_department_form(saved_evaluation, related_evaluations, default_form)
         transient_evaluation.set_evaluation_type(saved_evaluation, related_evaluations, instructor, default_evaluation_types)

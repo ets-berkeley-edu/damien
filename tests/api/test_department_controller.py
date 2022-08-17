@@ -467,6 +467,12 @@ class TestDuplicateEvaluation:
         assert final_eval['instructor']['uid'] == '637739'
         assert final_eval['departmentForm']['name'] == 'CUNEIF'
 
+        response = _api_update_evaluation(client, params={'evaluationIds': [midterm_eval['id'], final_eval['id']], 'action': 'review'})
+        assert len(response) == 2
+        for r in response:
+            assert r['valid'] is True
+            assert r['conflicts'] == {}
+
     def test_duplicate_create_conflict(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         response = _api_update_evaluation(

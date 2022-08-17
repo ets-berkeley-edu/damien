@@ -13,6 +13,7 @@
       id="service-announcement-published"
       v-model="isPublished"
       label="Publish"
+      :ripple="false"
     />
     <v-btn
       id="service-announcement-save"
