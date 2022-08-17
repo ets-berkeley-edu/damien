@@ -520,7 +520,6 @@ def get_instructors(evals):
         results = db.session.execute(text(sql))
         std_commit(allow_test_environment=True)
         for row in results:
-            # TODO if not row['deleted_at']:
             instructors.append(Instructor({
                 'uid': row['ldap_uid'],
                 'csid': row['sis_id'],

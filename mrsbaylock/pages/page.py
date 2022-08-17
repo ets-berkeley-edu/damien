@@ -88,7 +88,7 @@ class Page(object):
         try:
             self.element(locator).size
             return True
-        except (AttributeError, exceptions.NoSuchElementException):
+        except (AttributeError, exceptions.NoSuchElementException, exceptions.StaleElementReferenceException):
             return False
 
     def when_not_present(self, locator, timeout):

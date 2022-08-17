@@ -217,6 +217,7 @@ def get_user_dept_role(user, dept):
 def get_test_user(dept_role=None, blue_permissions=None):
     user = User({
         'uid': app.config['TEST_DEPT_CONTACT_UID'],
+        'csid': app.config['TEST_DEPT_CONTACT_CSID'],
         'first_name': app.config['TEST_DEPT_CONTACT_FIRST_NAME'],
         'last_name': app.config['TEST_DEPT_CONTACT_LAST_NAME'],
         'email': app.config['TEST_DEPT_CONTACT_EMAIL'],

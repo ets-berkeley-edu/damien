@@ -27,7 +27,10 @@ import time
 
 from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
+from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class ListMgmtPage(DamienPages):
@@ -102,10 +105,30 @@ class ListMgmtPage(DamienPages):
     ADD_INSTR_SAVE_BUTTON = (By.ID, 'save-instructor-btn')
     ADD_INSTR_CXL_BUTTON = (By.ID, 'cancel-save-instructor-btn')
 
-    def add_instructor(self, user):
+    def add_manual_instructor(self, user):
         app.logger.info(f'Adding manual instructor UID {user.uid}')
         self.wait_for_element_and_click(ListMgmtPage.ADD_INSTR_BUTTON)
-        # TODO
+        self.wait_for_element_and_type(ListMgmtPage.ADD_INSTR_UID_INPUT, user.uid)
+        self.wait_for_element_and_type(ListMgmtPage.ADD_INSTR_CSID_INPUT, user.csid)
+        self.wait_for_element_and_type(ListMgmtPage.ADD_INSTR_FIRST_NAME_INPUT, user.first_name)
+        self.wait_for_element_and_type(ListMgmtPage.ADD_INSTR_LAST_NAME_INPUT, user.last_name)
+        self.wait_for_element_and_type(ListMgmtPage.ADD_INSTR_EMAIL_INPUT, user.email)
+        self.wait_for_element_and_click(ListMgmtPage.ADD_INSTR_SAVE_BUTTON)
+
+    @staticmethod
+    def manual_instr_row_xpath(user):
+        return f'//div[@id="instructors-table"]//tr[contains(., "{user.uid}")]'
+
+    def wait_for_manual_instructor(self, user):
+        Wait(self.driver, utils.get_short_timeout()).until(
+            ec.visibility_of_element_located((By.XPATH, ListMgmtPage.manual_instr_row_xpath(user))),
+        )
+
+    def delete_manual_instructor(self, user):
+        self.wait_for_manual_instructor(user)
+        self.wait_for_element_and_click((By.XPATH, f'{ListMgmtPage.manual_instr_row_xpath(user)}//button'))
+        self.wait_for_element_and_click(ListMgmtPage.DELETE_CONFIRM_BUTTON)
+        self.when_not_present((By.XPATH, ListMgmtPage.manual_instr_row_xpath(user)), utils.get_short_timeout())
 
     SERVICE_ALERT_INPUT = (By.ID, 'service-announcement-textarea')
     SERVICE_ALERT_POST_CBX = (By.XPATH, '//input[@id="service-announcement-published"]/..')
