@@ -40,6 +40,7 @@
         dense
         :disabled="disableControls"
         label="Receive notifications"
+        :ripple="false"
       >
       </v-checkbox>
       <legend :for="`checkbox-communications-${contactId}`" class="form-label">
