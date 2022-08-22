@@ -292,12 +292,11 @@ class Department(Base):
 
 
 def _get_instructors(all_sections, evaluations):
-    instructor_uids = set(s['instructor_uid'] for s in all_sections if s['instructor_uid'])
+    instructor_uids = set(s['instructor_uid'] for s in all_sections if s['instructor_uid'] and s['instructor_uid'].strip())
     for v in evaluations.values():
         instructor_uids.update(e.instructor_uid for e in v if e.instructor_uid)
     instructors = {}
     for i in SupplementalInstructor.find_by_uids(list(instructor_uids)):
-        instructor_uids.remove(i.ldap_uid)
         instructors[i.ldap_uid] = {
             'uid': i.ldap_uid,
             'sisId': i.sis_id,
@@ -305,6 +304,7 @@ def _get_instructors(all_sections, evaluations):
             'lastName': i.last_name,
             'emailAddress': i.email_address,
         }
+        instructor_uids.remove(i.ldap_uid)
     loch_instructors = get_loch_instructors(list(instructor_uids))
     for row in loch_instructors:
         instructors[row['ldap_uid']] = {
