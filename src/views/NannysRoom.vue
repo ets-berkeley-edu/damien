@@ -308,7 +308,7 @@
                 <v-btn
                   :id="`delete-instructor-${item.uid}-btn`"
                   class="text-capitalize pa-0"
-                  color="secondary"
+                  color="tertiary"
                   :disabled="disableControls"
                   text
                   @click="() => confirmDeleteInstructor(item)"
