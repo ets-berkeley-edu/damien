@@ -267,6 +267,14 @@ class TestGetDepartment:
         assert feed[4]['instructor']['lastName'] == 'Waterman'
         assert feed[4]['startDate'] == '2022-04-18'
 
+    def test_nonstandard_default_dept_form(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        dept = Department.find_by_name('Real Estate Development and Design')
+        response = client.get(f'/api/department/{dept.id}')
+        ldarch_254 = next(e for e in response.json['evaluations'] if e['subjectArea'] == 'LDARCH' and e['catalogId'] == '254')
+        assert(ldarch_254['departmentForm']['name'] == 'RDEV')
+        assert(ldarch_254['defaultDepartmentForm']['name'] == 'RDEV')
+
 
 def _api_update_evaluation(client, dept_id=None, params=None, term_id='2222', expected_status_code=200):
     if dept_id is None:

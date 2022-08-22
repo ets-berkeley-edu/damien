@@ -113,9 +113,17 @@ class Section:
         self.room_shared_with = sorted(self.room_shared_with)
 
     def find_catalog_listing(self, catalog_listings):
-        for c in catalog_listings:
-            if c.subject_area in (self.subject_area, '') and (c.catalog_id is None or re.match(c.catalog_id, self.catalog_id)):
-                return c
+        candidate_catalog_listings = list(
+            c for c in catalog_listings
+            if c.subject_area in (self.subject_area, '') and (c.catalog_id is None or re.match(c.catalog_id, self.catalog_id))
+        )
+        # Exact matches on catalog id take precedence.
+        exact_catalog_id_match = next((c for c in candidate_catalog_listings if c.catalog_id and re.match(c.catalog_id, self.catalog_id)), None)
+        if exact_catalog_id_match:
+            return exact_catalog_id_match
+        # Otherwise return any match on subject area.
+        elif len(candidate_catalog_listings):
+            return candidate_catalog_listings[0]
 
     def set_defaults(self, catalog_listings, evaluation_types):
         catalog_listing = self.find_catalog_listing(catalog_listings)
