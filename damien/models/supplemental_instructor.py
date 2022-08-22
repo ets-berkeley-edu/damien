@@ -58,7 +58,7 @@ class SupplementalInstructor(Base):
     def __repr__(self):
         return f"""<SupplementalInstructor ldap_uid={self.ldap_uid},
                     sis_id={self.sis_id}>
-                    first_name={self.courfirst_namese_number}>
+                    first_name={self.first_name}>
                     last_name={self.last_name}
                     email_address={self.email_address}
                     deleted_at={self.deleted_at}>
@@ -117,16 +117,16 @@ class SupplementalInstructor(Base):
     @classmethod
     def search(cls, snippet):
         words = list(set(snippet.upper().split()))
+        criteria = [cls.deleted_at == None]  # noqa: E711
         # A single numeric string indicates a UID search.
         if len(words) == 1 and re.match(r'^\d+$', words[0]):
-            criteria = cls.ldap_uid.ilike(f'{words[0]}%')
+            criteria.append(cls.ldap_uid.ilike(f'{words[0]}%'))
         # Otherwise search by name.
         else:
-            criteria = []
             for word in words:
                 word = ''.join(re.split('\W', word))
                 criteria.append(or_(cls.first_name.ilike(f'{word}%'), cls.last_name.ilike(f'{word}%')))
-            criteria = and_(*criteria)
+        criteria = and_(*criteria)
         return cls.query.filter(criteria).all()
 
     def to_api_json(self):
