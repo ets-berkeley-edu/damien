@@ -87,7 +87,7 @@ def generate_exports(term_id, timestamp):
 
     instructors = []
     for legacy_instructor in csv.DictReader(stream_object_text('exports/legacy/instructors.csv') or []):
-        if int(legacy_instructor['LDAP_UID']) not in instructors_by_uid:
+        if legacy_instructor['LDAP_UID'] not in instructors_by_uid:
             instructors.append(legacy_instructor)
     for instructor_uid in sorted(instructors_by_uid.keys()):
         instructors.append(_export_instructor_row(instructors_by_uid[instructor_uid]))
