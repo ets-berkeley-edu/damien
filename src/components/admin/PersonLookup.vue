@@ -131,11 +131,13 @@ export default {
       return user ? `${user.firstName || ''} ${user.lastName || ''} (${user.uid})`.trim() : ''
     },
     validate(suggestion) {
-      if (!suggestion && this.required) {
-        this.errors = ['Required']
-      } else {
-        this.errors = []
-      }
+      this.$_.delay(() => {
+        if (!suggestion && this.required) {
+          this.errors = ['Required']
+        } else {
+          this.errors = []
+        }
+      }, 300)
     }
   },
   created() {
