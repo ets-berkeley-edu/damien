@@ -62,9 +62,9 @@ class TestEvalErrors:
             share_eval = e
 
     share_eval_has_instr = True if share_eval.instructor.uid else False
-    share_start_1 = term.end_date.date() - timedelta(days=22)
+    share_start_1 = term.end_date - timedelta(days=22)
     share_end_1 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_1, share_eval.course_end_date)
-    share_start_2 = term.end_date.date() - timedelta(days=21)
+    share_start_2 = term.end_date - timedelta(days=21)
     share_end_2 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_2, share_eval.course_end_date)
 
     app.logger.info(f'Department 1 is {share_dept_1.name}, UID {share_contact_1.uid}')
@@ -147,6 +147,7 @@ class TestEvalErrors:
 
     def test_share_dept_2_set_status_to_do(self):
         self.dept_details_dept_page.hit_escape()
+        self.dept_details_dept_page.click_cancel_eval_changes()
         self.dept_details_dept_page.bulk_mark_for_review([self.share_eval])
 
     def test_share_confirmed_dept_2_perform_edits(self):

@@ -128,8 +128,8 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         self.select_dept_forms(user.dept_forms)
         self.hit_escape()
         self.click_save_new_contact()
-        user.user_id = utils.get_user_id(user)
         self.wait_for_contact(user)
+        user.user_id = utils.get_user_id(user)
         dept.users.append(user)
 
     # Edit contact

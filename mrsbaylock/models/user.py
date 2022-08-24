@@ -59,7 +59,10 @@ class User(object):
 
     @property
     def first_name(self):
-        return self.data['first_name']
+        try:
+            return self.data['first_name']
+        except KeyError:
+            return None
 
     @first_name.setter
     def first_name(self, value):
@@ -67,7 +70,10 @@ class User(object):
 
     @property
     def last_name(self):
-        return self.data['last_name']
+        try:
+            return self.data['last_name']
+        except KeyError:
+            return None
 
     @last_name.setter
     def last_name(self, value):
@@ -75,7 +81,10 @@ class User(object):
 
     @property
     def email(self):
-        return self.data['email']
+        try:
+            return self.data['email']
+        except KeyError:
+            return None
 
     @email.setter
     def email(self, value):

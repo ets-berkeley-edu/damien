@@ -53,7 +53,6 @@ class TestEvaluationManagement:
 
     eval_sans_instr = next(filter(lambda row: (row.instructor.uid is None), dept_1.evaluations))
     eval_sans_form = next(filter(lambda row: (row.dept_form is None), dept_1.evaluations))
-    eval_sans_type = next(filter(lambda row: (row.instructor.uid and row.eval_type is None), dept_1.evaluations))
 
     confirmed = []
 
@@ -72,43 +71,10 @@ class TestEvaluationManagement:
         if self.midterm_form.name in self.list_mgmt_page.visible_dept_form_names():
             self.list_mgmt_page.delete_dept_form(self.midterm_form)
 
-    def test_status_board_lock(self):
+    def test_admin_dept_page(self):
         self.status_board_admin_page.load_page()
-        if not self.status_board_admin_page.is_current_term_locked():
-            self.status_board_admin_page.lock_current_term()
-
-    def test_verify_locked_admin_edits(self):
         self.status_board_admin_page.click_dept_link(self.dept_1)
-        self.status_board_admin_page.wait_for_element(CourseDashboardEditsPage.ADD_SECTION_BUTTON, utils.get_medium_timeout())
-        assert self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
-
-    def test_verify_no_locked_dept_edits(self):
-        self.status_board_admin_page.log_out()
-        self.login_page.dev_auth(self.dept_1.users[0])
-        self.dept_details_dept_page.wait_for_eval_rows()
-        assert not self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
-
-    def test_status_board_unlock(self):
-        self.dept_details_dept_page.log_out()
-        self.login_page.dev_auth()
-        self.status_board_admin_page.load_page()
-        self.status_board_admin_page.unlock_current_term()
-
-    def test_verify_unlocked_admin_edits(self):
-        self.status_board_admin_page.click_dept_link(self.dept_1)
-        self.status_board_admin_page.wait_for_element(CourseDashboardEditsPage.ADD_SECTION_BUTTON, utils.get_short_timeout())
-        assert self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
-
-    def test_verify_unlocked_dept_edits(self):
-        self.status_board_admin_page.log_out()
-        self.login_page.dev_auth(self.dept_1.users[0])
-        self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
-
-    def test_admin_log_in(self):
-        self.dept_details_dept_page.log_out()
-        self.login_page.dev_auth()
-        self.status_board_admin_page.click_dept_link(self.dept_1)
+        self.dept_details_admin_page.wait_for_eval_rows()
 
     def test_add_instructor(self):
         instructor = utils.get_test_user()
@@ -159,29 +125,21 @@ class TestEvaluationManagement:
 
     def test_add_eval_type(self):
         eval_type = self.eval_types[-1]
-        self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_type)
-        self.dept_details_admin_page.change_eval_type(self.eval_sans_type, eval_type)
-        self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_type)
-        self.eval_sans_type.eval_type = eval_type.name
+        self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_instr)
+        self.dept_details_admin_page.change_eval_type(self.eval_sans_instr, eval_type)
+        self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_instr)
+        self.eval_sans_instr.eval_type = eval_type.name
         self.dept_details_admin_page.wait_for_eval_rows()
-        assert eval_type.name in self.dept_details_admin_page.eval_type(self.eval_sans_type)
-
-    def test_revert_eval_type(self):
-        self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_type)
-        self.dept_details_admin_page.change_eval_type(self.eval_sans_type)
-        self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_type)
-        self.eval_sans_type.eval_type = None
-        self.dept_details_admin_page.wait_for_eval_rows()
-        assert not self.dept_details_admin_page.eval_type(self.eval_sans_type)
+        assert eval_type.name in self.dept_details_admin_page.eval_type(self.eval_sans_instr)
 
     def test_change_eval_type(self):
-        eval_type = self.eval_types[1]
-        self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_type)
-        self.dept_details_admin_page.change_eval_type(self.eval_sans_type, eval_type)
-        self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_type)
-        self.eval_sans_type.eval_type = eval_type.name
+        eval_type = self.eval_types[-2]
+        self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_instr)
+        self.dept_details_admin_page.change_eval_type(self.eval_sans_instr, eval_type)
+        self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_instr)
+        self.eval_sans_instr.eval_type = eval_type.name
         self.dept_details_admin_page.wait_for_eval_rows()
-        assert eval_type.name in self.dept_details_admin_page.eval_type(self.eval_sans_type)
+        assert eval_type.name in self.dept_details_admin_page.eval_type(self.eval_sans_instr)
 
     def test_change_start_date(self):
         e = self.dept_1.evaluations[0]
@@ -229,7 +187,7 @@ class TestEvaluationManagement:
 
     def test_duplicate_section_midterm(self):
         e = self.dept_1.evaluations[1]
-        date = e.course_end_date - timedelta(days=3)
+        date = e.eval_start_date - timedelta(days=3)
         form = next(filter(lambda f: (f.name == self.midterm_form.name.replace('_MID', '')), self.dept_forms))
         self.dept_details_admin_page.load_dept_page(self.dept_1)
         self.dept_details_admin_page.click_edit_evaluation(e)
@@ -237,14 +195,10 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_save_eval_changes(e)
         e.dept_form = form.name
         self.dept_details_admin_page.wait_for_eval_rows()
-        self.dept_details_admin_page.duplicate_section(e, self.dept_1.evaluations, midterm=True, start_date=date)
+        dupe = self.dept_details_admin_page.duplicate_section(e, self.dept_1.evaluations, midterm=True, start_date=date)
         self.dept_details_admin_page.wait_for_eval_rows()
-        els = self.dept_details_admin_page.rows_of_evaluation(e)
-        assert len(els) == 2
-        midterm_rows = list(filter(lambda el: (self.midterm_form.name in el.text), els))
-        assert len(midterm_rows) == 1
-        date_rows = list(filter(lambda el: (date.strftime('%m/%d/%y') in el.text), els))
-        assert len(date_rows) == 1
+        assert len(self.dept_details_admin_page.rows_of_evaluation(e)) == 1
+        assert len(self.dept_details_admin_page.rows_of_evaluation(dupe)) == 1
 
     def test_add_existing_supp_section(self):
         e = self.dept_1.evaluations[0]
@@ -433,7 +387,7 @@ class TestEvaluationManagement:
     def test_instructors(self):
         expected = utils.expected_instructors(self.confirmed)
         actual = self.publish_page.parse_csv('instructors')
-        utils.verify_actual_matches_expected(actual, expected)
+        assert all(x in actual for x in expected)
 
     def test_course_supervisors(self):
         expected = utils.expected_course_supervisors(self.confirmed, self.all_contacts)

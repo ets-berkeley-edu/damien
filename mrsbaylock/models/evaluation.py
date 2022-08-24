@@ -102,6 +102,10 @@ class Evaluation(object):
         return self.data['eval_type']
 
     @property
+    def eval_type_custom(self):
+        return self.data['eval_type_custom']
+
+    @property
     def status(self):
         return self.data['status']
 

@@ -444,8 +444,9 @@ def expected_courses(evaluations):
     courses = []
     for row in evaluations:
         eval_types = [e.eval_type for e in evaluations if e.ccn == row.ccn]
-        suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
-        gsi = ' (EVAL FOR GSI)' if suffix else ''
+        gsi_suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        gsi = ' (EVAL FOR GSI)' if gsi_suffix else ''
+        mid_suffix = '_MID' if '_MID' in row.dept_form else ''
         if row.x_listing_ccns:
             flag = 'Y'
             ccns = []
@@ -459,7 +460,7 @@ def expected_courses(evaluations):
             ccns.extend(row.room_share_ccns)
             ccns.append(row.ccn)
             ccns.sort()
-            x_listed_name = '-'.join(row.room_share_ccns)
+            x_listed_name = '-'.join(ccns)
         else:
             flag = ''
             x_listed_name = ''
@@ -476,8 +477,8 @@ def expected_courses(evaluations):
             else:
                 end_date = ''
         data = {
-            'COURSE_ID': f'{term.prefix}-{row.ccn}{suffix}',
-            'COURSE_ID_2': f'{term.prefix}-{row.ccn}{suffix}',
+            'COURSE_ID': f'{term.prefix}-{row.ccn}{gsi_suffix}{mid_suffix}',
+            'COURSE_ID_2': f'{term.prefix}-{row.ccn}{gsi_suffix}{mid_suffix}',
             'COURSE_NAME': f'{row.subject} {row.catalog_id} {row.instruction_format} {row.section_num} {row.title}{gsi}',
             'CROSS_LISTED_FLAG': flag,
             'CROSS_LISTED_NAME': x_listed_name,
@@ -550,9 +551,10 @@ def expected_course_instructors(evaluations):
     instructors = []
     for row in evaluations:
         eval_types = [e.eval_type for e in evaluations if e.ccn == row.ccn]
-        suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        gsi_suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        mid_suffix = '_MID' if '_MID' in row.dept_form else ''
         data = {
-            'COURSE_ID': f'{term.prefix}-{row.ccn}{suffix}',
+            'COURSE_ID': f'{term.prefix}-{row.ccn}{gsi_suffix}{mid_suffix}',
             'LDAP_UID': row.instructor.uid,
             'ROLE': 'Faculty' if row.eval_type == 'F' else 'GSI' if row.eval_type == 'G' else row.eval_type,
         }
@@ -615,11 +617,12 @@ def expected_course_supervisors(evaluations, all_contacts):
     supervisors = []
     for row in evaluations:
         eval_types = [e.eval_type for e in evaluations if e.ccn == row.ccn]
-        suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        gsi_suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        mid_suffix = '_MID' if '_MID' in row.dept_form else ''
         for uid in forms_per_uid:
             if row.dept_form in uid['forms']:
                 data = {
-                    'COURSE_ID': f'{term.prefix}-{row.ccn}{suffix}',
+                    'COURSE_ID': f'{term.prefix}-{row.ccn}{gsi_suffix}{mid_suffix}',
                     'LDAP_UID': uid['uid'],
                     'DEPT_NAME': row.dept_form,
                 }
