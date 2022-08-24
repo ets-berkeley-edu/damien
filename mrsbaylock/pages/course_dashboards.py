@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import itertools
 import re
 import time
 
@@ -35,7 +36,7 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class CourseDashboards(DamienPages):
-    EVALUATION_ROW = (By.CLASS_NAME, 'evaluation-row')
+    EVALUATION_ROW = (By.XPATH, '//tr[contains(@class, "evaluation-row")]')
     EVALUATION_STATUS = (By.XPATH, '//td[contains(@id, "-status")]')
     NO_SECTIONS_MGS = (By.XPATH, '//span[text()="No eligible sections to load."]')
 
@@ -49,7 +50,7 @@ class CourseDashboards(DamienPages):
             uid = '[not(div)]'
         instr = f'following-sibling::td[contains(@id, "instructor")]{uid}'
 
-        form_name = f'[contains(., "{evaluation.dept_form}")]' if evaluation.dept_form else '[not(text())]'
+        form_name = f'[contains(., " {evaluation.dept_form} ")]' if evaluation.dept_form else '[not(text())]'
         dept_form = f'following-sibling::td[contains(@id, "departmentForm")]{form_name}'
         return f'//{ccn}/{instr}/{dept_form}/ancestor::tr'
 
@@ -92,11 +93,14 @@ class CourseDashboards(DamienPages):
                 name = ''
             else:
                 uid = e.instructor.uid.strip()
-                name = f'{e.instructor.first_name} {e.instructor.last_name}'
+                name = f'{e.instructor.first_name} {e.instructor.last_name}' if e.instructor.first_name else ''
+            listings = e.x_listing_ccns or e.room_share_ccns
+            if listings:
+                listings.sort()
             data.append(
                 {
                     'ccn': e.ccn,
-                    'listings': (e.x_listing_ccns or e.room_share_ccns or ''),
+                    'listings': (listings or []),
                     'course': f'{e.subject} {e.catalog_id} {e.instruction_format} {e.section_num}',
                     'uid': uid,
                     'name': name,
@@ -118,11 +122,11 @@ class CourseDashboards(DamienPages):
             if self.is_present(uid_loc):
                 parts = self.element(uid_loc).text.strip().split()
                 uid = parts[-1].replace('(', '').replace(')', '')
-                name = parts[0:-1]
+                name = ' '.join(parts[0:-1])
             listings_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-courseNumber"]/div[@class="xlisting-note"]')
             listings = []
             if self.is_present(listings_loc):
-                listings = re.sub('[a-zA-Z()-]+', '', self.element(listings_loc).text).strip().split()
+                listings = re.sub('[a-zA-Z(,)-]+', '', self.element(listings_loc).text).strip().split()
 
             data.append(
                 {
@@ -240,27 +244,38 @@ class CourseDashboards(DamienPages):
         dept_subj = utils.get_dept_subject_areas(dept)
         dept_listings = list(filter(lambda e: e.subject in dept_subj, evaluations))
         foreign_listings = [e for e in evaluations if e not in dept_listings]
+        foreign_listings.sort(
+            key=lambda e: (
+                e.subject,
+                (e.instructor.last_name.lower() if e.instructor.uid else ''),
+                (e.instructor.first_name.lower() if e.instructor.uid else ''),
+            ),
+        )
         return dept_listings, foreign_listings
 
     @staticmethod
     def insert_listings(evaluations, listings, reverse=False):
         all_evaluations = []
-        for e in evaluations:
+        key = lambda c: c.ccn
+        grouped_evals = itertools.groupby(evaluations, key)
+        for k, g in grouped_evals:
+            grp = list(g)
             if not reverse:
-                all_evaluations.append(e)
+                for i in grp:
+                    all_evaluations.append(i)
             matches = []
             for x in listings:
-                if e.x_listing_ccns:
-                    if (x.ccn in e.x_listing_ccns) and (x.instructor.uid == e.instructor.uid):
+                if grp[0].x_listing_ccns:
+                    if x.ccn in grp[0].x_listing_ccns:
                         matches.append(x)
-                elif e.room_share_ccns:
-                    if (x.ccn in e.room_share_ccns) and (x.instructor.uid == e.instructor.uid):
+                elif grp[0].room_share_ccns:
+                    if x.ccn in grp[0].room_share_ccns:
                         matches.append(x)
-            matches.sort(key=lambda l: l.ccn, reverse=reverse)
             for m in matches:
                 all_evaluations.append(m)
             if reverse:
-                all_evaluations.append(e)
+                for i in grp:
+                    all_evaluations.append(i)
         return all_evaluations
 
     @staticmethod

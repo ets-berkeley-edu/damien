@@ -27,6 +27,7 @@ from datetime import timedelta
 
 from flask import current_app as app
 from mrsbaylock.models.evaluation_status import EvaluationStatus
+from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
 from mrsbaylock.pages.dept_details_admin_page import DeptDetailsAdminPage
 from mrsbaylock.test_utils import evaluation_utils
 from mrsbaylock.test_utils import utils
@@ -40,7 +41,7 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 class TestDeptUser:
 
     term = utils.get_current_term()
-    dept = utils.get_dept('Environmental Science, Policy and Management')
+    dept = utils.get_dept('Demography')
     utils.reset_test_data(term)
     evaluations = evaluation_utils.get_evaluations(term, dept)
     contact = next(filter(lambda u: (len(u.dept_roles) == 1), dept.users))
@@ -51,11 +52,40 @@ class TestDeptUser:
         self.status_board_admin_page.click_list_mgmt()
         self.api_page.refresh_unholy_loch()
 
-    def test_log_in_landing_page(self):
+    # TERM LOCK / UNLOCK
+
+    def test_status_board_lock(self):
         self.status_board_admin_page.load_page()
+        if not self.status_board_admin_page.is_current_term_locked():
+            self.status_board_admin_page.lock_current_term()
+
+    def test_verify_locked_admin_edits(self):
+        self.status_board_admin_page.click_dept_link(self.dept)
+        self.status_board_admin_page.wait_for_element(CourseDashboardEditsPage.ADD_SECTION_BUTTON, utils.get_medium_timeout())
+        assert self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
+
+    def test_verify_no_locked_dept_edits(self):
         self.status_board_admin_page.log_out()
         self.login_page.dev_auth(self.contact)
         self.dept_details_dept_page.wait_for_eval_rows()
+        assert not self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
+
+    def test_status_board_unlock(self):
+        self.dept_details_dept_page.log_out()
+        self.login_page.dev_auth()
+        self.status_board_admin_page.load_page()
+        self.status_board_admin_page.unlock_current_term()
+
+    def test_verify_unlocked_admin_edits(self):
+        self.status_board_admin_page.click_dept_link(self.dept)
+        self.status_board_admin_page.wait_for_element(CourseDashboardEditsPage.ADD_SECTION_BUTTON, utils.get_short_timeout())
+        assert self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
+
+    def test_verify_unlocked_dept_edits(self):
+        self.status_board_admin_page.log_out()
+        self.login_page.dev_auth(self.contact)
+        self.dept_details_dept_page.wait_for_eval_rows()
+        assert self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
 
     # USER PERMISSIONS
 
@@ -145,6 +175,10 @@ class TestDeptUser:
         self.dept_details_dept_page.select_ignored_filter()
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        missing = [x for x in expected if x not in visible]
+        app.logger.info(f'Missing {missing}')
+        unexpected = [x for x in visible if x not in expected]
+        app.logger.info(f'Unexpected {unexpected}')
         assert visible == expected
 
     def test_sort_by_status_asc(self):

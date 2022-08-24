@@ -33,6 +33,7 @@ import pytest
 term = utils.get_current_term()
 depts = utils.get_participating_depts()
 all_users = utils.get_all_users()
+utils.reset_test_data(term)
 
 
 @pytest.mark.usefixtures('page_objects')
@@ -41,9 +42,12 @@ class TestDeptEvaluations:
 
     def test_status_page(self, dept):
         self.homepage.load_page()
-        if 'Welcome' in self.homepage.title():
+        time.sleep(2)
+        if 'status' not in self.driver.current_url:
             self.login_page.load_page()
             self.login_page.dev_auth()
+            self.status_board_admin_page.click_list_mgmt()
+            self.api_page.refresh_unholy_loch()
         time.sleep(1)
         self.status_board_admin_page.load_page()
         self.status_board_admin_page.click_dept_link(dept)
@@ -52,17 +56,21 @@ class TestDeptEvaluations:
         dept.evaluations = evaluation_utils.get_evaluations(term, dept)
         expected = self.dept_details_admin_page.expected_eval_data(dept.evaluations)
 
-        self.dept_details_admin_page.select_ignored_filter()
-        actual = self.dept_details_admin_page.visible_eval_data() if expected else []
+        if expected:
+            self.dept_details_admin_page.wait_for_eval_rows()
+            self.dept_details_admin_page.select_ignored_filter()
+            actual = self.dept_details_admin_page.visible_eval_data() if expected else []
 
-        missing = [x for x in expected if x not in actual]
-        app.logger.info(f'Missing {missing}')
+            missing = [x for x in expected if x not in actual]
+            app.logger.info(f'Missing {missing}')
 
-        unexpected = [x for x in actual if x not in expected]
-        app.logger.info(f'Unexpected {unexpected}')
+            unexpected = [x for x in actual if x not in expected]
+            app.logger.info(f'Unexpected {unexpected}')
 
-        assert not missing
-        assert not unexpected
+            assert not missing
+            assert not unexpected
+        else:
+            self.dept_details_admin_page.wait_for_no_sections()
 
     def test_depts_contact_details(self, dept):
         contacts = utils.get_dept_users(dept, all_users)

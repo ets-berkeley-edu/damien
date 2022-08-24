@@ -63,9 +63,9 @@ class TestEvalExports:
                 self.dept_details_admin_page.click_eval_checkbox(row)
                 self.confirmed.append(row)
         self.dept_details_admin_page.click_bulk_done_button()
-        time.sleep(2)
 
     def test_confirm_confirmed_count(self):
+        time.sleep(utils.get_short_timeout())
         self.dept_details_admin_page.click_status_board()
         self.status_board_admin_page.wait_for_depts()
         assert self.status_board_admin_page.dept_confirmed_count(self.dept)[0] == len(self.confirmed)
@@ -120,7 +120,7 @@ class TestEvalExports:
     def test_instructors(self):
         self.expected_instructors.extend(utils.expected_instructors(self.confirmed))
         csv_instructors = self.publish_page.parse_csv('instructors')
-        utils.verify_actual_matches_expected(csv_instructors, self.expected_instructors)
+        assert all(x in csv_instructors for x in self.expected_instructors)
 
     def test_course_supervisors(self):
         self.expected_course_supervisors.extend(utils.expected_course_supervisors(self.confirmed, self.all_contacts))
@@ -172,7 +172,7 @@ class TestEvalExports:
         evaluation = copy.deepcopy(self.confirmed[4])
         evaluation.instructor = self.confirmed[5].instructor
         evaluation_utils.set_section_instructor(evaluation)
-        self.api_page.refresh_unholy_loch()
+        self.api_page.clear_cache()
         self.dept_details_admin_page.load_dept_page(self.dept)
         self.dept_details_admin_page.wait_for_eval_row(evaluation)
 

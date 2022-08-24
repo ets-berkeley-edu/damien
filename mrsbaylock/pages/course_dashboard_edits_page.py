@@ -194,7 +194,7 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def select_filter(self, filter_loc):
         if 'inactive' in self.element(filter_loc).get_attribute('class'):
-            self.wait_for_element_and_click(filter_loc)
+            self.wait_for_page_and_click(filter_loc)
             time.sleep(2)
 
     def deselect_filter(self, filter_loc):
@@ -301,7 +301,7 @@ class CourseDashboardEditsPage(CourseDashboards):
         self.hide_damien_footer()
         self.scroll_to_element(self.eval_row_el(evaluation))
         self.mouseover(self.eval_row_el(evaluation))
-        self.wait_for_element_and_click((By.XPATH, f'{self.eval_row_xpath(evaluation)}//button'))
+        self.wait_for_page_and_click_js((By.XPATH, f'{self.eval_row_xpath(evaluation)}//button'))
 
     def select_eval_status(self, evaluation, status):
         app.logger.info(f"Setting CCN {evaluation.ccn} to {status.value['option']}")

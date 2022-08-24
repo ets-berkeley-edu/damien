@@ -50,6 +50,7 @@ def get_evaluations(term, dept):
     evals_total = []
     get_sis_sections_to_evaluate(evals_total, term, dept)
     get_x_listings_and_shares(evals_total, term, dept)
+    # TODO collapse dupe course rows into a single course
     remove_listing_dept_forms(evals_total)
     get_manual_sections(evals_total, term, dept)
     edits = get_edited_sections(term, dept)
@@ -105,7 +106,7 @@ def row_instructor(row):
 def row_eval_end_from_eval_start(course_start, eval_start, course_end):
     start = course_start or datetime.datetime.strptime(app.config['CURRENT_TERM_BEGIN'], '%Y-%m-%d').date()
     end = course_end or datetime.datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d').date()
-    return eval_start + timedelta(days=20) if (end - start).days > 90 else eval_start + timedelta(days=13)
+    return (eval_start + timedelta(days=20)) if (end - start).days > 90 else (eval_start + timedelta(days=13))
 
 
 def row_eval_start_from_course_end(course_end, course_start):
@@ -114,7 +115,8 @@ def row_eval_start_from_course_end(course_end, course_start):
     end = course_end or term_end_date
     # TODO - fix this to handle summer logic
     grace_pd = 2 if (end == term_end_date) else 0
-    return (end + timedelta(days=grace_pd)) - timedelta(days=20) if (end - start).days > 90 else end - timedelta(days=13)
+    graceful_end = end + timedelta(days=grace_pd)
+    return graceful_end - timedelta(days=20) if (graceful_end - start).days > 90 else graceful_end - timedelta(days=13)
 
 
 def remove_listing_dept_forms(evals):
@@ -138,6 +140,7 @@ def result_row_to_eval(row, term, dept):
 
     dept_form = row_data(row, 'dept_form')
     eval_type = row_data(row, 'eval_type')
+    eval_type_custom = row_data(row, 'eval_type_custom')
     status = next(filter(lambda s: (s.value['db'] == row_data(row, 'status')), EvaluationStatus))
 
     instructor = row_instructor(row)
@@ -154,6 +157,7 @@ def result_row_to_eval(row, term, dept):
         'dept': dept,
         'dept_form': dept_form,
         'eval_type': eval_type,
+        'eval_type_custom': eval_type_custom,
         'status': status,
         'ccn': row['ccn'],
         'x_listing_ccns': listings,
@@ -215,7 +219,8 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
                unholy_loch.sis_sections.instructor_role_code AS instructor_role,
                unholy_loch.sis_sections.meeting_start_date AS course_start_date,
                unholy_loch.sis_sections.meeting_end_date AS course_end_date,
-               department_forms.name AS dept_form
+               department_forms.name AS dept_form,
+               department_catalog_listings.custom_evaluation_types AS eval_type_custom
           FROM departments
           JOIN unholy_loch.sis_sections
             ON unholy_loch.sis_sections.subject_area IN ({subject_str})
@@ -247,7 +252,8 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
                unholy_loch.sis_sections.enrollment_count,
                unholy_loch.sis_sections.meeting_start_date,
                unholy_loch.sis_sections.meeting_end_date,
-               department_forms.name;
+               department_forms.name,
+               department_catalog_listings.custom_evaluation_types;
     """
     app.logger.info(sql)
     result = db.session.execute(text(sql))
@@ -312,6 +318,7 @@ def get_x_listings_and_shares(evals, term, dept):
         for x in i.room_share_ccns:
             if x != '' and x not in all_ccns:
                 ccns.append(x)
+    ccns = list(set(ccns))
     if ccns:
         ccn_str = list_to_str(ccns)
         sql = f"""
@@ -327,7 +334,8 @@ def get_x_listings_and_shares(evals, term, dept):
                    unholy_loch.sis_sections.instructor_uid AS uid,
                    unholy_loch.sis_sections.instructor_role_code AS instructor_role,
                    unholy_loch.sis_sections.meeting_start_date AS course_start_date,
-                   unholy_loch.sis_sections.meeting_end_date AS course_end_date
+                   unholy_loch.sis_sections.meeting_end_date AS course_end_date,
+                   department_catalog_listings.custom_evaluation_types AS eval_type_custom
               FROM unholy_loch.sis_sections
          LEFT JOIN unholy_loch.cross_listings
                 ON unholy_loch.cross_listings.course_number = unholy_loch.sis_sections.course_number
@@ -335,12 +343,15 @@ def get_x_listings_and_shares(evals, term, dept):
          LEFT JOIN unholy_loch.co_schedulings
                 ON unholy_loch.co_schedulings.course_number = unholy_loch.sis_sections.course_number
                AND unholy_loch.co_schedulings.term_id = unholy_loch.sis_sections.term_id
+         LEFT JOIN department_catalog_listings
+                ON department_catalog_listings.subject_area = unholy_loch.sis_sections.subject_area
              WHERE unholy_loch.sis_sections.course_number IN({ccn_str})
                AND unholy_loch.sis_sections.term_id = '{term.term_id}'
                AND unholy_loch.sis_sections.enrollment_count > 0
                AND (unholy_loch.sis_sections.instructor_role_code IS NULL
                 OR unholy_loch.sis_sections.instructor_role_code !='ICNT')
                AND unholy_loch.sis_sections.instruction_format NOT IN ('CLC', 'GRP', 'IND', 'SUP', 'VOL')
+               AND department_catalog_listings.catalog_id IS NULL
           GROUP BY unholy_loch.sis_sections.course_number,
                    unholy_loch.sis_sections.subject_area,
                    unholy_loch.sis_sections.catalog_id,
@@ -352,7 +363,8 @@ def get_x_listings_and_shares(evals, term, dept):
                    unholy_loch.sis_sections.instructor_role_code,
                    unholy_loch.sis_sections.enrollment_count,
                    unholy_loch.sis_sections.meeting_start_date,
-                   unholy_loch.sis_sections.meeting_end_date;
+                   unholy_loch.sis_sections.meeting_end_date,
+                   department_catalog_listings.custom_evaluation_types;
         """
         app.logger.info(sql)
         result = db.session.execute(text(sql))
@@ -430,19 +442,20 @@ def merge_edited_evals(evaluations, edited_evals):
         match = None
         for e in evaluations:
             if e.ccn == edit.ccn and e.instructor and e.instructor.uid == uid and e.dept_form != edit.dept_form:
-                match = True
-                app.logger.info(f'Merging existing eval for {e.ccn}-{uid}')
-                e.status = edit.status
-                if edit.dept_form:
-                    e.dept_form = edit.dept_form
-                if edit.eval_type:
-                    e.eval_type = edit.eval_type
-                if edit.eval_start_date:
-                    e.eval_start_date = edit.eval_start_date
-                if edit.eval_end_date:
-                    e.eval_end_date = edit.eval_end_date
-                else:
-                    edit.eval_end_date = e.eval_end_date
+                if (edit.dept_form and '_MID' not in edit.dept_form) or not edit.dept_form:
+                    match = True
+                    app.logger.info(f'Merging existing eval for {e.ccn}-{uid}')
+                    e.status = edit.status
+                    if edit.dept_form:
+                        e.dept_form = edit.dept_form
+                    if edit.eval_type:
+                        e.eval_type = edit.eval_type
+                    if edit.eval_start_date:
+                        e.eval_start_date = edit.eval_start_date
+                    if edit.eval_end_date:
+                        e.eval_end_date = edit.eval_end_date
+                    else:
+                        edit.eval_end_date = e.eval_end_date
         if not match and edit.ccn in eval_ccns:
             app.logger.info(f'CCN match but no UID match, adding new eval for {edit.ccn}-{uid}')
             evaluations.append(edit)
@@ -558,8 +571,7 @@ def get_section_dept(term, ccn, all_users=None):
 
 def get_eval_types(evals):
     for e in evals:
-        if e.eval_type or e.dept.name in ['French', 'East Asian Languages and Cultures', 'Social Welfare',
-                                          'Spanish and Portuguese']:
+        if e.eval_type or e.eval_type_custom:
             app.logger.info('Skipping eval type')
         else:
             if e.instructor.uid and e.instructor.affiliations:

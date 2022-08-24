@@ -62,9 +62,9 @@ class TestEvalErrors:
             x_list_eval = e
 
     x_list_eval_has_instr = True if x_list_eval.instructor.uid else False
-    x_list_start_1 = term.end_date.date() - timedelta(days=22)
+    x_list_start_1 = term.end_date - timedelta(days=22)
     x_list_end_1 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_1, x_list_eval.course_end_date)
-    x_list_start_2 = term.end_date.date() - timedelta(days=21)
+    x_list_start_2 = term.end_date - timedelta(days=21)
     x_list_end_2 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_2, x_list_eval.course_end_date)
 
     app.logger.info(f'Department 1 is {x_list_dept_1.name}, UID {x_list_contact_1.uid}')
