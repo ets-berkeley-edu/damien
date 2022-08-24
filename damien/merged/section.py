@@ -115,7 +115,7 @@ class Section:
     def find_catalog_listing(self, catalog_listings):
         candidate_catalog_listings = list(
             c for c in catalog_listings
-            if c.subject_area in (self.subject_area, '') and (c.catalog_id is None or re.match(c.catalog_id, self.catalog_id))
+            if c.subject_area in (self.subject_area, '') and (c.catalog_id is None or re.match(f'^{c.catalog_id}$', self.catalog_id))
         )
         # Exact matches on catalog id take precedence.
         exact_catalog_id_match = next((c for c in candidate_catalog_listings if c.catalog_id and re.match(c.catalog_id, self.catalog_id)), None)
