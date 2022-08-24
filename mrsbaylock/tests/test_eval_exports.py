@@ -48,6 +48,8 @@ class TestEvalExports:
     expected_instructors = []
     expected_course_supervisors = []
     expected_supervisors = []
+    csv_instructors = []
+    csv_course_instructors = []
 
     def test_refresh_loch(self):
         self.login_page.load_page()
@@ -107,18 +109,26 @@ class TestEvalExports:
         assert len(list(filter(None, csv_emails))) == len(expected_uids)
 
     def test_course_instructors_past_term(self):
-        csv_course_instructors = self.publish_page.parse_csv('course_instructors')
-        past_term_rows = list(filter(lambda r: (self.term.prefix not in r['COURSE_ID']), csv_course_instructors))
+        self.csv_course_instructors.extend(self.publish_page.parse_csv('course_instructors'))
+        past_term_rows = list(filter(lambda r: (self.term.prefix not in r['COURSE_ID']), self.csv_course_instructors))
         assert past_term_rows
 
     def test_course_instructors(self):
         self.expected_course_instructors.extend(utils.expected_course_instructors(self.confirmed))
-        csv_course_instructors = self.publish_page.parse_csv('course_instructors')
-        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), csv_course_instructors))
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), self.csv_course_instructors))
         utils.verify_actual_matches_expected(current_term_rows, self.expected_course_instructors)
 
-    def test_instructors(self):
+    def test_instructors_past_term(self):
         self.expected_instructors.extend(utils.expected_instructors(self.confirmed))
+        self.csv_instructors.extend(self.publish_page.parse_csv('instructors'))
+        assert len(self.expected_instructors) < len(self.csv_instructors)
+        csv_uids = list(map(lambda u: u['LDAP_UID'], self.csv_instructors))
+        csv_uids.sort()
+        unique = list(set(csv_uids))
+        unique.sort()
+        assert unique == csv_uids
+
+    def test_instructors(self):
         csv_instructors = self.publish_page.parse_csv('instructors')
         assert all(x in csv_instructors for x in self.expected_instructors)
 
