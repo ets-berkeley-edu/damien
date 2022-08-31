@@ -159,6 +159,17 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.hit_escape()
         self.dept_details_admin_page.wait_for_element(CourseDashboardEditsPage.EVAL_CHANGE_START_REQ_MSG, utils.get_short_timeout())
 
+    def test_identical_duplicate_not_allowed(self):
+        e = next(filter(lambda ev: ev.dept_form and ev.instructor.uid, self.dept_1.evaluations))
+        self.dept_details_admin_page.click_cancel_eval_changes()
+        self.dept_details_admin_page.click_eval_checkbox(e)
+        self.dept_details_admin_page.wait_for_element_and_click(CourseDashboardEditsPage.DUPE_BUTTON)
+        self.dept_details_admin_page.look_up_uid(e.instructor.uid, CourseDashboardEditsPage.DUPE_SECTION_INSTR_INPUT)
+        self.dept_details_admin_page.click_look_up_result(e.instructor)
+        time.sleep(1)
+        self.dept_details_admin_page.wait_for_page_and_click_js(CourseDashboardEditsPage.ACTION_APPLY_BUTTON)
+        self.dept_details_admin_page.await_error_and_accept()
+
     def test_duplicate_section_new_instructor_and_eval_type(self):
         instructor = utils.get_test_user()
         eval_type = next(filter(lambda t: t.name == 'WRIT', self.eval_types))

@@ -198,3 +198,7 @@ class DamienPages(Page):
 
     DELETE_CONFIRM_BUTTON = (By.ID, 'confirm-dialog-btn')
     DELETE_CANCEL_BUTTON = (By.ID, 'cancel-dialog-btn')
+    ERROR_DIALOG_OK_BUTTON = (By.ID, 'error-dialog-ok-btn')
+
+    def await_error_and_accept(self):
+        self.wait_for_element_and_click(DamienPages.ERROR_DIALOG_OK_BUTTON)
