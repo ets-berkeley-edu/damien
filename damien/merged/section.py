@@ -40,6 +40,7 @@ class Section:
         catalog_listings=(),
         evaluation_types=None,
         instructors=None,
+        visible_course_numbers=None,
     ):
         self.term_id = loch_rows[0].term_id
         self.course_number = loch_rows[0].course_number
@@ -57,7 +58,7 @@ class Section:
         self.evaluations = evaluations
         self.instructors = instructors or {}
 
-        self.set_cross_listed_status(loch_rows)
+        self.set_cross_listed_status(loch_rows, visible_course_numbers)
         self.set_defaults(catalog_listings, evaluation_types)
 
     def __repr__(self):
@@ -93,17 +94,17 @@ class Section:
         if section:
             return section.to_api_json()
 
-    def set_cross_listed_status(self, loch_rows):
+    def set_cross_listed_status(self, loch_rows, visible_course_numbers):
         self.cross_listed_with = set()
         self.room_shared_with = set()
         self.foreign_department_course = True
         for r in loch_rows:
             # Any row with a room-share or cross-listing notation applies to the whole section.
             clw = getattr(r, 'cross_listed_with', None)
-            if clw:
+            if clw and (not visible_course_numbers or clw in visible_course_numbers):
                 self.cross_listed_with.add(clw)
             rsw = getattr(r, 'room_shared_with', None)
-            if rsw:
+            if rsw and (not visible_course_numbers or rsw in visible_course_numbers):
                 self.room_shared_with.add(rsw)
             # But a section is treated as belonging to a foreign department only if all rows have the notation.
             fdc = getattr(r, 'foreign_department_course', None)
