@@ -61,7 +61,7 @@ def search():
     if len(users) < 20:
         calnet_results = get_loch_basic_attributes_by_uid_or_name(snippet, limit=(20 - len(users)), exclude_uids=exclude_uids)
     results = [_to_api_json(u) for u in users] + [_to_api_json(u) for u in calnet_results or []]
-    results.sort(key=lambda x: x['firstName'])
+    results.sort(key=lambda x: f"{x['firstName'] or ''}{x['lastName'] or ''}")
     return tolerant_jsonify(results)
 
 
