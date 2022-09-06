@@ -178,17 +178,27 @@ class Department(Base):
         def _is_loch_row_visible(row):
             return Section.is_visible_by_default(row) or row['course_number'] in supplemental_section_ids or row['course_number'] == section_id
 
+        visible_loch_rows_by_course_number = {}
         for course_number in sorted(sections_by_number.keys()):
-            section_evaluations = evaluations.get(course_number, [])
             visible_loch_rows = [r for r in sections_by_number[course_number] if _is_loch_row_visible(r)]
             if len(visible_loch_rows):
-                sections.append(Section(
-                    visible_loch_rows,
-                    section_evaluations,
-                    all_catalog_listings,
-                    all_eval_types,
-                    instructors,
-                ))
+                visible_loch_rows_by_course_number[course_number] = visible_loch_rows
+
+        # If we're fetching the whole department, stash the set of visible course numbers to filter down cross-listings.
+        visible_course_numbers = None
+        if not section_id:
+            visible_course_numbers = visible_loch_rows_by_course_number.keys()
+
+        for course_number, visible_loch_rows in visible_loch_rows_by_course_number.items():
+            section_evaluations = evaluations.get(course_number, [])
+            sections.append(Section(
+                visible_loch_rows,
+                section_evaluations,
+                all_catalog_listings,
+                all_eval_types,
+                instructors,
+                visible_course_numbers,
+            ))
 
         return {'sections': sections, 'instructors': instructors}
 
