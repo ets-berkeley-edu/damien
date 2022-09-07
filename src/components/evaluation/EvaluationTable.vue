@@ -795,7 +795,7 @@ export default {
       this.headers = [{class: 'text-nowrap pr-1', text: 'Select', width: '30px'}].concat(this.headers)
     }
 
-    this.departmentForms = [{id: null, name: 'Revert'}].concat(this.$config.departmentForms)
+    this.departmentForms = [{id: null, name: 'Revert'}].concat(this.activeDepartmentForms)
     this.evaluationTypes = [{id: null, name: 'Revert'}].concat(this.$config.evaluationTypes)
 
     this.rules.instructorUid = () => {

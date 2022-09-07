@@ -56,7 +56,7 @@ def app_config():
     default_meeting_dates = {row['term_id']: row for row in get_default_meeting_dates(term_ids)}
     valid_meeting_dates = {row['term_id']: row for row in get_valid_meeting_dates(term_ids)}
 
-    department_forms = DepartmentForm.query.filter_by(deleted_at=None).order_by(DepartmentForm.name).all()
+    department_forms = DepartmentForm.query.order_by(DepartmentForm.name).all()
     evaluation_types = EvaluationType.query.filter_by(deleted_at=None).order_by(EvaluationType.name).all()
     # Force 'F' and 'G' to sort to the top of the list.
     evaluation_types = sorted(evaluation_types, key=lambda e: {'F': '0', 'G': '00'}.get(e.name, e.name))

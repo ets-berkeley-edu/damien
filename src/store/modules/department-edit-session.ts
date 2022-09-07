@@ -75,6 +75,7 @@ const $_refresh = (commit, departmentId) => {
 }
 
 const state = {
+  activeDepartmentForms: [],
   allDepartmentForms: [],
   contacts: [],
   department: undefined,
@@ -87,6 +88,7 @@ const state = {
 }
 
 const getters = {
+  activeDepartmentForms: (state: any): any[] => state.activeDepartmentForms,
   allDepartmentForms: (state: any): any[] => state.allDepartmentForms,
   contacts: (state: any): any[] => state.contacts,
   department: (state: any): number => state.department,
@@ -150,6 +152,7 @@ const actions = {
   },
   init: ({commit}, departmentId: number) => {
     commit('setDepartment', null)
+    commit('setActiveDepartmentForms', _.reject(Vue.prototype.$config.departmentForms, 'deletedAt'))
     commit('setAllDepartmentForms', Vue.prototype.$config.departmentForms)
     return new Promise<void>(resolve => {
       $_refresh(commit, departmentId)
@@ -249,6 +252,7 @@ const mutations = {
       }
     })
   },
+  setActiveDepartmentForms: (state: any, departmentForms: any[]) => state.activeDepartmentForms = departmentForms,
   setAllDepartmentForms: (state: any, departmentForms: any[]) => state.allDepartmentForms = departmentForms,
   setDepartment: (state: any, department: any) => state.department = department,
   setDisableControls: (state: any, disable: boolean) => state.disableControls = disable,

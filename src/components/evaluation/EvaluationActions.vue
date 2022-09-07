@@ -349,7 +349,7 @@ export default {
 
       // Show midterm form option only if a midterm form exists for all selected evals.
       this.midtermFormAvailable = true
-      const availableFormNames = this.$_.map(this.$config.departmentForms, 'name')
+      const availableFormNames = this.$_.map(this.activeDepartmentForms, 'name')
       this.$_.each(selectedEvals, e => {
         const formName = this.$_.get(e, 'departmentForm.name')
         if (!formName || !(formName.endsWith('_MID') || availableFormNames.includes(formName + '_MID'))) {
