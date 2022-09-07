@@ -51,6 +51,7 @@ def get_evaluations(term, dept):
     get_sis_sections_to_evaluate(evals_total, term, dept)
     get_x_listings_and_shares(evals_total, term, dept)
     # TODO collapse dupe course rows into a single course
+    remove_empty_listings(evals_total)
     remove_listing_dept_forms(evals_total)
     get_manual_sections(evals_total, term, dept)
     edits = get_edited_sections(term, dept)
@@ -370,6 +371,13 @@ def get_x_listings_and_shares(evals, term, dept):
         result = db.session.execute(text(sql))
         std_commit(allow_test_environment=True)
         result_to_evals(result, evals, term, dept)
+
+
+def remove_empty_listings(evals):
+    all_ccns = list(map(lambda c: c.ccn, evals))
+    for e in evals:
+        e.x_listing_ccns = [x for x in e.x_listing_ccns if x in all_ccns]
+        e.room_share_ccns = [s for s in e.room_share_ccns if s in all_ccns]
 
 
 def get_manual_sections(evals, term, dept):

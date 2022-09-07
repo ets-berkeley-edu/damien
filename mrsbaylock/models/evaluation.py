@@ -109,6 +109,14 @@ class Evaluation(object):
     def status(self):
         return self.data['status']
 
+    @x_listing_ccns.setter
+    def x_listing_ccns(self, value):
+        self.data['x_listing_ccns'] = value
+
+    @room_share_ccns.setter
+    def room_share_ccns(self, value):
+        self.data['room_share_ccns'] = value
+
     @instructor.setter
     def instructor(self, value):
         self.data['instructor'] = value
