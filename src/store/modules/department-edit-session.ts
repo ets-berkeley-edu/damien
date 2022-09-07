@@ -33,11 +33,17 @@ const $_decorateEvaluation = (e, allEvaluations) => {
   e.sortableCourseNumber = e.courseNumber
 
   // When sorting by course number or name, keep cross-listings with home sections.
-  if (e.foreignDepartmentCourse && (e.crossListedWith || e.roomSharedWith)) {
-    const homeSectionNumber = (e.crossListedWith || e.roomSharedWith)[0]
-    e.sortableCourseNumber = `${homeSectionNumber}-${e.courseNumber}`
-    const homeSection = _.find(allEvaluations, {'courseNumber': homeSectionNumber})
+  if (e.crossListedWith || e.roomSharedWith) {
+    let homeSection
+    _.each((e.crossListedWith || e.roomSharedWith), s => {
+      const candidateHomeSection = _.find(allEvaluations, {'courseNumber': s})
+      if (!candidateHomeSection.foreignDepartmentCourse && (e.foreignDepartmentCourse || e.courseNumber > candidateHomeSection.courseNumber)) {
+        homeSection = candidateHomeSection
+        return false
+      }
+    })
     if (homeSection) {
+      e.sortableCourseNumber = `${homeSection.courseNumber}-${e.courseNumber}`
       const homeSectionSortableCatalogId = `${homeSection.catalogId.replace(/\D/g,'').padStart(3, '0')} ${homeSection.catalogId}`
       e.sortableCourseName = [
         homeSection.subjectArea,
