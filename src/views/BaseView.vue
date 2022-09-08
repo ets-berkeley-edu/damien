@@ -1,5 +1,13 @@
 <template>
   <v-app :style="{background: this.$vuetify.theme.dark ? this.$vuetify.theme.themes.dark.background : this.$vuetify.theme.themes.light.background}">
+    <a
+      id="skip-to-content-link"
+      href="#content"
+      class="sr-only"
+      tabindex="0"
+    >
+      Skip to main content
+    </a>
     <v-navigation-drawer
       app
       permanent
@@ -60,14 +68,6 @@
     >
       <div class="display-1 text-no-wrap">
         Course Evaluations
-        <a
-          id="skip-to-content-link"
-          href="#content"
-          class="sr-only sr-only-focusable"
-          tabindex="0"
-        >
-          Skip to main content
-        </a>
       </div>
       <v-spacer class="d-flex justify-center">
         <v-chip
