@@ -100,4 +100,5 @@ class DepartmentForm(Base):
             'name': self.name,
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
+            'deletedAt': isoformat(self.deleted_at),
         }
