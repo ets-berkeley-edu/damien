@@ -337,6 +337,48 @@ class TestExportEvaluations:
             assert xlisted_course_supervisors[3] == '2022-B-30643,6982398'
 
     @mock_s3
+    def test_confirmed_course_gsi(self, client, app, fake_auth, history_id, form_history_id, type_g_id):
+        fake_auth.login(admin_uid)
+        evaluation = _api_get_evaluation(client, history_id, '30643', '326054')
+        _api_update_evaluation(client, history_id, params={
+            'evaluationIds': [evaluation['id']],
+            'action': 'edit',
+            'fields': {'departmentFormId': form_history_id, 'evaluationTypeId': type_g_id, 'startDate': '2022-04-27'},
+        })
+        std_commit(allow_test_environment=True)
+        evaluation = _api_get_evaluation(client, history_id, '30643', '326054')
+        _api_update_evaluation(client, history_id, params={'evaluationIds': [evaluation['id']], 'action': 'confirm'})
+        std_commit(allow_test_environment=True)
+
+        with mock_s3_bucket(app) as s3:
+            _api_export_evaluations(client)
+            exported_objects = [o for o in s3.Bucket(app.config['AWS_S3_BUCKET']).objects.all() if o.key.startswith('exports/2222')]
+            assert len(exported_objects) == 10
+
+            courses = _read_csv(exported_objects, '/courses.csv')
+            assert len(courses) == 2
+            assert courses[0] == ('COURSE_ID,COURSE_ID_2,COURSE_NAME,CROSS_LISTED_FLAG,CROSS_LISTED_NAME,DEPT_NAME,CATALOG_ID,INSTRUCTION_FORMAT,'
+                                  'SECTION_NUM,PRIMARY_SECONDARY_CD,EVALUATE,DEPT_FORM,EVALUATION_TYPE,MODULAR_COURSE,START_DATE,END_DATE,'
+                                  'CANVAS_COURSE_ID,QB_MAPPING')
+            assert courses[1] == ('2022-B-30643_GSI,2022-B-30643_GSI,"HISTORY C188C LEC 001 Magic, Religion, and Science: The Ancient and '
+                                  'Medieval Worlds (EVAL FOR GSI)",Y,30470-30643,HISTORY,C188C,LEC,001,P,Y,HISTORY,G,,4/27/22,5/17/22,,HISTORY-G')
+
+            course_instructors = _read_csv(exported_objects, '/course_instructors.csv')
+            assert course_instructors[3] == '2022-B-30643_GSI,326054,GSI'
+
+            course_students = _read_csv(exported_objects, '/course_students.csv')
+            for row in course_students[1:]:
+                assert row.startswith('2022-B-30643_GSI')
+
+            course_supervisors = _read_csv(exported_objects, '/course_supervisors.csv')
+            for row in course_supervisors[1:]:
+                assert row.startswith('2022-B-30643_GSI')
+
+            xlisted_course_supervisors = _read_csv(exported_objects, '/xlisted_course_supervisors.csv')
+            for row in xlisted_course_supervisors[1:]:
+                assert row.startswith('2022-B-30643_GSI')
+
+    @mock_s3
     def test_supervisors_export(self, client, app, fake_auth, history_id, form_history_id, type_f_id):
         fake_auth.login(admin_uid)
 

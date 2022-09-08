@@ -152,7 +152,10 @@ def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms
     for k, v in groupby(enrollments, key=lambda e: e['course_number']):
         course_numbers_to_uids[k] = [e['ldap_uid'] for e in v if e['ldap_uid'] in students_by_uid]
 
-    sorted_keys = sorted(keys_to_instructor_uids.keys(), key=lambda k: (k.course_number, k.department_form, k.evaluation_type))
+    sorted_keys = sorted(
+        keys_to_instructor_uids.keys(),
+        key=lambda k: (k.course_number, k.department_form, k.evaluation_type, k.start_date, k.end_date),
+    )
 
     for course_number, keys in groupby(sorted_keys, lambda k: k.course_number):
         keys = list(keys)
@@ -175,9 +178,6 @@ def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms
 
 def _generate_course_id_map(keys, course_number, term_id):
     course_id_prefix = f'{term_code_for_sis_id(term_id)}-{course_number}'
-    # One key per course number makes life easy.
-    if len(keys) == 1:
-        return {keys[0]: course_id_prefix}
     # Try generating unique IDs by evaluation type and/or department form.
     course_id_map = {}
     for key in keys:
@@ -187,7 +187,11 @@ def _generate_course_id_map(keys, course_number, term_id):
         return course_id_map
     # If we can't make sense of how the eval keys differ, just use the alphabet.
     else:
-        return {key: f'{course_id_prefix}_{chr(65 + index)}' for index, key in enumerate(keys)}
+        course_id_map = {}
+        for index, key in enumerate(keys):
+            postfix = '' if index == 0 else f'_{chr(64 + index)}'
+        course_id_map[key] = f'{course_id_prefix}{postfix}'
+        return course_id_map
 
 
 def _generate_evaluation_maps(term_id):
