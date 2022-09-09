@@ -109,9 +109,39 @@
       :search="searchFilter"
       :custom-filter="customFilter"
       hide-default-footer
+      hide-default-header
       :items="evaluations"
+      :sort-by.sync="sortBy"
+      :sort-desc.sync="sortDesc"
       @current-items="onChangeSearchFilter"
     >
+      <template #header="{props: {headers}}">
+        <thead class="v-data-table-header">
+          <tr>
+            <th
+              v-for="(item, index) in headers"
+              :key="index"
+              :aria-sort="sortBy && item.value === sortBy ? (sortDesc ? 'descending' : 'ascending') : 'none'"
+              class="sortable px-0"
+              :class="columnHeaderClass(item)"
+              scope="col"
+              :style="`width: ${item.width}; min-width: ${item.width};`"
+            >
+              <v-btn
+                :id="`sort-col-${item.value}-btn`"
+                :aria-label="`${item.text}: ${item.value === sortBy ? (sortDesc ? 'Sorted descending' : 'Sorted ascending') : 'Not sorted'}. Activate to sort ${item.value === sortBy && !sortDesc ? 'descending' : 'ascending'}.`"
+                class="sort-col-btn font-weight-bold text-capitalize text-nowrap px-1"
+                small
+                text
+                @click="onColumnHeaderClick(item.value)"
+              >
+                {{ item.text }}
+                <v-icon class="v-data-table-header__icon" small>mdi-arrow-up</v-icon>
+              </v-btn>
+            </th>
+          </tr>
+        </thead>
+      </template>
       <template #body="{items}">
         <TransitionGroup
           class="position-relative"
@@ -507,14 +537,14 @@ export default {
     },
     focusedEditButtonEvaluationId: null,
     headers: [
-      {align: 'center', class: 'px-1 text-nowrap', text: 'Status', value: 'status', width: '115px'},
-      {class: 'px-1 text-nowrap', text: 'Last Updated', value: 'lastUpdated', width: '5%'},
-      {class: 'px-1 text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '5%'},
-      {class: 'px-1 course-name', text: 'Course Name', value: 'sortableCourseName', width: '20%'},
-      {class: 'px-1 text-nowrap', text: 'Instructor', value: 'sortableInstructor', width: '20%'},
-      {class: 'px-1', text: 'Department Form', value: 'departmentForm.name', width: '20%'},
-      {class: 'px-1', text: 'Evaluation Type', value: 'evaluationType.name', width: '20%'},
-      {class: 'px-1 text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '10%'}
+      {class: 'text-center text-nowrap', text: 'Status', value: 'status', width: '115px'},
+      {class: 'text-start text-nowrap', text: 'Last Updated', value: 'lastUpdated', width: '5%'},
+      {class: 'text-start text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '5%'},
+      {class: 'text-start course-name', text: 'Course Name', value: 'sortableCourseName', width: '20%'},
+      {class: 'text-start text-nowrap', text: 'Instructor', value: 'sortableInstructor', width: '20%'},
+      {class: 'text-start', text: 'Department Form', value: 'departmentForm.name', width: '20%'},
+      {class: 'text-start', text: 'Evaluation Type', value: 'evaluationType.name', width: '20%'},
+      {class: 'text-start text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '10%'}
     ],
     isConfirmingCancelEdit: false,
     pendingEditRowId: null,
@@ -528,7 +558,9 @@ export default {
     selectedDepartmentForm: null,
     selectedEvaluationStatus: null,
     selectedEvaluationType: null,
-    selectedStartDate: null
+    selectedStartDate: null,
+    sortBy: null,
+    sortDesc: false
   }),
   computed: {
     allowEdits() {
@@ -567,6 +599,13 @@ export default {
     },
     clearPendingInstructor() {
       this.pendingInstructor = null
+    },
+    columnHeaderClass(item) {
+      let klass = item.class
+      if (item.value === this.sortBy) {
+        klass += ` active ${this.sortDesc ? 'desc' : 'asc'}`
+      }
+      return klass
     },
     customFilter(value, search, item) {
       if (!value || !search || typeof value === 'boolean') {
@@ -681,6 +720,19 @@ export default {
       const evaluation = this.$_.find(this.evaluations, ['id', this.pendingEditRowId])
       this.onEditEvaluation(evaluation)
     },
+    onColumnHeaderClick(value) {
+      if (value === this.sortBy) {
+        if (this.sortDesc) {
+          this.sortBy = null
+          this.sortDesc = false
+        } else {
+          this.sortDesc = true
+        }
+      } else {
+        this.sortDesc = false
+        this.sortBy = value
+      }
+    },
     onEditEvaluation(evaluation) {
       if (this.editRowId) {
         const editingEvaluation = this.$_.find(this.evaluations, ['id', this.editRowId])
@@ -790,9 +842,9 @@ export default {
   },
   created() {
     if (this.readonly) {
-      this.headers = [{class: 'text-nowrap', text: 'Department', value: 'department.id'}].concat(this.headers)
+      this.headers = [{class: 'text-start text-nowrap pl-3', text: 'Department', value: 'department.id'}].concat(this.headers)
     } else if (this.allowEdits) {
-      this.headers = [{class: 'text-nowrap pr-1', text: 'Select', width: '30px'}].concat(this.headers)
+      this.headers = [{class: 'text-start text-nowrap pl-1', text: 'Select', value: 'select', width: '30px'}].concat(this.headers)
     }
 
     this.departmentForms = [{id: null, name: 'Revert'}].concat(this.activeDepartmentForms)
@@ -919,6 +971,13 @@ tr.border-top-none td {
 }
 .pill-review {
   background-color: #478047;
+}
+.sort-col-btn {
+  color: inherit !important;
+  letter-spacing: normal !important;
+}
+.sort-col-btn:focus .v-data-table-header__icon {
+  opacity: 1;
 }
 .sticky {
   position: sticky;

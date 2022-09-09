@@ -44,6 +44,7 @@
         hide-details
         :input-value="isSelectedTermLocked"
         inset
+        :ripple="false"
         @change="toggleTermLocked"
       />
       <div class="lock-indicator">
