@@ -191,7 +191,7 @@ def _generate_course_id_map(keys, course_number, term_id):
         course_id_map = {}
         for index, key in enumerate(keys):
             postfix = '' if index == 0 else f'_{chr(64 + index)}'
-        course_id_map[key] = f'{course_id_prefix}{postfix}'
+            course_id_map[key] = f'{course_id_prefix}{postfix}'
         return course_id_map
 
 
