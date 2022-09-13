@@ -37,7 +37,7 @@ const $_decorateEvaluation = (e, allEvaluations) => {
     let homeSection
     _.each((e.crossListedWith || e.roomSharedWith), s => {
       const candidateHomeSection = _.find(allEvaluations, {'courseNumber': s})
-      if (!candidateHomeSection.foreignDepartmentCourse && (e.foreignDepartmentCourse || e.courseNumber > candidateHomeSection.courseNumber)) {
+      if (candidateHomeSection && !candidateHomeSection.foreignDepartmentCourse && (e.foreignDepartmentCourse || e.courseNumber > candidateHomeSection.courseNumber)) {
         homeSection = candidateHomeSection
         return false
       }
