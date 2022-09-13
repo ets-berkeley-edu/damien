@@ -260,7 +260,7 @@ def get_loch_instructors_for_snippet(snippet, limit, exclude_uids):
 
 
 def get_loch_sections(term_id, conditions):
-    query = f"""SELECT
+    query = f"""SELECT DISTINCT
                 s.*,
                 cl.cross_listing_number AS cross_listed_with,
                 cs.room_share_number AS room_shared_with
@@ -285,7 +285,7 @@ def get_loch_sections(term_id, conditions):
 def get_loch_sections_by_ids(term_id, course_numbers):
     if not len(course_numbers):
         return []
-    query = """SELECT
+    query = """SELECT DISTINCT
                 s.*,
                 cl.cross_listing_number AS cross_listed_with,
                 cs.room_share_number AS room_shared_with
