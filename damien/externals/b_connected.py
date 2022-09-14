@@ -82,8 +82,7 @@ class BConnected:
                     else:
                         msg['Subject'] = subject_line
 
-                    # Bcc the admin
-                    to_addrs = [email_address, app.config['EMAIL_COURSE_EVALUATION_ADMIN']]
+                    to_addrs = [email_address]
                     msg.attach(MIMEText(message, 'plain'))
                     smtp.sendmail(from_addr=from_address, to_addrs=to_addrs, msg=msg.as_string())
 
