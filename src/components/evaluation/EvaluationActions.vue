@@ -5,17 +5,25 @@
         <v-btn
           :id="`apply-course-action-btn-${key}`"
           :key="key"
-          class="position-relative text-capitalize text-nowrap px-2"
+          class="position-relative text-capitalize text-nowrap px-2 mr-1"
           :color="$vuetify.theme.dark ? 'tertiary' : 'secondary'"
           :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length || isLoading || isInvalidAction(action)"
           text
           @click.stop="action.apply(key)"
           @keypress.enter.prevent="action.apply(key)"
         >
-          <span v-if="!isLoading">{{ action.text }}</span>
+          <span v-if="!(isLoading && key !== 'duplicate' && applyingAction.key ===  key)">{{ action.text }}</span>
+          <v-progress-circular
+            v-if="isLoading && key !== 'duplicate' && applyingAction.key ===  key"
+            :indeterminate="true"
+            color="tertiary"
+            rotate="5"
+            size="20"
+            width="3"
+          ></v-progress-circular>
         </v-btn>
         <v-divider
-          v-if="key === 'ignore' && !isLoading"
+          v-if="key === 'ignore'"
           :key="`${key}-divider`"
           class="align-self-stretch primary--text separator ma-2"
           inset
@@ -23,15 +31,6 @@
           vertical
         ></v-divider>
       </template>
-      <v-progress-circular
-        v-if="isLoading"
-        :indeterminate="true"
-        rotate="5"
-        size="20"
-        width="3"
-        color="tertiary"
-        class="ma-2 pl-5"
-      ></v-progress-circular>
     </div>
     <v-dialog
       id="duplicate-row-dialog"
@@ -122,10 +121,19 @@
               class="mt-2 mr-2"
               color="secondary"
               :disabled="disableApplyDuplicate"
+              min-width="85"
               @click="applyAction('duplicate')"
               @keypress.enter.prevent="applyAction('duplicate')"
             >
               <span v-if="!isLoading">Apply</span>
+              <v-progress-circular
+                v-if="isLoading"
+                :indeterminate="true"
+                color="white"
+                rotate="5"
+                size="20"
+                width="3"
+              ></v-progress-circular>
             </v-btn>
             <v-btn
               id="cancel-duplicate-btn"
@@ -247,7 +255,7 @@ export default {
         const selectedRowCount = this.applyingAction.key === 'duplicate' ? ((response.length || 0) / 2) : (response.length || 0)
         const target = `${selectedRowCount} ${selectedRowCount === 1 ? 'row' : 'rows'}`
         this.alertScreenReader(`${this.applyingAction.completedText} ${target}`)
-        this.$putFocusNextTick(`apply-course-action-btn-${this.applyingAction.key}`)
+        this.$putFocusNextTick('select-all-evals-checkbox')
         this.reset()
       }).finally(() => this.setDisableControls(false))
     },

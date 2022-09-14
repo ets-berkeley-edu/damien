@@ -35,14 +35,14 @@
           <div class="d-flex align-self-stretch align-end mt-auto mx-4">
             <v-checkbox
               id="select-all-evals-checkbox"
-              class="align-center mt-0 pt-0"
+              class="select-all-evals align-center mt-0 pt-0"
+              color="tertiary"
               :disabled="$_.isEmpty(searchFilterResults)"
               :false-value="!someEvaluationsSelected && !allEvaluationsSelected"
               hide-details
               :indeterminate="someEvaluationsSelected"
               :input-value="someEvaluationsSelected || allEvaluationsSelected"
               :ripple="false"
-              color="tertiary"
               :value="allEvaluationsSelected"
               @change="toggleSelectAll"
             >
@@ -971,6 +971,10 @@ tr.border-top-none td {
 }
 .pill-review {
   background-color: #478047;
+}
+.select-all-evals {
+  height: 36px;
+  width: 6.5rem;
 }
 .sort-col-btn {
   color: inherit !important;
