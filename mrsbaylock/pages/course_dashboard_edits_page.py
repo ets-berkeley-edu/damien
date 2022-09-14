@@ -99,6 +99,7 @@ class CourseDashboardEditsPage(CourseDashboards):
     DUPE_BUTTON = (By.ID, 'apply-course-action-btn-duplicate')
     DUPE_SECTION_INSTR_INPUT = (By.ID, 'bulk-duplicate-instructor-lookup-autocomplete')
     DUPE_EVAL_TYPE_SELECT = (By.ID, 'bulk-duplicate-select-type')
+    DUPE_CXL_BUTTON = (By.ID, 'cancel-duplicate-btn')
     USE_MIDTERM_FORM_CBX = (By.XPATH, '//label[text()="Use midterm department forms"]/preceding-sibling::div')
     USE_START_DATE_INPUT = (By.ID, 'bulk-duplicate-start-date')
     ACTION_APPLY_BUTTON = (By.XPATH, '//button[contains(., "Apply")]')
@@ -153,7 +154,7 @@ class CourseDashboardEditsPage(CourseDashboards):
                           eval_type=None):
         app.logger.info(f'Duplicating row for CCN {evaluation.ccn}')
         self.click_eval_checkbox(evaluation)
-        self.wait_for_element_and_click(CourseDashboardEditsPage.DUPE_BUTTON)
+        self.wait_for_page_and_click(CourseDashboardEditsPage.DUPE_BUTTON)
         if instructor:
             self.look_up_uid(instructor.uid, CourseDashboardEditsPage.DUPE_SECTION_INSTR_INPUT)
             self.click_look_up_result(instructor)
@@ -163,8 +164,8 @@ class CourseDashboardEditsPage(CourseDashboards):
             s = start_date.strftime('%m/%d/%Y')
             app.logger.info(f'Setting start date {s}')
             self.wait_for_element_and_type(CourseDashboardEditsPage.USE_START_DATE_INPUT, s)
-        self.hit_tab()
-        self.hit_tab()
+            self.hit_tab()
+            self.hit_tab()
         if eval_type:
             app.logger.info(f'Setting evaluation type {eval_type.name}')
             self.wait_for_select_and_click_option(CourseDashboardEditsPage.DUPE_EVAL_TYPE_SELECT, eval_type.name)
@@ -173,6 +174,7 @@ class CourseDashboardEditsPage(CourseDashboards):
             self.wait_for_select_and_click_option(CourseDashboardEditsPage.DUPE_EVAL_TYPE_SELECT, 'Default')
         time.sleep(1)
         self.wait_for_page_and_click_js(CourseDashboardEditsPage.ACTION_APPLY_BUTTON)
+        time.sleep(utils.get_short_timeout())
         dupe = copy.deepcopy(evaluation)
         if instructor:
             dupe.instructor = instructor
@@ -184,6 +186,11 @@ class CourseDashboardEditsPage(CourseDashboards):
             dupe.eval_type = eval_type.name
         evaluations.append(dupe)
         return dupe
+
+    def cancel_dupe(self):
+        app.logger.info('Cancelling dupe')
+        self.wait_for_element_and_click(CourseDashboardEditsPage.DUPE_CXL_BUTTON)
+        time.sleep(1)
 
     # FILTERS
 
@@ -251,7 +258,7 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def click_add_section(self):
         app.logger.info('Clicking the add-section button')
-        self.wait_for_element_and_click(CourseDashboardEditsPage.ADD_SECTION_BUTTON)
+        self.wait_for_page_and_click(CourseDashboardEditsPage.ADD_SECTION_BUTTON)
 
     def enter_section(self, ccn):
         app.logger.info(f'Looking up CCN {ccn}')
@@ -386,6 +393,7 @@ class CourseDashboardEditsPage(CourseDashboards):
         app.logger.info('Canceling changes')
         if self.is_present(self.EVAL_CHANGE_CANCEL_BUTTON):
             self.wait_for_page_and_click(self.EVAL_CHANGE_CANCEL_BUTTON)
+            time.sleep(1)
 
     def wait_for_validation_error(self, msg):
         app.logger.info(f'Waiting for validation error at //div[contains(text(), "{msg}")]')

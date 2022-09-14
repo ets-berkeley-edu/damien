@@ -66,7 +66,7 @@ class CourseDashboards(DamienPages):
         self.wait_for_element((By.XPATH, self.eval_row_xpath(evaluation)), utils.get_medium_timeout())
 
     def visible_evaluation_rows(self):
-        return self.elements(CourseDashboards.EVALUATION_ROW)
+        return [el.text for el in self.elements(CourseDashboards.EVALUATION_ROW)]
 
     def wait_for_eval_rows(self):
         time.sleep(1)
@@ -195,15 +195,15 @@ class CourseDashboards(DamienPages):
     def filter_rows(self, search_string):
         app.logger.info(f'Filtering table by {search_string}')
         self.remove_and_enter_chars(CourseDashboards.SEARCH_INPUT, search_string)
-        time.sleep(2)
+        time.sleep(utils.get_short_timeout())
 
     # SORTING
 
     def sort_asc(self, header_string):
         self.wait_for_element((By.XPATH, f'//th[contains(., "{header_string}")]'), utils.get_short_timeout())
-        el = self.element((By.XPATH, f'//th[contains(., "{header_string}")]'))
-        sort = el.get_attribute('aria-sort')
+        sort = self.element((By.XPATH, f'//th[contains(., "{header_string}")]')).get_attribute('aria-sort')
         if sort == 'none' or sort == 'descending':
+            el = self.element((By.XPATH, f'//th[contains(., "{header_string}")]/button'))
             el.click()
             if sort == 'descending':
                 time.sleep(utils.get_click_sleep())
@@ -212,9 +212,9 @@ class CourseDashboards(DamienPages):
 
     def sort_desc(self, header_string):
         self.wait_for_element((By.XPATH, f'//th[contains(., "{header_string}")]'), utils.get_short_timeout())
-        el = self.element((By.XPATH, f'//th[contains(., "{header_string}")]'))
-        sort = el.get_attribute('aria-sort')
+        sort = self.element((By.XPATH, f'//th[contains(., "{header_string}")]')).get_attribute('aria-sort')
         if sort == 'none' or sort == 'ascending':
+            el = self.element((By.XPATH, f'//th[contains(., "{header_string}")]/button'))
             el.click()
             if sort == 'none':
                 time.sleep(utils.get_click_sleep())
@@ -375,20 +375,18 @@ class CourseDashboards(DamienPages):
             data.append(
                 {
                     'ccn': e.ccn,
-                    'listings': (e.x_listing_ccns or e.room_share_ccns),
                     'course': f'{e.subject} {e.catalog_id} {e.instruction_format} {e.section_num}',
-                    'uid': (e.instructor.uid or ''),
-                    'form': (e.dept_form or ''),
-                    'type': (e.eval_type or ''),
                 },
             )
-        unique = []
-        [unique.append(i) for i in data if i not in unique]
-        return unique
+        return data
 
     def visible_sorted_eval_data(self):
         data = self.visible_eval_data()
         for d in data:
             d.pop('dates')
             d.pop('name')
+            d.pop('uid')
+            d.pop('form')
+            d.pop('type')
+            d.pop('listings')
         return data

@@ -25,7 +25,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import copy
 import datetime
-from datetime import timedelta
 import time
 
 from mrsbaylock.test_utils import evaluation_utils
@@ -162,15 +161,6 @@ class TestEvalExports:
         evaluation = self.confirmed[1]
         evaluation_utils.set_enrollment_count_zero(evaluation)
         self.confirmed.remove(evaluation)
-
-    def test_section_dates_changed(self):
-        evaluation = self.confirmed[2]
-        evaluation.course_start_date = evaluation.course_start_date + timedelta(days=3)
-        evaluation.course_end_date = evaluation.course_end_date - timedelta(days=3)
-        evaluation.eval_start_date = None
-        evaluation.eval_end_date = None
-        evaluation_utils.calculate_eval_dates([evaluation])
-        evaluation_utils.set_section_dates(evaluation)
 
     def test_instructor_removed(self):
         evaluation = copy.deepcopy(self.confirmed[3])

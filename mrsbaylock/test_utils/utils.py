@@ -443,8 +443,7 @@ def expected_courses(evaluations):
     term = get_current_term()
     courses = []
     for row in evaluations:
-        eval_types = [e.eval_type for e in evaluations if e.ccn == row.ccn]
-        gsi_suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        gsi_suffix = '_GSI' if row.eval_type == 'G' else ''
         gsi = ' (EVAL FOR GSI)' if gsi_suffix else ''
         mid_suffix = '_MID' if '_MID' in row.dept_form else ''
         if row.x_listing_ccns:
@@ -501,8 +500,14 @@ def expected_courses(evaluations):
 
 
 def expected_course_students(evaluations):
-    ccns = "', '".join(e.ccn for e in evaluations)
     term = get_current_term()
+    course_ids = []
+    for e in evaluations:
+        gsi_suffix = '_GSI' if e.eval_type == 'G' else ''
+        mid_suffix = '_MID' if '_MID' in e.dept_form else ''
+        course_ids.append(f'{term.prefix}-{e.ccn}{gsi_suffix}{mid_suffix}')
+    course_ids = list(set(course_ids))
+    ccns = "', '".join(e.ccn for e in evaluations)
     sql = f"""
         SELECT ldap_uid, course_number
           FROM unholy_loch.sis_enrollments
@@ -514,19 +519,13 @@ def expected_course_students(evaluations):
     std_commit(allow_test_environment=True)
     enrollments = []
     for row in result:
-        data = {
-            'COURSE_ID': f'{term.prefix}-{row["course_number"]}',
-            'LDAP_UID': row['ldap_uid'],
-        }
-        enrollments.append(data)
-
-        eval_types = [e.eval_type for e in evaluations if e.ccn == row['course_number']]
-        if 'F' in eval_types and 'G' in eval_types:
-            gsi_data = {
-                'COURSE_ID': f'{term.prefix}-{row["course_number"]}_GSI',
-                'LDAP_UID': row['ldap_uid'],
-            }
-            enrollments.append(gsi_data)
+        for c in course_ids:
+            if c.split('-')[2][0:5] == row['course_number']:
+                data = {
+                    'COURSE_ID': c,
+                    'LDAP_UID': row['ldap_uid'],
+                }
+                enrollments.append(data)
     return enrollments
 
 
@@ -550,8 +549,7 @@ def expected_course_instructors(evaluations):
     term = get_current_term()
     instructors = []
     for row in evaluations:
-        eval_types = [e.eval_type for e in evaluations if e.ccn == row.ccn]
-        gsi_suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        gsi_suffix = '_GSI' if row.eval_type == 'G' else ''
         mid_suffix = '_MID' if '_MID' in row.dept_form else ''
         data = {
             'COURSE_ID': f'{term.prefix}-{row.ccn}{gsi_suffix}{mid_suffix}',
@@ -616,8 +614,7 @@ def expected_course_supervisors(evaluations, all_contacts):
 
     supervisors = []
     for row in evaluations:
-        eval_types = [e.eval_type for e in evaluations if e.ccn == row.ccn]
-        gsi_suffix = '_GSI' if 'F' in eval_types and 'G' in eval_types and row.eval_type == 'G' else ''
+        gsi_suffix = '_GSI' if row.eval_type == 'G' else ''
         mid_suffix = '_MID' if '_MID' in row.dept_form else ''
         for uid in forms_per_uid:
             if row.dept_form in uid['forms']:

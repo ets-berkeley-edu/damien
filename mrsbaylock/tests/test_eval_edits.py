@@ -105,7 +105,7 @@ class TestEvaluationManagement:
         assert not self.dept_details_admin_page.eval_dept_form(self.eval_sans_form)
 
     def test_change_dept_form(self):
-        form = self.dept_forms[-1]
+        form = next(filter(lambda f: '_MID' not in f.name, self.dept_forms))
         self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_form)
         self.dept_details_admin_page.change_dept_form(self.eval_sans_form, form)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_form)
@@ -174,7 +174,8 @@ class TestEvaluationManagement:
         instructor = utils.get_test_user()
         eval_type = next(filter(lambda t: t.name == 'WRIT', self.eval_types))
         e = next(filter(lambda ev: ev.dept_form, self.dept_1.evaluations))
-        self.dept_details_admin_page.click_cancel_eval_changes()
+        self.dept_details_admin_page.cancel_dupe()
+        self.dept_details_admin_page.click_eval_checkbox(e)
         e_dupe = self.dept_details_admin_page.duplicate_section(e, self.dept_1.evaluations, instructor=instructor,
                                                                 eval_type=eval_type)
         self.dept_details_admin_page.wait_for_eval_rows()
@@ -184,9 +185,11 @@ class TestEvaluationManagement:
         assert len(els) == 1
 
     def test_verify_no_midterm_if_no_form(self):
-        e = next(filter(lambda ev: ev.dept_form == self.dept_forms[-1].name, self.dept_1.evaluations))
+        e = next(filter(lambda ev: ev.dept_form == self.eval_sans_form.dept_form, self.dept_1.evaluations))
+        self.dept_details_admin_page.click_cancel_eval_changes()
         self.dept_details_admin_page.click_eval_checkbox(e)
-        self.dept_details_admin_page.wait_for_element_and_click(CourseDashboardEditsPage.DUPE_BUTTON)
+        self.dept_details_admin_page.wait_for_page_and_click_js(CourseDashboardEditsPage.DUPE_BUTTON)
+        time.sleep(1)
         assert not self.dept_details_admin_page.is_present(CourseDashboardEditsPage.USE_MIDTERM_FORM_CBX)
 
     def test_ensure_dept_form(self):

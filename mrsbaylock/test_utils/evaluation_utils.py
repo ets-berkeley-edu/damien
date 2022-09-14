@@ -450,7 +450,7 @@ def merge_edited_evals(evaluations, edited_evals):
         match = None
         for e in evaluations:
             if e.ccn == edit.ccn and e.instructor and e.instructor.uid == uid and e.dept_form != edit.dept_form:
-                if (edit.dept_form and '_MID' not in edit.dept_form) or not edit.dept_form:
+                if (edit.dept_form and '_MID' not in edit.dept_form and e.dept_form and '_MID' not in e.dept_form) or not edit.dept_form:
                     match = True
                     app.logger.info(f'Merging existing eval for {e.ccn}-{uid}')
                     e.status = edit.status

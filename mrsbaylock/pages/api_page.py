@@ -53,4 +53,4 @@ class ApiPage(Page):
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.presence_of_element_located((By.XPATH, '//*[contains(text(), "started")]')),
         )
-        time.sleep(utils.get_short_timeout())
+        time.sleep(utils.get_long_timeout())
