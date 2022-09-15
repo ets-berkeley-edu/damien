@@ -59,14 +59,9 @@ class TestDeptMgmt:
     def test_create_old_note(self):
         utils.create_dept_note(previous_term, dept_1, f'Past note {self.test_id}')
 
-    def test_clear_cache(self):
+    def test_dept_link(self):
         self.login_page.load_page()
         self.login_page.dev_auth()
-        self.status_board_admin_page.click_list_mgmt()
-        self.api_page.refresh_unholy_loch()
-
-    def test_dept_link(self):
-        self.homepage.load_page()
         self.group_mgmt_page.click_group_mgmt()
         self.group_mgmt_page.click_dept_link(dept_1)
 

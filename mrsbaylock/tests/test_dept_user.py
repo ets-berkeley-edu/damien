@@ -41,7 +41,7 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 class TestDeptUser:
 
     term = utils.get_current_term()
-    dept = utils.get_dept('Demography')
+    dept = utils.get_dept('Ancient Greek and Roman Studies')
     utils.reset_test_data(term)
     evaluations = evaluation_utils.get_evaluations(term, dept)
     contact = next(filter(lambda u: (len(u.dept_roles) == 1), dept.users))
@@ -186,6 +186,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_status(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_status_desc(self):
@@ -193,6 +196,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_status(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     # TODO def test_sort_by_updated_asc(self):
@@ -203,6 +209,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_ccn(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_ccn_desc(self):
@@ -210,6 +219,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_ccn(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_course_asc(self):
@@ -217,6 +229,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_course(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_course_desc(self):
@@ -224,6 +239,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_course(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_instr_asc(self):
@@ -231,6 +249,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_instructor(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_instr_desc(self):
@@ -238,6 +259,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_instructor(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_dept_form_asc(self):
@@ -245,6 +269,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_dept_form(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_dept_form_desc(self):
@@ -252,6 +279,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_dept_form(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_eval_type_asc(self):
@@ -259,6 +289,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_eval_type(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_eval_type_desc(self):
@@ -266,6 +299,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_eval_type(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_eval_start_asc(self):
@@ -273,6 +309,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_eval_period(self.dept, self.evaluations)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_eval_start_desc(self):
@@ -280,6 +319,9 @@ class TestDeptUser:
         evals = self.dept_details_dept_page.sort_by_eval_period(self.dept, self.evaluations, reverse=True)
         visible = self.dept_details_dept_page.visible_sorted_eval_data()
         expected = self.dept_details_dept_page.sorted_eval_data(evals)
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     # EVALUATION FILTERING
@@ -288,20 +330,23 @@ class TestDeptUser:
         evaluation = next(filter(lambda e: not e.x_listing_ccns and not e.room_share_ccns, self.evaluations))
         self.dept_details_dept_page.filter_rows(evaluation.ccn)
         self.dept_details_dept_page.wait_for_eval_row(evaluation)
+        app.logger.info(f'Visible eval rows {self.dept_details_dept_page.visible_evaluation_rows()}')
         assert len(self.dept_details_dept_page.visible_evaluation_rows()) == 1
 
     def test_filter_x_listing(self):
-        evaluation = next(filter(lambda e: e.x_listing_ccns, self.evaluations))
-        listings = list(filter(lambda e: evaluation.ccn in e.x_listing_ccns, self.evaluations))
+        evaluation = next(filter(lambda e: (e.x_listing_ccns or e.room_share_ccns), self.evaluations))
+        listings = list(filter(lambda e: (evaluation.ccn in (e.x_listing_ccns or e.room_share_ccns)), self.evaluations))
         self.dept_details_dept_page.filter_rows(evaluation.ccn)
         self.dept_details_dept_page.wait_for_eval_row(evaluation)
+        app.logger.info(f'Visible eval rows {self.dept_details_dept_page.visible_evaluation_rows()}')
         assert len(self.dept_details_dept_page.visible_evaluation_rows()) == (1 + len(listings))
 
     def test_filter_by_course_code(self):
-        evaluation = next(filter(lambda e: not e.x_listing_ccns, self.evaluations))
+        evaluation = next(filter(lambda e: (not e.x_listing_ccns and not e.room_share_ccns), self.evaluations))
         string = f'{evaluation.subject} {evaluation.catalog_id}'
         self.dept_details_dept_page.filter_rows(string)
         expected = list(filter(lambda e: string in f'{e.subject} {e.catalog_id}', self.evaluations))
+        app.logger.info(f'Visible eval rows {self.dept_details_dept_page.visible_evaluation_rows()}')
         assert len(self.dept_details_dept_page.visible_evaluation_rows()) == len(expected)
 
     def test_filter_by_instr_name(self):
@@ -309,6 +354,7 @@ class TestDeptUser:
         evaluations = list(filter(lambda e: e.instructor.uid == evaluation.instructor.uid, self.evaluations))
         string = f'{evaluation.instructor.first_name} {evaluation.instructor.last_name}'
         self.dept_details_dept_page.filter_rows(string)
+        app.logger.info(f'Visible eval rows {self.dept_details_dept_page.visible_evaluation_rows()}')
         assert len(self.dept_details_dept_page.visible_evaluation_rows()) == len(evaluations)
 
     def test_filter_by_period(self):
@@ -318,4 +364,5 @@ class TestDeptUser:
             app.logger.info(f'{ev.ccn} {ev.instructor.uid} {ev.eval_start_date}')
         string = f"{evaluation.eval_start_date.strftime('%m/%d')}"
         self.dept_details_dept_page.filter_rows(string)
+        app.logger.info(f'Visible eval rows {self.dept_details_dept_page.visible_evaluation_rows()}')
         assert len(self.dept_details_dept_page.visible_evaluation_rows()) == len(evaluations)
