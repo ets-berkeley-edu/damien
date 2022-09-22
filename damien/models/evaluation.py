@@ -751,11 +751,13 @@ class Evaluation(Base):
 
     def update_validity(self, saved_evaluation, foreign_dept_evaluations):
         self.valid = True
+        updated = False
         if saved_evaluation:
             updated_validity = self.is_valid()
             if updated_validity != saved_evaluation.valid:
                 saved_evaluation.valid = updated_validity
                 db.session.add(saved_evaluation)
+                updated = True
                 clear_department_cache(self.department_id, self.term_id)
             self.valid = saved_evaluation.valid
         for fde in foreign_dept_evaluations:
@@ -763,9 +765,11 @@ class Evaluation(Base):
             if updated_validity != fde.valid:
                 fde.valid = updated_validity
                 db.session.add(fde)
+                updated = True
                 clear_department_cache(fde.department_id, self.term_id)
-        clear_section_cache(self.term_id, self.course_number)
-        std_commit()
+        if updated:
+            clear_section_cache(self.term_id, self.course_number)
+            std_commit()
 
 
 def is_modular(start_date, end_date):
