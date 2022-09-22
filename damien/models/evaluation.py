@@ -454,8 +454,9 @@ class Evaluation(Base):
             orm.contains_eager(Evaluation.evaluation_type),
         )
         results = orm_sql.all()
-        app.logger.info(f'Evaluation get_duplicates query returned {len(results)} results: {query}\n{params}')
-        app.logger.warning(results)
+        if len(results):
+            app.logger.info(f'Evaluation get_duplicates query returned {len(results)} results: {query}\n{params}')
+            app.logger.info(results)
         return results
 
     @classmethod
