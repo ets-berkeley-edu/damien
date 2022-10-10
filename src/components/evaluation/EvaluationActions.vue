@@ -12,9 +12,9 @@
           @click.stop="action.apply(key)"
           @keypress.enter.prevent="action.apply(key)"
         >
-          <span v-if="!(isLoading && key !== 'duplicate' && applyingAction.key ===  key)">{{ action.text }}</span>
+          <span v-if="!(isLoading && key !== 'duplicate' && applyingAction.key === key)">{{ action.text }}</span>
           <v-progress-circular
-            v-if="isLoading && key !== 'duplicate' && applyingAction.key ===  key"
+            v-if="isLoading && key !== 'duplicate' && applyingAction.key === key"
             :indeterminate="true"
             color="tertiary"
             rotate="5"

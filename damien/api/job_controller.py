@@ -25,7 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien.api.errors import InternalServerError
 from damien.api.util import admin_required
-from damien.jobs.refresh_unholy_loch import refresh_from_api
+from damien.jobs.refresh_unholy_loch import is_refreshing, refresh_from_api
 from damien.lib.http import tolerant_jsonify
 from flask import current_app as app
 
@@ -37,3 +37,10 @@ def refresh_unholy_loch():
         return tolerant_jsonify({'status': 'started'})
     else:
         raise InternalServerError('Refresh job failed.')
+
+
+@app.route('/api/job/status')
+@admin_required
+def status():
+    status = 'executing' if is_refreshing() else 'done'
+    return tolerant_jsonify({'status': status})
