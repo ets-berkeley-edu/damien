@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import os
-from threading import Thread
+from threading import enumerate, Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from damien import db, std_commit
@@ -45,6 +45,14 @@ def initialize_refresh_schedule(app):
         scheduler.start()
 
 
+def is_refreshing():
+    alive_threads = enumerate()
+    for t in alive_threads:
+        if t.name == 'refresh_unholy_loch':
+            return True
+    return False
+
+
 def refresh_from_api():
     from flask import current_app as app
     app_arg = app._get_current_object()
@@ -58,7 +66,7 @@ def _refresh_unholy_loch(app):
             return True
         else:
             app.logger.info('About to start background thread.')
-            thread = Thread(target=_bg_refresh_unholy_loch, args=[app], daemon=True)
+            thread = Thread(target=_bg_refresh_unholy_loch, name='refresh_unholy_loch', args=[app], daemon=True)
             thread.start()
             return True
 

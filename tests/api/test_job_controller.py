@@ -48,3 +48,26 @@ class TestJobRefresh:
     def test_authorized(self, client, fake_auth):
         fake_auth.login(admin_uid)
         _api_refresh_loch(client)
+
+
+def _api_job_status(client, expected_status_code=200):
+    response = client.get('/api/job/status')
+    assert response.status_code == expected_status_code
+    return response.json
+
+
+class TestJobStatus:
+
+    def test_anonymous(self, client):
+        """Denies anonymous user."""
+        _api_job_status(client, expected_status_code=401)
+
+    def test_unauthorized(self, client, fake_auth):
+        """Denies unauthorized user."""
+        fake_auth.login(non_admin_uid)
+        _api_job_status(client, expected_status_code=401)
+
+    def test_authorized(self, client, fake_auth):
+        fake_auth.login(admin_uid)
+        response = _api_job_status(client)
+        assert response['status'] == 'done'
