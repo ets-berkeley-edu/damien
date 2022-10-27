@@ -147,22 +147,45 @@ class Section:
         # Multiple loch rows for a single section-instructor pairing are possible.
         loch_rows_by_instructor_uid = {k: list(v) for k, v in groupby(self.loch_rows, key=lambda r: r['instructor_uid'])}
         merged_evaluation_uids = set()
+        self.uids_with_midterm_and_final = set()
 
         home_dept_evals = []
         foreign_dept_evals_by_uid = {}
 
+        def _stash_foreign_evals(eval_rows, key):
+            if eval_rows:
+                if key not in foreign_dept_evals_by_uid:
+                    foreign_dept_evals_by_uid[key] = []
+                foreign_dept_evals_by_uid[key].extend(eval_rows)
+
         for instructor_uid, evaluations_for_instructor_uid in groupby(self.evaluations, key=lambda e: e.instructor_uid):
             evaluations_for_instructor_uid = list(evaluations_for_instructor_uid)
-            foreign_dept_evals = []
+            has_midterm_evals = False
+            has_final_evals = False
+            foreign_dept_evals_midterm = []
+            foreign_dept_evals_final = []
+
             for evaluation in evaluations_for_instructor_uid:
+                if evaluation.is_midterm():
+                    has_midterm_evals = True
+                else:
+                    has_final_evals = True
+
                 if evaluation.department == department:
                     home_dept_evals.append(evaluation)
+                elif evaluation.is_midterm():
+                    foreign_dept_evals_midterm.append(evaluation)
                 else:
-                    foreign_dept_evals.append(evaluation)
-            if foreign_dept_evals:
-                if instructor_uid not in foreign_dept_evals_by_uid:
-                    foreign_dept_evals_by_uid[instructor_uid] = []
-                foreign_dept_evals_by_uid[instructor_uid].extend(foreign_dept_evals)
+                    foreign_dept_evals_final.append(evaluation)
+
+            # Course-instructor pairings with both midterm and final evaluations in the database require special handling.
+            if has_midterm_evals and has_final_evals:
+                self.uids_with_midterm_and_final.add(instructor_uid)
+                _stash_foreign_evals(foreign_dept_evals_midterm, f'{instructor_uid}-midterm')
+                _stash_foreign_evals(foreign_dept_evals_final, f'{instructor_uid}-final')
+            # Otherwise, if midterm-and-final special handling is not needed, we stash all foreign department evals together under the instructor UID.
+            else:
+                _stash_foreign_evals((foreign_dept_evals_midterm + foreign_dept_evals_final), instructor_uid)
 
         self.merge_home_dept_evaluations(
             merged_evaluations,
@@ -198,15 +221,22 @@ class Section:
         for evaluation in home_dept_evals:
             if not evaluation.is_visible():
                 continue
-            merged_evaluation_uids.add(evaluation.instructor_uid)
             # When merging evaluation data for a specific instructor, we prefer in order: 1) loch rows for that specific
             # instructor; 2) loch rows with no instructor; 3) any loch rows available.
             loch_rows_for_uid = loch_rows_by_instructor_uid.get(evaluation.instructor_uid) or loch_rows_by_instructor_uid.get(None) or self.loch_rows
+
+            merged_evaluation_uids.add(evaluation.instructor_uid)
+            if evaluation.instructor_uid in self.uids_with_midterm_and_final:
+                evals_key = f'{evaluation.instructor_uid}-midterm' if evaluation.is_midterm() else f'{evaluation.instructor_uid}-final'
+                merged_evaluation_uids.add(evals_key)
+            else:
+                evals_key = evaluation.instructor_uid
+
             merged_evaluations.append(Evaluation.merge_transient(
                 evaluation.instructor_uid,
                 loch_rows_for_uid,
                 saved_evaluation=evaluation,
-                foreign_dept_evaluations=foreign_dept_evals_by_uid.get(evaluation.instructor_uid, []),
+                foreign_dept_evaluations=foreign_dept_evals_by_uid.get(evals_key, []),
                 instructor=self.instructors.get(evaluation.instructor_uid),
                 default_form=self.default_form,
                 default_evaluation_types=self.default_evaluation_types,
@@ -227,12 +257,15 @@ class Section:
             # Ignore rows without an instructor unless we have no saved evaluations.
             if instructor_uid is None and len(self.evaluations):
                 continue
-            merged_evaluation_uids.add(instructor_uid)
+
+            eval_key = f'{instructor_uid}-final' if instructor_uid in self.uids_with_midterm_and_final else instructor_uid
+            merged_evaluation_uids.add(eval_key)
+
             merged_evaluations.append(Evaluation.merge_transient(
                 instructor_uid,
                 loch_rows_for_uid,
                 saved_evaluation=None,
-                foreign_dept_evaluations=foreign_dept_evals_by_uid.get(instructor_uid, []),
+                foreign_dept_evaluations=foreign_dept_evals_by_uid.get(eval_key, []),
                 instructor=self.instructors.get(instructor_uid),
                 default_form=self.default_form,
                 default_evaluation_types=self.default_evaluation_types,
@@ -246,11 +279,15 @@ class Section:
         merged_evaluation_uids,
     ):
         # Add foreign department rows.
-        for instructor_uid, evaluations_for_instructor_uid in foreign_dept_evals_by_uid.items():
+        for eval_key, evaluations_for_instructor_uid in foreign_dept_evals_by_uid.items():
             # Ignore instructor UIDs already handled under saved evaluations.
-            if instructor_uid in merged_evaluation_uids:
+            if eval_key in merged_evaluation_uids:
                 continue
+
+            # In the case of midterm-and-final special handling, the "-midterm" or "-final" suffix needs to be chopped off the instructor UID.
+            instructor_uid = eval_key.split('-')[0]
             loch_rows_for_uid = loch_rows_by_instructor_uid.get(instructor_uid) or loch_rows_by_instructor_uid.get(None) or self.loch_rows
+
             merged_evaluations.append(Evaluation.merge_transient(
                 instructor_uid,
                 loch_rows_for_uid,

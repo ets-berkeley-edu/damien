@@ -91,6 +91,13 @@ class TestEnrolledDepartments:
             assert d['isEnrolled']
 
 
+def _api_get_history(client, expected_status_code=200):
+    dept = Department.find_by_name('History')
+    response = client.get(f'/api/department/{dept.id}')
+    assert response.status_code == expected_status_code
+    return response.json
+
+
 def _api_get_melc(client, expected_status_code=200):
     dept = Department.find_by_name('Middle Eastern Languages and Cultures')
     response = client.get(f'/api/department/{dept.id}')
@@ -510,6 +517,43 @@ class TestDuplicateEvaluation:
         for r in response:
             assert r['valid'] is True
             assert r['conflicts'] == {}
+
+    def test_duplicate_midterm_crosslisted(self, client, fake_auth, form_melc_id):
+        from tests.api.test_department_form_controller import _api_add_department_form
+        fake_auth.login(admin_uid)
+        form_melc_mid_id = _api_add_department_form(client, 'MELC_MID')['id']
+
+        fake_auth.login(non_admin_uid)
+        response = _api_update_evaluation(
+            client,
+            params={
+                'evaluationIds': ['_2222_30470_326054'],
+                'action': 'duplicate',
+                'fields': {'midterm': 'true', 'startDate': '2022-03-01'},
+            },
+        )
+        midterm_eval_id = next(r['id'] for r in response if r['startDate'] == '2022-03-01')
+        final_eval_id = next(r['id'] for r in response if r['startDate'] == '2022-04-18')
+        _api_update_evaluation(client, params={
+            'evaluationIds': [midterm_eval_id],
+            'action': 'edit',
+            'fields': {'departmentFormId': form_melc_mid_id},
+        })
+        _api_update_evaluation(client, params={
+            'evaluationIds': [final_eval_id],
+            'action': 'edit',
+            'fields': {'departmentFormId': form_melc_id},
+        })
+
+        fake_auth.login(non_admin_uid)
+        for dept in [_api_get_melc(client), _api_get_history(client)]:
+            dept_listings = [e for e in dept['evaluations'] if e['subjectArea'] == 'MELC'
+                             and e['catalogId'] == 'C188' and e['instructor']['uid'] == '326054']
+            assert len(dept_listings) == 2
+            assert next(dl for dl in dept_listings if dl['departmentForm']['name'] == 'MELC_MID'
+                        and dl['startDate'] == '2022-03-01' and dl['transientId'] == '_2222_30470_326054_midterm')
+            assert next(dl for dl in dept_listings if dl['departmentForm']['name'] == 'MELC'
+                        and dl['startDate'] == '2022-04-18' and dl['transientId'] == '_2222_30470_326054_final')
 
     def test_duplicate_create_conflict(self, client, fake_auth):
         fake_auth.login(non_admin_uid)

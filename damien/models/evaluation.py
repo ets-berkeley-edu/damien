@@ -572,6 +572,9 @@ class Evaluation(Base):
     def get_id(self):
         return self.id or self.transient_id()
 
+    def is_midterm(self):
+        return True if self.department_form and self.department_form.name.endswith('MID') else False
+
     def is_transient(self):
         return self.id is None
 
@@ -711,10 +714,17 @@ class Evaluation(Base):
 
         feed_status = 'review' if self.status == 'marked' else self.status
 
+        transient_id = self.transient_id()
+        if self.instructor_uid in section.uids_with_midterm_and_final:
+            if self.is_midterm():
+                transient_id = transient_id + '_midterm'
+            else:
+                transient_id = transient_id + '_final'
+
         feed = section.to_api_json()
         feed.update({
-            'id': self.get_id(),
-            'transientId': self.transient_id(),
+            'id': self.id or transient_id,
+            'transientId': transient_id,
             'status': feed_status,
             'instructor': section.instructors.get(self.instructor_uid),
             'defaultDepartmentForm': default_dept_form_feed,
@@ -786,7 +796,7 @@ def _parse_transient_id(transient_id):
     if not isinstance(transient_id, str):
         return None
     components = transient_id.split('_')
-    if len(components) != 4:
+    if len(components) < 4:
         return None
     return {
         'term_id': components[1],
