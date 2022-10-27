@@ -151,7 +151,7 @@ DROP TABLE tmp_sis_instructors;
 
 -- Any current-term evaluations not yet confirmed or marked which refer to deleted instructors should have the instructor UID removed.
 UPDATE evaluations
-  SET instructor_uid = NULL
+  SET instructor_uid = NULL, updated_by = '0'
   WHERE term_id = '{term_id}'
   AND id IN (
   SELECT e.id FROM evaluations e
