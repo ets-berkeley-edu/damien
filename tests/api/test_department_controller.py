@@ -411,7 +411,12 @@ class TestUpdateEvaluationStatus:
         assert response[0]['instructor']['uid'] == '637739'
         assert response[0]['status'] == 'confirmed'
         assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['lastUpdated'] is not None
         assert response[0]['transientId'] == '_2222_30659_637739'
+        updated = Evaluation.find_by_id(response[0]['id'])
+        assert updated.created_at is not None
+        assert updated.updated_at is not None
+        assert updated.updated_by == non_admin_uid
 
     def test_mark_unmark(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
@@ -423,12 +428,22 @@ class TestUpdateEvaluationStatus:
         assert response[0]['instructor']['uid'] == '637739'
         assert response[0]['status'] == 'review'
         assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['lastUpdated'] is not None
         assert response[0]['transientId'] == '_2222_30659_637739'
         evaluation_id = response[0]['id']
+        updated = Evaluation.find_by_id(evaluation_id)
+        assert updated.created_at is not None
+        assert updated.updated_at is not None
+        assert updated.updated_by == non_admin_uid
         response = _api_update_evaluation(client, params={'evaluationIds': [evaluation_id], 'action': 'unmark'})
         assert response[0]['courseNumber'] == '30659'
         assert response[0]['id'] == evaluation_id
+        assert response[0]['lastUpdated'] is not None
         assert response[0]['status'] is None
+        updated = Evaluation.find_by_id(evaluation_id)
+        assert updated.created_at is not None
+        assert updated.updated_at is not None
+        assert updated.updated_by == non_admin_uid
 
 
 class TestDuplicateEvaluation:
@@ -445,7 +460,12 @@ class TestDuplicateEvaluation:
             assert r['instructor']['uid'] == '637739'
             assert r['transientId'] == '_2222_30659_637739'
             assert r['id'] == int(r['id'])
+            assert r['lastUpdated'] is not None
             assert r['startDate'] == '2022-04-18'
+            updated = Evaluation.find_by_id(r['id'])
+            assert updated.created_by == non_admin_uid
+            assert updated.updated_at is not None
+            assert updated.updated_by == non_admin_uid
 
     def test_duplicate_for_midterm(self, client, fake_auth):
         from tests.api.test_department_form_controller import _api_add_department_form
@@ -466,14 +486,24 @@ class TestDuplicateEvaluation:
         midterm_eval = next(r for r in response if r['startDate'] == '2022-03-01')
         assert midterm_eval['courseNumber'] == '30659'
         assert midterm_eval['courseTitle'] == 'Elementary Sumerian'
-        assert midterm_eval['instructor']['uid'] == '637739'
         assert midterm_eval['departmentForm']['name'] == 'CUNEIF_MID'
+        assert midterm_eval['instructor']['uid'] == '637739'
+        assert midterm_eval['lastUpdated'] is not None
+        duplicate = Evaluation.find_by_id(midterm_eval['id'])
+        assert duplicate.created_by == non_admin_uid
+        assert duplicate.updated_at is not None
+        assert duplicate.updated_by == non_admin_uid
 
         final_eval = next(r for r in response if r['startDate'] == '2022-04-18')
         assert final_eval['courseNumber'] == '30659'
         assert final_eval['courseTitle'] == 'Elementary Sumerian'
-        assert final_eval['instructor']['uid'] == '637739'
         assert final_eval['departmentForm']['name'] == 'CUNEIF'
+        assert final_eval['instructor']['uid'] == '637739'
+        assert final_eval['lastUpdated'] is not None
+        original = Evaluation.find_by_id(final_eval['id'])
+        assert original.created_by == non_admin_uid
+        assert original.updated_at is not None
+        assert original.updated_by == non_admin_uid
 
         response = _api_update_evaluation(client, params={'evaluationIds': [midterm_eval['id'], final_eval['id']], 'action': 'review'})
         assert len(response) == 2
@@ -502,7 +532,12 @@ class TestDuplicateEvaluation:
             assert r['instructor']['uid'] == '824122'
             assert r['transientId'] == '_2222_30457_824122'
             assert r['id'] == int(r['id'])
+            assert r['lastUpdated'] is not None
             assert r['valid'] is True
+            updated = Evaluation.find_by_id(r['id'])
+            assert updated.created_by == non_admin_uid
+            assert updated.updated_at is not None
+            assert updated.updated_by == non_admin_uid
 
         # mark the two conflicting rows for review
         response = _api_update_evaluation(
@@ -560,9 +595,14 @@ class TestEditEvaluation:
             'fields': {'departmentFormId': '13'},
         })
         assert len(response) == 1
-        assert response[0]['id'] == int(response[0]['id'])
-        assert response[0]['transientId'] == '_2222_30643_326054'
         assert response[0]['departmentForm']['id'] == 13
+        assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['lastUpdated'] is not None
+        assert response[0]['transientId'] == '_2222_30643_326054'
+        updated = Evaluation.find_by_id(response[0]['id'])
+        assert updated.created_at is not None
+        assert updated.updated_at is not None
+        assert updated.updated_by == non_admin_uid
         # Unset department form, reverting to None
         response = _api_update_evaluation(client, params={
             'evaluationIds': [response[0]['id']],
@@ -570,9 +610,14 @@ class TestEditEvaluation:
             'fields': {'departmentFormId': None},
         })
         assert len(response) == 1
-        assert response[0]['id'] == int(response[0]['id'])
-        assert response[0]['transientId'] == '_2222_30643_326054'
         assert response[0]['departmentForm'] is None
+        assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['lastUpdated'] is not None
+        assert response[0]['transientId'] == '_2222_30643_326054'
+        updated = Evaluation.find_by_id(response[0]['id'])
+        assert updated.created_at is not None
+        assert updated.updated_at is not None
+        assert updated.updated_by == non_admin_uid
 
     def test_bad_eval_type(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
@@ -602,9 +647,14 @@ class TestEditEvaluation:
             'fields': {'evaluationTypeId': '3'},
         })
         assert len(response) == 1
-        assert response[0]['id'] == int(response[0]['id'])
-        assert response[0]['transientId'] == '_2222_30659_637739'
         assert response[0]['evaluationType']['id'] == 3
+        assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['lastUpdated'] is not None
+        assert response[0]['transientId'] == '_2222_30659_637739'
+        updated = Evaluation.find_by_id(response[0]['id'])
+        assert updated.created_at is not None
+        assert updated.updated_at is not None
+        assert updated.updated_by == non_admin_uid
         # Unset evaluation type, reverting to initial value
         response = _api_update_evaluation(client, params={
             'evaluationIds': [response[0]['id']],
@@ -612,9 +662,14 @@ class TestEditEvaluation:
             'fields': {'evaluationTypeId': None},
         })
         assert len(response) == 1
-        assert response[0]['id'] == int(response[0]['id'])
-        assert response[0]['transientId'] == '_2222_30659_637739'
         assert response[0]['evaluationType']['id'] == initial_evaluation_type_id
+        assert response[0]['id'] == int(response[0]['id'])
+        assert response[0]['lastUpdated'] is not None
+        assert response[0]['transientId'] == '_2222_30659_637739'
+        updated = Evaluation.find_by_id(response[0]['id'])
+        assert updated.created_at is not None
+        assert updated.updated_at is not None
+        assert updated.updated_by == non_admin_uid
 
     def test_bad_instructor_uid(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
@@ -639,6 +694,11 @@ class TestEditEvaluation:
         assert response[0]['instructor']['firstName'] == 'Lxqtbhzei'
         assert response[0]['instructor']['lastName'] == 'Ybaehymnl'
         assert response[0]['instructor']['emailAddress'] == 'puejolbi@berkeley.edu'
+        assert response[0]['lastUpdated'] is not None
+        updated = Evaluation.find_by_id(response[0]['id'])
+        assert updated.created_at is not None
+        assert updated.updated_at is not None
+        assert updated.updated_by == non_admin_uid
 
     def test_bad_date(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
@@ -673,6 +733,11 @@ class TestEditEvaluation:
         assert response[0]['transientId'] == '_2222_30659_637739'
         assert response[0]['startDate'] == '2022-04-01'
         assert response[0]['endDate'] == '2022-04-14'
+        assert response[0]['lastUpdated'] is not None
+        updated = Evaluation.find_by_id(response[0]['id'])
+        assert updated.created_at is not None
+        assert updated.updated_at is not None
+        assert updated.updated_by == non_admin_uid
 
     def test_edit_confirm_conflicts(self, client, fake_auth, history_id, form_melc_id, form_history_id, type_f_id, type_g_id):
         """Prevents duplicate evaluations for the same instructor from being confirmed with conflicting fields."""
@@ -749,6 +814,9 @@ class TestEditEvaluation:
         assert edited_eval.department_form_id == form_melc_id
         assert edited_eval.evaluation_type_id == type_f_id
         assert edited_eval.status == 'confirmed'
+        assert edited_eval.updated_at is not None
+        assert edited_eval.updated_at is not None
+        assert edited_eval.updated_by == non_admin_uid
 
 
 def _api_get_evaluation(client, dept_id, course_number, instructor_uid):
@@ -807,12 +875,19 @@ class TestEditEvaluationMultipleDepartments:
         assert melc_eval['status'] is None
         assert melc_eval['departmentForm']['id'] == 13
         assert melc_eval['evaluationType']['id'] == 3
+        assert melc_eval['lastUpdated'] is not None
         assert melc_eval['startDate'] == '2022-04-27'
+        updated_melc = Evaluation.find_by_id(melc_eval['id'])
+        assert updated_melc.created_at is not None
+        assert updated_melc.updated_at is not None
+        assert updated_melc.updated_by == non_admin_uid
         history_eval = _api_get_evaluation(client, history_id, '30643', '326054')
         assert history_eval['status'] is None
         assert history_eval['departmentForm']['id'] == 13
         assert history_eval['evaluationType']['id'] == 3
+        assert history_eval['lastUpdated'] is not None
         assert history_eval['startDate'] == '2022-04-27'
+        fake_auth.login(admin_uid)
         _api_update_evaluation(client, dept_id=history_id, params={'evaluationIds': ['_2222_30643_326054'], 'action': 'confirm'})
         history_eval_confirmed = _api_get_evaluation(client, history_id, '30643', '326054')
         assert history_eval_confirmed['status'] == 'confirmed'
@@ -820,12 +895,18 @@ class TestEditEvaluationMultipleDepartments:
         assert history_eval_confirmed['departmentForm']['id'] == 13
         assert history_eval_confirmed['evaluationType']['id'] == 3
         assert history_eval_confirmed['startDate'] == '2022-04-27'
+        assert history_eval_confirmed['lastUpdated'] is not None
+        updated_history = Evaluation.find_by_id(history_eval_confirmed['id'])
+        assert updated_history.created_at is not None
+        assert updated_history.updated_at is not None
+        assert updated_history.updated_by == admin_uid
         melc_eval_confirmed = _api_get_evaluation(client, melc_id, '30643', '326054')
         assert melc_eval_confirmed['status'] == 'confirmed'
         assert melc_eval_confirmed['conflicts'] == {}
         assert melc_eval_confirmed['departmentForm']['id'] == 13
         assert melc_eval_confirmed['evaluationType']['id'] == 3
         assert melc_eval_confirmed['startDate'] == '2022-04-27'
+        assert melc_eval_confirmed['lastUpdated'] is not None
 
     def test_evaluation_edits_show_conflicts(
         self,
@@ -896,8 +977,9 @@ class TestAddSection:
         department = _api_get_melc(client)
         assert len(department['evaluations']) == 43
         new_section = next(e for e in department['evaluations'] if e['courseNumber'] == '32940')
-        assert new_section['instructionFormat'] == 'IND'
         assert new_section['courseTitle'] == 'Special Studies: Cuneiform'
+        assert new_section['instructionFormat'] == 'IND'
+        assert new_section['lastUpdated'] is not None
 
     def test_add_foreign_course(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
@@ -910,8 +992,9 @@ class TestAddSection:
         department = _api_get_melc(client)
         assert len(department['evaluations']) == 43
         new_section = next(e for e in department['evaluations'] if e['courseNumber'] == '30481')
-        assert new_section['subjectArea'] == 'LGBT'
         assert new_section['courseTitle'] == 'Alternative Sexual Identities and Communities in Contemporary American Society'
+        assert new_section['subjectArea'] == 'LGBT'
+        assert new_section['lastUpdated'] is not None
 
 
 def _api_update_department_note(client, dept=None, params={}, expected_status_code=200):

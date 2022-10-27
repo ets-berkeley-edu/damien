@@ -261,6 +261,9 @@ class Evaluation(Base):
                 _set_defaults(evaluation, original_evaluation_feed)
                 _set_defaults(duplicate, original_evaluation_feed)
 
+            if not evaluation.created_by:
+                evaluation.created_by = current_user.get_uid()
+            evaluation.updated_by = current_user.get_uid()
             duplicate.created_by = current_user.get_uid()
             duplicate.updated_by = current_user.get_uid()
 
@@ -526,6 +529,8 @@ class Evaluation(Base):
             if not evaluation:
                 continue
             evaluation.set_fields(fields)
+            if not evaluation.created_by:
+                evaluation.created_by = current_user.get_uid()
             evaluation.department_id = department_id
             evaluation.updated_by = current_user.get_uid()
             db.session.add(evaluation)
