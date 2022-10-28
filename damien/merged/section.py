@@ -285,7 +285,10 @@ class Section:
                 continue
 
             # In the case of midterm-and-final special handling, the "-midterm" or "-final" suffix needs to be chopped off the instructor UID.
-            instructor_uid = eval_key.split('-')[0]
+            if eval_key and not eval_key.startswith('None'):
+                instructor_uid = eval_key.split('-')[0]
+            else:
+                instructor_uid = None
             loch_rows_for_uid = loch_rows_by_instructor_uid.get(instructor_uid) or loch_rows_by_instructor_uid.get(None) or self.loch_rows
 
             merged_evaluations.append(Evaluation.merge_transient(
