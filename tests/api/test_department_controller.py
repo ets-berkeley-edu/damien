@@ -415,6 +415,11 @@ class TestUpdateEvaluationStatus:
         assert response[0]['transientId'] == '_2222_30659_637739'
         updated = Evaluation.find_by_id(response[0]['id'])
         assert updated.created_at is not None
+        assert updated.department_form is not None
+        assert updated.department_form.name == 'CUNEIF'
+        assert updated.evaluation_type is not None
+        assert updated.evaluation_type.name == 'F'
+        assert updated.start_date is not None
         assert updated.updated_at is not None
         assert updated.updated_by == non_admin_uid
 
@@ -896,17 +901,31 @@ class TestEditEvaluationMultipleDepartments:
         assert history_eval_confirmed['evaluationType']['id'] == 3
         assert history_eval_confirmed['startDate'] == '2022-04-27'
         assert history_eval_confirmed['lastUpdated'] is not None
-        updated_history = Evaluation.find_by_id(history_eval_confirmed['id'])
-        assert updated_history.created_at is not None
-        assert updated_history.updated_at is not None
-        assert updated_history.updated_by == admin_uid
+        history_eval_row = Evaluation.find_by_id(history_eval_confirmed['id'])
+        assert history_eval_row.created_at is not None
+        assert history_eval_row.department_form is not None
+        assert history_eval_row.department_form.id == 13
+        assert history_eval_row.evaluation_type is not None
+        assert history_eval_row.evaluation_type.id == 3
+        assert history_eval_row.start_date is not None
+        assert history_eval_row.updated_at is not None
+        assert history_eval_row.updated_by == admin_uid
         melc_eval_confirmed = _api_get_evaluation(client, melc_id, '30643', '326054')
         assert melc_eval_confirmed['status'] == 'confirmed'
         assert melc_eval_confirmed['conflicts'] == {}
         assert melc_eval_confirmed['departmentForm']['id'] == 13
         assert melc_eval_confirmed['evaluationType']['id'] == 3
-        assert melc_eval_confirmed['startDate'] == '2022-04-27'
+        assert melc_eval_confirmed['startDate'] is not None
         assert melc_eval_confirmed['lastUpdated'] is not None
+        melc_eval_row = Evaluation.find_by_id(history_eval_confirmed['id'])
+        assert melc_eval_row.created_at is not None
+        assert melc_eval_row.department_form is not None
+        assert melc_eval_row.department_form.id == 13
+        assert melc_eval_row.evaluation_type is not None
+        assert melc_eval_row.evaluation_type.id == 3
+        assert melc_eval_row.start_date is not None
+        assert melc_eval_row.updated_at is not None
+        assert melc_eval_row.updated_by == admin_uid
 
     def test_evaluation_edits_show_conflicts(
         self,

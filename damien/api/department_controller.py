@@ -136,8 +136,14 @@ def update_evaluations(department_id):  # noqa C901
     term_id = get_term_id(request)
     updated_ids = []
     if action == 'confirm':
-        _validate_confirmable(department, evaluation_ids, term_id)
-        updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'confirmed'})
+        evaluations_feed = department.evaluations_feed(term_id=term_id)
+        _validate_confirmable(evaluation_ids, term_id, evaluations_feed)
+        updated_ids = Evaluation.update_bulk(
+            department_id=department_id,
+            evaluation_ids=evaluation_ids,
+            fields={'status': 'confirmed'},
+            evaluations_feed=evaluations_feed,
+        )
     elif action == 'delete':
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'deleted'})
     elif action == 'duplicate':
@@ -147,9 +153,16 @@ def update_evaluations(department_id):  # noqa C901
         updated_ids = Evaluation.duplicate_bulk(department=department, term_id=term_id, evaluation_ids=evaluation_ids, fields=fields)
     elif action == 'edit':
         fields = _validate_evaluation_fields(params.get('fields'), term_id)
+        evaluations_feed = None
         if fields.get('status') == 'confirmed':
-            _validate_confirmable(department, evaluation_ids, term_id, fields=fields)
-        updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields=fields)
+            evaluations_feed = department.evaluations_feed(term_id=term_id)
+            _validate_confirmable(evaluation_ids, term_id, evaluations_feed, fields=fields)
+        updated_ids = Evaluation.update_bulk(
+            department_id=department_id,
+            evaluation_ids=evaluation_ids,
+            fields=fields,
+            evaluations_feed=evaluations_feed,
+        )
     elif action == 'review':
         updated_ids = Evaluation.update_bulk(department_id=department_id, evaluation_ids=evaluation_ids, fields={'status': 'marked'})
     elif action == 'ignore':
@@ -164,7 +177,7 @@ def update_evaluations(department_id):  # noqa C901
     return tolerant_jsonify(response)
 
 
-def _validate_confirmable(department, evaluation_ids, term_id, fields={}):
+def _validate_confirmable(evaluation_ids, term_id, evaluations_feed, fields={}):
 
     def _is_numeric(eid):
         return re.match(r'\d+\Z', str(eid))
@@ -174,8 +187,6 @@ def _validate_confirmable(department, evaluation_ids, term_id, fields={}):
             validation_errors = Evaluation.get_invalid(term_id, evaluation_ids=numeric_ids)
             if validation_errors:
                 raise BadRequestError('Could not confirm evaluations with errors.')
-
-        evaluations_feed = department.evaluations_feed(term_id=term_id)
 
         def _defaults(e):
             return (

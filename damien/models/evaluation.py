@@ -232,15 +232,6 @@ class Evaluation(Base):
         original_feed = []
         if fields:
             original_feed = department.evaluations_feed(term_id, evaluation_ids=evaluation_ids)
-
-        def _set_defaults(evaluation, evaluation_feed):
-            if not evaluation.department_form_id and evaluation_feed['departmentForm']:
-                evaluation.department_form_id = evaluation_feed['departmentForm']['id']
-            if not evaluation.evaluation_type_id and evaluation_feed['evaluationType']:
-                evaluation.evaluation_type_id = evaluation_feed['evaluationType']['id']
-            if not evaluation.start_date and evaluation_feed['startDate']:
-                evaluation.start_date = date.fromisoformat(evaluation_feed['startDate'])
-
         evaluations = []
         for evaluation_id in evaluation_ids:
             evaluation = cls.from_id(evaluation_id)
@@ -521,14 +512,15 @@ class Evaluation(Base):
         return transient_evaluation
 
     @classmethod
-    def update_bulk(cls, department_id, evaluation_ids, fields):
+    def update_bulk(cls, department_id, evaluation_ids, fields, evaluations_feed=None):
         evaluations = []
         term_id = None
         for evaluation_id in evaluation_ids:
             evaluation = cls.from_id(evaluation_id)
             if not evaluation:
                 continue
-            evaluation.set_fields(fields)
+            original_evaluation_feed = next((f for f in evaluations_feed if f['id'] == evaluation_id), None) if evaluations_feed else None
+            evaluation.set_fields(fields, original_evaluation_feed)
             if not evaluation.created_by:
                 evaluation.created_by = current_user.get_uid()
             evaluation.department_id = department_id
@@ -668,7 +660,9 @@ class Evaluation(Base):
                 self.evaluation_type = default_evaluation_types.get('F')
 
     def set_fields(self, fields, original_evaluation_feed=None):
-        if 'departmentForm' in fields:
+        if 'midterm' in fields:
+            self.set_midterm_form(original_evaluation_feed)
+        elif 'departmentForm' in fields:
             self.department_form = fields['departmentForm']
         if 'startDate' in fields:
             self.start_date = fields['startDate']
@@ -681,18 +675,20 @@ class Evaluation(Base):
             self.status = fields['status']
             if fields['status'] in ('marked', 'confirmed', None):
                 self.__class__.update_evaluation_status(self.term_id, self.course_number, self.instructor_uid, fields['status'])
-
-        if fields.get('midterm'):
-            if original_evaluation_feed and original_evaluation_feed.get('departmentForm'):
-                midterm_form = DepartmentForm.find_by_name(original_evaluation_feed['departmentForm']['name'] + '_MID')
-                if midterm_form:
-                    self.department_form = midterm_form
+        if original_evaluation_feed:
+            _set_defaults(self, original_evaluation_feed)
 
     def set_last_updated(self, loch_rows, saved_evaluation):
         updates = [r['created_at'] for r in loch_rows]
         if saved_evaluation:
             updates.append(saved_evaluation.updated_at)
         self.last_updated = max(updates)
+
+    def set_midterm_form(self, original_evaluation_feed):
+        if original_evaluation_feed and original_evaluation_feed.get('departmentForm'):
+            midterm_form = DepartmentForm.find_by_name(original_evaluation_feed['departmentForm']['name'] + '_MID')
+            if midterm_form:
+                self.department_form = midterm_form
 
     def set_status(self, saved_evaluation, foreign_dept_evaluations):
         if saved_evaluation and saved_evaluation.status:
@@ -793,3 +789,12 @@ def _parse_transient_id(transient_id):
         'course_number': components[2],
         'instructor_uid': components[3],
     }
+
+
+def _set_defaults(evaluation, evaluation_feed):
+    if not evaluation.department_form_id and evaluation_feed['departmentForm']:
+        evaluation.department_form_id = evaluation_feed['departmentForm']['id']
+    if not evaluation.evaluation_type_id and evaluation_feed['evaluationType']:
+        evaluation.evaluation_type_id = evaluation_feed['evaluationType']['id']
+    if not evaluation.start_date and evaluation_feed['startDate']:
+        evaluation.start_date = date.fromisoformat(evaluation_feed['startDate'])
