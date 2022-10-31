@@ -446,24 +446,33 @@ def merge_edited_evals(evaluations, edited_evals):
         eval_ccns.append(e.ccn)
     for edit in edited_evals:
         uid = edit.instructor.uid if edit.instructor else ''
+        form = edit.dept_form
         app.logger.info(f'Checking edited eval for {edit.ccn}-{uid}')
         match = None
         for e in evaluations:
-            if e.ccn == edit.ccn and e.instructor and e.instructor.uid == uid and e.dept_form != edit.dept_form:
-                if (edit.dept_form and '_MID' not in edit.dept_form and e.dept_form and '_MID' not in e.dept_form) or not edit.dept_form:
-                    match = True
-                    app.logger.info(f'Merging existing eval for {e.ccn}-{uid}')
-                    e.status = edit.status
-                    if edit.dept_form:
-                        e.dept_form = edit.dept_form
-                    if edit.eval_type:
-                        e.eval_type = edit.eval_type
-                    if edit.eval_start_date:
-                        e.eval_start_date = edit.eval_start_date
-                    if edit.eval_end_date:
-                        e.eval_end_date = edit.eval_end_date
-                    else:
-                        edit.eval_end_date = e.eval_end_date
+            if (
+                    e.ccn == edit.ccn
+                    and e.instructor and e.instructor.uid == uid
+                    and e.dept_form != form
+                    and (e.dept_form and not form
+                         or form and not e.dept_form
+                         or e.dept_form and form and '_MID' not in e.dept_form and '_MID' not in form)
+            ):
+                match = True
+                app.logger.info(f'Merging existing eval for {e.ccn}-{uid}')
+                e.status = edit.status
+                edit.x_listing_ccns = e.x_listing_ccns
+                edit.room_share_ccns = e.room_share_ccns
+                if edit.dept_form:
+                    e.dept_form = edit.dept_form
+                if edit.eval_type:
+                    e.eval_type = edit.eval_type
+                if edit.eval_start_date:
+                    e.eval_start_date = edit.eval_start_date
+                if edit.eval_end_date:
+                    e.eval_end_date = edit.eval_end_date
+                else:
+                    edit.eval_end_date = e.eval_end_date
         if not match and edit.ccn in eval_ccns:
             app.logger.info(f'CCN match but no UID match, adding new eval for {edit.ccn}-{uid}')
             evaluations.append(edit)
@@ -641,6 +650,19 @@ def set_section_instructor(evaluation):
         UPDATE unholy_loch.sis_sections
            SET instructor_uid = '{evaluation.instructor.uid}',
                instructor_role_code = '{evaluation.instructor.role_code}'
+         WHERE course_number = '{evaluation.ccn}'
+           AND term_id = '{evaluation.term.term_id}'
+    """
+    app.logger.info(sql)
+    db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+
+
+def unset_section_instructor(evaluation):
+    sql = f"""
+        UPDATE unholy_loch.sis_sections
+           SET instructor_uid = NULL,
+               instructor_role_code = NULL
          WHERE course_number = '{evaluation.ccn}'
            AND term_id = '{evaluation.term.term_id}'
     """

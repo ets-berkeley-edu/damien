@@ -31,7 +31,7 @@ from mrsbaylock.test_utils import utils
 import pytest
 
 term = utils.get_current_term()
-depts = utils.get_participating_depts()
+depts = utils.get_test_eval_depts()
 all_users = utils.get_all_users()
 utils.reset_test_data(term)
 

@@ -339,6 +339,12 @@ def get_test_dept_2(all_contacts=None):
     return get_dept(name, all_contacts)
 
 
+def get_test_eval_depts():
+    all_depts = get_participating_depts()
+    ids = app.config['TEST_EVAL_DEPTS']
+    return [d for d in all_depts if d.dept_id in ids]
+
+
 def get_dept_sans_contacts():
     sql = """SELECT name
                FROM departments
@@ -412,12 +418,12 @@ def reset_test_data(term, dept=None):
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
-    sql = "DELETE FROM department_forms WHERE name LIKE 'Form %'"
+    sql = "DELETE FROM department_forms WHERE name LIKE 'Form%'"
     app.logger.info(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
-    sql = "DELETE FROM evaluation_types WHERE name LIKE 'Type %'"
+    sql = "DELETE FROM evaluation_types WHERE name LIKE 'Type%'"
     app.logger.info(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)

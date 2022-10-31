@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from flask import current_app as app
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.models.user import User
 from mrsbaylock.test_utils import evaluation_utils
@@ -34,6 +35,7 @@ import pytest
 class TestEvalErrors:
 
     term = utils.get_current_term()
+    utils.reset_test_data(term)
     all_contacts = utils.get_all_users()
     dept_1 = utils.get_dept('Environmental Science, Policy and Management', all_contacts)
     contact_1 = dept_1.users[0]
@@ -43,16 +45,15 @@ class TestEvalErrors:
     dept_2_evals = evaluation_utils.get_evaluations(term, dept_2)
     instructor_uid = utils.get_test_user().uid
     types = evaluation_utils.get_all_eval_types()
-    eval_type_1 = types[-1]
-    eval_type_2 = types[-2]
+    eval_type_1 = types[0]
+    eval_type_2 = types[1]
     forms = evaluation_utils.get_all_dept_forms()
-    dept_form_1 = forms[-1]
-    dept_form_2 = forms[-2]
+    dept_form_1 = forms[0]
+    dept_form_2 = forms[1]
 
     no_listings_no_shares = list(filter(lambda c: (c.instructor.uid and not c.x_listing_ccns and not c.room_share_ccns), dept_2_evals))
     manual_eval = no_listings_no_shares[0]
-
-    utils.reset_test_data(term)
+    app.logger.info(f'Manual eval {vars(manual_eval)}')
 
     evals = evaluation_utils.get_evaluations(term, dept_1)
     for e in evals:

@@ -366,3 +366,138 @@ class TestDeptUser:
         self.dept_details_dept_page.filter_rows(string)
         app.logger.info(f'Visible eval rows {self.dept_details_dept_page.visible_evaluation_rows()}')
         assert len(self.dept_details_dept_page.visible_evaluation_rows()) == len(evaluations)
+
+    # EVALUATION STATUS AND FILTERING
+
+    def test_set_review_status_bulk(self):
+        e = next(filter(lambda row: (row.status == EvaluationStatus.UNMARKED), self.evaluations))
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.bulk_mark_for_review([e])
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
+
+    def test_set_review_status_single(self):
+        e = next(filter(lambda row: (row.status == EvaluationStatus.UNMARKED), self.evaluations))
+        self.dept_details_dept_page.click_edit_evaluation(e)
+        self.dept_details_dept_page.select_eval_status(e, EvaluationStatus.FOR_REVIEW)
+        self.dept_details_dept_page.click_save_eval_changes(e)
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        e.status = EvaluationStatus.FOR_REVIEW
+        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
+
+    def test_set_confirmed_status_bulk(self):
+        e = next(filter(lambda r: (r.status == EvaluationStatus.UNMARKED and r.dept_form and r.eval_type and r.instructor.uid), self.evaluations))
+        self.dept_details_dept_page.bulk_mark_as_confirmed([e])
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
+
+    def test_set_confirmed_status_single(self):
+        e = next(filter(lambda r: (r.status == EvaluationStatus.UNMARKED and r.dept_form and r.eval_type and r.instructor.uid), self.evaluations))
+        self.dept_details_dept_page.click_edit_evaluation(e)
+        self.dept_details_dept_page.select_eval_status(e, EvaluationStatus.CONFIRMED)
+        self.dept_details_dept_page.click_save_eval_changes(e)
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        e.status = EvaluationStatus.CONFIRMED
+        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
+
+    def test_set_ignored_status_bulk(self):
+        e = next(filter(lambda row: (row.status == EvaluationStatus.UNMARKED), self.evaluations))
+        self.dept_details_dept_page.bulk_ignore([e])
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.select_ignored_filter()
+        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
+
+    def test_set_ignored_status_single(self):
+        e = next(filter(lambda row: (row.status == EvaluationStatus.UNMARKED), self.evaluations))
+        self.dept_details_dept_page.click_edit_evaluation(e)
+        self.dept_details_dept_page.select_eval_status(e, EvaluationStatus.IGNORED)
+        self.dept_details_dept_page.click_save_eval_changes(e)
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.select_ignored_filter()
+        e.status = EvaluationStatus.IGNORED
+        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
+
+    def test_set_unmarked_status_bulk(self):
+        e = next(filter(lambda row: (row.status == EvaluationStatus.FOR_REVIEW), self.evaluations))
+        self.dept_details_dept_page.bulk_unmark([e])
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
+
+    def test_set_unmarked_status_single(self):
+        e = next(filter(lambda row: (row.status == EvaluationStatus.CONFIRMED), self.evaluations))
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.click_edit_evaluation(e)
+        self.dept_details_dept_page.select_eval_status(e, EvaluationStatus.UNMARKED)
+        self.dept_details_dept_page.click_save_eval_changes(e)
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        e.status = EvaluationStatus.UNMARKED
+        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
+
+    def test_filter_review_status_only(self):
+        for_review = list(filter(lambda e: (e.status == EvaluationStatus.FOR_REVIEW), self.evaluations))
+        for_review = list(map(lambda e: e.ccn, for_review))
+        self.dept_details_dept_page.select_review_filter()
+        self.dept_details_dept_page.deselect_unmarked_filter()
+        self.dept_details_dept_page.deselect_confirmed_filter()
+        self.dept_details_dept_page.deselect_ignored_filter()
+        visible = self.dept_details_dept_page.visible_eval_data()
+        visible = list(map(lambda e: e['ccn'], visible))
+        for_review.sort()
+        visible.sort()
+        assert visible == for_review
+
+    def test_filter_confirmed_status_only(self):
+        confirmed = list(filter(lambda e: (e.status == EvaluationStatus.CONFIRMED), self.evaluations))
+        confirmed = list(map(lambda e: e.ccn, confirmed))
+        self.dept_details_dept_page.select_confirmed_filter()
+        self.dept_details_dept_page.deselect_review_filter()
+        self.dept_details_dept_page.deselect_unmarked_filter()
+        self.dept_details_dept_page.deselect_ignored_filter()
+        visible = self.dept_details_dept_page.visible_eval_data()
+        visible = list(map(lambda e: e['ccn'], visible))
+        confirmed.sort()
+        visible.sort()
+        assert visible == confirmed
+
+    def test_filter_ignored_status_only(self):
+        ignored = list(filter(lambda e: (e.status == EvaluationStatus.IGNORED), self.evaluations))
+        ignored = list(map(lambda e: e.ccn, ignored))
+        self.dept_details_dept_page.select_ignored_filter()
+        self.dept_details_dept_page.deselect_review_filter()
+        self.dept_details_dept_page.deselect_unmarked_filter()
+        self.dept_details_dept_page.deselect_confirmed_filter()
+        visible = self.dept_details_dept_page.visible_eval_data()
+        visible = list(map(lambda e: e['ccn'], visible))
+        ignored.sort()
+        visible.sort()
+        assert visible == ignored
+
+    def test_filter_unmarked_status_only(self):
+        unmarked = list(filter(lambda e: (e.status == EvaluationStatus.UNMARKED), self.evaluations))
+        unmarked = list(map(lambda e: e.ccn, unmarked))
+        self.dept_details_dept_page.select_unmarked_filter()
+        self.dept_details_dept_page.deselect_review_filter()
+        self.dept_details_dept_page.deselect_confirmed_filter()
+        self.dept_details_dept_page.deselect_ignored_filter()
+        visible = self.dept_details_dept_page.visible_eval_data()
+        visible = list(map(lambda e: e['ccn'], visible))
+        unmarked.sort()
+        visible.sort()
+        assert visible == unmarked

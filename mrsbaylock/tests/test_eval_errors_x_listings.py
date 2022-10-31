@@ -42,11 +42,11 @@ class TestEvalErrors:
     evals = evaluation_utils.get_evaluations(term, dept)
     instructor_uid = utils.get_test_user().uid
     types = evaluation_utils.get_all_eval_types()
-    eval_type_1 = types[-1]
-    eval_type_2 = types[-2]
+    eval_type_1 = types[0]
+    eval_type_2 = types[1]
     forms = evaluation_utils.get_all_dept_forms()
-    dept_form_1 = forms[-1]
-    dept_form_2 = forms[-2]
+    dept_form_1 = forms[0]
+    dept_form_2 = forms[1]
 
     x_list_eval = next(filter(lambda x1: x1.x_listing_ccns, evals))
     x_list_dept_1 = evaluation_utils.get_section_dept(term, x_list_eval.ccn, all_contacts)

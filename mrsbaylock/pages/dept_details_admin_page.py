@@ -81,7 +81,7 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         app.logger.info(f'Entering email {email}')
         self.remove_and_enter_chars(DeptDetailsAdminPage.ADD_CONTACT_EMAIL, email)
 
-    def select_dept_forms(self, dept_forms, user=None):
+    def clear_dept_form_input(self, user=None):
         if user:
             self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_edit_input(user))
         Wait(self.driver, utils.get_short_timeout()).until(
@@ -89,12 +89,18 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         )
         self.wait_for_page_and_click_js(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
         self.remove_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
+
+    def enter_and_select_dept_form(self, form):
+        self.enter_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT, form.name)
+        self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_option(form))
+        Wait(self.driver, utils.get_short_timeout()).until(
+            ec.presence_of_element_located(DeptDetailsAdminPage.dept_contact_form_remove_button(form)),
+        )
+
+    def select_dept_forms(self, dept_forms, user=None):
+        self.clear_dept_form_input(user)
         for form in dept_forms:
-            self.enter_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT, form.name)
-            self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_option(form))
-            Wait(self.driver, utils.get_short_timeout()).until(
-                ec.presence_of_element_located(DeptDetailsAdminPage.dept_contact_form_remove_button(form)),
-            )
+            self.enter_and_select_dept_form(form)
 
     def remove_dept_forms(self, dept_forms):
         for form in dept_forms:

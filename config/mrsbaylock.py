@@ -58,6 +58,8 @@ TEST_DEPT_CONTACT_FORMS = 'HISTORY,YIDDISH'
 
 TEST_EMAIL = 'damien@court_of_st_james.org'
 
+TEST_EVAL_DEPTS = [1, 2, 3]
+
 TESTING = True
 
 TIMEOUT_SHORT = 10

@@ -47,10 +47,28 @@ class ApiPage(Page):
     def hit_refresh_loch(self):
         self.driver.get(f'{app.config["BASE_URL"]}/api/job/refresh_unholy_loch')
 
+    def wait_for_refresh_job(self):
+        tries = 0
+        max_tries = 60
+        while tries <= max_tries:
+            tries += 1
+            try:
+                app.logger.info('Checking refresh job status')
+                time.sleep(15)
+                self.driver.get(f'{app.config["BASE_URL"]}/api/job/status')
+                self.wait_for_element((By.XPATH, '//*[contains(text(), "status")]'), utils.get_short_timeout())
+                assert self.is_present((By.XPATH, '//*[contains(text(), "done")]'))
+                break
+            except AssertionError:
+                if tries == max_tries:
+                    raise
+                else:
+                    time.sleep(1)
+
     def refresh_unholy_loch(self):
         app.logger.info('Refreshing the Unholy Loch')
         self.hit_refresh_loch()
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.presence_of_element_located((By.XPATH, '//*[contains(text(), "started")]')),
         )
-        time.sleep(utils.get_long_timeout())
+        self.wait_for_refresh_job()

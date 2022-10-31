@@ -41,7 +41,9 @@ class CourseDashboards(DamienPages):
     NO_SECTIONS_MGS = (By.XPATH, '//span[text()="No eligible sections to load."]')
 
     @staticmethod
-    def eval_row_xpath(evaluation):
+    def eval_row_xpath(evaluation, dept=None):
+        dept = f'a[contains(@href, "/department/{dept.dept_id}")]/ancestor::td/following-sibling::' if dept else ''
+
         ccn = f'td[contains(@id, "courseNumber")][starts-with(., " {evaluation.ccn}")]'
 
         if evaluation.instructor.uid:
@@ -52,18 +54,18 @@ class CourseDashboards(DamienPages):
 
         form_name = f'[contains(., " {evaluation.dept_form} ")]' if evaluation.dept_form else '[not(text())]'
         dept_form = f'following-sibling::td[contains(@id, "departmentForm")]{form_name}'
-        return f'//{ccn}/{instr}/{dept_form}/ancestor::tr'
+        return f'//{dept}{ccn}/{instr}/{dept_form}/ancestor::tr'
 
-    def rows_of_evaluation(self, evaluation):
-        return self.elements((By.XPATH, self.eval_row_xpath(evaluation)))
+    def rows_of_evaluation(self, evaluation, dept=None):
+        return self.elements((By.XPATH, self.eval_row_xpath(evaluation, dept)))
 
     @staticmethod
     def section_row(evaluation):
         return By.XPATH, f'//tr[contains(., "{evaluation.ccn}")]'
 
-    def wait_for_eval_row(self, evaluation):
+    def wait_for_eval_row(self, evaluation, dept=None):
         time.sleep(1)
-        self.wait_for_element((By.XPATH, self.eval_row_xpath(evaluation)), utils.get_medium_timeout())
+        self.wait_for_element((By.XPATH, self.eval_row_xpath(evaluation, dept)), utils.get_medium_timeout())
 
     def visible_evaluation_rows(self):
         return [el.text for el in self.elements(CourseDashboards.EVALUATION_ROW)]
@@ -142,50 +144,50 @@ class CourseDashboards(DamienPages):
             )
         return data
 
-    def eval_row_el(self, evaluation):
-        return self.element((By.XPATH, self.eval_row_xpath(evaluation)))
+    def eval_row_el(self, evaluation, dept=None):
+        return self.element((By.XPATH, self.eval_row_xpath(evaluation, dept)))
 
-    def eval_status_el(self, evaluation):
-        xpath = f'{self.eval_row_xpath(evaluation)}/td[contains(@id, "status")]'
+    def eval_status_el(self, evaluation, dept=None):
+        xpath = f'{self.eval_row_xpath(evaluation, dept)}/td[contains(@id, "status")]'
         return self.element((By.XPATH, xpath))
 
-    def eval_status(self, evaluation):
-        return self.eval_status_el(evaluation).text
+    def eval_status(self, evaluation, dept=None):
+        return self.eval_status_el(evaluation, dept).text
 
-    def eval_last_update(self, evaluation):
-        xpath = f'{self.eval_row_xpath(evaluation)}/td[contains(@id, "lastUpdated")]'
+    def eval_last_update(self, evaluation, dept=None):
+        xpath = f'{self.eval_row_xpath(evaluation, dept)}/td[contains(@id, "lastUpdated")]'
         return self.element((By.XPATH, xpath)).text
 
-    def eval_ccn(self, evaluation):
-        xpath = f'{self.eval_row_xpath(evaluation)}/td[contains(@id, "courseNumber")]'
+    def eval_ccn(self, evaluation, dept=None):
+        xpath = f'{self.eval_row_xpath(evaluation, dept)}/td[contains(@id, "courseNumber")]'
         return self.element((By.XPATH, xpath)).text.strip().split('\n')[0]
 
-    def eval_course(self, evaluation):
-        xpath = f'{self.eval_row_xpath(evaluation)}//div[contains(@id, "courseName")]'
+    def eval_course(self, evaluation, dept=None):
+        xpath = f'{self.eval_row_xpath(evaluation, dept)}//div[contains(@id, "courseName")]'
         return self.element((By.XPATH, xpath)).text
 
-    def eval_course_title(self, evaluation):
-        xpath = f'{self.eval_row_xpath(evaluation)}//div[contains(@id, "courseTitle")]'
+    def eval_course_title(self, evaluation, dept=None):
+        xpath = f'{self.eval_row_xpath(evaluation, dept)}//div[contains(@id, "courseTitle")]'
         return self.element((By.XPATH, xpath)).text
 
-    def eval_instructor(self, evaluation):
-        xpath = f'{self.eval_row_xpath(evaluation)}/td[contains(@id, "instructor")]'
+    def eval_instructor(self, evaluation, dept=None):
+        xpath = f'{self.eval_row_xpath(evaluation, dept)}/td[contains(@id, "instructor")]'
         return self.element((By.XPATH, xpath)).text
 
-    def eval_dept_form(self, evaluation):
-        xpath = f'{self.eval_row_xpath(evaluation)}/td[contains(@id, "departmentForm")]'
+    def eval_dept_form(self, evaluation, dept=None):
+        xpath = f'{self.eval_row_xpath(evaluation, dept)}/td[contains(@id, "departmentForm")]'
         return self.element((By.XPATH, xpath)).text.strip()
 
-    def eval_type(self, evaluation):
-        xpath = f'{self.eval_row_xpath(evaluation)}/td[contains(@id, "evaluationType")]'
+    def eval_type(self, evaluation, dept=None):
+        xpath = f'{self.eval_row_xpath(evaluation, dept)}/td[contains(@id, "evaluationType")]'
         return self.element((By.XPATH, xpath)).text.strip()
 
-    def eval_period_dates(self, evaluation):
-        xpath = f'{self.eval_row_xpath(evaluation)}/td[contains(@id, "period")]'
+    def eval_period_dates(self, evaluation, dept=None):
+        xpath = f'{self.eval_row_xpath(evaluation, dept)}/td[contains(@id, "period")]'
         return self.element((By.XPATH, xpath)).text.strip()
 
-    def eval_period_duration(self, evaluation):
-        xpath = f'{self.eval_row_xpath(evaluation)}/td[contains(@id, "period")]/span/div[2]'
+    def eval_period_duration(self, evaluation, dept=None):
+        xpath = f'{self.eval_row_xpath(evaluation, dept)}/td[contains(@id, "period")]/span/div[2]'
         return self.element((By.XPATH, xpath)).text.strip()
 
     # FILTERING
