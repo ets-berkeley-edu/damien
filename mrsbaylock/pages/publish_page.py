@@ -75,7 +75,7 @@ class PublishPage(CourseDashboards):
                     app.logger.info('Timed out waiting for publishing to finish')
                     raise
                 else:
-                    time.sleep(3)
+                    time.sleep(utils.get_short_timeout())
 
     def download_export_csvs(self):
         app.logger.info(f'Downloading export CSVs to {utils.default_download_dir()}')

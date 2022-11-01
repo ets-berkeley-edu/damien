@@ -383,7 +383,7 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def click_save_eval_changes(self, evaluation):
         app.logger.info(f'Saving changes for CCN {evaluation.ccn}')
-        self.wait_for_page_and_click(self.EVAL_CHANGE_SAVE_BUTTON)
+        self.wait_for_page_and_click_js(self.EVAL_CHANGE_SAVE_BUTTON)
 
     def save_eval_changes(self, evaluation):
         self.click_save_eval_changes(evaluation)
@@ -392,7 +392,7 @@ class CourseDashboardEditsPage(CourseDashboards):
     def click_cancel_eval_changes(self):
         app.logger.info('Canceling changes')
         if self.is_present(self.EVAL_CHANGE_CANCEL_BUTTON):
-            self.wait_for_page_and_click(self.EVAL_CHANGE_CANCEL_BUTTON)
+            self.wait_for_page_and_click_js(self.EVAL_CHANGE_CANCEL_BUTTON)
             time.sleep(1)
 
     def wait_for_validation_error(self, msg):

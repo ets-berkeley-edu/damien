@@ -42,11 +42,11 @@ class TestEvalErrors:
     evals = evaluation_utils.get_evaluations(term, dept)
     instructor_uid = utils.get_test_user().uid
     types = evaluation_utils.get_all_eval_types()
-    eval_type_1 = types[-1]
-    eval_type_2 = types[-2]
+    eval_type_1 = types[0]
+    eval_type_2 = types[1]
     forms = evaluation_utils.get_all_dept_forms()
-    dept_form_1 = forms[-1]
-    dept_form_2 = forms[-2]
+    dept_form_1 = forms[0]
+    dept_form_2 = forms[1]
 
     share_eval = next(filter(lambda s1: (s1.room_share_ccns and not s1.x_listing_ccns), evals))
     share_dept_1 = evaluation_utils.get_section_dept(term, share_eval.ccn, all_contacts)
@@ -208,21 +208,21 @@ class TestEvalErrors:
     def test_share_confirmed_sl_verify_form_conflict(self):
         self.status_board_admin_page.click_publish_link()
         self.publish_page.wait_for_eval_rows()
-        assert self.dept_form_2.name in self.publish_page.eval_dept_form(self.share_eval)
+        assert self.dept_form_2.name in self.publish_page.eval_dept_form(self.share_eval, self.share_dept_2)
         conflict_form = f'Conflicts with value {self.dept_form_1.name} from {self.share_dept_1.name} department'
-        assert conflict_form in self.publish_page.eval_dept_form(self.share_eval)
+        assert conflict_form in self.publish_page.eval_dept_form(self.share_eval, self.share_dept_2)
 
     def test_share_confirmed_sl_verify_type_conflict(self):
-        assert self.eval_type_2.name in self.publish_page.eval_type(self.share_eval)
+        assert self.eval_type_2.name in self.publish_page.eval_type(self.share_eval, self.share_dept_2)
         conflict_type = f'Conflicts with value {self.eval_type_1.name} from {self.share_dept_1.name} department'
-        assert conflict_type in self.publish_page.eval_type(self.share_eval)
+        assert conflict_type in self.publish_page.eval_type(self.share_eval, self.share_dept_2)
 
     def test_share_confirmed_sl_verify_period_conflict(self):
         pd_1 = self.share_start_1.strftime('%m/%d/%y')
         expected = f"{self.share_start_2.strftime('%m/%d/%y')} - {self.share_end_2.strftime('%m/%d/%y')}"
-        assert expected in self.publish_page.eval_period_dates(self.share_eval)
+        assert expected in self.publish_page.eval_period_dates(self.share_eval, self.share_dept_2)
         conflict_date = f'Conflicts with period starting {pd_1} from {self.share_dept_1.name} department'
-        assert conflict_date in self.publish_page.eval_period_dates(self.share_eval)
+        assert conflict_date in self.publish_page.eval_period_dates(self.share_eval, self.share_dept_2)
 
     def test_publish_ok_while_to_do_errors(self):
         assert self.publish_page.element(PublishPage.PUBLISH_BUTTON).is_enabled()

@@ -156,9 +156,6 @@ class TestListManagement:
         self.list_mgmt_page.delete_eval_type(self.eval_type)
         assert self.eval_type.name not in self.list_mgmt_page.visible_eval_type_names()
 
-    def test_delete_manual_instructor(self):
-        self.list_mgmt_page.delete_manual_instructor(self.instructor)
-
     def test_unmarked_form_and_type_deleted(self):
         self.dept_details_admin_page.load_dept_page(self.dept)
         assert self.dept_details_admin_page.eval_dept_form(self.eval_unmarked) == self.form.name
@@ -180,11 +177,24 @@ class TestListManagement:
     def test_deleted_type_not_available(self):
         assert self.eval_type.name not in self.dept_details_admin_page.visible_eval_type_options()
 
+    def test_deleted_form_available_on_dept_contact(self):
+        self.dept_details_admin_page.click_cancel_eval_changes()
+        self.dept_details_admin_page.reload_page()
+        self.dept_details_admin_page.click_add_contact()
+        self.dept_details_admin_page.look_up_uid(self.instructor.uid, CourseDashboardEditsPage.ADD_CONTACT_LOOKUP_INPUT)
+        self.dept_details_admin_page.click_look_up_result(self.instructor)
+        self.dept_details_admin_page.clear_dept_form_input()
+        self.dept_details_admin_page.enter_and_select_dept_form(self.form)
+
+    def test_delete_manual_instructor(self):
+        self.dept_details_admin_page.click_list_mgmt()
+        self.list_mgmt_page.delete_manual_instructor(self.instructor)
+
     def test_deleted_instructor_not_available(self):
         self.dept_details_admin_page.load_dept_page(self.dept)
-        e = next(filter(lambda ev: (ev.instructor.uid is None), self.dept.evaluations))
-        self.dept_details_admin_page.click_edit_evaluation(e)
-        self.dept_details_admin_page.look_up_uid(self.instructor.uid, CourseDashboardEditsPage.EVAL_CHANGE_INSTR_INPUT)
+        self.dept_details_admin_page.click_eval_checkbox(self.dept.evaluations[0])
+        self.dept_details_admin_page.wait_for_element_and_click(CourseDashboardEditsPage.DUPE_BUTTON)
+        self.dept_details_admin_page.look_up_uid(self.instructor.uid, CourseDashboardEditsPage.DUPE_SECTION_INSTR_INPUT)
         self.dept_details_admin_page.wait_for_element(
             self.dept_details_admin_page.add_contact_lookup_result(self.instructor),
             utils.get_short_timeout())
