@@ -115,7 +115,11 @@
         </template>
       </v-data-table>
     </v-card>
-    <v-dialog v-model="isCreatingNotification" width="600">
+    <v-dialog
+      v-model="isCreatingNotification"
+      scrollable
+      width="600"
+    >
       <NotificationForm
         v-if="isCreatingNotification"
         :after-send="afterSendNotification"
