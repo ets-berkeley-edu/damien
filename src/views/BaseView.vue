@@ -177,7 +177,11 @@
         getCasLogoutUrl().then(data => window.location.href = data.casLogoutUrl)
       },
       prefersColorScheme() {
-        this.$vuetify.theme.dark = window.localStorage.getItem('prefersDarkMode')
+        if (window.localStorage.getItem('prefersDarkMode')) {
+          this.$vuetify.theme.dark = window.localStorage.getItem('prefersDarkMode') === 'true'
+        } else {
+          this.$vuetify.theme.dark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        }
       },
       toggleColorScheme() {
         this.$vuetify.theme.dark = !this.$vuetify.theme.dark
