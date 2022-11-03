@@ -84,6 +84,10 @@ def _set_associations():
     for uid in ['1007025']:
         user = User.find_by_uid(uid)
         UserDepartmentForm.create(melc_id, user.id)
+    ancient_history_id = DepartmentForm.query.filter_by(name='ANCIENT_HISTORY').first().id
+    for uid in ['5013530', '6982398']:
+        user = User.find_by_uid(uid)
+        UserDepartmentForm.create(ancient_history_id, user.id)
     std_commit(allow_test_environment=True)
 
 

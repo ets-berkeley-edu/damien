@@ -56,7 +56,7 @@ def generate_exports(term_id, timestamp):
     s3_path = get_s3_path(term_id, timestamp)
     export = Export.create(term_id, s3_path)
     all_catalog_listings = DepartmentCatalogListing.query.all()
-    dept_forms_to_uids = {df.name: [udf.user.uid for udf in df.users] for df in DepartmentForm.query.filter_by(deleted_at=None).all()}
+    dept_forms_to_uids = {df.name: [udf.user.uid for udf in df.users] for df in DepartmentForm.query.all()}
 
     # Past terms are included in 1) course-instructor mappings; 2) course-supervisor mappings for cross-listed courses; 3) instructor data.
     past_term_ids = term_ids_range(app.config['EARLIEST_TERM_ID'], term_id)[:-1]
@@ -470,8 +470,9 @@ def _export_supervisor_row(user):
         'SECONDARY_ADMIN': '',
     }
     dept_index = 1
-    for udf in user.department_forms:
-        row[f'DEPT_NAME_{dept_index}'] = udf.department_form.name
+    department_form_names = sorted(udf.department_form.name for udf in user.department_forms)
+    for name in department_form_names:
+        row[f'DEPT_NAME_{dept_index}'] = name
         dept_index += 1
     while dept_index <= 10:
         row[f'DEPT_NAME_{dept_index}'] = ''
