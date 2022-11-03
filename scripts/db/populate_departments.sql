@@ -360,6 +360,8 @@ INSERT INTO listings (dept_name, subject_area, catalog_id, default_form) VALUES
 
 INSERT INTO department_forms (name) SELECT DISTINCT default_form FROM listings;
 
+INSERT INTO department_forms (name, deleted_at) VALUES ('ANCIENT_HISTORY', now());
+
 INSERT INTO department_catalog_listings
   (department_id, subject_area, catalog_id, default_form_id, custom_evaluation_types)
 SELECT

@@ -92,7 +92,7 @@ class TestConfigController:
         response = client.get('/api/config')
         assert response.status_code == 200
         forms = response.json['departmentForms']
-        assert len(forms) == 195
+        assert len(forms) == 196
         for f in forms:
             assert f['id']
             assert f['name']
@@ -100,6 +100,8 @@ class TestConfigController:
             assert f['updatedAt']
         assert next(f for f in forms if f['name'] == 'MUSIC')
         assert next(f for f in forms if f['name'] == 'HUNGARI')
+        # Deleted forms are included.
+        assert next(f for f in forms if f['name'] == 'ANCIENT_HISTORY')
 
     def test_evaluation_types(self, app, client, fake_auth):
         fake_auth.login(non_admin_uid)

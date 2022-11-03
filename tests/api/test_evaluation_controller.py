@@ -391,8 +391,9 @@ class TestExportEvaluations:
             assert supervisors[0] == ('LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS,SUPERVISOR_GROUP,PRIMARY_ADMIN,SECONDARY_ADMIN,'
                                       'DEPT_NAME_1,DEPT_NAME_2,DEPT_NAME_3,DEPT_NAME_4,DEPT_NAME_5,DEPT_NAME_6,DEPT_NAME_7,DEPT_NAME_8,'
                                       'DEPT_NAME_9,DEPT_NAME_10')
-            assert supervisors[1] == '5013530,931203945,Jazz,Gunn,jazz.gunn@berkeley.edu,DEPT_ADMIN,Y,,HISTORY,,,,,,,,,'
-            assert supervisors[2] == '6982398,263809005,Alistair,Mctaggert,alistair.mctaggert@berkeley.edu,DEPT_ADMIN,,,HISTORY,,,,,,,,,'
+            assert supervisors[1] == '5013530,931203945,Jazz,Gunn,jazz.gunn@berkeley.edu,DEPT_ADMIN,Y,,ANCIENT_HISTORY,HISTORY,,,,,,,,'
+            assert (supervisors[2]
+                    == '6982398,263809005,Alistair,Mctaggert,alistair.mctaggert@berkeley.edu,DEPT_ADMIN,,,ANCIENT_HISTORY,HISTORY,,,,,,,,')
             assert supervisors[3] == '8971283,294078726,Finn,Wolfhard,finn.wolfhard@berkeley.edu,DEPT_ADMIN,,,,,,,,,,,,'
 
             department_hierarchy = _read_csv(exported_objects, '/department_hierarchy.csv')
@@ -400,11 +401,15 @@ class TestExportEvaluations:
             assert department_hierarchy[0] == 'NODE_ID,NODE_CAPTION,PARENT_NODE_ID,PARENT_NODE_CAPTION,LEVEL'
             assert department_hierarchy[1] == 'UC Berkeley,UC Berkeley,,,1'
             assert 'HISTORY,HISTORY,UC Berkeley,UC Berkeley,2' in department_hierarchy
+            # Include deleted forms.
+            assert 'ANCIENT_HISTORY,ANCIENT_HISTORY,UC Berkeley,UC Berkeley,2' in department_hierarchy
 
             report_viewer_hierarchy = _read_csv(exported_objects, '/report_viewer_hierarchy.csv')
-            assert len(report_viewer_hierarchy) == 5
+            assert len(report_viewer_hierarchy) == 7
             assert report_viewer_hierarchy[0] == 'SOURCE,TARGET,ROLE_ID'
             assert 'PHILOS,100,DEPT_ADMIN' in report_viewer_hierarchy
             assert 'HISTORY,5013530,DEPT_ADMIN' in report_viewer_hierarchy
             assert 'HISTORY,6982398,DEPT_ADMIN' in report_viewer_hierarchy
             assert 'MELC,1007025,DEPT_ADMIN' in report_viewer_hierarchy
+            assert 'ANCIENT_HISTORY,5013530,DEPT_ADMIN' in report_viewer_hierarchy
+            assert 'ANCIENT_HISTORY,6982398,DEPT_ADMIN' in report_viewer_hierarchy
