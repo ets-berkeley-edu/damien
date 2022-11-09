@@ -25,7 +25,7 @@
       return-object
       :search-input.sync="search"
       single-line
-      @blur="validate(selected)"
+      @blur="onBlur"
     >
       <template #selection>
         <span class="text-nowrap">{{ toLabel(selected) }}</span>
@@ -122,6 +122,11 @@ export default {
       } else {
         this.searchTokenMatcher = null
         this.suggestions = []
+      }
+    },
+    onBlur() {
+      if (!this.isSearching && this.suggestions.length && !this.selected) {
+        this.selected = this.suggestions[0]
       }
     },
     suggest(user) {
