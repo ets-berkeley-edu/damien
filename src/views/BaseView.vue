@@ -20,11 +20,16 @@
       :right="false"
       dark
     >
-      <v-list nav>
+      <v-list
+        aria-label="Main"
+        nav
+        role="navigation"
+      >
         <v-list-item
           v-for="(item, index) in navItems"
           :id="`sidebar-link-${index}`"
           :key="index"
+          role="link"
           class="primary-contrast--text sidebar-link pr-1"
           link
           @click="toRoute(item.path)"
@@ -89,7 +94,7 @@
             dark
             v-on="on"
           >
-            {{ $currentUser.firstName }}
+            <span class="sr-only">User profile for </span>{{ $currentUser.firstName }}
           </v-btn>
         </template>
         <v-list>
