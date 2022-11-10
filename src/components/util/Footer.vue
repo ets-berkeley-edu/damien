@@ -8,16 +8,16 @@
   >
     <v-container fluid class="pa-1">
       <v-row no-gutters justify="space-between">
-        <v-col>
-          Problem? Question? Email us at
+        <v-col aria-label="Feedback">
+          Problem? Question?
           <a
             id="damien-support-mailto"
-            aria-label="Open new window to send email"
             class="white--text"
             :href="`mailto:${$config.emailSupport}`"
             target="_blank"
           >
-            {{ $config.emailSupport }}
+            Email us at {{ $config.emailSupport }}
+            <span class="sr-only"> (opens a new window)</span>
           </a>
         </v-col>
         <v-col>
