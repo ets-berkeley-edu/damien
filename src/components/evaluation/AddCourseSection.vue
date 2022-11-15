@@ -15,30 +15,31 @@
     </v-btn>
     <div v-if="isAddingSection" class="full-width px-4">
       <div v-if="!section">
-        <div v-if="sectionError" class="d-flex justify-start mb-3">
-          <div class="pr-2">
-            <v-icon color="red">mdi-alert</v-icon>
-          </div>
-          <div id="section-not-found-error">
-            {{ sectionError }}
-          </div>
-        </div>
         <v-form>
           <label for="lookup-course-number-input" class="form-label">
             Course Number
           </label>
           <v-text-field
             id="lookup-course-number-input"
+            ref="lookupCourseNumberInput"
             v-model="courseNumber"
             class="mt-1"
             color="tertiary"
+            :error-messages="errorMessage"
             maxlength="5"
             :rules="[rules.courseNumber, rules.notPresent]"
             dense
             outlined
             required
             @keypress.enter.prevent="lookupSection"
-          ></v-text-field>
+          >
+            <template #message="{message}">
+              <div :id="sectionError ? 'section-not-found-error' : 'lookup-course-number-error'" class="text-condensed">
+                <v-icon v-if="sectionError" color="error" small>mdi-alert</v-icon>
+                {{ message }}
+              </div>
+            </template>
+          </v-text-field>
           <div>
             <v-btn
               id="lookup-course-number-submit"
@@ -121,12 +122,17 @@ export default {
   },
   data: () => ({
     courseNumber: null,
+    errorMessage: '',
     isAddingSection: false,
     rules: {},
     section: null,
-    sectionError: null
+    sectionError: false
   }),
   watch: {
+    courseNumber() {
+      this.errorMessage = null
+      this.sectionError = false
+    },
     isAddingSection(isAddingSection) {
       if (isAddingSection) {
         this.alertScreenReader('Add course section form is ready.')
@@ -141,28 +147,30 @@ export default {
   },
   created() {
     this.rules = {
-      courseNumber: value => /^\d+$/.test(value) || 'Invalid course number.',
+      courseNumber: value => !value || /^\d+$/.test(value) || 'Invalid course number.',
       notPresent: value => !this.$_.find(this.evaluations, {courseNumber: value}) || `Course number ${value} already present on page.`
     }
   },
   methods: {
     lookupSection() {
-      getSection(this.courseNumber, this.selectedTermId).then(data => {
-        this.alertScreenReader(`Section ${this.courseNumber} found.`)
-        this.courseNumber = null
-        this.section = data
-        this.sectionError = null
-        this.$putFocusNextTick('add-section-title')
-      }, () => {
-        this.sectionError = `Section ${this.courseNumber} not found.`
-        this.courseNumber = null
-        this.alertScreenReader(this.sectionError)
-        this.$putFocusNextTick('lookup-course-number-input')
-      })
+      this.errorMessage = null
+      if (this.$refs.lookupCourseNumberInput.validate()) {
+        getSection(this.courseNumber, this.selectedTermId).then(data => {
+          this.alertScreenReader(`Section ${this.courseNumber} found.`)
+          this.courseNumber = null
+          this.section = data
+          this.$putFocusNextTick('add-section-title')
+        }, () => {
+          this.sectionError = true
+          this.errorMessage = `Section ${this.courseNumber} not found.`
+          this.alertScreenReader(this.errorMessage)
+          this.$putFocusNextTick('lookup-course-number-input')
+        })
+      }
     },
     onCancel() {
       this.courseNumber = null
-      this.sectionError = null
+      this.errorMessage = null
       if (this.section) {
         this.section = null
         this.alertScreenReader('Canceled. Add course section form is ready.')
@@ -181,6 +189,7 @@ export default {
         }).then(() => {
         this.isAddingSection = false
         this.courseNumber = null
+        this.errorMessage = null
         this.section = null
         this.alertScreenReader(`Section ${courseNumber} added.`)
       }, error => this.showErrorDialog(error.response.data.message))
