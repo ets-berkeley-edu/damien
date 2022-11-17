@@ -1,11 +1,13 @@
 <template>
   <div class="d-flex flex-column flex-grow-1">
+    <label :id="`${id}-label`" class="sr-only" :for="id">Name or UID</label>
     <v-autocomplete
       :id="id"
       v-model="selected"
       :allow-overflow="false"
       :append-icon="null"
       :aria-disabled="disabled"
+      :aria-labelledby="`${id}-label`"
       auto-select-first
       :background-color="disabled ? 'disabled' : 'white'"
       class="person-lookup"
@@ -14,9 +16,9 @@
       :error="required && !!$_.size(errors)"
       :error-messages="required ? errors : []"
       hide-details
-      hide-no-data
+      :hide-no-data="isSearching || !search"
       :items="suggestions"
-      :loading="isSearching"
+      :loading="isSearching ? 'tertiary' : false"
       :menu-props="menuProps"
       no-data-text="No results found."
       no-filter
@@ -26,14 +28,22 @@
       :search-input.sync="search"
       single-line
       @blur="onBlur"
+      @update:list-index="onHighlight"
     >
-      <template #selection>
-        <span class="text-nowrap">{{ toLabel(selected) }}</span>
+      <template #selection="data">
+        <span class="text-nowrap">{{ toLabel(data.item) }}</span>
       </template>
       <template #item="data">
-        <v-list-item-content class="tertiary--text">
-          <span v-html="suggest(data.item)" />
-        </v-list-item-content>
+        <v-list-item
+          v-bind="data.attrs"
+          :aria-selected="data.item === highlightedItem"
+          class="tertiary--text"
+          v-on="data.on"
+        >
+          <v-list-item-content>
+            <span v-html="suggest(data.item)" />
+          </v-list-item-content>
+        </v-list-item>
       </template>
     </v-autocomplete>
     <div
@@ -90,6 +100,7 @@ export default {
   },
   data: () => ({
     errors: [],
+    highlightedItem: undefined,
     isSearching: false,
     menuProps: {
       contentClass: 'v-sheet--outlined autocomplete-menu'
@@ -101,17 +112,20 @@ export default {
   }),
   watch: {
     search(snippet) {
+      this.isSearching = true
       this.debouncedSearch(snippet)
     },
     selected(suggestion) {
       this.validate(suggestion)
+      if (!suggestion) {
+        this.search = null
+      }
       this.onSelectResult(suggestion)
     }
   },
   methods: {
     executeSearch(snippet) {
       if (snippet) {
-        this.isSearching = true
         const apiSearch = this.instructorLookup ? searchInstructors : searchUsers
         apiSearch(snippet, this.excludeUids).then(results => {
           const searchTokens = this.$_.split(this.$_.trim(snippet), /\W/g)
@@ -120,20 +134,25 @@ export default {
           this.isSearching = false
         })
       } else {
+        this.isSearching = false
         this.searchTokenMatcher = null
+        this.selected = null
         this.suggestions = []
       }
     },
     onBlur() {
-      if (!this.isSearching && this.suggestions.length && !this.selected) {
+      if (!this.isSearching && !!this.search && this.suggestions.length && !this.selected) {
         this.selected = this.suggestions[0]
       }
+    },
+    onHighlight(index) {
+      this.highlightedItem = this.suggestions[index]
     },
     suggest(user) {
       return this.toLabel(user).replace(this.searchTokenMatcher, match => `<strong>${match}</strong>`)
     },
     toLabel(user) {
-      return user ? `${user.firstName || ''} ${user.lastName || ''} (${user.uid})`.trim() : ''
+      return user && user instanceof Object ? `${user.firstName || ''} ${user.lastName || ''} (${user.uid})`.trim() : user
     },
     validate(suggestion) {
       this.$_.delay(() => {
