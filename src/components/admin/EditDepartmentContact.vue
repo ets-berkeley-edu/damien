@@ -254,9 +254,17 @@ export default {
         if (contact.canViewReports) {
           this.permissions = contact.canViewResponseRates ? 'response_rates' : 'reports_only'
         }
-        this.$putFocusNextTick(`input-email-${this.contactId}`)
-      } else {
         this.$putFocusNextTick('input-person-lookup-autocomplete')
+      } else {
+        this.csid = null
+        this.canReceiveCommunications = true
+        this.contactDepartmentForms = null
+        this.email = null
+        this.firstName = null
+        this.lastName = null
+        this.permissions = null
+        this.uid = null
+        this.userId = null
       }
     },
     remove(departmentForm) {
