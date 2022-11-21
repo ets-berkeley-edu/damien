@@ -21,15 +21,18 @@
       >
         <template #header.data-table-select>
           <div class="d-flex flex-row notify-all">
-            <v-simple-checkbox
+            <v-checkbox
               id="checkbox-select-dept-all"
               aria-label="Select all department rows"
+              class="align-center mt-0 pt-0"
+              color="tertiary"
               :disabled="loading"
+              hide-details
               :indeterminate="someDepartmentsSelected"
               :ripple="false"
               :value="allDepartmentsSelected"
-              @input="toggleSelectAll"
-            ></v-simple-checkbox>
+              @change="toggleSelectAll"
+            ></v-checkbox>
             <div class="d-flex align-center">Send notification</div>
             <v-btn
               v-if="!isCreatingNotification"
@@ -50,13 +53,16 @@
             <template v-for="(department, index) in items">
               <tr :id="`department-${index}`" :key="department.name">
                 <td>
-                  <v-simple-checkbox
+                  <v-checkbox
                     :id="`checkbox-select-dept-${$_.kebabCase(department.deptName)}`"
+                    class="align-center mt-0 pt-0"
+                    color="tertiary"
                     :disabled="loading"
+                    hide-details
                     :ripple="false"
                     :value="isSelected(department)"
-                    @input="toggleSelect(department)"
-                  ></v-simple-checkbox>
+                    @change="toggleSelect(department)"
+                  ></v-checkbox>
                 </td>
                 <td class="department-name">
                   <div class="d-flex align-top">
