@@ -141,11 +141,12 @@ class Department(Base):
     def get_supplemental_sections(self, term_id):
         course_numbers = [r.course_number for r in SupplementalSection.for_term_and_department(term_id, self.id)]
         sections = get_loch_sections_by_ids(term_id, course_numbers)
-        self.merge_cross_listings(sections, term_id)
+        self.merge_cross_listings(sections, term_id, course_numbers)
         return sorted(sections, key=lambda r: r['course_number'])
 
-    def merge_cross_listings(self, sections, term_id):
-        course_numbers = list(set(s.course_number for s in sections if Section.is_visible_by_default(s)))
+    def merge_cross_listings(self, sections, term_id, course_numbers=None):
+        if not course_numbers:
+            course_numbers = list(set(s.course_number for s in sections if Section.is_visible_by_default(s)))
         sections.extend(get_room_shares(term_id, course_numbers))
         sections.extend(get_cross_listings(term_id, course_numbers))
 
