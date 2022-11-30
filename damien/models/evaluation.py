@@ -636,7 +636,10 @@ class Evaluation(Base):
                     self.mark_conflict(fde, 'departmentForm', saved_evaluation, self.department_form.name, fde.department_form.name)
         else:
             for fde in foreign_dept_evaluations:
-                if fde.department_form and self.department_id != fde.department_id:
+                # If the other department has marked their row 'Ignore', we prefer the default form unless none exists.
+                if (fde.department_form
+                        and self.department_id != fde.department_id
+                        and (fde.status != 'ignore' or not default_form)):
                     self.department_form = fde.department_form
                     break
         if default_form and not self.department_form:
@@ -650,7 +653,10 @@ class Evaluation(Base):
                     self.mark_conflict(fde, 'evaluationType', saved_evaluation, self.evaluation_type.name, fde.evaluation_type.name)
         else:
             for fde in foreign_dept_evaluations:
-                if fde.evaluation_type and self.department_id != fde.department_id:
+                # If the other department has marked their row 'Ignore', we prefer the default evaluation type unless none exists.
+                if (fde.evaluation_type
+                        and self.department_id != fde.department_id
+                        and (fde.status != 'ignore' or not default_evaluation_types)):
                     self.evaluation_type = fde.evaluation_type
                     break
         if not self.evaluation_type:
