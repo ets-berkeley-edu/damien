@@ -190,10 +190,7 @@ def _generate_course_id_map(keys, course_number, term_id):
     else:
         course_id_map = {}
         for index, key in enumerate(keys):
-            if index == 0:
-                postfix = f"{'_GSI' if key.evaluation_type == 'G' else ''}{'_MID' if key.department_form.endswith('_MID') else ''}"
-            else:
-                postfix = f'_{chr(64 + index)}'
+            postfix = '' if index == 0 else f'_{chr(64 + index)}'
             course_id_map[key] = f'{course_id_prefix}{postfix}'
         return course_id_map
 
