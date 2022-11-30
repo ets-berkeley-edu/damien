@@ -30,7 +30,7 @@ from itertools import groupby
 from damien import db, std_commit
 from damien.lib.cache import clear_department_cache, clear_section_cache
 from damien.lib.queries import get_default_meeting_dates, refresh_additional_instructors
-from damien.lib.util import safe_strftime
+from damien.lib.util import isoformat, safe_strftime
 from damien.models.base import Base
 from damien.models.department_form import DepartmentForm
 from damien.models.evaluation_type import EvaluationType
@@ -733,7 +733,7 @@ class Evaluation(Base):
                 'end': safe_strftime(self.meeting_end_date, '%Y-%m-%d'),
             },
             'modular': is_modular(self.start_date, self.end_date),
-            'lastUpdated': safe_strftime(self.last_updated, '%Y-%m-%d'),
+            'lastUpdated': isoformat(self.last_updated),
             'conflicts': {},
             'valid': self.valid,
         })
