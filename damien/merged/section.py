@@ -173,8 +173,6 @@ class Section:
 
                 if evaluation.department == department:
                     home_dept_evals.append(evaluation)
-                elif evaluation.status == 'ignore':
-                    continue
                 elif evaluation.is_midterm():
                     foreign_dept_evals_midterm.append(evaluation)
                 else:
