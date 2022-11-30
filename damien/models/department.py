@@ -28,7 +28,7 @@ from itertools import groupby
 from damien import db, std_commit
 from damien.lib.cache import fetch_all_sections, fetch_department_cache, set_department_cache
 from damien.lib.queries import get_cross_listings, get_loch_instructors, get_loch_sections, get_loch_sections_by_ids, get_room_shares
-from damien.lib.util import extract_int, isoformat, safe_strftime
+from damien.lib.util import extract_int, isoformat
 from damien.merged.section import Section
 from damien.models.base import Base
 from damien.models.department_catalog_listing import DepartmentCatalogListing
@@ -242,7 +242,7 @@ class Department(Base):
 
     def cache_summary_feed(self, term_id):
         feed = {
-            'lastUpdated': safe_strftime(Evaluation.get_last_update(self.id, term_id), '%Y-%m-%d'),
+            'lastUpdated': isoformat(Evaluation.get_last_update(self.id, term_id)),
             'totalBlockers': Evaluation.count_department_blockers(self.id, term_id),
             'totalConfirmed': Evaluation.count_department_confirmed(self.id, term_id),
             'totalInError': Evaluation.count_department_errors(self.id, term_id),
