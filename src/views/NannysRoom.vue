@@ -30,7 +30,7 @@
               <v-icon>mdi-plus-thick</v-icon>
               Add new department form
             </v-btn>
-            <v-form v-if="isAddingDepartmentForm" class="px-4" @submit.prevent="onSubmitAddDepartmentForm">
+            <v-form v-if="isAddingDepartmentForm" class="px-4 pb-4" @submit.prevent="onSubmitAddDepartmentForm">
               <label :for="'input-dept-form-name'" class="form-label">
                 Form name
               </label>
@@ -75,9 +75,15 @@
               disable-pagination
               :headers="[{text: 'Form Name', value: 'name'}]"
               hide-default-footer
+              hide-default-header
               :items="departmentForms"
               item-key="name"
+              :sort-by.sync="sortBy.departmentForms"
+              :sort-desc.sync="sortDesc.departmentForms"
             >
+              <template #header="{props: {headers}}">
+                <SortableTableHeader :headers="headers" :on-sort="sortDepartmentForms" />
+              </template>
               <template #item.name="{item}">
                 <div class="d-flex justify-space-between">
                   <span>{{ item.name }}</span>
@@ -115,7 +121,7 @@
               <v-icon>mdi-plus-thick</v-icon>
               Add new evaluation type
             </v-btn>
-            <v-form v-if="isAddingEvaluationType" class="px-4" @submit.prevent="onSubmitAddEvaluationType">
+            <v-form v-if="isAddingEvaluationType" class="px-4 pb-4" @submit.prevent="onSubmitAddEvaluationType">
               <label :for="'input-eval-type-name'" class="form-label">
                 Type name
               </label>
@@ -160,9 +166,15 @@
               disable-pagination
               :headers="[{text: 'Type Name', value: 'name'}]"
               hide-default-footer
+              hide-default-header
               :items="evaluationTypes"
               item-key="name"
+              :sort-by.sync="sortBy.evaluationTypes"
+              :sort-desc.sync="sortDesc.evaluationTypes"
             >
+              <template #header="{props: {headers}}">
+                <SortableTableHeader :headers="headers" :on-sort="sortEvaluationTypes" />
+              </template>
               <template #item.name="{item}">
                 <div class="d-flex justify-space-between">
                   <span>{{ item.name }}</span>
@@ -202,7 +214,7 @@
             </v-btn>
             <v-form
               v-if="isAddingInstructor"
-              class="px-4"
+              class="px-4 pb-4"
               @submit.prevent="onSubmitAddInstructor"
             >
               <label for="input-instructor-uid" class="form-label">
@@ -302,8 +314,14 @@
               disable-pagination
               :headers="instructorHeaders"
               hide-default-footer
+              hide-default-header
               :items="instructors"
+              :sort-by.sync="sortBy.instructors"
+              :sort-desc.sync="sortDesc.instructors"
             >
+              <template #header="{props: {headers}}">
+                <SortableTableHeader :headers="headers" :on-sort="sortInstructors" />
+              </template>
               <template #item.delete="{ item }">
                 <v-btn
                   :id="`delete-instructor-${item.uid}-btn`"
@@ -340,11 +358,12 @@
 import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context.vue'
 import EditServiceAnnouncement from '@/components/admin/EditServiceAnnouncement'
+import SortableTableHeader from '@/components/util/SortableTableHeader'
 import ListManagementSession from '@/mixins/ListManagementSession'
 
 export default {
   name: 'NannysRoom',
-  components: {ConfirmDialog, EditServiceAnnouncement},
+  components: {ConfirmDialog, EditServiceAnnouncement, SortableTableHeader},
   mixins: [Context, ListManagementSession],
   data: () => ({
     instructorValid: true,
@@ -364,7 +383,17 @@ export default {
       {text: '', value: 'delete', sortable: false}
     ],
     newInstructor: null,
-    newItemName: null
+    newItemName: null,
+    sortBy: {
+      departmentForms: null,
+      evaluationTypes: null,
+      instructors: null
+    },
+    sortDesc: {
+      departmentForms: null,
+      evaluationTypes: null,
+      instructors: null
+    }
   }),
   created() {
     this.resetNewInstructor()
@@ -441,6 +470,18 @@ export default {
         'lastName': null,
         'uid': null
       }
+    },
+    sortDepartmentForms(sortBy, sortDesc) {
+      this.sortBy.departmentForms = sortBy
+      this.sortDesc.departmentForms = sortDesc
+    },
+    sortEvaluationTypes(sortBy, sortDesc) {
+      this.sortBy.evaluationTypes = sortBy
+      this.sortDesc.evaluationTypes = sortDesc
+    },
+    sortInstructors(sortBy, sortDesc) {
+      this.sortBy.instructors = sortBy
+      this.sortDesc.instructors = sortDesc
     }
   }
 }

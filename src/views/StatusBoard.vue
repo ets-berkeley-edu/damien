@@ -14,39 +14,44 @@
         disable-pagination
         :disable-sort="loading"
         :headers="headers"
-        :header-props="{'every-item': true, 'some-items': true}"
         hide-default-footer
+        hide-default-header
         :items="departments"
-        show-select
+        :sort-by.sync="sortBy"
+        :sort-desc.sync="sortDesc"
       >
-        <template #header.data-table-select>
-          <div class="d-flex flex-row notify-all">
-            <v-checkbox
-              id="checkbox-select-dept-all"
-              aria-label="Select all department rows"
-              class="align-center mt-0 pt-0"
-              color="tertiary"
-              :disabled="loading"
-              hide-details
-              :indeterminate="someDepartmentsSelected"
-              :ripple="false"
-              :value="allDepartmentsSelected"
-              @change="toggleSelectAll"
-            ></v-checkbox>
-            <div class="d-flex align-center">Send notification</div>
-            <v-btn
-              v-if="!isCreatingNotification"
-              id="open-notification-form-btn"
-              class="ma-2 secondary text-capitalize"
-              color="secondary"
-              :disabled="$_.isEmpty(selectedDepartmentIds) || loading"
-              small
-              @click="() => isCreatingNotification = true"
-              @keypress.enter.prevent="() => isCreatingNotification = true"
-            >
-              Apply
-            </v-btn>
-          </div>
+        <template #header="{props: {headers}}">
+          <SortableTableHeader :headers="headers" :on-sort="sort">
+            <template #select>
+              <div class="d-flex flex-row notify-all">
+                <v-checkbox
+                  id="checkbox-select-dept-all"
+                  aria-label="Select all department rows"
+                  class="align-center mt-0 pt-0"
+                  color="tertiary"
+                  :disabled="loading"
+                  hide-details
+                  :indeterminate="someDepartmentsSelected"
+                  :ripple="false"
+                  :value="allDepartmentsSelected"
+                  @change="toggleSelectAll"
+                ></v-checkbox>
+                <div class="d-flex align-center">Send notification</div>
+                <v-btn
+                  v-if="!isCreatingNotification"
+                  id="open-notification-form-btn"
+                  class="ma-2 secondary text-capitalize"
+                  color="secondary"
+                  :disabled="$_.isEmpty(selectedDepartmentIds) || loading"
+                  small
+                  @click="() => isCreatingNotification = true"
+                  @keypress.enter.prevent="() => isCreatingNotification = true"
+                >
+                  Apply
+                </v-btn>
+              </div>
+            </template>
+          </SortableTableHeader>
         </template>
         <template #body="{items}">
           <tbody>
@@ -140,11 +145,12 @@
 import {getDepartmentsEnrolled} from '@/api/departments'
 import Context from '@/mixins/Context'
 import NotificationForm from '@/components/admin/NotificationForm'
+import SortableTableHeader from '@/components/util/SortableTableHeader'
 import TermSelect from '@/components/util/TermSelect'
 
 export default {
   name: 'StatusBoard',
-  components: {NotificationForm, TermSelect},
+  components: {NotificationForm, SortableTableHeader, TermSelect},
   mixins: [Context],
   data: () => ({
     blockers: {},
@@ -152,7 +158,9 @@ export default {
     headers: [],
     isCreatingNotification: false,
     isExporting: false,
-    selectedDepartmentIds: []
+    selectedDepartmentIds: [],
+    sortBy: null,
+    sortDesc: false
   }),
   computed: {
     allDepartmentsSelected() {
@@ -180,6 +188,7 @@ export default {
   },
   created() {
     this.headers = [
+      {class: 'text-start text-nowrap px-4', text: 'Select', value: 'select', width: '30px'},
       {class: 'text-nowrap pt-12 pb-3', text: 'Department', value: 'deptName', width: '50%'},
       {class: 'text-nowrap pt-12 pb-3', text: 'Last Updated', value: 'lastUpdated', width: '20%'},
       {class: 'text-nowrap pt-12 pb-3', text: 'Errors', value: 'totalInError', width: '10%'},
@@ -219,6 +228,10 @@ export default {
         this.loadBlockers()
         this.$ready(`Evaluation Status Dashboard for ${this.selectedTermName}`)
       })
+    },
+    sort(sortBy, sortDesc) {
+      this.sortBy = sortBy
+      this.sortDesc = sortDesc
     },
     toggleSelect(department) {
       const index = this.$_.indexOf(this.selectedDepartmentIds, department.id)
