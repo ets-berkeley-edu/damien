@@ -1,5 +1,10 @@
 <template>
-  <v-dialog v-model="model" width="500">
+  <v-dialog
+    v-model="model"
+    width="500"
+    @click:outside="cancelAction"
+    @keydown.esc="cancelAction"
+  >
     <v-card>
       <v-card-title id="confirm-dialog-title" tabindex="-1">{{ title }}</v-card-title>
       <v-card-text class="pt-3">{{ text }}</v-card-text>
@@ -12,7 +17,6 @@
               id="confirm-dialog-btn"
               color="primary"
               @click="performAction"
-              @keypress.enter.prevent="performAction"
             >
               Confirm
             </v-btn>
@@ -21,7 +25,6 @@
             <v-btn
               id="cancel-dialog-btn"
               @click="cancelAction"
-              @keypress.enter.prevent="cancelAction"
             >
               Cancel
             </v-btn>
@@ -61,12 +64,9 @@ export default {
     model: false
   }),
   watch: {
-    confirming() {
-      this.model = this.confirming
+    confirming(isConfirming) {
+      this.model = isConfirming
     }
-  },
-  created() {
-    this.model = this.confirming
   }
 }
 </script>

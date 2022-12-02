@@ -171,10 +171,9 @@
                       :disabled="!allowEdits"
                       :ripple="false"
                       text
-                      @click="onEditEvaluation(evaluation)"
+                      @click.stop="onEditEvaluation(evaluation)"
                       @blur.native="() => focusedEditButtonEvaluationId = null"
                       @focus.native="() => focusedEditButtonEvaluationId = evaluation.id"
-                      @keypress.enter.prevent="onEditEvaluation(evaluation)"
                     >
                       Edit
                     </v-btn>

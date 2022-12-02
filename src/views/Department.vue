@@ -86,7 +86,6 @@
               color="tertiary"
               text
               @click="() => isAddingContact = true"
-              @keypress.enter.prevent="() => isAddingContact = true"
             >
               <v-icon>mdi-plus-thick</v-icon>
               Add Contact

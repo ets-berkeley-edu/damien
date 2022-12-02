@@ -14,8 +14,12 @@
     </div>
     <v-container class="px-0 mx-0" fluid>
       <v-row>
-        <v-col cols="12" md="3">
-          <v-card elevation="2" class="mr-4">
+        <v-col cols="12" md="6" lg="3">
+          <v-card
+            class="mr-4"
+            elevation="2"
+            min-width="fit-content"
+          >
             <v-card-title>Department Forms</v-card-title>
             <v-btn
               v-if="!isAddingDepartmentForm"
@@ -25,7 +29,6 @@
               :disabled="disableControls"
               text
               @click="onClickAddDepartmentForm"
-              @keyup.enter="onClickAddDepartmentForm"
             >
               <v-icon>mdi-plus-thick</v-icon>
               Add new department form
@@ -51,7 +54,6 @@
                 :disabled="!newItemName || isSaving"
                 elevation="2"
                 @click="onSubmitAddDepartmentForm"
-                @keyup.enter="onSubmitAddDepartmentForm"
               >
                 Save
               </v-btn>
@@ -64,49 +66,53 @@
                 outlined
                 text
                 @click="cancelAdd('add-dept-form-btn')"
-                @keyup.enter="cancelAdd('add-dept-form-btn')"
               >
                 Cancel
               </v-btn>
             </v-form>
-            <v-data-table
-              id="dept-forms-table"
-              dense
-              disable-pagination
-              :headers="[{text: 'Form Name', value: 'name'}]"
-              hide-default-footer
-              hide-default-header
-              :items="departmentForms"
-              item-key="name"
-              :sort-by.sync="sortBy.departmentForms"
-              :sort-desc.sync="sortDesc.departmentForms"
-            >
-              <template #header="{props: {headers}}">
-                <SortableTableHeader :headers="headers" :on-sort="sortDepartmentForms" />
-              </template>
-              <template #item.name="{item}">
-                <div class="d-flex justify-space-between">
-                  <span>{{ item.name }}</span>
-                  <v-btn
-                    :id="`delete-dept-form-${item.id}-btn`"
-                    class="text-capitalize pa-0"
-                    color="tertiary"
-                    :disabled="disableControls"
-                    height="unset"
-                    min-width="unset"
-                    text
-                    @click="() => confirmDeleteDepartmentForm(item)"
-                    @keyup.enter="() => confirmDeleteDepartmentForm(item)"
-                  >
-                    Delete
-                  </v-btn>
-                </div>
-              </template>
-            </v-data-table>
+            <div class="nannys-list overflow-y-auto">
+              <v-data-table
+                id="dept-forms-table"
+                dense
+                disable-pagination
+                :headers="[{class: 'pl-3', text: 'Form Name', value: 'name'}]"
+                hide-default-footer
+                hide-default-header
+                :items="departmentForms"
+                item-key="name"
+                :sort-by.sync="sortBy.departmentForms"
+                :sort-desc.sync="sortDesc.departmentForms"
+              >
+                <template #header="{props: {headers}}">
+                  <SortableTableHeader :headers="headers" :on-sort="sortDepartmentForms" />
+                </template>
+                <template #item.name="{item}">
+                  <div class="d-flex justify-space-between">
+                    <span>{{ item.name }}</span>
+                    <v-btn
+                      :id="`delete-dept-form-${item.id}-btn`"
+                      class="text-capitalize px-2 py-0"
+                      color="tertiary"
+                      :disabled="disableControls"
+                      height="unset"
+                      min-width="unset"
+                      text
+                      @click.stop="() => confirmDeleteDepartmentForm(item)"
+                    >
+                      Delete
+                    </v-btn>
+                  </div>
+                </template>
+              </v-data-table>
+            </div>
           </v-card>
         </v-col>
-        <v-col cols="12" md="3">
-          <v-card elevation="2" class="mr-4">
+        <v-col cols="12" md="6" lg="3">
+          <v-card
+            class="mr-4"
+            elevation="2"
+            min-width="fit-content"
+          >
             <v-card-title>Evaluation Types</v-card-title>
             <v-btn
               v-if="!isAddingEvaluationType"
@@ -116,7 +122,6 @@
               :disabled="disableControls"
               text
               @click="onClickAddEvaluationType"
-              @keyup.enter="onClickAddEvaluationType"
             >
               <v-icon>mdi-plus-thick</v-icon>
               Add new evaluation type
@@ -142,7 +147,6 @@
                 :disabled="!newItemName || isSaving"
                 elevation="2"
                 @click="onSubmitAddEvaluationType"
-                @keyup.enter="onSubmitAddEvaluationType"
               >
                 Save
               </v-btn>
@@ -155,49 +159,53 @@
                 outlined
                 text
                 @click="cancelAdd('add-eval-type-btn')"
-                @keyup.enter="cancelAdd('add-eval-type-btn')"
               >
                 Cancel
               </v-btn>
             </v-form>
-            <v-data-table
-              id="evaluation-types-table"
-              dense
-              disable-pagination
-              :headers="[{text: 'Type Name', value: 'name'}]"
-              hide-default-footer
-              hide-default-header
-              :items="evaluationTypes"
-              item-key="name"
-              :sort-by.sync="sortBy.evaluationTypes"
-              :sort-desc.sync="sortDesc.evaluationTypes"
-            >
-              <template #header="{props: {headers}}">
-                <SortableTableHeader :headers="headers" :on-sort="sortEvaluationTypes" />
-              </template>
-              <template #item.name="{item}">
-                <div class="d-flex justify-space-between">
-                  <span>{{ item.name }}</span>
-                  <v-btn
-                    :id="`delete-eval-type-${item.id}-btn`"
-                    class="text-capitalize pa-0"
-                    color="tertiary"
-                    :disabled="disableControls"
-                    height="unset"
-                    min-width="unset"
-                    text
-                    @click="() => confirmDeleteEvaluationType(item)"
-                    @keyup.enter="() => confirmDeleteEvaluationType(item)"
-                  >
-                    Delete
-                  </v-btn>
-                </div>
-              </template>
-            </v-data-table>
+            <div class="nannys-list overflow-y-auto">
+              <v-data-table
+                id="evaluation-types-table"
+                dense
+                disable-pagination
+                :headers="[{class: 'pl-3', text: 'Type Name', value: 'name'}]"
+                hide-default-footer
+                hide-default-header
+                :items="evaluationTypes"
+                item-key="name"
+                :sort-by.sync="sortBy.evaluationTypes"
+                :sort-desc.sync="sortDesc.evaluationTypes"
+              >
+                <template #header="{props: {headers}}">
+                  <SortableTableHeader :headers="headers" :on-sort="sortEvaluationTypes" />
+                </template>
+                <template #item.name="{item}">
+                  <div class="d-flex justify-space-between">
+                    <span>{{ item.name }}</span>
+                    <v-btn
+                      :id="`delete-eval-type-${item.id}-btn`"
+                      class="text-capitalize px-2 py-0"
+                      color="tertiary"
+                      :disabled="disableControls"
+                      height="unset"
+                      min-width="unset"
+                      text
+                      @click.stop="() => confirmDeleteEvaluationType(item)"
+                    >
+                      Delete
+                    </v-btn>
+                  </div>
+                </template>
+              </v-data-table>
+            </div>
           </v-card>
         </v-col>
-        <v-col cols="12" md="6">
-          <v-card elevation="2" class="mr-4">
+        <v-col cols="12" lg="6">
+          <v-card
+            class="mr-4"
+            elevation="2"
+            min-width="fit-content"
+          >
             <v-card-title>Manually Added Instructors</v-card-title>
             <v-btn
               v-if="!isAddingInstructor"
@@ -207,7 +215,6 @@
               :disabled="disableControls"
               text
               @click="onClickAddInstructor"
-              @keyup.enter="onClickAddInstructor"
             >
               <v-icon>mdi-plus-thick</v-icon>
               Add new instructor
@@ -290,7 +297,6 @@
                 :disabled="!newInstructor.uid || !newInstructor.lastName || !newInstructor.emailAddress || isSaving"
                 elevation="2"
                 @click="onSubmitAddInstructor"
-                @keyup.enter="onSubmitAddInstructor"
               >
                 Save
               </v-btn>
@@ -303,39 +309,41 @@
                 outlined
                 text
                 @click="cancelAdd('add-instructor-btn')"
-                @keyup.enter="cancelAdd('add-instructor-btn')"
               >
                 Cancel
               </v-btn>
             </v-form>
-            <v-data-table
-              id="instructors-table"
-              dense
-              disable-pagination
-              :headers="instructorHeaders"
-              hide-default-footer
-              hide-default-header
-              :items="instructors"
-              :sort-by.sync="sortBy.instructors"
-              :sort-desc.sync="sortDesc.instructors"
-            >
-              <template #header="{props: {headers}}">
-                <SortableTableHeader :headers="headers" :on-sort="sortInstructors" />
-              </template>
-              <template #item.delete="{ item }">
-                <v-btn
-                  :id="`delete-instructor-${item.uid}-btn`"
-                  class="text-capitalize pa-0"
-                  color="tertiary"
-                  :disabled="disableControls"
-                  text
-                  @click="() => confirmDeleteInstructor(item)"
-                  @keyup.enter="() => confirmDeleteInstructor(item)"
-                >
-                  Delete
-                </v-btn>
-              </template>
-            </v-data-table>
+            <div class="nannys-list overflow-y-auto">
+              <v-data-table
+                id="instructors-table"
+                dense
+                disable-pagination
+                :headers="instructorHeaders"
+                hide-default-footer
+                hide-default-header
+                :items="instructors"
+                :sort-by.sync="sortBy.instructors"
+                :sort-desc.sync="sortDesc.instructors"
+              >
+                <template #header="{props: {headers}}">
+                  <SortableTableHeader :headers="headers" :on-sort="sortInstructors" />
+                </template>
+                <template #item.delete="{ item }">
+                  <v-btn
+                    :id="`delete-instructor-${item.uid}-btn`"
+                    class="text-capitalize px-2 py-0"
+                    color="tertiary"
+                    :disabled="disableControls"
+                    height="unset"
+                    min-width="unset"
+                    text
+                    @click.stop="() => confirmDeleteInstructor(item)"
+                  >
+                    Delete
+                  </v-btn>
+                </template>
+              </v-data-table>
+            </div>
           </v-card>
           <v-card elevation="2" class="mr-4 mt-4">
             <v-card-title>Service Announcement</v-card-title>
@@ -375,12 +383,12 @@ export default {
       numeric: [v => !/[^\d]/.test(v) || 'Invalid number.']
     },
     instructorHeaders: [
-      {text: 'UID', value: 'uid'},
-      {text: 'SID', value: 'csid'},
-      {text: 'First Name', value: 'firstName'},
-      {text: 'Last Name', value: 'lastName'},
-      {text: 'Email', value: 'email'},
-      {text: '', value: 'delete', sortable: false}
+      {class: 'pl-3', text: 'UID', value: 'uid'},
+      {class: 'pl-3', text: 'SID', value: 'csid'},
+      {class: 'pl-3', text: 'First Name', value: 'firstName'},
+      {class: 'pl-3', text: 'Last Name', value: 'lastName'},
+      {class: 'pl-3', text: 'Email', value: 'email'},
+      {class: 'pl-3', text: '', value: 'delete', sortable: false}
     ],
     newInstructor: null,
     newItemName: null,
@@ -486,3 +494,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.nannys-list {
+  max-height: 500px;
+}
+</style>
