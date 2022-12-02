@@ -61,7 +61,6 @@
             min-width="unset"
             text
             @click="() => isEditing = true"
-            @keypress.enter.prevent="() => isEditing = true"
           >
             Edit
           </v-btn>
@@ -78,13 +77,12 @@
             height="unset"
             min-width="unset"
             text
-            @click="() => isConfirming = true"
-            @keypress.enter.prevent="() => isConfirming = true"
+            @click.stop="() => isConfirming = true"
           >
             Delete
           </v-btn>
           <ConfirmDialog
-            :cancel-action="() => isConfirming = false"
+            :cancel-action="onCancelDelete"
             :confirming="isConfirming"
             :perform-action="onDelete"
             :text="`Are you sure you want to remove ${fullName}?`"
@@ -151,6 +149,11 @@ export default {
       this.isEditing = false
       this.alertScreenReader(`Updated contact ${this.fullName}.`)
       this.$putFocusNextTick(`edit-dept-contact-${this.contact.id}-btn`)
+    },
+    onCancelDelete() {
+      this.isConfirming = false
+      this.alertScreenReader('Canceled. Nothing deleted.')
+      this.$putFocusNextTick(`delete-dept-contact-${this.contact.id}-btn`)
     },
     onCancelEdit() {
       this.isEditing = false
