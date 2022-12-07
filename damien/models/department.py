@@ -211,7 +211,7 @@ class Department(Base):
         }
         vs = self.get_visible_sections(term_id)
         for s in vs['sections']:
-            section_evaluation_exports = s.get_evaluation_exports(department=self, evaluation_ids=evaluation_ids)
+            section_evaluation_exports = s.get_evaluation_exports(department_id=self.id, evaluation_ids=evaluation_ids)
             exports['evaluations'].update(section_evaluation_exports)
             exports['sections'][s.course_number] = s
 
@@ -230,7 +230,7 @@ class Department(Base):
             f'Generating evaluations feed (dept_id={self.id}, term_id={term_id}, section_id={section_id}, evaluation_ids={evaluation_ids}')
         feed = []
         for s in self.get_visible_sections(term_id, section_id)['sections']:
-            feed.extend(s.get_evaluation_feed(department=self, sections_cache=sections_cache, evaluation_ids=evaluation_ids))
+            feed.extend(s.get_evaluation_feed(department_id=self.id, sections_cache=sections_cache, evaluation_ids=evaluation_ids))
 
         if not section_id and not evaluation_ids:
             self.row_count = len(feed)
