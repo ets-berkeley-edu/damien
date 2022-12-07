@@ -141,7 +141,7 @@ class Section:
         else:
             self.default_evaluation_types = None
 
-    def merge_evaluations(self, department):
+    def merge_evaluations(self, department_id):
         merged_evaluations = []
 
         # Multiple loch rows for a single section-instructor pairing are possible.
@@ -171,7 +171,7 @@ class Section:
                 else:
                     has_final_evals = True
 
-                if evaluation.department == department:
+                if evaluation.department_id == department_id:
                     home_dept_evals.append(evaluation)
                 elif evaluation.is_midterm():
                     foreign_dept_evals_midterm.append(evaluation)
@@ -319,9 +319,9 @@ class Section:
             feed['foreignDepartmentCourse'] = True
         return feed
 
-    def get_evaluation_exports(self, department, evaluation_ids):
+    def get_evaluation_exports(self, department_id, evaluation_ids):
         exports = {}
-        merged_evaluations = self.merge_evaluations(department=department)
+        merged_evaluations = self.merge_evaluations(department_id=department_id)
         for e in merged_evaluations:
             if e.get_id() not in evaluation_ids:
                 continue
@@ -331,16 +331,16 @@ class Section:
             exports[export_key].add(e.instructor_uid)
         return exports
 
-    def get_evaluation_feed(self, department, sections_cache=None, evaluation_ids=None):
+    def get_evaluation_feed(self, department_id, sections_cache=None, evaluation_ids=None):
         if sections_cache:
             evaluation_feed = sections_cache.get(self.course_number)
         else:
-            evaluation_feed = fetch_section_cache(department.id, self.term_id, self.course_number)
+            evaluation_feed = fetch_section_cache(department_id, self.term_id, self.course_number)
 
         if not evaluation_feed:
-            merged_evaluations = self.merge_evaluations(department=department)
+            merged_evaluations = self.merge_evaluations(department_id=department_id)
             evaluation_feed = [e.to_api_json(section=self) for e in merged_evaluations]
-            set_section_cache(department.id, self.term_id, self.course_number, evaluation_feed)
+            set_section_cache(department_id, self.term_id, self.course_number, evaluation_feed)
 
         if evaluation_ids:
             evaluation_feed = [e for e in evaluation_feed if e['id'] in evaluation_ids]
