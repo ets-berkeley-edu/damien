@@ -213,7 +213,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_cancel_lookup_section()
         self.dept_details_admin_page.click_add_section()
         self.dept_details_admin_page.look_up_section('99999')
-        self.dept_details_admin_page.wait_for_validation_error('Invalid course number')
+        self.dept_details_admin_page.wait_for_validation_error('Section 99999 not found')
         self.dept_details_admin_page.wait_for_element(CourseDashboardEditsPage.SECTION_NOT_FOUND_MSG, utils.get_short_timeout())
 
     def test_add_supp_section(self):

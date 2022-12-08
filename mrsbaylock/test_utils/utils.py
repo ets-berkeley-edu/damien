@@ -432,6 +432,44 @@ def reset_test_data(term, dept=None):
 # CSV DATA
 
 
+def calculate_course_ids(evaluations):
+    for evaluation in evaluations:
+        evaluation.alpha_suffix = False
+
+    sorted_by_ccn = sorted(evaluations, key=lambda e: e.ccn)
+    eval_lists_by_ccn = [list(result) for key, result in itertools.groupby(sorted_by_ccn, key=lambda e: e.ccn)]
+    for eval_list_by_ccn in eval_lists_by_ccn:
+        types = list(set([e.eval_type for e in eval_list_by_ccn]))
+        types.sort()
+        forms = list(set([e.dept_form.replace('_MID', '') for e in eval_list_by_ccn]))
+        if len(forms) != 1 or (len(types) != 1 and len([x for x in types if x not in ['F', 'G']]) != 0):
+            for e in eval_list_by_ccn:
+                e.alpha_suffix = True
+
+        sorted_by_form_and_type = sorted(eval_list_by_ccn, key=lambda e: [e.dept_form, e.eval_type])
+        eval_lists_by_ccn_form_type = [list(result) for key, result in itertools.groupby(
+            sorted_by_form_and_type, key=lambda e: [e.dept_form, e.eval_type],
+        )]
+        for eval_list_by_ccn_form_type in eval_lists_by_ccn_form_type:
+            dates = list(set([e.eval_start_date for e in eval_list_by_ccn_form_type]))
+            if len(dates) != 1:
+                for e in eval_list_by_ccn_form_type:
+                    e.alpha_suffix = True
+                break
+
+    for eval_list_by_ccn in eval_lists_by_ccn:
+        eval_list_by_ccn.sort(key=lambda e: e.eval_start_date)
+        for e in eval_list_by_ccn:
+            if e.alpha_suffix:
+                i = eval_list_by_ccn.index(e)
+                suffix = '' if i == 0 else f'_{chr(64 + i)}'
+                mid_suffix = ''
+            else:
+                suffix = '_GSI' if e.eval_type == 'G' else ''
+                mid_suffix = '_MID' if '_MID' in e.dept_form else ''
+            e.course_id = f'{e.term.prefix}-{e.ccn}{suffix}{mid_suffix}'
+
+
 def verify_actual_matches_expected(actual, expected):
     unexpected = [x for x in actual if x not in expected]
     missing = [x for x in expected if x not in actual]
@@ -448,10 +486,9 @@ def verify_actual_matches_expected(actual, expected):
 def expected_courses(evaluations):
     term = get_current_term()
     courses = []
+    calculate_course_ids(evaluations)
     for row in evaluations:
-        gsi_suffix = '_GSI' if row.eval_type == 'G' else ''
-        gsi = ' (EVAL FOR GSI)' if gsi_suffix else ''
-        mid_suffix = '_MID' if '_MID' in row.dept_form else ''
+        gsi = ' (EVAL FOR GSI)' if row.eval_type == 'G' else ''
         if row.x_listing_ccns:
             flag = 'Y'
             ccns = []
@@ -482,8 +519,8 @@ def expected_courses(evaluations):
             else:
                 end_date = ''
         data = {
-            'COURSE_ID': f'{term.prefix}-{row.ccn}{gsi_suffix}{mid_suffix}',
-            'COURSE_ID_2': f'{term.prefix}-{row.ccn}{gsi_suffix}{mid_suffix}',
+            'COURSE_ID': row.course_id,
+            'COURSE_ID_2': row.course_id,
             'COURSE_NAME': f'{row.subject} {row.catalog_id} {row.instruction_format} {row.section_num} {row.title}{gsi}',
             'CROSS_LISTED_FLAG': flag,
             'CROSS_LISTED_NAME': x_listed_name,
@@ -507,11 +544,8 @@ def expected_courses(evaluations):
 
 def expected_course_students(evaluations):
     term = get_current_term()
-    course_ids = []
-    for e in evaluations:
-        gsi_suffix = '_GSI' if e.eval_type == 'G' else ''
-        mid_suffix = '_MID' if '_MID' in e.dept_form else ''
-        course_ids.append(f'{term.prefix}-{e.ccn}{gsi_suffix}{mid_suffix}')
+    calculate_course_ids(evaluations)
+    course_ids = list(map(lambda ev: ev.course_id, evaluations))
     course_ids = list(set(course_ids))
     ccns = "', '".join(e.ccn for e in evaluations)
     sql = f"""
@@ -552,13 +586,11 @@ def expected_instructors(evaluations):
 
 
 def expected_course_instructors(evaluations):
-    term = get_current_term()
     instructors = []
+    calculate_course_ids(evaluations)
     for row in evaluations:
-        gsi_suffix = '_GSI' if row.eval_type == 'G' else ''
-        mid_suffix = '_MID' if '_MID' in row.dept_form else ''
         data = {
-            'COURSE_ID': f'{term.prefix}-{row.ccn}{gsi_suffix}{mid_suffix}',
+            'COURSE_ID': row.course_id,
             'LDAP_UID': row.instructor.uid,
             'ROLE': 'Faculty' if row.eval_type == 'F' else 'GSI' if row.eval_type == 'G' else row.eval_type,
         }
@@ -612,20 +644,18 @@ def expected_supervisors():
 
 
 def expected_course_supervisors(evaluations, all_contacts):
-    term = get_current_term()
     forms_per_uid = []
+    calculate_course_ids(evaluations)
     for contact in all_contacts:
         forms = list(map(lambda f: f.name, contact.dept_forms))
         forms_per_uid.append({'uid': contact.uid, 'forms': forms})
 
     supervisors = []
     for row in evaluations:
-        gsi_suffix = '_GSI' if row.eval_type == 'G' else ''
-        mid_suffix = '_MID' if '_MID' in row.dept_form else ''
         for uid in forms_per_uid:
             if row.dept_form in uid['forms']:
                 data = {
-                    'COURSE_ID': f'{term.prefix}-{row.ccn}{gsi_suffix}{mid_suffix}',
+                    'COURSE_ID': row.course_id,
                     'LDAP_UID': uid['uid'],
                     'DEPT_NAME': row.dept_form,
                 }
@@ -634,7 +664,7 @@ def expected_course_supervisors(evaluations, all_contacts):
 
 
 def expected_dept_hierarchy():
-    forms = list(map(lambda f: f.name, evaluation_utils.get_all_dept_forms()))
+    forms = list(map(lambda f: f.name, evaluation_utils.get_all_dept_forms(include_deleted=True)))
     rows = [{
         'NODE_ID': 'UC Berkeley',
         'NODE_CAPTION': 'UC Berkeley',
@@ -663,7 +693,6 @@ def expected_report_viewers():
                   LEFT JOIN user_department_forms ON user_department_forms.user_id = users.id
                   LEFT JOIN department_forms ON department_forms.id = user_department_forms.department_form_id
                       WHERE department_forms.name IS NOT NULL
-                        AND department_forms.deleted_at IS NULL
                    ORDER BY uid, form
     """
     app.logger.info(sql)

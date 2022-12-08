@@ -409,6 +409,8 @@ def get_manual_sections(evals, term, dept):
 def get_edited_sections(term, dept):
     sql = f"""
         SELECT evaluations.course_number AS ccn,
+               ARRAY_TO_STRING(ARRAY_AGG(DISTINCT unholy_loch.cross_listings.cross_listing_number), ',') AS listings,
+               ARRAY_TO_STRING(ARRAY_AGG(DISTINCT unholy_loch.co_schedulings.room_share_number), ',') AS shares,
                unholy_loch.sis_sections.subject_area AS subject,
                unholy_loch.sis_sections.catalog_id AS catalog_id,
                unholy_loch.sis_sections.instruction_format AS instruction_format,
@@ -429,8 +431,30 @@ def get_edited_sections(term, dept):
             ON department_forms.id = evaluations.department_form_id
      LEFT JOIN evaluation_types
             ON evaluation_types.id = evaluations.evaluation_type_id
+     LEFT JOIN unholy_loch.cross_listings
+            ON unholy_loch.cross_listings.course_number = evaluations.course_number
+           AND unholy_loch.cross_listings.term_id = evaluations.term_id
+     LEFT JOIN unholy_loch.co_schedulings
+            ON unholy_loch.co_schedulings.course_number = evaluations.course_number
+           AND unholy_loch.co_schedulings.term_id = evaluations.term_id
          WHERE evaluations.term_id = '{term.term_id}'
            AND unholy_loch.sis_sections.term_id = '{term.term_id}'
+      GROUP BY evaluations.course_number,
+               evaluations.id,
+               unholy_loch.sis_sections.subject_area,
+               unholy_loch.sis_sections.catalog_id,
+               unholy_loch.sis_sections.instruction_format,
+               unholy_loch.sis_sections.section_num,
+               unholy_loch.sis_sections.course_title,
+               unholy_loch.sis_sections.is_primary,
+               evaluations.instructor_uid,
+               unholy_loch.sis_sections.instructor_role_code,
+               evaluations.start_date,
+               evaluations.end_date,
+               evaluations.status,
+               department_forms.name,
+               evaluation_types.name
+      ORDER BY evaluations.id ASC
     """
     app.logger.info(sql)
     results = db.session.execute(text(sql))
@@ -478,8 +502,9 @@ def merge_edited_evals(evaluations, edited_evals):
             evaluations.append(edit)
 
 
-def get_all_dept_forms():
-    sql = 'SELECT name FROM department_forms WHERE deleted_at IS NULL'
+def get_all_dept_forms(include_deleted=False):
+    deleted = ' WHERE deleted_at IS NULL' if not include_deleted else ''
+    sql = f'SELECT name FROM department_forms{deleted}'
     app.logger.info(sql)
     results = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)

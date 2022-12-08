@@ -109,6 +109,14 @@ class Evaluation(object):
     def status(self):
         return self.data['status']
 
+    @property
+    def course_id(self):
+        return self.data['course_id']
+
+    @property
+    def alpha_suffix(self):
+        return self.data['alpha_suffix']
+
     @x_listing_ccns.setter
     def x_listing_ccns(self, value):
         self.data['x_listing_ccns'] = value
@@ -148,3 +156,11 @@ class Evaluation(object):
     @status.setter
     def status(self, value):
         self.data['status'] = value
+
+    @course_id.setter
+    def course_id(self, value):
+        self.data['course_id'] = value
+
+    @alpha_suffix.setter
+    def alpha_suffix(self, value):
+        self.data['alpha_suffix'] = value

@@ -227,6 +227,16 @@ class TestListManagement:
         actual = self.publish_page.parse_csv('course_supervisors')
         utils.verify_actual_matches_expected(actual, expected)
 
+    def test_dept_hierarchy(self):
+        expected_dept_hierarchy = utils.expected_dept_hierarchy()
+        csv_dept_hierarchy = self.publish_page.parse_csv('department_hierarchy')
+        utils.verify_actual_matches_expected(csv_dept_hierarchy, expected_dept_hierarchy)
+
+    def test_report_viewers(self):
+        expected_viewers = utils.expected_report_viewers()
+        csv_viewers = self.publish_page.parse_csv('report_viewer_hierarchy')
+        utils.verify_actual_matches_expected(csv_viewers, expected_viewers)
+
     # SERVICE ALERTS
 
     def test_save_unposted_alert(self):

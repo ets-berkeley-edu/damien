@@ -221,7 +221,7 @@ class TestDeptMgmt:
         assert not self.dept_details_admin_page.element(DamienPages.NOTIF_SEND_BUTTON).is_enabled()
 
     def test_notif_default_recipients(self):
-        dept_1.users = utils.get_dept_users(dept_1, all_users)
+        dept_1.users = utils.get_dept_users(dept_1)
         test_email.recipients = []
         for user in dept_1.users:
             dept_role = next(filter(lambda r: (r.dept_id == dept_1.dept_id), user.dept_roles))
