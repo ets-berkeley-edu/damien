@@ -150,7 +150,7 @@ class Department(Base):
         sections.extend(get_room_shares(term_id, course_numbers))
         sections.extend(get_cross_listings(term_id, course_numbers))
 
-    def get_visible_sections(self, term_id=None, section_id=None):
+    def get_visible_sections(self, term_id=None, section_id=None, include_empty_sections=False):
         sections = []
         term_id = term_id or app.config['CURRENT_TERM_ID']
 
@@ -177,7 +177,8 @@ class Department(Base):
         all_catalog_listings = DepartmentCatalogListing.query.all()
 
         def _is_loch_row_visible(row):
-            return Section.is_visible_by_default(row) or row['course_number'] in supplemental_section_ids or row['course_number'] == section_id
+            return (Section.is_visible_by_default(row, include_empty_sections)
+                    or row['course_number'] in supplemental_section_ids or row['course_number'] == section_id)
 
         visible_loch_rows_by_course_number = {}
         for course_number in sorted(sections_by_number.keys()):
@@ -209,7 +210,7 @@ class Department(Base):
             'instructors': {},
             'sections': {},
         }
-        vs = self.get_visible_sections(term_id)
+        vs = self.get_visible_sections(term_id, include_empty_sections=True)
         for s in vs['sections']:
             section_evaluation_exports = s.get_evaluation_exports(department_id=self.id, evaluation_ids=evaluation_ids)
             exports['evaluations'].update(section_evaluation_exports)

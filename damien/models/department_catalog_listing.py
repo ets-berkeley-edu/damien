@@ -58,8 +58,8 @@ class DepartmentCatalogListing(Base):
         return f"""<DepartmentCatalogListing id={self.id},
                     department_id={self.department_id},
                     subject_area={self.subject_area},
-                    catalog_id={self.catalog_id}>,
-                    default_form_id={self.default_form_id}>,
+                    catalog_id={self.catalog_id},
+                    default_form_id={self.default_form_id},
                     custom_evaluation_type={self.custom_evaluation_types}
                 """
 

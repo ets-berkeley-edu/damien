@@ -233,12 +233,17 @@ JOIN
 
 DROP TABLE dept_uids;
 
-INSERT INTO user_department_forms(user_id, department_form_id, created_at, updated_at)
+INSERT INTO user_department_forms (user_id, department_form_id, created_at, updated_at)
 SELECT
   u.id, df.id, now(), now()
 FROM
   users u, department_forms df
 WHERE
-  u.uid = '100' AND df.name = 'PHILOS';
+  (u.uid = '100' AND df.name = 'PHILOS')
+  OR (u.uid = '5013530' AND df.name = 'ANCIENT_HISTORY')
+  OR (u.uid = '6982398' AND df.name = 'ANCIENT_HISTORY')
+  OR (u.uid = '5013530' AND df.name = 'HISTORY')
+  OR (u.uid = '6982398' AND df.name = 'HISTORY')
+  OR (u.uid = '1007025' AND df.name = 'MELC');
 
 COMMIT;
