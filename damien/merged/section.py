@@ -74,13 +74,15 @@ class Section:
                     end_date={self.end_date},
                     default_evaluation_types={self.default_evaluation_types},
                     default_form={self.default_form},
+                    cross_listed_with={self.cross_listed_with},
+                    room_shared_with={self.room_shared_with},
                     foreign_department_course={self.foreign_department_course}>
                 """
 
     @classmethod
-    def is_visible_by_default(cls, loch_row):
+    def is_visible_by_default(cls, loch_row, include_empty_sections=False):
         return (
-            loch_row.enrollment_count
+            (loch_row.enrollment_count or include_empty_sections)
             and loch_row.instructor_role_code != 'ICNT'
             and loch_row.instruction_format not in {'CLC', 'GRP', 'IND', 'SUP', 'VOL'}
         )

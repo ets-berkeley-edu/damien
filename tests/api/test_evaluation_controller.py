@@ -396,6 +396,15 @@ class TestExportEvaluations:
                     == '6982398,263809005,Alistair,Mctaggert,alistair.mctaggert@berkeley.edu,DEPT_ADMIN,,,ANCIENT_HISTORY,HISTORY,,,,,,,,')
             assert supervisors[3] == '8971283,294078726,Finn,Wolfhard,finn.wolfhard@berkeley.edu,DEPT_ADMIN,,,,,,,,,,,,'
 
+            xlisted_course_supervisors = _read_csv(exported_objects, '/xlisted_course_supervisors.csv')
+            assert len(xlisted_course_supervisors) == 4
+            assert xlisted_course_supervisors[0] == 'COURSE_ID,LDAP_UID'
+            # Dept admins for cross-listed MELC department.
+            assert xlisted_course_supervisors[1] == '2022-B-30643_GSI,1007025'
+            # Dept admins for home history department.
+            assert xlisted_course_supervisors[2] == '2022-B-30643_GSI,5013530'
+            assert xlisted_course_supervisors[3] == '2022-B-30643_GSI,6982398'
+
             department_hierarchy = _read_csv(exported_objects, '/department_hierarchy.csv')
             assert len(department_hierarchy) > 100
             assert department_hierarchy[0] == 'NODE_ID,NODE_CAPTION,PARENT_NODE_ID,PARENT_NODE_CAPTION,LEVEL'
