@@ -52,7 +52,7 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     @staticmethod
     def dept_contact_xpath(user):
-        return f'//div[contains(@id, "department-contact-")][contains(., "{user.first_name} {user.last_name}")]'
+        return f'//div[contains(@id, "department-contact-")][contains(., "{user.first_name}") and contains(., "{user.last_name}")]'
 
     def wait_for_contact(self, user):
         app.logger.info(f'Waiting for UID {user.uid} to appear')
@@ -67,7 +67,8 @@ class CourseDashboardEditsPage(CourseDashboards):
     def expand_dept_contact(self, user):
         el = self.dept_contact_email_loc(user)
         if not self.is_present(el) or not self.element(el).is_displayed():
-            self.wait_for_page_and_click_js((By.XPATH, f'//button[contains(., "{user.first_name} {user.last_name}")]'))
+            xpath = f'//button[contains(., "{user.first_name}") and contains(., "{user.last_name}")]'
+            self.wait_for_page_and_click_js((By.XPATH, xpath))
 
     def dept_contact_email_loc(self, user):
         return By.XPATH, f'{self.dept_contact_xpath(user)}//div[contains(@id, "email")]'
@@ -308,6 +309,7 @@ class CourseDashboardEditsPage(CourseDashboards):
         self.hide_damien_footer()
         self.scroll_to_element(self.eval_row_el(evaluation))
         self.mouseover(self.eval_row_el(evaluation))
+        time.sleep(1)
         self.wait_for_page_and_click_js((By.XPATH, f'{self.eval_row_xpath(evaluation)}//button'))
 
     def select_eval_status(self, evaluation, status):

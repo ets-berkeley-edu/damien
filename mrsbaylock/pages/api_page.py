@@ -49,7 +49,7 @@ class ApiPage(Page):
 
     def wait_for_refresh_job(self):
         tries = 0
-        max_tries = 60
+        max_tries = 90
         while tries <= max_tries:
             tries += 1
             try:
