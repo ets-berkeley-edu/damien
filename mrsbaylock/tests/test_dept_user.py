@@ -41,7 +41,12 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 class TestDeptUser:
 
     term = utils.get_current_term()
-    dept = utils.get_dept('Ancient Greek and Roman Studies')
+    depts = utils.get_participating_depts()
+    for d in depts:
+        single_role_users = list(map(lambda u: len(u.dept_roles) == 1, d.users))
+        if len(single_role_users) and (30 <= d.row_count <= 60):
+            dept = d
+            break
     utils.reset_test_data(term)
     evaluations = evaluation_utils.get_evaluations(term, dept)
     contact = next(filter(lambda u: (len(u.dept_roles) == 1), dept.users))
@@ -137,8 +142,6 @@ class TestDeptUser:
     # EVALUATION SORTING
 
     def test_set_test_data(self):
-        evaluation_utils.calculate_eval_dates(self.evaluations)
-
         done = next(filter(lambda e: (e.instructor.uid and e.dept_form and e.eval_type), self.evaluations))
         self.dept_details_dept_page.click_edit_evaluation(done)
         self.dept_details_dept_page.select_eval_status(done, EvaluationStatus.CONFIRMED)

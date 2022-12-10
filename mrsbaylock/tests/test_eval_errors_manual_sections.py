@@ -37,9 +37,9 @@ class TestEvalErrors:
     term = utils.get_current_term()
     utils.reset_test_data(term)
     all_contacts = utils.get_all_users()
-    dept_1 = utils.get_dept('Environmental Science, Policy and Management', all_contacts)
+    dept_1 = utils.get_test_dept_1(all_contacts)
     contact_1 = dept_1.users[0]
-    dept_2 = utils.get_dept('English', all_contacts)
+    dept_2 = utils.get_test_dept_2(all_contacts)
     contact_2 = list(set(dept_2.users) - set(dept_1.users))[0]
     dept_1_evals = evaluation_utils.get_evaluations(term, dept_1)
     dept_2_evals = evaluation_utils.get_evaluations(term, dept_2)
@@ -55,16 +55,11 @@ class TestEvalErrors:
     manual_eval = no_listings_no_shares[0]
     app.logger.info(f'Manual eval {vars(manual_eval)}')
 
-    evals = evaluation_utils.get_evaluations(term, dept_1)
-    for e in evals:
-        if e.ccn == manual_eval.ccn:
-            manual_eval = e
-
     def test_clear_cache(self):
         self.login_page.load_page()
         self.login_page.dev_auth()
         self.status_board_admin_page.click_list_mgmt()
-        self.api_page.refresh_unholy_loch()
+        # self.api_page.refresh_unholy_loch()
 
     def test_log_out(self):
         self.status_board_admin_page.load_page()

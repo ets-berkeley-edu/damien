@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import datetime
 from datetime import timedelta
+import itertools
 import re
 
 from damien import db, std_commit
@@ -50,7 +51,7 @@ def get_evaluations(term, dept):
     evals_total = []
     get_sis_sections_to_evaluate(evals_total, term, dept)
     get_x_listings_and_shares(evals_total, term, dept)
-    # TODO collapse dupe course rows into a single course
+    merge_dupe_rows(evals_total)
     remove_empty_listings(evals_total)
     remove_listing_dept_forms(evals_total)
     get_manual_sections(evals_total, term, dept)
@@ -69,6 +70,15 @@ def get_evaluations(term, dept):
         app.logger.info(f'Evaluation: {vars(e)}')
         app.logger.info(f'Instructor: {vars(e.instructor)}')
     return sorted_evals
+
+
+def merge_dupe_rows(evaluations):
+    sort = sorted(evaluations, key=lambda e: [e.ccn, e.instructor.uid, e.eval_start_date])
+    grouped = [list(result) for key, result in itertools.groupby(sort, key=lambda e: [e.ccn, e.instructor.uid])]
+    for group in grouped:
+        if len(group) > 1:
+            dupe = next(filter(lambda e: e == group[0], evaluations))
+            evaluations.remove(dupe)
 
 
 def row_data(row, field):
@@ -694,3 +704,31 @@ def unset_section_instructor(evaluation):
     app.logger.info(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
+
+
+def get_dept_eval_with_foreign_room_shares(term, depts):
+    # Exclude depts with many room shares that appear on no other dept pages
+    dept_ids = [d.dept_id for d in depts]
+    test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
+    for dept in test_depts:
+        evals = get_evaluations(term, dept)
+        for ev in evals:
+            if ev.room_share_ccns and not ev.x_listing_ccns:
+                share = ev.room_share_ccns[-1]
+                share_dept = get_section_dept(term, share)
+                if share_dept.dept_id in dept_ids and share_dept.users and share_dept.dept_id != dept.dept_id:
+                    return dept, ev
+
+
+def get_dept_eval_with_foreign_x_listings(term, depts):
+    # Exclude depts with many x-listings that appear on no other dept pages
+    dept_ids = [d.dept_id for d in depts]
+    test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
+    for dept in test_depts:
+        evals = get_evaluations(term, dept)
+        for ev in evals:
+            if ev.x_listing_ccns and not ev.room_share_ccns:
+                listing = ev.x_listing_ccns[-1]
+                listing_dept = get_section_dept(term, listing)
+                if listing_dept.dept_id in dept_ids and listing_dept.users and listing_dept.dept_id != dept.dept_id:
+                    return dept, ev

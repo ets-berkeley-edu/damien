@@ -38,8 +38,8 @@ class TestEvalErrors:
 
     term = utils.get_current_term()
     all_contacts = utils.get_all_users()
-    dept = utils.get_dept('Computing, Data Science, and Society', all_contacts)
-    evals = evaluation_utils.get_evaluations(term, dept)
+    depts = utils.get_participating_depts()
+    dept, share_eval = evaluation_utils.get_dept_eval_with_foreign_room_shares(term, depts)
     instructor_uid = utils.get_test_user().uid
     types = evaluation_utils.get_all_eval_types()
     eval_type_1 = types[0]
@@ -48,8 +48,7 @@ class TestEvalErrors:
     dept_form_1 = forms[0]
     dept_form_2 = forms[1]
 
-    share_eval = next(filter(lambda s1: (s1.room_share_ccns and not s1.x_listing_ccns), evals))
-    share_dept_1 = evaluation_utils.get_section_dept(term, share_eval.ccn, all_contacts)
+    share_dept_1 = share_eval.dept
     share_dept_2 = evaluation_utils.get_section_dept(term, share_eval.room_share_ccns[-1], all_contacts)
     share_contact_1 = share_dept_1.users[0]
     share_contact_2 = utils.get_dept_users(share_dept_2, exclude_uid=share_contact_1.uid)[0]

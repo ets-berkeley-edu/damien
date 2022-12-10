@@ -38,8 +38,8 @@ class TestEvalErrors:
 
     term = utils.get_current_term()
     all_contacts = utils.get_all_users()
-    dept = utils.get_dept('Economics', all_contacts)
-    evals = evaluation_utils.get_evaluations(term, dept)
+    depts = utils.get_participating_depts()
+    dept, x_list_eval = evaluation_utils.get_dept_eval_with_foreign_x_listings(term, depts)
     instructor_uid = utils.get_test_user().uid
     types = evaluation_utils.get_all_eval_types()
     eval_type_1 = types[0]
@@ -48,8 +48,7 @@ class TestEvalErrors:
     dept_form_1 = forms[0]
     dept_form_2 = forms[1]
 
-    x_list_eval = next(filter(lambda x1: x1.x_listing_ccns, evals))
-    x_list_dept_1 = evaluation_utils.get_section_dept(term, x_list_eval.ccn, all_contacts)
+    x_list_dept_1 = x_list_eval.dept
     x_list_dept_2 = evaluation_utils.get_section_dept(term, x_list_eval.x_listing_ccns[-1], all_contacts)
     x_list_contact_1 = x_list_dept_1.users[0]
     x_list_contact_2 = utils.get_dept_users(x_list_dept_2, exclude_uid=x_list_contact_1.uid)[0]
