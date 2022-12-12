@@ -21,6 +21,7 @@
           :id="`term-option-${term.id}`"
           :key="term.id"
           :value="term.id"
+          :disabled="termIds && !$_.includes(termIds, term.id)"
         >
           {{ term.name }}
         </option>
@@ -71,6 +72,11 @@ export default {
       default: () => {},
       required: false,
       type: Function
+    },
+    termIds: {
+      default: null,
+      required: false,
+      type: Array
     }
   },
   created() {

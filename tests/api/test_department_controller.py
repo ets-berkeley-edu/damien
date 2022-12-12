@@ -54,9 +54,10 @@ class TestEnrolledDepartments:
     def test_authorized(self, client, fake_auth):
         fake_auth.login(admin_uid)
         departments = _api_enrolled_departments(client)
-        assert len(departments) == 82
+        assert len(departments) == 83
         for d in departments:
             assert d['deptName']
+            assert d['enrolledTerms']
             assert d['isEnrolled']
             assert d['createdAt']
             assert d['updatedAt']
@@ -67,6 +68,7 @@ class TestEnrolledDepartments:
             'GREEK': ['*'],
             'LATIN': ['*'],
         }
+        assert agrs['enrolledTerms'] == ['2218', '2222']
         calteach = next(d for d in departments if d['deptName'] == 'CalTeach')
         assert calteach['catalogListings'] == {
             'CALTEACH': ['*'],
@@ -75,13 +77,15 @@ class TestEnrolledDepartments:
             'HISTORY': ['138T', '180T', '182AT'],
             'UGIS': ['82', '187', '188', '189', '303'],
         }
+        assert calteach['enrolledTerms'] == ['2218', '2222']
 
     def test_include_contacts_sections_and_status(self, client, fake_auth):
         fake_auth.login(admin_uid)
         departments = _api_enrolled_departments(client, include_contacts=True, include_sections=True, include_status=True)
-        assert len(departments) == 82
+        assert len(departments) == 83
         for d in departments:
             assert 'contacts' in d
+            assert 'enrolledTerms' in d
             assert 'lastUpdated' in d
             assert 'totalBlockers' in d
             assert 'totalConfirmed' in d

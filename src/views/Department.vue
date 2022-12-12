@@ -11,7 +11,7 @@
         </h1>
       </v-col>
       <v-col cols="12" lg="3">
-        <TermSelect :after-select="refresh" />
+        <TermSelect :after-select="refresh" :term-ids="$_.get(department, 'enrolledTerms')" />
       </v-col>
     </v-row>
     <v-container v-if="!loading" class="mx-0 px-0 pb-6" fluid>

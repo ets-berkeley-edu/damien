@@ -71,13 +71,13 @@ def enrolled_departments():
     include_sections = get_boolean_param(request.args, 's', False)
     include_status = get_boolean_param(request.args, 't', False)
     return tolerant_jsonify([d.to_api_json(
+        term_id=term_id,
         include_contacts=include_contacts,
         include_sections=include_sections,
         include_status=include_status,
-        term_id=term_id,
         departments_cache=cached,
         notes_cache=notes,
-    ) for d in enrolled_depts])
+    ) for d in enrolled_depts if d.catalog_listings_map(term_id)])
 
 
 @app.route('/api/department/<department_id>')
@@ -88,9 +88,9 @@ def get_department(department_id):
         raise ResourceNotFoundError(f'Department {department_id} not found.')
     term_id = get_term_id(request)
     feed = department.to_api_json(
+        term_id=term_id,
         include_contacts=True,
         include_evaluations=True,
-        term_id=term_id,
     )
     feed['evaluationTerm'] = EvaluationTerm.find_or_create(term_id).to_api_json()
     return tolerant_jsonify(feed)
