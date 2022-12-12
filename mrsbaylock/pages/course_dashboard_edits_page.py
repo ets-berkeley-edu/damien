@@ -27,7 +27,6 @@ import copy
 import time
 
 from flask import current_app as app
-from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.pages.course_dashboards import CourseDashboards
 from mrsbaylock.test_utils import utils
@@ -86,8 +85,8 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def dept_contact_dept_forms(self, user):
         els = self.elements((By.XPATH, f'{self.dept_contact_xpath(user)}//span[contains(@id, "-form-")]'))
-        forms = list(map(lambda el: DepartmentForm(el.text.strip()), els))
-        forms.sort(key=lambda f: f.name)
+        forms = list(map(lambda el: el.text.strip(), els))
+        forms.sort()
         return forms
 
     # COURSE ACTIONS
@@ -168,8 +167,8 @@ class CourseDashboardEditsPage(CourseDashboards):
             self.hit_tab()
             self.hit_tab()
         if eval_type:
-            app.logger.info(f'Setting evaluation type {eval_type.name}')
-            self.wait_for_select_and_click_option(CourseDashboardEditsPage.DUPE_EVAL_TYPE_SELECT, eval_type.name)
+            app.logger.info(f'Setting evaluation type {eval_type}')
+            self.wait_for_select_and_click_option(CourseDashboardEditsPage.DUPE_EVAL_TYPE_SELECT, eval_type)
         else:
             app.logger.info('Setting default evaluation type')
             self.wait_for_select_and_click_option(CourseDashboardEditsPage.DUPE_EVAL_TYPE_SELECT, 'Default')
@@ -184,7 +183,7 @@ class CourseDashboardEditsPage(CourseDashboards):
         if start_date:
             dupe.eval_start_date = start_date
         if eval_type:
-            dupe.eval_type = eval_type.name
+            dupe.eval_type = eval_type
         evaluations.append(dupe)
         return dupe
 
@@ -338,9 +337,9 @@ class CourseDashboardEditsPage(CourseDashboards):
     def change_dept_form(self, evaluation, dept_form=None):
         self.wait_for_element(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT, utils.get_short_timeout())
         if dept_form:
-            app.logger.info(f'Setting dept form {dept_form.name} on CCN {evaluation.ccn}')
+            app.logger.info(f'Setting dept form {dept_form} on CCN {evaluation.ccn}')
             self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT,
-                                                  dept_form.name)
+                                                  dept_form)
         else:
             app.logger.info('Reverting evaluation type')
             self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT, 'Revert')
@@ -354,8 +353,8 @@ class CourseDashboardEditsPage(CourseDashboards):
     def change_eval_type(self, evaluation, eval_type=None):
         self.wait_for_element(CourseDashboardEditsPage.EVAL_CHANGE_EVAL_TYPE_SELECT, utils.get_short_timeout())
         if eval_type:
-            app.logger.info(f'Setting evaluation type {eval_type.name} on CCN {evaluation.ccn}')
-            self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_EVAL_TYPE_SELECT, eval_type.name)
+            app.logger.info(f'Setting evaluation type {eval_type} on CCN {evaluation.ccn}')
+            self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_EVAL_TYPE_SELECT, eval_type)
         else:
             app.logger.info('Reverting evaluation type')
             self.wait_for_select_and_click_option(CourseDashboardEditsPage.EVAL_CHANGE_EVAL_TYPE_SELECT, 'Revert')

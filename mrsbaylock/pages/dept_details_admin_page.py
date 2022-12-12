@@ -64,11 +64,11 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
 
     @staticmethod
     def dept_contact_form_option(form):
-        return By.XPATH, f'//div[@class="v-list-item__title"]/span[text()="{form.name}"]'
+        return By.XPATH, f'//div[@class="v-list-item__title"]/span[text()="{form}"]'
 
     @staticmethod
     def dept_contact_form_remove_button(form):
-        return By.XPATH, f'//button[contains(@aria-label, "Remove {form.name}")]'
+        return By.XPATH, f'//button[contains(@aria-label, "Remove {form}")]'
 
     def click_add_contact(self):
         self.wait_for_element_and_click(DeptDetailsAdminPage.ADD_CONTACT_BUTTON)
@@ -91,7 +91,7 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         self.remove_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
 
     def enter_and_select_dept_form(self, form):
-        self.enter_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT, form.name)
+        self.enter_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT, form)
         self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_option(form))
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.presence_of_element_located(DeptDetailsAdminPage.dept_contact_form_remove_button(form)),

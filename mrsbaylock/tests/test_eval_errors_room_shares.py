@@ -93,8 +93,8 @@ class TestEvalErrors:
 
     def test_share_unmarked_dept_1_verify_edits(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_1.name in self.dept_details_dept_page.eval_dept_form(self.share_eval)
-        assert self.eval_type_1.name in self.dept_details_dept_page.eval_type(self.share_eval)
+        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.share_eval)
+        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.share_eval)
         expected = f"{self.share_start_1.strftime('%m/%d/%y')} - {self.share_end_1.strftime('%m/%d/%y')}"
         assert expected in self.dept_details_dept_page.eval_period_dates(self.share_eval)
 
@@ -102,8 +102,8 @@ class TestEvalErrors:
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.share_contact_2, self.share_dept_2)
         self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_1.name in self.dept_details_dept_page.eval_dept_form(self.share_eval)
-        assert self.eval_type_1.name in self.dept_details_dept_page.eval_type(self.share_eval)
+        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.share_eval)
+        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.share_eval)
         expected = f"{self.share_start_1.strftime('%m/%d/%y')} - {self.share_end_1.strftime('%m/%d/%y')}"
         assert expected in self.dept_details_dept_page.eval_period_dates(self.share_eval)
         assert 'Conflicts with' not in self.dept_details_dept_page.eval_dept_form(self.share_eval)
@@ -127,8 +127,8 @@ class TestEvalErrors:
 
     def test_share_confirmed_dept_2_verify_edits(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_1.name in self.dept_details_dept_page.eval_dept_form(self.share_eval)
-        assert self.eval_type_1.name in self.dept_details_dept_page.eval_type(self.share_eval)
+        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.share_eval)
+        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.share_eval)
         expected = f"{self.share_start_1.strftime('%m/%d/%y')} - {self.share_end_1.strftime('%m/%d/%y')}"
         assert expected in self.dept_details_dept_page.eval_period_dates(self.share_eval)
         assert 'Conflicts with' not in self.dept_details_dept_page.eval_dept_form(self.share_eval)
@@ -136,7 +136,7 @@ class TestEvalErrors:
         assert 'Conflicts with' not in self.dept_details_dept_page.eval_period_dates(self.share_eval)
 
     def test_share_confirmed_dept_2_attempt_edits(self):
-        self.share_eval.dept_form = self.dept_form_1.name
+        self.share_eval.dept_form = self.dept_form_1
         self.dept_details_dept_page.click_edit_evaluation(self.share_eval)
         self.dept_details_dept_page.change_dept_form(self.share_eval, self.dept_form_2)
         self.dept_details_dept_page.change_eval_type(self.share_eval, self.eval_type_2)
@@ -158,13 +158,13 @@ class TestEvalErrors:
 
     def test_share_confirmed_dept_2_verify_form_conflict(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_2.name in self.dept_details_dept_page.eval_dept_form(self.share_eval)
-        conflict_form = f'Conflicts with value {self.dept_form_1.name} from {self.share_dept_1.name} department'
+        assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.share_eval)
+        conflict_form = f'Conflicts with value {self.dept_form_1} from {self.share_dept_1.name} department'
         assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.share_eval)
 
     def test_share_confirmed_dept_2_verify_type_conflict(self):
-        assert self.eval_type_2.name in self.dept_details_dept_page.eval_type(self.share_eval)
-        conflict_type = f'Conflicts with value {self.eval_type_1.name} from {self.share_dept_1.name} department'
+        assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.share_eval)
+        conflict_type = f'Conflicts with value {self.eval_type_1} from {self.share_dept_1.name} department'
         assert conflict_type in self.dept_details_dept_page.eval_type(self.share_eval)
 
     def test_share_confirmed_dept_2_verify_period_conflict(self):
@@ -181,13 +181,13 @@ class TestEvalErrors:
         assert self.share_eval.status.value['ui'].upper() in self.dept_details_admin_page.eval_status(self.share_eval)
 
     def test_share_confirmed_dept_1_verify_form_conflict(self):
-        assert self.dept_form_1.name in self.dept_details_dept_page.eval_dept_form(self.share_eval)
-        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.share_dept_2.name} department'
+        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.share_eval)
+        conflict_form = f'Conflicts with value {self.dept_form_2} from {self.share_dept_2.name} department'
         assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.share_eval)
 
     def test_share_confirmed_dept_1_verify_type_conflict(self):
-        assert self.eval_type_1.name in self.dept_details_dept_page.eval_type(self.share_eval)
-        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.share_dept_2.name} department'
+        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.share_eval)
+        conflict_type = f'Conflicts with value {self.eval_type_2} from {self.share_dept_2.name} department'
         assert conflict_type in self.dept_details_dept_page.eval_type(self.share_eval)
 
     def test_share_confirmed_dept_1_verify_period_conflict(self):
@@ -207,13 +207,13 @@ class TestEvalErrors:
     def test_share_confirmed_sl_verify_form_conflict(self):
         self.status_board_admin_page.click_publish_link()
         self.publish_page.wait_for_eval_rows()
-        assert self.dept_form_2.name in self.publish_page.eval_dept_form(self.share_eval, self.share_dept_2)
-        conflict_form = f'Conflicts with value {self.dept_form_1.name} from {self.share_dept_1.name} department'
+        assert self.dept_form_2 in self.publish_page.eval_dept_form(self.share_eval, self.share_dept_2)
+        conflict_form = f'Conflicts with value {self.dept_form_1} from {self.share_dept_1.name} department'
         assert conflict_form in self.publish_page.eval_dept_form(self.share_eval, self.share_dept_2)
 
     def test_share_confirmed_sl_verify_type_conflict(self):
-        assert self.eval_type_2.name in self.publish_page.eval_type(self.share_eval, self.share_dept_2)
-        conflict_type = f'Conflicts with value {self.eval_type_1.name} from {self.share_dept_1.name} department'
+        assert self.eval_type_2 in self.publish_page.eval_type(self.share_eval, self.share_dept_2)
+        conflict_type = f'Conflicts with value {self.eval_type_1} from {self.share_dept_1.name} department'
         assert conflict_type in self.publish_page.eval_type(self.share_eval, self.share_dept_2)
 
     def test_share_confirmed_sl_verify_period_conflict(self):

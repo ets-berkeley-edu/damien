@@ -30,10 +30,8 @@ import re
 
 from damien import db, std_commit
 from flask import current_app as app
-from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.evaluation import Evaluation
 from mrsbaylock.models.evaluation_status import EvaluationStatus
-from mrsbaylock.models.evaluation_type import EvaluationType
 from mrsbaylock.models.instructor import Instructor
 from mrsbaylock.test_utils import utils
 from sqlalchemy import text
@@ -487,10 +485,10 @@ def merge_edited_evals(evaluations, edited_evals):
             if (
                     e.ccn == edit.ccn
                     and e.instructor and e.instructor.uid == uid
-                    and e.dept_form != form
                     and (e.dept_form and not form
                          or form and not e.dept_form
-                         or e.dept_form and form and '_MID' not in e.dept_form and '_MID' not in form)
+                         or (e.dept_form and form and e.dept_form == form)
+                         or (e.dept_form and form and e.dept_form != form and '_MID' not in e.dept_form and '_MID' not in form))
             ):
                 match = True
                 app.logger.info(f'Merging existing eval for {e.ccn}-{uid}')
@@ -520,7 +518,7 @@ def get_all_dept_forms(include_deleted=False):
     std_commit(allow_test_environment=True)
     forms = []
     for row in results:
-        forms.append(DepartmentForm(row['name']))
+        forms.append(row['name'])
     return forms
 
 
@@ -531,7 +529,7 @@ def get_all_eval_types():
     std_commit(allow_test_environment=True)
     types = []
     for row in results:
-        types.append(EvaluationType(row['name']))
+        types.append(row['name'])
     return types
 
 
@@ -665,39 +663,11 @@ def set_enrollment_count_zero(evaluation):
     std_commit(allow_test_environment=True)
 
 
-def set_section_dates(evaluation):
-    start = f"'{evaluation.course_start_date.strftime('%Y-%m-%d %H:%M:%S')}'" if evaluation.course_start_date else 'NULL'
-    end = f"'{evaluation.course_end_date.strftime('%Y-%m-%d %H:%M:%S')}'" if evaluation.course_end_date else 'NULL'
-    sql = f"""
-        UPDATE unholy_loch.sis_sections
-           SET meeting_start_date = {start},
-               meeting_end_date = {end}
-         WHERE course_number = '{evaluation.ccn}'
-           AND term_id = '{evaluation.term.term_id}'
-    """
-    app.logger.info(sql)
-    db.session.execute(text(sql))
-    std_commit(allow_test_environment=True)
-
-
 def set_section_instructor(evaluation):
     sql = f"""
         UPDATE unholy_loch.sis_sections
            SET instructor_uid = '{evaluation.instructor.uid}',
                instructor_role_code = '{evaluation.instructor.role_code}'
-         WHERE course_number = '{evaluation.ccn}'
-           AND term_id = '{evaluation.term.term_id}'
-    """
-    app.logger.info(sql)
-    db.session.execute(text(sql))
-    std_commit(allow_test_environment=True)
-
-
-def unset_section_instructor(evaluation):
-    sql = f"""
-        UPDATE unholy_loch.sis_sections
-           SET instructor_uid = NULL,
-               instructor_role_code = NULL
          WHERE course_number = '{evaluation.ccn}'
            AND term_id = '{evaluation.term.term_id}'
     """
