@@ -23,7 +23,6 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 from flask import current_app as app
-from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.email import Email
 from mrsbaylock.models.term import Term
 from mrsbaylock.models.user_dept_role import UserDeptRole
@@ -103,9 +102,8 @@ class TestDeptMgmt:
         assert self.dept_details_admin_page.dept_contact_comms_perms(user) == expected_comms
         expected_blue = user.blue_permissions.value['description']
         assert self.dept_details_admin_page.dept_contact_blue_perms(user) == expected_blue
-        expected_forms = list(map(lambda f: f.name, user.dept_forms))
-        expected_forms = list(filter(None, expected_forms))
-        actual_forms = list(map(lambda f: f.name, self.dept_details_admin_page.dept_contact_dept_forms(user)))
+        expected_forms = list(filter(None, user.dept_forms))
+        actual_forms = self.dept_details_admin_page.dept_contact_dept_forms(user)
         assert actual_forms == expected_forms
 
     def test_add_contact_cancel(self):
@@ -182,7 +180,7 @@ class TestDeptMgmt:
         self.dept_details_admin_page.edit_contact(dept_1_user, dept_1)
 
     def test_add_contact_dept_2(self):
-        dept_2_user.dept_forms.append(DepartmentForm('ENGLISH'))
+        dept_2_user.dept_forms.append('ENGLISH')
         self.dept_details_admin_page.load_dept_page(dept_2)
         self.dept_details_admin_page.expand_dept_contact_list()
         self.dept_details_admin_page.click_add_contact()

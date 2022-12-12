@@ -42,7 +42,7 @@ class ListMgmtPage(DamienPages):
 
     @staticmethod
     def dept_form_delete_button(dept_form):
-        return By.XPATH, f'//div[@id="dept-forms-table"]//span[text()="{dept_form.name}"]/following-sibling::button'
+        return By.XPATH, f'//div[@id="dept-forms-table"]//span[text()="{dept_form}"]/following-sibling::button'
 
     def visible_dept_form_names(self):
         time.sleep(1)
@@ -53,15 +53,15 @@ class ListMgmtPage(DamienPages):
         return forms
 
     def add_dept_form(self, dept_form):
-        app.logger.info(f'Adding department form {dept_form.name}')
+        app.logger.info(f'Adding department form {dept_form}')
         self.mouseover(self.element(ListMgmtPage.MENU_BUTTON))
         self.wait_for_element_and_click(ListMgmtPage.ADD_DEPT_FORM_BUTTON)
-        self.wait_for_element_and_type(ListMgmtPage.ADD_DEPT_FORM_INPUT, dept_form.name)
+        self.wait_for_element_and_type(ListMgmtPage.ADD_DEPT_FORM_INPUT, dept_form)
         self.wait_for_element_and_click(ListMgmtPage.ADD_DEPT_FORM_SAVE_BUTTON)
         time.sleep(1)
 
     def delete_dept_form(self, dept_form):
-        app.logger.info(f'Deleting department form {dept_form.name}')
+        app.logger.info(f'Deleting department form {dept_form}')
         self.wait_for_page_and_click_js(ListMgmtPage.dept_form_delete_button(dept_form))
         self.wait_for_element_and_click(ListMgmtPage.DELETE_CONFIRM_BUTTON)
         time.sleep(1)
@@ -73,7 +73,7 @@ class ListMgmtPage(DamienPages):
 
     @staticmethod
     def eval_type_delete_button(eval_type):
-        return By.XPATH, f'//div[@id="evaluation-types-table"]//span[text()="{eval_type.name}"]/following-sibling::button'
+        return By.XPATH, f'//div[@id="evaluation-types-table"]//span[text()="{eval_type}"]/following-sibling::button'
 
     def visible_eval_type_names(self):
         time.sleep(1)
@@ -84,14 +84,14 @@ class ListMgmtPage(DamienPages):
         return types
 
     def add_eval_type(self, eval_type):
-        app.logger.info(f'Adding evaluation type {eval_type.name}')
+        app.logger.info(f'Adding evaluation type {eval_type}')
         self.wait_for_element_and_click(ListMgmtPage.ADD_EVAL_TYPE_BUTTON)
-        self.wait_for_element_and_type(ListMgmtPage.ADD_EVAL_TYPE_INPUT, eval_type.name)
+        self.wait_for_element_and_type(ListMgmtPage.ADD_EVAL_TYPE_INPUT, eval_type)
         self.wait_for_element_and_click(ListMgmtPage.ADD_EVAL_TYPE_SAVE_BUTTON)
         time.sleep(1)
 
     def delete_eval_type(self, eval_type):
-        app.logger.info(f'Deleting evaluation type {eval_type.name}')
+        app.logger.info(f'Deleting evaluation type {eval_type}')
         self.wait_for_page_and_click_js(ListMgmtPage.eval_type_delete_button(eval_type))
         self.wait_for_element_and_click(ListMgmtPage.DELETE_CONFIRM_BUTTON)
         time.sleep(1)

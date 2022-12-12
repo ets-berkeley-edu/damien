@@ -25,9 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import time
 
-from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.evaluation_status import EvaluationStatus
-from mrsbaylock.models.evaluation_type import EvaluationType
 from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
 from mrsbaylock.test_utils import evaluation_utils
 from mrsbaylock.test_utils import utils
@@ -49,8 +47,8 @@ class TestListManagement:
     eval_confirmed = evaluations[2]
     eval_duped = evaluations[3]
     confirmed = []
-    form = DepartmentForm(f'Form_{test_id}')
-    eval_type = EvaluationType(f'Type_{test_id}')
+    form = f'Form_{test_id}'
+    eval_type = f'Type_{test_id}'
     alert = (f'FOO {test_id} ' * 15).strip()
 
     instructor = utils.get_test_user()
@@ -72,11 +70,11 @@ class TestListManagement:
 
     def test_add_dept_form(self):
         self.list_mgmt_page.add_dept_form(self.form)
-        assert self.form.name in self.list_mgmt_page.visible_dept_form_names()
+        assert self.form in self.list_mgmt_page.visible_dept_form_names()
 
     def test_add_eval_type(self):
         self.list_mgmt_page.add_eval_type(self.eval_type)
-        assert self.eval_type.name in self.list_mgmt_page.visible_eval_type_names()
+        assert self.eval_type in self.list_mgmt_page.visible_eval_type_names()
 
     def test_add_instructor(self):
         self.list_mgmt_page.add_manual_instructor(self.instructor)
@@ -89,14 +87,14 @@ class TestListManagement:
         self.dept_details_admin_page.change_dept_form(self.eval_unmarked, self.form)
         self.dept_details_admin_page.change_eval_type(self.eval_unmarked, self.eval_type)
         self.dept_details_admin_page.save_eval_changes(self.eval_unmarked)
-        self.eval_unmarked.dept_form = self.form.name
-        self.eval_unmarked.eval_type = self.eval_type.name
+        self.eval_unmarked.dept_form = self.form
+        self.eval_unmarked.eval_type = self.eval_type
         self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.reload_page()
         self.dept_details_admin_page.wait_for_eval_rows()
         assert EvaluationStatus.UNMARKED.value['ui'] in self.dept_details_admin_page.eval_status(self.eval_unmarked)
-        assert self.form.name in self.dept_details_admin_page.eval_dept_form(self.eval_unmarked)
-        assert self.eval_type.name in self.dept_details_admin_page.eval_type(self.eval_unmarked)
+        assert self.form in self.dept_details_admin_page.eval_dept_form(self.eval_unmarked)
+        assert self.eval_type in self.dept_details_admin_page.eval_type(self.eval_unmarked)
 
     def test_for_review_add_form_and_type(self):
         self.dept_details_admin_page.click_edit_evaluation(self.eval_to_review)
@@ -104,15 +102,15 @@ class TestListManagement:
         self.dept_details_admin_page.change_dept_form(self.eval_to_review, self.form)
         self.dept_details_admin_page.change_eval_type(self.eval_to_review, self.eval_type)
         self.dept_details_admin_page.save_eval_changes(self.eval_to_review)
-        self.eval_to_review.dept_form = self.form.name
-        self.eval_to_review.eval_type = self.eval_type.name
+        self.eval_to_review.dept_form = self.form
+        self.eval_to_review.eval_type = self.eval_type
         self.eval_to_review.status = EvaluationStatus.FOR_REVIEW
         self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.reload_page()
         self.dept_details_admin_page.wait_for_eval_rows()
         assert EvaluationStatus.FOR_REVIEW.value['ui'] in self.dept_details_admin_page.eval_status(self.eval_to_review)
-        assert self.form.name in self.dept_details_admin_page.eval_dept_form(self.eval_to_review)
-        assert self.eval_type.name in self.dept_details_admin_page.eval_type(self.eval_to_review)
+        assert self.form in self.dept_details_admin_page.eval_dept_form(self.eval_to_review)
+        assert self.eval_type in self.dept_details_admin_page.eval_type(self.eval_to_review)
 
     def test_confirmed_add_form_and_type(self):
         self.dept_details_admin_page.click_edit_evaluation(self.eval_confirmed)
@@ -120,15 +118,15 @@ class TestListManagement:
         self.dept_details_admin_page.change_dept_form(self.eval_confirmed, self.form)
         self.dept_details_admin_page.change_eval_type(self.eval_confirmed, self.eval_type)
         self.dept_details_admin_page.save_eval_changes(self.eval_confirmed)
-        self.eval_confirmed.dept_form = self.form.name
-        self.eval_confirmed.eval_type = self.eval_type.name
+        self.eval_confirmed.dept_form = self.form
+        self.eval_confirmed.eval_type = self.eval_type
         self.eval_confirmed.status = EvaluationStatus.FOR_REVIEW
         self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.reload_page()
         self.dept_details_admin_page.wait_for_eval_rows()
         assert EvaluationStatus.CONFIRMED.value['ui'] in self.dept_details_admin_page.eval_status(self.eval_confirmed)
-        assert self.form.name in self.dept_details_admin_page.eval_dept_form(self.eval_confirmed)
-        assert self.eval_type.name in self.dept_details_admin_page.eval_type(self.eval_confirmed)
+        assert self.form in self.dept_details_admin_page.eval_dept_form(self.eval_confirmed)
+        assert self.eval_type in self.dept_details_admin_page.eval_type(self.eval_confirmed)
 
     def test_confirmed_dupe_instructor(self):
         self.dept_details_admin_page.duplicate_section(self.eval_duped, self.evaluations,
@@ -138,7 +136,7 @@ class TestListManagement:
         self.dept_details_admin_page.select_eval_status(self.eval_confirmed, EvaluationStatus.CONFIRMED)
         self.dept_details_admin_page.change_dept_form(self.eval_confirmed, self.form)
         self.dept_details_admin_page.save_eval_changes(self.eval_confirmed)
-        dupe.dept_form = self.form.name
+        dupe.dept_form = self.form
         dupe.status = EvaluationStatus.CONFIRMED
         self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.reload_page()
@@ -150,32 +148,32 @@ class TestListManagement:
     def test_delete_dept_form(self):
         self.dept_details_admin_page.click_list_mgmt()
         self.list_mgmt_page.delete_dept_form(self.form)
-        assert self.form.name not in self.list_mgmt_page.visible_dept_form_names()
+        assert self.form not in self.list_mgmt_page.visible_dept_form_names()
 
     def test_delete_eval_type(self):
         self.list_mgmt_page.delete_eval_type(self.eval_type)
-        assert self.eval_type.name not in self.list_mgmt_page.visible_eval_type_names()
+        assert self.eval_type not in self.list_mgmt_page.visible_eval_type_names()
 
     def test_unmarked_form_and_type_deleted(self):
         self.dept_details_admin_page.load_dept_page(self.dept)
-        assert self.dept_details_admin_page.eval_dept_form(self.eval_unmarked) == self.form.name
-        assert self.dept_details_admin_page.eval_type(self.eval_unmarked) == self.eval_type.name
+        assert self.dept_details_admin_page.eval_dept_form(self.eval_unmarked) == self.form
+        assert self.dept_details_admin_page.eval_type(self.eval_unmarked) == self.eval_type
 
     def test_for_review_form_and_type_deleted(self):
-        assert self.dept_details_admin_page.eval_dept_form(self.eval_to_review) == self.form.name
-        assert self.dept_details_admin_page.eval_type(self.eval_to_review) == self.eval_type.name
+        assert self.dept_details_admin_page.eval_dept_form(self.eval_to_review) == self.form
+        assert self.dept_details_admin_page.eval_type(self.eval_to_review) == self.eval_type
 
     def test_confirmed_form_and_type_deleted(self):
-        assert self.dept_details_admin_page.eval_dept_form(self.eval_confirmed) == self.form.name
-        assert self.dept_details_admin_page.eval_type(self.eval_confirmed) == self.eval_type.name
+        assert self.dept_details_admin_page.eval_dept_form(self.eval_confirmed) == self.form
+        assert self.dept_details_admin_page.eval_type(self.eval_confirmed) == self.eval_type
 
     def test_deleted_form_not_available(self):
         self.dept_details_admin_page.click_edit_evaluation(self.eval_unmarked)
         self.dept_details_admin_page.click_dept_form_input()
-        assert self.form.name not in self.dept_details_admin_page.visible_dept_form_options()
+        assert self.form not in self.dept_details_admin_page.visible_dept_form_options()
 
     def test_deleted_type_not_available(self):
-        assert self.eval_type.name not in self.dept_details_admin_page.visible_eval_type_options()
+        assert self.eval_type not in self.dept_details_admin_page.visible_eval_type_options()
 
     def test_deleted_form_available_on_dept_contact(self):
         self.dept_details_admin_page.click_cancel_eval_changes()

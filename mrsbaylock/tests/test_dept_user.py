@@ -113,6 +113,7 @@ class TestDeptUser:
     def test_foreign_dept_page(self):
         all_depts = utils.get_participating_depts()
         foreign_dept = next(filter(lambda d: d.dept_id != self.dept, all_depts))
+        app.logger.info(f'Hitting dept page for dept id {foreign_dept.dept_id}')
         self.driver.get(f'{app.config["BASE_URL"]}/department/{foreign_dept.dept_id}')
         self.homepage.wait_for_title('404 | Course Evaluations')
 
@@ -330,19 +331,26 @@ class TestDeptUser:
     # EVALUATION FILTERING
 
     def test_filter_by_ccn(self):
-        evaluation = next(filter(lambda e: not e.x_listing_ccns and not e.room_share_ccns, self.evaluations))
-        self.dept_details_dept_page.filter_rows(evaluation.ccn)
-        self.dept_details_dept_page.wait_for_eval_row(evaluation)
+        ev = next(filter(lambda e: not e.x_listing_ccns and not e.room_share_ccns, self.evaluations))
+        evs = list(filter(lambda e: e.ccn == ev.ccn, self.evaluations))
+        self.dept_details_dept_page.filter_rows(ev.ccn)
+        self.dept_details_dept_page.wait_for_eval_row(ev)
         app.logger.info(f'Visible eval rows {self.dept_details_dept_page.visible_evaluation_rows()}')
-        assert len(self.dept_details_dept_page.visible_evaluation_rows()) == 1
+        assert len(self.dept_details_dept_page.visible_evaluation_rows()) == len(evs)
 
     def test_filter_x_listing(self):
-        evaluation = next(filter(lambda e: (e.x_listing_ccns or e.room_share_ccns), self.evaluations))
-        listings = list(filter(lambda e: (evaluation.ccn in (e.x_listing_ccns or e.room_share_ccns)), self.evaluations))
-        self.dept_details_dept_page.filter_rows(evaluation.ccn)
-        self.dept_details_dept_page.wait_for_eval_row(evaluation)
-        app.logger.info(f'Visible eval rows {self.dept_details_dept_page.visible_evaluation_rows()}')
-        assert len(self.dept_details_dept_page.visible_evaluation_rows()) == (1 + len(listings))
+        ev = None
+        try:
+            ev = next(filter(lambda e: (e.x_listing_ccns or e.room_share_ccns), self.evaluations))
+        except StopIteration:
+            app.logger.info('Skipping x-listing filter test')
+        if ev:
+            evs = list(filter(lambda e: e.ccn == ev.ccn, self.evaluations))
+            listings = list(filter(lambda e: (ev.ccn in (e.x_listing_ccns or e.room_share_ccns)), self.evaluations))
+            self.dept_details_dept_page.filter_rows(ev.ccn)
+            self.dept_details_dept_page.wait_for_eval_row(ev)
+            app.logger.info(f'Visible eval rows {self.dept_details_dept_page.visible_evaluation_rows()}')
+            assert len(self.dept_details_dept_page.visible_evaluation_rows()) == (len(evs) + len(listings))
 
     def test_filter_by_course_code(self):
         evaluation = next(filter(lambda e: (not e.x_listing_ccns and not e.room_share_ccns), self.evaluations))

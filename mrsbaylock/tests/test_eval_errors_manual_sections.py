@@ -81,38 +81,38 @@ class TestEvalErrors:
         self.dept_details_dept_page.change_dept_form(self.manual_eval, self.dept_form_2)
         self.dept_details_dept_page.change_eval_type(self.manual_eval, self.eval_type_2)
         self.dept_details_dept_page.save_eval_changes(self.manual_eval)
-        self.manual_eval.dept_form = self.dept_form_2.name
-        self.manual_eval.eval_type = self.eval_type_2.name
+        self.manual_eval.dept_form = self.dept_form_2
+        self.manual_eval.eval_type = self.eval_type_2
 
     def test_manual_section_dept_1_verify_edits(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_2.name in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
-        assert self.eval_type_2.name in self.dept_details_dept_page.eval_type(self.manual_eval)
+        assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
+        assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.manual_eval)
 
     def test_manual_section_dept_2_verify_edits(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.contact_2, self.dept_2)
         self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_2.name in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
-        assert self.eval_type_2.name in self.dept_details_dept_page.eval_type(self.manual_eval)
+        assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
+        assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.manual_eval)
 
     def test_manual_section_dept_2_edits(self):
         self.dept_details_dept_page.click_edit_evaluation(self.manual_eval)
         self.dept_details_dept_page.change_dept_form(self.manual_eval, self.dept_form_1)
         self.dept_details_dept_page.change_eval_type(self.manual_eval, self.eval_type_1)
         self.dept_details_dept_page.save_eval_changes(self.manual_eval)
-        self.manual_eval.dept_form = self.dept_form_1.name
-        self.manual_eval.eval_type = self.eval_type_1.name
+        self.manual_eval.dept_form = self.dept_form_1
+        self.manual_eval.eval_type = self.eval_type_1
 
     def test_manual_section_dept_2_verify_form_conflict(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.dept_1.name} department'
-        assert self.dept_form_1.name in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
+        conflict_form = f'Conflicts with value {self.dept_form_2} from {self.dept_1.name} department'
+        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
         assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
 
     def test_manual_section_dept_2_verify_type_conflict(self):
-        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.dept_1.name} department'
-        assert self.eval_type_1.name in self.dept_details_dept_page.eval_type(self.manual_eval)
+        conflict_type = f'Conflicts with value {self.eval_type_2} from {self.dept_1.name} department'
+        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.manual_eval)
         assert conflict_type in self.dept_details_dept_page.eval_type(self.manual_eval)
 
     def test_manual_section_dept_2_no_confirming(self):
@@ -126,18 +126,18 @@ class TestEvalErrors:
         self.dept_details_dept_page.change_dept_form(self.manual_eval, self.dept_form_2)
         self.dept_details_dept_page.change_eval_type(self.manual_eval, self.eval_type_2)
         self.dept_details_dept_page.save_eval_changes(self.manual_eval)
-        self.manual_eval.dept_form = self.dept_form_2.name
-        self.manual_eval.eval_type = self.eval_type_2.name
+        self.manual_eval.dept_form = self.dept_form_2
+        self.manual_eval.eval_type = self.eval_type_2
 
     def test_manual_section_dept_2_no_form_conflict(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        conflict_form = f'Conflicts with value {self.dept_form_2.name} from {self.dept_1.name} department'
-        assert self.dept_form_2.name in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
+        conflict_form = f'Conflicts with value {self.dept_form_2} from {self.dept_1.name} department'
+        assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
         assert conflict_form not in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
 
     def test_manual_section_dept_2_no_type_conflict(self):
-        conflict_type = f'Conflicts with value {self.eval_type_2.name} from {self.dept_1.name} department'
-        assert self.eval_type_2.name in self.dept_details_dept_page.eval_type(self.manual_eval)
+        conflict_type = f'Conflicts with value {self.eval_type_2} from {self.dept_1.name} department'
+        assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.manual_eval)
         assert conflict_type not in self.dept_details_dept_page.eval_type(self.manual_eval)
 
     def test_manual_section_dept_2_confirms(self):

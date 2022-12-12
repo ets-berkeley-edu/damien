@@ -26,7 +26,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from datetime import timedelta
 import time
 
-from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
 from mrsbaylock.test_utils import evaluation_utils
@@ -47,7 +46,7 @@ class TestEvaluationManagement:
 
     instructor = utils.get_test_user()
     dept_forms = evaluation_utils.get_all_dept_forms()
-    midterm_form = next(filter(lambda form: (form.name.endswith('_MID')), dept_forms))
+    midterm_form = next(filter(lambda form: (form.endswith('_MID')), dept_forms))
     eval_types = evaluation_utils.get_all_eval_types()
 
     dept_1.evaluations[2] = dept_1.evaluations[2]
@@ -64,8 +63,8 @@ class TestEvaluationManagement:
     def test_ensure_no_midterm_form(self):
         self.homepage.load_page()
         self.status_board_admin_page.click_list_mgmt()
-        self.midterm_form = DepartmentForm(f'{self.dept_forms[-1]}_MID')
-        if self.midterm_form.name in self.list_mgmt_page.visible_dept_form_names():
+        self.midterm_form = f'{self.dept_forms[-1]}_MID'
+        if self.midterm_form in self.list_mgmt_page.visible_dept_form_names():
             self.list_mgmt_page.delete_dept_form(self.midterm_form)
 
     def test_admin_dept_page(self):
@@ -80,9 +79,9 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_form)
         self.dept_details_admin_page.change_dept_form(self.eval_sans_form, form)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_form)
-        self.eval_sans_form.dept_form = form.name
+        self.eval_sans_form.dept_form = form
         self.dept_details_admin_page.wait_for_eval_rows()
-        assert form.name in self.dept_details_admin_page.eval_dept_form(self.eval_sans_form)
+        assert form in self.dept_details_admin_page.eval_dept_form(self.eval_sans_form)
 
     def test_revert_dept_form(self):
         self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_form)
@@ -93,41 +92,40 @@ class TestEvaluationManagement:
         assert not self.dept_details_admin_page.eval_dept_form(self.eval_sans_form)
 
     def test_change_dept_form(self):
-        form = next(filter(lambda f: '_MID' not in f.name, self.dept_forms))
+        form = next(filter(lambda f: '_MID' not in f, self.dept_forms))
         self.dept_details_admin_page.click_edit_evaluation(self.eval_sans_form)
         self.dept_details_admin_page.change_dept_form(self.eval_sans_form, form)
         self.dept_details_admin_page.click_save_eval_changes(self.eval_sans_form)
-        self.eval_sans_form.dept_form = form.name
+        self.eval_sans_form.dept_form = form
         self.dept_details_admin_page.wait_for_eval_rows()
-        assert form.name in self.dept_details_admin_page.eval_dept_form(self.eval_sans_form)
+        assert form in self.dept_details_admin_page.eval_dept_form(self.eval_sans_form)
 
     def test_eval_types_available(self):
         e = next(filter(lambda row: row.dept_form, self.dept_1.evaluations))
         self.dept_details_admin_page.click_edit_evaluation(e)
-        eval_names = list(map(lambda ev: ev.name, self.eval_types))
-        eval_names.append('Revert')
-        eval_names.sort()
+        self.eval_types.append('Revert')
+        self.eval_types.sort()
         visible = self.dept_details_admin_page.visible_eval_type_options()
         visible.sort()
-        assert visible == eval_names
+        assert visible == self.eval_types
 
     def test_add_eval_type(self):
         eval_type = self.eval_types[-1]
         self.dept_details_admin_page.click_edit_evaluation(self.dept_1.evaluations[2])
         self.dept_details_admin_page.change_eval_type(self.dept_1.evaluations[2], eval_type)
         self.dept_details_admin_page.click_save_eval_changes(self.dept_1.evaluations[2])
-        self.dept_1.evaluations[2].eval_type = eval_type.name
+        self.dept_1.evaluations[2].eval_type = eval_type
         self.dept_details_admin_page.wait_for_eval_rows()
-        assert eval_type.name in self.dept_details_admin_page.eval_type(self.dept_1.evaluations[2])
+        assert eval_type in self.dept_details_admin_page.eval_type(self.dept_1.evaluations[2])
 
     def test_change_eval_type(self):
         eval_type = self.eval_types[-2]
         self.dept_details_admin_page.click_edit_evaluation(self.dept_1.evaluations[2])
         self.dept_details_admin_page.change_eval_type(self.dept_1.evaluations[2], eval_type)
         self.dept_details_admin_page.click_save_eval_changes(self.dept_1.evaluations[2])
-        self.dept_1.evaluations[2].eval_type = eval_type.name
+        self.dept_1.evaluations[2].eval_type = eval_type
         self.dept_details_admin_page.wait_for_eval_rows()
-        assert eval_type.name in self.dept_details_admin_page.eval_type(self.dept_1.evaluations[2])
+        assert eval_type in self.dept_details_admin_page.eval_type(self.dept_1.evaluations[2])
 
     def test_change_start_date(self):
         e = self.dept_1.evaluations[0]
@@ -160,7 +158,7 @@ class TestEvaluationManagement:
 
     def test_duplicate_section_new_instructor_and_eval_type(self):
         instructor = utils.get_test_user()
-        eval_type = next(filter(lambda t: t.name == 'WRIT', self.eval_types))
+        eval_type = next(filter(lambda t: t == 'WRIT', self.eval_types))
         e = next(filter(lambda ev: ev.dept_form, self.dept_1.evaluations))
         self.dept_details_admin_page.cancel_dupe()
         self.dept_details_admin_page.click_eval_checkbox(e)
@@ -184,17 +182,17 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.hit_escape()
         self.dept_details_admin_page.click_list_mgmt()
         if not self.midterm_form:
-            self.midterm_form = DepartmentForm(f'{self.dept_forms[-1]}_MID')
+            self.midterm_form = f'{self.dept_forms[-1]}_MID'
             self.list_mgmt_page.add_dept_form(self.midterm_form)
 
     def test_duplicate_section_midterm(self):
         date = self.dept_1.evaluations[1].eval_start_date - timedelta(days=3)
-        form = next(filter(lambda f: (f.name == self.midterm_form.name.replace('_MID', '')), self.dept_forms))
+        form = next(filter(lambda f: (f == self.midterm_form.replace('_MID', '')), self.dept_forms))
         self.dept_details_admin_page.load_dept_page(self.dept_1)
         self.dept_details_admin_page.click_edit_evaluation(self.dept_1.evaluations[1])
         self.dept_details_admin_page.change_dept_form(self.dept_1.evaluations[1], form)
         self.dept_details_admin_page.click_save_eval_changes(self.dept_1.evaluations[1])
-        self.dept_1.evaluations[1].dept_form = form.name
+        self.dept_1.evaluations[1].dept_form = form
         self.dept_details_admin_page.wait_for_eval_rows()
         dupe = self.dept_details_admin_page.duplicate_section(self.dept_1.evaluations[1], self.dept_1.evaluations,
                                                               midterm=True, start_date=date)

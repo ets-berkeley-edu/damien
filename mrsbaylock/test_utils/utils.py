@@ -29,7 +29,6 @@ import itertools
 from damien import db, std_commit
 from flask import current_app as app
 from mrsbaylock.models.department import Department
-from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.department_note import DepartmentNote
 from mrsbaylock.models.term import Term
 from mrsbaylock.models.user import User
@@ -138,7 +137,7 @@ def get_all_users():
     for row in results:
         form_names = row['forms'].split(',')
         form_names.sort()
-        forms = list(map(lambda name: DepartmentForm(name), form_names))
+        forms = list(map(lambda name: name, form_names))
         data = {
             'user_id': row['id'],
             'uid': row['uid'],
@@ -217,7 +216,7 @@ def get_test_user(dept_role=None, blue_permissions=None):
         'first_name': app.config['TEST_DEPT_CONTACT_FIRST_NAME'],
         'last_name': app.config['TEST_DEPT_CONTACT_LAST_NAME'],
         'email': app.config['TEST_DEPT_CONTACT_EMAIL'],
-        'dept_forms': list(map(lambda f: DepartmentForm(f), (app.config['TEST_DEPT_CONTACT_FORMS'].split(',')))),
+        'dept_forms': app.config['TEST_DEPT_CONTACT_FORMS'].split(','),
     })
     user.blue_permissions = blue_permissions
     if dept_role:
@@ -647,8 +646,7 @@ def expected_course_supervisors(evaluations, all_contacts):
     forms_per_uid = []
     calculate_course_ids(evaluations)
     for contact in all_contacts:
-        forms = list(map(lambda f: f.name, contact.dept_forms))
-        forms_per_uid.append({'uid': contact.uid, 'forms': forms})
+        forms_per_uid.append({'uid': contact.uid, 'forms': contact.dept_forms})
 
     supervisors = []
     for row in evaluations:
@@ -664,7 +662,6 @@ def expected_course_supervisors(evaluations, all_contacts):
 
 
 def expected_dept_hierarchy():
-    forms = list(map(lambda f: f.name, evaluation_utils.get_all_dept_forms(include_deleted=True)))
     rows = [{
         'NODE_ID': 'UC Berkeley',
         'NODE_CAPTION': 'UC Berkeley',
@@ -672,7 +669,7 @@ def expected_dept_hierarchy():
         'PARENT_NODE_CAPTION': '',
         'LEVEL': '1',
     }]
-    for form in forms:
+    for form in evaluation_utils.get_all_dept_forms(include_deleted=True):
         rows.append({
             'NODE_ID': form,
             'NODE_CAPTION': form,
