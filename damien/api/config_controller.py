@@ -64,8 +64,8 @@ def app_config():
     return tolerant_jsonify({
         'availableTerms': [_term_feed(
             term_id,
-            default_meeting_dates[term_id],
-            valid_meeting_dates[term_id],
+            default_meeting_dates.get(term_id),
+            valid_meeting_dates.get(term_id),
         ) for term_id in term_ids],
         'currentTermId': app.config['CURRENT_TERM_ID'],
         'currentTermName': term_name_for_sis_id(app.config['CURRENT_TERM_ID']),

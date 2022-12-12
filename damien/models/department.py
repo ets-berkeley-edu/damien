@@ -111,17 +111,24 @@ class Department(Base):
             query = query.options(joinedload(cls.members).joinedload('user'))
         return query.all()
 
-    def catalog_listings_map(self):
+    def catalog_listings_map(self, term_id):
         listings_map = {}
         for listing in sorted(self.catalog_listings, key=lambda cl: [cl.subject_area, extract_int(cl.catalog_id)]):
+            if listing.start_term_id and listing.start_term_id > term_id:
+                continue
+            if listing.end_term_id and listing.end_term_id < term_id:
+                continue
             if listing.subject_area not in listings_map:
                 listings_map[listing.subject_area] = []
             listings_map[listing.subject_area].append(listing.catalog_id or '*')
         return listings_map
 
+    def enrolled_terms(self):
+        return DepartmentCatalogListing.department_terms(self.id)
+
     def get_department_sections(self, term_id):
         conditions = []
-        for subject_area, catalog_ids in self.catalog_listings_map().items():
+        for subject_area, catalog_ids in self.catalog_listings_map(term_id).items():
             subconditions = []
             if len(subject_area):
                 subconditions.append(f"s.subject_area = '{subject_area}'")
@@ -254,11 +261,11 @@ class Department(Base):
 
     def to_api_json(
         self,
+        term_id,
         include_contacts=False,
         include_evaluations=False,
         include_sections=False,
         include_status=False,
-        term_id=None,
         departments_cache=None,
         notes_cache=None,
     ):
@@ -266,8 +273,9 @@ class Department(Base):
             'id': self.id,
             'deptName': self.dept_name,
             'isEnrolled': self.is_enrolled,
-            'catalogListings': self.catalog_listings_map(),
+            'catalogListings': self.catalog_listings_map(term_id),
             'createdAt': isoformat(self.created_at),
+            'enrolledTerms': self.enrolled_terms(),
             'updatedAt': isoformat(self.updated_at),
         }
 

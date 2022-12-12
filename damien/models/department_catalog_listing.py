@@ -23,8 +23,11 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien import db, std_commit
+from damien import db
+from damien.lib.berkeley import term_ids_range
 from damien.models.base import Base
+from flask import current_app as app
+from sqlalchemy import func
 
 
 class DepartmentCatalogListing(Base):
@@ -36,6 +39,8 @@ class DepartmentCatalogListing(Base):
     catalog_id = db.Column(db.String(255))
     default_form_id = db.Column(db.Integer, db.ForeignKey('department_forms.id'), nullable=False)
     custom_evaluation_types = db.Column(db.Boolean, nullable=False, default=False)
+    start_term_id = db.Column(db.String(4))
+    end_term_id = db.Column(db.String(4))
 
     department = db.relationship('Department', back_populates='catalog_listings')
     default_form = db.relationship('DepartmentForm', back_populates='catalog_listings')
@@ -47,12 +52,16 @@ class DepartmentCatalogListing(Base):
         catalog_id,
         default_form_id,
         custom_evaluation_types,
+        start_term_id,
+        end_term_id,
     ):
         self.department_id = department_id
         self.subject_area = subject_area
         self.catalog_id = catalog_id
         self.default_form_id = default_form_id
         self.custom_evaluation_types = custom_evaluation_types
+        self.start_term_id = start_term_id
+        self.end_term_id = end_term_id
 
     def __repr__(self):
         return f"""<DepartmentCatalogListing id={self.id},
@@ -60,30 +69,23 @@ class DepartmentCatalogListing(Base):
                     subject_area={self.subject_area},
                     catalog_id={self.catalog_id},
                     default_form_id={self.default_form_id},
-                    custom_evaluation_type={self.custom_evaluation_types}
+                    custom_evaluation_type={self.custom_evaluation_types},
+                    start_term_id={self.start_term_id},
+                    end_term_id={self.end_term_id}>
                 """
-
-    @classmethod
-    def create(
-            cls,
-            department_id,
-            subject_area,
-            catalog_id,
-            default_form_id,
-            custom_evaluation_types,
-    ):
-        department_catalog_listing = cls(
-            department_id=department_id,
-            subject_area=subject_area,
-            catalog_id=catalog_id,
-            default_form_id=default_form_id,
-            custom_evaluation_types=custom_evaluation_types,
-        )
-        db.session.add(department_catalog_listing)
-        std_commit()
-        return department_catalog_listing
 
     @classmethod
     def catalog_ids_to_exclude(cls, department_id, subject_area):
         results = cls.query.filter(cls.subject_area.in_([subject_area, '']), cls.department_id != department_id).all()
         return [r.catalog_id for r in results if r.catalog_id]
+
+    @classmethod
+    def department_terms(cls, department_id):
+        results = db.session.query(
+            func.coalesce(cls.start_term_id, app.config['EARLIEST_TERM_ID']),
+            func.coalesce(cls.end_term_id, app.config['CURRENT_TERM_ID']),
+        ).filter(cls.department_id == department_id).all()
+        term_ids = []
+        for r in results:
+            term_ids.extend(term_ids_range(*r))
+        return sorted(list(set(term_ids)))
