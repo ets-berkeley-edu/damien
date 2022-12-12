@@ -32,7 +32,6 @@ import pytest
 
 term = utils.get_current_term()
 depts = utils.get_test_eval_depts()
-all_users = utils.get_all_users()
 utils.reset_test_data(term)
 
 
@@ -73,12 +72,11 @@ class TestDeptEvaluations:
             self.dept_details_admin_page.wait_for_no_sections()
 
     def test_depts_contact_details(self, dept):
-        contacts = utils.get_dept_users(dept, all_users)
-        if contacts:
+        if dept.users:
             self.group_mgmt_page.click_group_mgmt()
             self.group_mgmt_page.wait_for_dept_row(dept)
             idx = self.group_mgmt_page.dept_row_index(dept)
-            for contact in contacts:
+            for contact in dept.users:
                 dept_role = utils.get_user_dept_role(contact, dept)
                 expected_comms = 'Receives notifications' if dept_role.receives_comms else 'Does not receive notifications'
                 expected_blue = contact.blue_permissions.value['lists']

@@ -22,7 +22,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
 ENHANCEMENTS, OR MODIFICATIONS.
 """
-
+from flask import current_app as app
 from mrsbaylock.models.department_form import DepartmentForm
 from mrsbaylock.models.email import Email
 from mrsbaylock.models.term import Term
@@ -37,10 +37,11 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 term = utils.get_current_term()
 previous_term = Term(utils.get_previous_term_code(term.term_id), None)
 depts = utils.get_participating_depts()
-all_users = utils.get_all_users()
+depts_with_users = [d for d in depts if d.users]
 
-dept_1 = utils.get_test_dept_1(all_users)
-dept_2 = utils.get_test_dept_2(all_users)
+dept_1 = depts_with_users[0]
+dept_2 = depts_with_users[1]
+app.logger.info(f'Dept 1 is {dept_1.name} and Dept 2 is {dept_2.name}')
 
 dept_1_role = UserDeptRole(dept_1.dept_id, receives_comms=True)
 dept_1_user = utils.get_test_user(dept_1_role)
@@ -256,7 +257,7 @@ class TestDeptMgmt:
         self.status_board_admin_page.load_page()
         test_email.subject = f'Bulk test subject to some departments, all contacts {self.test_id}'
         test_email.body = f'Bulk test body to some departments, all contacts {self.test_id}'
-        for d in depts[3:4]:
+        for d in depts_with_users[3:4]:
             self.status_board_admin_page.check_dept_notif_cbx(d)
         self.status_board_admin_page.send_notif_to_depts(test_email)
 
@@ -264,8 +265,7 @@ class TestDeptMgmt:
         test_email.subject = f'Bulk test subject to some departments, some contacts {self.test_id}'
         test_email.body = f'Bulk test body to some departments, some contacts {self.test_id}'
         recips_to_exclude = []
-        for d in depts[5:6]:
-            d.users = utils.get_dept_users(d, all_users)
+        for d in depts_with_users[5:6]:
             recips_to_exclude.append({'user': d.users[-1], 'dept': d})
             self.status_board_admin_page.check_dept_notif_cbx(d)
         self.status_board_admin_page.send_notif_to_depts(test_email, recips_to_exclude)

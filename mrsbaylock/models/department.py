@@ -57,3 +57,7 @@ class Department(object):
     @evaluations.setter
     def evaluations(self, value):
         self.data['evaluations'] = value
+
+    @property
+    def row_count(self):
+        return self.data['row_count']

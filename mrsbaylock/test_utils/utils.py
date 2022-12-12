@@ -193,19 +193,15 @@ def get_user_id(user):
 
 
 def get_dept_users(dept, all_users=None, exclude_uid=None):
-    dept_users = []
+    dept.users = []
     users = all_users or get_all_users()
     for u in users:
         for r in u.dept_roles:
             if r.dept_id == dept.dept_id:
-                dept_users.append(u)
-    for u in dept_users:
-        app.logger.info(f'{vars(u)}')
-        for r in u.dept_roles:
-            app.logger.info(f'{vars(r)}')
+                dept.users.append(u)
     if exclude_uid:
-        dept_users = [u for u in dept_users if u.uid != exclude_uid]
-    return dept_users
+        dept.users = [u for u in dept.users if u.uid != exclude_uid]
+    return dept.users
 
 
 def get_user_dept_role(user, dept):
@@ -269,7 +265,7 @@ def restore_user(user):
 
 
 def get_participating_depts():
-    sql = 'SELECT id, dept_name FROM departments WHERE is_enrolled IS TRUE'
+    sql = 'SELECT id, dept_name, row_count FROM departments WHERE is_enrolled IS TRUE'
     app.logger.info(sql)
     depts = []
     result = db.session.execute(text(sql))
@@ -278,9 +274,13 @@ def get_participating_depts():
         data = {
             'dept_id': row['id'],
             'name': row['dept_name'],
+            'row_count': row['row_count'],
             'participating': True,
         }
         depts.append(Department(data))
+    users = get_all_users()
+    for d in depts:
+        get_dept_users(d, users)
     return depts
 
 
