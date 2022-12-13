@@ -266,10 +266,10 @@ def get_loch_sections(term_id, conditions):
                 cs.room_share_number AS room_shared_with
             FROM unholy_loch.sis_sections s
             LEFT JOIN unholy_loch.cross_listings cl
-                ON cl.term_id = :term_id AND s.term_id = :term_id
+                ON cl.term_id = s.term_id
                 AND s.course_number = cl.course_number
             LEFT JOIN unholy_loch.co_schedulings cs
-                ON cs.term_id = :term_id AND s.term_id = :term_id
+                ON cs.term_id = s.term_id
                 AND s.course_number = cs.course_number
             WHERE s.term_id = :term_id AND ({' OR '.join(conditions)})
             ORDER BY s.course_number, s.instructor_uid
