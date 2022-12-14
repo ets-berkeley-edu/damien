@@ -37,9 +37,9 @@ class TestListManagement:
 
     test_id = f'{int(time.mktime(time.gmtime()))}'
     term = utils.get_current_term()
+    utils.reset_test_data(term)
     all_contacts = utils.get_all_users()
     dept = utils.get_test_dept_1()
-    utils.reset_test_data(term)
     dept.evaluations = evaluation_utils.get_evaluations(term, dept)
     evaluations = list(filter(lambda e: e.instructor.uid, dept.evaluations))
     eval_unmarked = evaluations[0]
@@ -55,8 +55,6 @@ class TestListManagement:
     utils.hard_delete_user(instructor)
     instructor.first_name = instructor.first_name[::-1]
     instructor.last_name = instructor.last_name[::-1]
-
-    utils.reset_test_data(term, dept)
 
     def test_clear_cache(self):
         self.login_page.load_page()

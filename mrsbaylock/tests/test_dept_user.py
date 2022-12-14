@@ -47,15 +47,13 @@ class TestDeptUser:
         if len(single_role_users) and (30 <= d.row_count <= 60):
             dept = d
             break
-    utils.reset_test_data(term)
     evaluations = evaluation_utils.get_evaluations(term, dept)
     contact = next(filter(lambda u: (len(u.dept_roles) == 1), dept.users))
 
-    def test_clear_cache(self):
+    def test_log_in(self):
         self.login_page.load_page()
         self.login_page.dev_auth()
         self.status_board_admin_page.click_list_mgmt()
-        self.api_page.refresh_unholy_loch()
 
     # TERM LOCK / UNLOCK
 
