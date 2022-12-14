@@ -83,7 +83,9 @@ def _bg_refresh_unholy_loch(app):
             std_commit()
 
             # Pre-populate term cache by generating full evaluation feeds for all departments.
-            for d in Department.all_enrolled():
+            department_ids = [d.id for d in Department.all_enrolled()]
+            for dept_id in department_ids:
+                d = Department.find_by_id(dept_id)
                 d.evaluations_feed(term_id=term_id)
 
             app.logger.info('Unholy loch refresh completed, cache refreshed.')
