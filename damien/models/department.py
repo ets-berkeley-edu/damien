@@ -233,14 +233,15 @@ class Department(Base):
         return exports
 
     def evaluations_feed(self, term_id=None, section_id=None, evaluation_ids=None):
+        department_id = self.id
         term_id = term_id or app.config['CURRENT_TERM_ID']
-        sections_cache = fetch_all_sections(self.id, term_id)
+        sections_cache = fetch_all_sections(department_id, term_id)
 
         app.logger.debug(
-            f'Generating evaluations feed (dept_id={self.id}, term_id={term_id}, section_id={section_id}, evaluation_ids={evaluation_ids}')
+            f'Generating evaluations feed (dept_id={department_id}, term_id={term_id}, section_id={section_id}, evaluation_ids={evaluation_ids}')
         feed = []
         for s in self.get_visible_sections(term_id, section_id)['sections']:
-            feed.extend(s.get_evaluation_feed(department_id=self.id, sections_cache=sections_cache, evaluation_ids=evaluation_ids))
+            feed.extend(s.get_evaluation_feed(department_id=department_id, sections_cache=sections_cache, evaluation_ids=evaluation_ids))
 
         if not section_id and not evaluation_ids:
             self.row_count = len(feed)
