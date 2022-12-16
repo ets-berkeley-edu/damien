@@ -499,12 +499,6 @@ export default {
   data: () => ({
     departmentForms: [],
     editRowId: null,
-    evaluationStatuses: [
-      {text: 'None', value: null},
-      {text: 'To-do', value: 'review'},
-      {text: 'Done', value: 'confirmed'},
-      {text: 'Ignore', value: 'ignore'}
-    ],
     evaluationTypes: [],
     filterTypes: {
       'unmarked': {label: 'None', enabled: true},
@@ -718,7 +712,7 @@ export default {
         'departmentFormId': this.selectedDepartmentForm || this.$_.get(evaluation, 'defaultDepartmentForm.id') || null,
         'evaluationTypeId': this.selectedEvaluationType,
         'instructorUid': this.$_.get(this.pendingInstructor, 'uid'),
-        'status': this.selectedEvaluationStatus
+        'status': this.selectedEvaluationStatus === 'none' ? null : this.selectedEvaluationStatus
       }
       if (this.selectedStartDate) {
         fields.startDate = this.$moment(this.selectedStartDate).format('YYYY-MM-DD')

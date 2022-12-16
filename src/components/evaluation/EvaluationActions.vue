@@ -32,122 +32,81 @@
         ></v-divider>
       </template>
     </div>
-    <v-dialog
-      id="duplicate-row-dialog"
-      v-model="isDuplicating"
-      aria-labelledby="duplicate-row-dialog-title"
-      class="overflow-y-visible"
-      width="500"
+    <UpdateEvaluations
+      :apply-action="applyDuplicate"
+      :cancel-action="cancelDuplicate"
+      :is-updating="isDuplicating"
+      :midterm-form-available="midtermFormAvailable"
+      :title="`Duplicate ${selectedEvaluationsDescription}`"
+      v-bind="bulkUpdateOptions"
     >
-      <v-card>
-        <v-card-title id="duplicate-row-dialog-title" tabindex="-1">Duplicate</v-card-title>
-        <v-card-text>
-          <div class="d-flex align-center mt-2">
-            <PersonLookup
-              v-if="isDuplicating"
-              id="bulk-duplicate-instructor-lookup-autocomplete"
-              :disabled="disableControls"
-              :instructor-lookup="true"
-              placeholder="Instructor name or UID"
-              :on-select-result="selectInstructor"
-              :required="isInstructorRequired"
-              solo
-            />
-          </div>
-          <v-checkbox
-            v-if="midtermFormAvailable"
-            v-model="bulkUpdateOptions.midtermFormEnabled"
-            class="text-nowrap"
-            color="tertiary"
+      <template #instructor="{instructor, required, onSelectResult}">
+        <div class="d-flex align-center mt-2">
+          <PersonLookup
+            v-if="isDuplicating"
+            id="update-evaluations-instructor-lookup-autocomplete"
             :disabled="disableControls"
-            hide-details
-            label="Use midterm department forms"
-            :ripple="false"
+            :instructor-lookup="true"
+            :on-select-result="onSelectResult"
+            placeholder="Instructor name or UID"
+            :required="required"
+            solo
+            :value="instructor"
+            v-on="on"
           />
-          <div class="my-4">
-            <label
-              id="bulk-duplicate-select-type-label"
-              for="bulk-duplicate-select-type"
-              class="v-label d-block py-1"
-            >
-              Evaluation Type:
-            </label>
-            <select
-              id="bulk-duplicate-select-type"
-              v-model="bulkUpdateOptions.evaluationType"
-              class="native-select-override light d-block mx-auto"
-              :disabled="disableControls"
-            >
-              <option v-for="et in evaluationTypes" :key="et.id" :value="et.id">{{ et.name }}</option>
-            </select>
-          </div>
-          <div class="d-flex align-center mt-2">
-            <label
-              for="bulk-duplicate-start-date"
-              class="v-label"
-              :class="$vuetify.theme.dark ? 'theme--dark' : 'theme--light'"
-            >
-              Evaluation start date:
-            </label>
-            <c-date-picker
-              v-model="bulkUpdateOptions.startDate"
-              class="mx-3"
-              :min-date="$moment(selectedTermValidDates.begin).toDate()"
-              :max-date="$moment(selectedTermValidDates.end).subtract(13, 'days').toDate()"
-              :popover="{positionFixed: true}"
-              title-position="left"
-            >
-              <template #default="{ inputValue, inputEvents }">
-                <input
-                  id="bulk-duplicate-start-date"
-                  class="datepicker-input input-override my-0"
-                  :class="$vuetify.theme.dark ? 'dark' : 'light'"
-                  :disabled="disableControls"
-                  maxlength="10"
-                  minlength="10"
-                  :value="inputValue"
-                  v-on="inputEvents"
-                />
-              </template>
-            </c-date-picker>
-          </div>
-        </v-card-text>
-        <v-divider />
-        <v-card-actions>
-          <v-spacer />
-          <div class="d-flex pa-2">
-            <v-btn
-              id="apply-course-action-btn"
-              class="mt-2 mr-2"
-              color="secondary"
-              :disabled="disableApplyDuplicate"
-              min-width="85"
-              @click="applyAction('duplicate')"
-              @keypress.enter.prevent="applyAction('duplicate')"
-            >
-              <span v-if="!isLoading">Apply</span>
-              <v-progress-circular
-                v-if="isLoading"
-                :indeterminate="true"
-                color="white"
-                rotate="5"
-                size="20"
-                width="3"
-              ></v-progress-circular>
-            </v-btn>
-            <v-btn
-              id="cancel-duplicate-btn"
-              class="mt-2 mr-2"
-              :disabled="disableControls"
-              @click="cancelDuplicate"
-              @keypress.enter.prevent="cancelDuplicate"
-            >
-              Cancel
-            </v-btn>
-          </div>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        </div>
+      </template>
+    </UpdateEvaluations>
+    <UpdateEvaluations
+      :apply-action="applyEdit"
+      :cancel-action="cancelEdit"
+      :is-updating="isEditing"
+      :title="`Edit ${selectedEvaluationsDescription}`"
+      v-bind="bulkUpdateOptions"
+    >
+      <template #status="{status, on}">
+        <div class="my-4">
+          <label
+            id="update-evaluations-select-status-label"
+            for="update-evaluations-select-status"
+            class="v-label d-block py-1"
+          >
+            Status:
+          </label>
+          <select
+            id="update-evaluations-select-status"
+            class="native-select-override light d-block mx-auto"
+            :disabled="disableControls"
+            :status="status"
+            :value="status"
+            v-on="on"
+          >
+            <option v-for="s in evaluationStatuses" :key="s.text" :value="s.value">{{ s.text }}</option>
+          </select>
+        </div>
+      </template>
+      <template #form="{form, on}">
+        <div class="my-4">
+          <label
+            id="update-evaluations-select-form-label"
+            for="update-evaluations-select-form"
+            class="v-label d-block py-1"
+          >
+            Department Form:
+          </label>
+          <select
+            id="update-evaluations-select-form"
+            class="native-select-override light"
+            :disabled="disableControls"
+            :form="form"
+            :value="form"
+            v-on="on"
+          >
+            <option v-for="df in activeDepartmentForms" :key="df.id" :value="df.id">{{ df.name }}</option>
+          </select>
+        </div>
+      </template>
+    </UpdateEvaluations>
   </div>
 </template>
 
@@ -156,26 +115,29 @@ import {updateEvaluations} from '@/api/departments'
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import PersonLookup from '@/components/admin/PersonLookup'
+import UpdateEvaluations from '@/components/evaluation/UpdateEvaluations'
 import Util from '@/mixins/Util'
 
 export default {
   name: 'EvaluationActions',
   components: {
-    PersonLookup
+    PersonLookup,
+    UpdateEvaluations
   },
   mixins: [Context, DepartmentEditSession, Util],
   data: () => ({
     applyingAction: null,
     bulkUpdateOptions: {
-      instructor: {},
+      departmentForm: undefined,
+      evaluationStatus: undefined,
+      evaluationType: undefined,
+      instructor: undefined,
       midtermFormEnabled: false,
       startDate: undefined,
-      evaluationType: undefined,
     },
     courseActions: {},
-    evaluationTypes: [],
     isDuplicating: false,
-    isInstructorRequired: false,
+    isEditing: false,
     isLoading: false,
     midtermFormAvailable: false,
   }),
@@ -220,33 +182,28 @@ export default {
         inProgressText: 'Duplicating',
         key: 'duplicate',
         text: 'Duplicate'
-      }
-    }
-    this.evaluationTypes = [{id: null, name: 'Default'}].concat(this.$config.evaluationTypes)
-  },
-  watch: {
-    bulkUpdateOptions: {
-      handler(options) {
-        if (this.midtermFormAvailable) {
-          this.isInstructorRequired = !options.midtermFormEnabled
-        }
       },
-      deep: true
+      edit: {
+        apply: this.showEditOptions,
+        completedText: 'Edited',
+        inProgressText: 'Editing',
+        key: 'edit',
+        text: 'Edit'
+      }
     }
   },
   computed: {
     allowEdits() {
       return this.$currentUser.isAdmin || !this.isSelectedTermLocked
     },
-    disableApplyDuplicate() {
-      return this.disableControls
-          || !this.allowEdits
-          || this.$_.isEmpty(this.selectedEvaluationIds)
-          || (this.isInstructorRequired && !this.$_.get(this.bulkUpdateOptions.instructor, 'uid'))
+    selectedEvaluations() {
+      return this.$_.filter(this.evaluations, e => this.selectedEvaluationIds.includes(e.id))
     },
-    selectedTermValidDates() {
-      const selectedTerm = this.$_.find(this.$config.availableTerms, {'id': this.selectedTermId})
-      return selectedTerm.validDates
+    selectedEvaluationsDescription() {
+      if (this.$_.isEmpty(this.selectedEvaluationIds)) {
+        return ''
+      }
+      return `${this.selectedEvaluationIds.length} ${this.selectedEvaluationIds.length === 1 ? 'row' : 'rows'}`
     }
   },
   methods: {
@@ -265,21 +222,30 @@ export default {
       const target = `${this.selectedEvaluationIds.length || 0} ${this.selectedEvaluationIds.length === 1 ? 'row' : 'rows'}`
       this.applyingAction = this.courseActions[key]
       this.alertScreenReader(`${this.applyingAction.inProgressText} ${target}`)
-      if (key === 'duplicate') {
-        fields = {
-          instructorUid: this.$_.get(this.bulkUpdateOptions.instructor, 'uid')
+      if (this.$_.includes(['duplicate', 'edit'], key)) {
+        fields = {}
+        if (this.bulkUpdateOptions.departmentForm) {
+          fields.departmentFormId = this.bulkUpdateOptions.departmentForm
         }
-        if (this.bulkUpdateOptions.midtermFormEnabled) {
-          fields.midterm = 'true'
-        }
-        if (this.bulkUpdateOptions.startDate) {
-          fields.startDate = this.$moment(this.bulkUpdateOptions.startDate).format('YYYY-MM-DD')
+        if (this.bulkUpdateOptions.evaluationStatus) {
+          fields.status = this.bulkUpdateOptions.evaluationStatus
         }
         if (this.bulkUpdateOptions.evaluationType) {
           fields.evaluationTypeId = this.bulkUpdateOptions.evaluationType
         }
+        if (this.bulkUpdateOptions.instructor) {
+          fields.instructorUid = this.$_.get(this.bulkUpdateOptions.instructor, 'uid')
+        }
+        if (this.bulkUpdateOptions.startDate) {
+          fields.startDate = this.$moment(this.bulkUpdateOptions.startDate).format('YYYY-MM-DD')
+        }
+      }
+      if (key === 'duplicate') {
+        if (this.bulkUpdateOptions.midtermFormEnabled) {
+          fields.midterm = 'true'
+        }
         valid = this.validateDuplicable(this.selectedEvaluationIds, fields)
-      } else if (key === 'confirm') {
+      } else if (key === 'confirm' || (key === 'edit' && this.bulkUpdateOptions.evaluationStatus === 'confirmed')) {
         valid = this.validateConfirmable(this.selectedEvaluationIds)
       }
       if (valid) {
@@ -294,10 +260,23 @@ export default {
         ).then(response => this.afterApply(response), error => this.handleError(error))
       }
     },
+    applyDuplicate(options) {
+      this.bulkUpdateOptions = options
+      this.applyAction('duplicate')
+    },
+    applyEdit(options) {
+      this.bulkUpdateOptions = options
+      this.applyAction('edit')
+    },
     cancelDuplicate() {
       this.reset()
       this.alertScreenReader('Canceled duplication.')
       this.$putFocusNextTick('apply-course-action-btn-duplicate')
+    },
+    cancelEdit() {
+      this.reset()
+      this.alertScreenReader('Canceled edit.')
+      this.$putFocusNextTick('apply-course-action-btn-edit')
     },
     handleError(error) {
       this.showErrorDialog(this.$_.get(error, 'response.data.message', 'An unknown error occurred.'))
@@ -326,50 +305,69 @@ export default {
     },
     reset() {
       this.bulkUpdateOptions = {
-        instructor: {},
+        departmentForm: null,
+        evaluationStatus: null,
+        evaluationType: null,
+        instructor: null,
         midtermFormEnabled: false,
         startDate: null,
-        evaluationType: null,
       }
       this.isDuplicating = false
+      this.isEditing = false
       this.applyingAction = null
       this.isLoading = false
       this.midtermFormAvailable = false
     },
     selectInstructor(suggestion) {
       this.bulkUpdateOptions.instructor = suggestion
-      this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
+      this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
     },
     showDuplicateOptions() {
-      const selectedEvals = this.$_.filter(this.evaluations, e => this.selectedEvaluationIds.includes(e.id))
-
-      // Pre-populate start date if shared by all selected evals.
-      const uniqueStartDates = this.$_.chain(selectedEvals).map(e => new Date(e.startDate).toDateString()).uniq().value()
-      if (uniqueStartDates.length === 1) {
-        this.bulkUpdateOptions.startDate = new Date(uniqueStartDates[0])
-      }
-
-      // Pre-populate type if shared by all selected evals
-      const uniqueTypes = this.$_.chain(selectedEvals).map(e => this.$_.get(e, 'evaluationType.id')).uniq().value()
-      if (uniqueTypes.length === 1) {
-        this.bulkUpdateOptions.evaluationType = this.$_.get(selectedEvals, '0.evaluationType.id')
-      }
-
+      this.showUpdateOptions()
+      this.bulkUpdateOptions.instructor = {}
       // Show midterm form option only if a midterm form exists for all selected evals.
       this.midtermFormAvailable = true
       const availableFormNames = this.$_.map(this.activeDepartmentForms, 'name')
-      this.$_.each(selectedEvals, e => {
+      this.$_.each(this.selectedEvaluations, e => {
         const formName = this.$_.get(e, 'departmentForm.name')
         if (!formName || !(formName.endsWith('_MID') || availableFormNames.includes(formName + '_MID'))) {
           this.midtermFormAvailable = false
           return false
         }
       })
-      if (!this.midtermFormAvailable) {
-        this.isInstructorRequired = true
-      }
       this.isDuplicating = true
-      this.$putFocusNextTick('bulk-duplicate-instructor-lookup-autocomplete')
+      this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
+    },
+    showEditOptions() {
+      this.showUpdateOptions()
+      // Pre-populate form if shared by all selected evals
+      const uniqueForms = this.$_.chain(this.selectedEvaluations).map(e => this.$_.get(e, 'departmentForm.id')).uniq().value()
+      if (uniqueForms.length === 1) {
+        this.bulkUpdateOptions.departmentForm = this.$_.get(this.selectedEvaluations, '0.departmentForm.id')
+      }
+      // Show instructor lookup if instructor is missing from all selected evals
+      if (this.$_.every(this.selectedEvaluations, {'instructor': null})) {
+        this.bulkUpdateOptions.instructor = {}
+        this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
+      }
+      // Pre-populate status if shared by all selected evals
+      const uniqueStatuses = this.$_.chain(this.selectedEvaluations).map(e => this.$_.get(e, 'status')).uniq().value()
+      if (uniqueStatuses.length === 1) {
+        this.bulkUpdateOptions.evaluationStatus = this.$_.get(this.selectedEvaluations, '0.status', 'none')
+      }
+      this.isEditing = true
+    },
+    showUpdateOptions() {
+      // Pre-populate start date if shared by all selected evals.
+      const uniqueStartDates = this.$_.chain(this.selectedEvaluations).map(e => new Date(e.startDate).toDateString()).uniq().value()
+      if (uniqueStartDates.length === 1) {
+        this.bulkUpdateOptions.startDate = new Date(uniqueStartDates[0])
+      }
+      // Pre-populate type if shared by all selected evals
+      const uniqueTypes = this.$_.chain(this.selectedEvaluations).map(e => this.$_.get(e, 'evaluationType.id')).uniq().value()
+      if (uniqueTypes.length === 1) {
+        this.bulkUpdateOptions.evaluationType = this.$_.get(this.selectedEvaluations, '0.evaluationType.id')
+      }
     }
   }
 }
