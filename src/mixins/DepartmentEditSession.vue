@@ -20,7 +20,15 @@ export default {
       'evaluations',
       'note',
       'selectedEvaluationIds'
-    ])
+    ]),
+    evaluationStatuses() {
+      return [
+        {text: 'None', value: 'none'},
+        {text: 'To-do', value: 'review'},
+        {text: 'Done', value: 'confirmed'},
+        {text: 'Ignore', value: 'ignore'}
+      ]
+    }
   },
   methods: {
     validateConfirmable(evaluationIds) {
