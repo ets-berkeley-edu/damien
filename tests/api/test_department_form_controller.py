@@ -118,7 +118,7 @@ class TestDepartmentForms:
     def test_authorized(self, client, fake_auth):
         fake_auth.login(non_admin_uid)
         forms = _api_department_forms(client)
-        assert len(forms) == 195
+        assert len(forms) == 196
         for f in forms:
             assert f['id']
             assert f['name']

@@ -329,6 +329,7 @@ INSERT INTO listings (dept_name, subject_area, catalog_id, default_form, start_t
   ('Slavic Languages and Literatures', 'ROMANI', NULL, 'ROMANI', NULL, NULL),
   ('Slavic Languages and Literatures', 'RUSSIAN', NULL, 'RUSSIAN', NULL, NULL),
   ('Slavic Languages and Literatures', 'SLAVIC', NULL, 'SLAVIC', NULL, NULL),
+  ('Slavic Languages and Literatures', 'UKRAINI', NULL, 'UKRAINI', NULL, NULL),
   ('Social Welfare', 'SOCWEL', NULL, 'SOC WEL', NULL, NULL),
   ('Sociology', 'SOCIOL', NULL, 'SOCIOL', NULL, NULL),
   ('South and Southeast Asian Studies', 'BANGLA', NULL, 'BANGLA', NULL, NULL),
