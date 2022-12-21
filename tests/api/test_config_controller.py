@@ -92,7 +92,7 @@ class TestConfigController:
         response = client.get('/api/config')
         assert response.status_code == 200
         forms = response.json['departmentForms']
-        assert len(forms) == 196
+        assert len(forms) == 197
         for f in forms:
             assert f['id']
             assert f['name']
