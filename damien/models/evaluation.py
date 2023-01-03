@@ -354,7 +354,6 @@ class Evaluation(Base):
                     )"""
         results = db.session.execute(query, params).fetchall()
         app.logger.info(f'Evaluation find_potential_conflicts query returned {len(results)} results: {query}\n{params}')
-        app.logger.warning(results)
         return results
 
     @classmethod
@@ -450,7 +449,6 @@ class Evaluation(Base):
         results = orm_sql.all()
         if len(results):
             app.logger.info(f'Evaluation get_duplicates query returned {len(results)} results: {query}\n{params}')
-            app.logger.info(results)
         return results
 
     @classmethod

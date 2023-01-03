@@ -144,6 +144,9 @@ class Section:
             self.default_evaluation_types = None
 
     def merge_evaluations(self, department_id):
+        from damien.models.department import Department
+        department = Department.find_by_id(department_id)
+        dept_uses_midterm_forms = department.uses_midterm_forms(self.term_id)
         merged_evaluations = []
 
         # Multiple loch rows for a single section-instructor pairing are possible.
@@ -168,6 +171,8 @@ class Section:
             foreign_dept_evals_final = []
 
             for evaluation in evaluations_for_instructor_uid:
+                if evaluation.is_midterm() and not dept_uses_midterm_forms:
+                    continue
                 if evaluation.is_midterm():
                     has_midterm_evals = True
                 else:
