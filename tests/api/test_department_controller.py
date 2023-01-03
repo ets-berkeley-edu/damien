@@ -555,14 +555,21 @@ class TestDuplicateEvaluation:
         })
 
         fake_auth.login(non_admin_uid)
-        for dept in [_api_get_melc(client), _api_get_history(client)]:
-            dept_listings = [e for e in dept['evaluations'] if e['subjectArea'] == 'MELC'
-                             and e['catalogId'] == 'C188' and e['instructor']['uid'] == '326054']
-            assert len(dept_listings) == 2
-            assert next(dl for dl in dept_listings if dl['departmentForm']['name'] == 'MELC_MID'
-                        and dl['startDate'] == '2022-03-01' and dl['transientId'] == '_2222_30470_326054_midterm')
-            assert next(dl for dl in dept_listings if dl['departmentForm']['name'] == 'MELC'
-                        and dl['startDate'] == '2022-04-18' and dl['transientId'] == '_2222_30470_326054_final')
+        melc_dept = _api_get_melc(client)
+        melc_dept_listings = [e for e in melc_dept['evaluations'] if e['subjectArea'] == 'MELC'
+                              and e['catalogId'] == 'C188' and e['instructor']['uid'] == '326054']
+        assert len(melc_dept_listings) == 2
+        assert next(dl for dl in melc_dept_listings if dl['departmentForm']['name'] == 'MELC_MID'
+                    and dl['startDate'] == '2022-03-01' and dl['transientId'] == '_2222_30470_326054_midterm')
+        assert next(dl for dl in melc_dept_listings if dl['departmentForm']['name'] == 'MELC'
+                    and dl['startDate'] == '2022-04-18' and dl['transientId'] == '_2222_30470_326054_final')
+
+        hist_dept = _api_get_history(client)
+        hist_dept_listings = [e for e in hist_dept['evaluations'] if e['subjectArea'] == 'MELC'
+                              and e['catalogId'] == 'C188' and e['instructor']['uid'] == '326054']
+        assert len(hist_dept_listings) == 1
+        assert next(dl for dl in hist_dept_listings if dl['departmentForm']['name'] == 'MELC'
+                    and dl['startDate'] == '2022-04-18' and dl['transientId'] == '_2222_30470_326054')
 
     def test_duplicate_create_conflict(self, client, fake_auth):
         fake_auth.login(non_admin_uid)

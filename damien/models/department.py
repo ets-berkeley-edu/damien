@@ -37,6 +37,7 @@ from damien.models.evaluation_type import EvaluationType
 from damien.models.supplemental_instructor import SupplementalInstructor
 from damien.models.supplemental_section import SupplementalSection
 from flask import current_app as app
+from sqlalchemy import text
 from sqlalchemy.orm import joinedload
 
 
@@ -311,6 +312,26 @@ class Department(Base):
                 self.evaluations_feed(term_id)
             feed['totalSections'] = self.row_count
         return feed
+
+    def uses_midterm_forms(self, term_id):
+        params = {
+            'department_id': self.id,
+            'term_id': term_id,
+        }
+        query = text(
+            """SELECT *
+                FROM department_forms df
+                JOIN department_catalog_listings dcl ON df.name = dcl.subject_area || '_MID'
+                WHERE df.name LIKE '%_MID'
+                AND df.deleted_at IS NULL
+                AND dcl.department_id = :department_id
+                AND (dcl.start_term_id IS NULL OR dcl.start_term_id <= :term_id)
+                AND (dcl.end_term_id IS NULL OR dcl.end_term_id >= :term_id)
+            """,
+        )
+        result = db.session.execute(query, params).fetchone()
+        app.logger.info(f'Department uses_midterm_forms query returned {result}: {query}\n{params}')
+        return result is not None
 
 
 def _get_instructors(all_sections, evaluations):
