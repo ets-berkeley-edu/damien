@@ -10,7 +10,6 @@
           :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length || isLoading || isInvalidAction(action)"
           text
           @click.stop="action.apply(key)"
-          @keypress.enter.prevent="action.apply(key)"
         >
           <span v-if="!(isLoading && key !== 'duplicate' && applyingAction.key === key)">{{ action.text }}</span>
           <v-progress-circular
@@ -40,22 +39,6 @@
       :title="`Duplicate ${selectedEvaluationsDescription}`"
       v-bind="bulkUpdateOptions"
     >
-      <template #instructor="{instructor, required, onSelectResult}">
-        <div class="d-flex align-center mt-2">
-          <PersonLookup
-            v-if="isDuplicating"
-            id="update-evaluations-instructor-lookup-autocomplete"
-            :disabled="disableControls"
-            :instructor-lookup="true"
-            :on-select-result="onSelectResult"
-            placeholder="Instructor name or UID"
-            :required="required"
-            solo
-            :value="instructor"
-            v-on="on"
-          />
-        </div>
-      </template>
     </UpdateEvaluations>
     <UpdateEvaluations
       :apply-action="applyEdit"
@@ -114,14 +97,12 @@
 import {updateEvaluations} from '@/api/departments'
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
-import PersonLookup from '@/components/admin/PersonLookup'
 import UpdateEvaluations from '@/components/evaluation/UpdateEvaluations'
 import Util from '@/mixins/Util'
 
 export default {
   name: 'EvaluationActions',
   components: {
-    PersonLookup,
     UpdateEvaluations
   },
   mixins: [Context, DepartmentEditSession, Util],
@@ -348,7 +329,6 @@ export default {
       // Show instructor lookup if instructor is missing from all selected evals
       if (this.$_.every(this.selectedEvaluations, {'instructor': null})) {
         this.bulkUpdateOptions.instructor = {}
-        this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
       }
       // Pre-populate status if shared by all selected evals
       const uniqueStatuses = this.$_.chain(this.selectedEvaluations).map(e => this.$_.get(e, 'status')).uniq().value()
@@ -356,6 +336,7 @@ export default {
         this.bulkUpdateOptions.evaluationStatus = this.$_.get(this.selectedEvaluations, '0.status', 'none')
       }
       this.isEditing = true
+      this.$putFocusNextTick('update-evaluations-select-status')
     },
     showUpdateOptions() {
       // Pre-populate start date if shared by all selected evals.

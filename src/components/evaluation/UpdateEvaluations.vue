@@ -7,17 +7,26 @@
     width="500"
     v-bind="$attrs"
     v-on="$listeners"
+    @click:outside="onClickCancel"
+    @keydown.esc="onClickCancel"
   >
     <v-card>
       <v-card-title id="update-evaluations-dialog-title" tabindex="-1">{{ title }}</v-card-title>
       <v-card-text>
         <slot name="status" :status="selectedEvaluationStatus" :on="{change: e => selectedEvaluationStatus = e.target.value}"></slot>
-        <slot
-          name="instructor"
-          :instructor="selectedInstructor"
-          :required="isInstructorRequired"
-          :onSelectResult="selectInstructor"
-        ></slot>
+        <div class="d-flex align-center mt-2">
+          <PersonLookup
+            v-if="instructor !== null"
+            id="update-evaluations-instructor-lookup-autocomplete"
+            :disabled="disableControls"
+            :instructor-lookup="true"
+            :on-select-result="selectInstructor"
+            placeholder="Instructor name or UID"
+            :required="isInstructorRequired"
+            solo
+            :value="selectedInstructor"
+          />
+        </div>
         <v-checkbox
           v-if="midtermFormAvailable"
           v-model="midtermFormEnabled"
@@ -116,10 +125,14 @@
 <script>
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
+import PersonLookup from '@/components/admin/PersonLookup'
 import Util from '@/mixins/Util'
 
 export default {
   name: 'UpdateEvaluations',
+  components: {
+    PersonLookup
+  },
   mixins: [Context, DepartmentEditSession, Util],
   props: {
     applyAction: {
@@ -241,10 +254,8 @@ export default {
       this.cancelAction()
     },
     selectInstructor(suggestion) {
-      console.log(suggestion)
       this.selectedInstructor = suggestion
-      this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
-    },
+    }
   }
 }
 </script>
