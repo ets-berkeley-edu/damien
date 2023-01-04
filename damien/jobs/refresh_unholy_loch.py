@@ -38,7 +38,13 @@ def initialize_refresh_schedule(app):
     if app.config['SCHEDULE_LOCH_REFRESH']:
         scheduler = BackgroundScheduler()
 
-        @scheduler.scheduled_job('cron', id='refresh_unholy_loch', max_instances=1, **app.config['SCHEDULE_LOCH_REFRESH'])
+        @scheduler.scheduled_job(
+            'cron',
+            id='refresh_unholy_loch',
+            max_instances=1,
+            **app.config['SCHEDULE_LOCH_REFRESH'],
+            timezone=app.config['TIMEZONE'],
+        )
         def scheduled_refresh():
             _refresh_unholy_loch(app)
 
