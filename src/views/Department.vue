@@ -23,22 +23,30 @@
                 <template #default>
                   <div class="d-flex" :class="$currentUser.isAdmin ? 'flex-column' : 'align-center justify-space-between flex-wrap'">
                     <h2 class="pb-1 px-2">Department Contacts</h2>
-                    <div class="d-flex height-unset" :class="{'flex-column': isCreatingNotification, 'align-center justify-space-between': !isCreatingNotification}">
-                      <v-btn
-                        v-if="$currentUser.isAdmin && !isCreatingNotification"
-                        id="open-notification-form-btn"
-                        class="ma-2 secondary text-capitalize"
-                        :disabled="disableControls || $_.isEmpty(contacts)"
-                        @click="() => isCreatingNotification = true"
-                      >
-                        Send notification
-                      </v-btn>
-                      <NotificationForm
-                        v-if="$currentUser.isAdmin && isCreatingNotification"
-                        :after-send="afterSendNotification"
-                        :on-cancel="cancelSendNotification"
-                        :recipients="[notificationRecipients]"
-                      />
+                    <div
+                      class="d-flex height-unset"
+                      :class="{
+                        'flex-column': isCreatingNotification,
+                        'align-center justify-space-between': !isCreatingNotification
+                      }"
+                    >
+                      <div v-if="$currentUser.isAdmin">
+                        <v-btn
+                          v-if="!isCreatingNotification"
+                          id="open-notification-form-btn"
+                          class="ma-2 secondary text-capitalize"
+                          :disabled="disableControls || $_.isEmpty(contacts)"
+                          @click="() => isCreatingNotification = true"
+                        >
+                          Send notification
+                        </v-btn>
+                        <NotificationForm
+                          v-if="isCreatingNotification"
+                          :after-send="afterSendNotification"
+                          :on-cancel="cancelSendNotification"
+                          :recipients="[notificationRecipients]"
+                        />
+                      </div>
                       <v-expansion-panel-header
                         class="w-fit-content ml-auto mr-3"
                         hide-actions
@@ -79,23 +87,25 @@
                 </template>
               </v-expansion-panel>
             </v-expansion-panels>
-            <v-btn
-              v-if="$currentUser.isAdmin && !isAddingContact"
-              id="add-dept-contact-btn"
-              class="text-capitalize pl-2 my-1 mx-2"
-              color="tertiary"
-              text
-              @click="() => isAddingContact = true"
-            >
-              <v-icon>mdi-plus-thick</v-icon>
-              Add Contact
-            </v-btn>
-            <EditDepartmentContact
-              v-if="$currentUser.isAdmin && isAddingContact"
-              :id="`add-department-contact`"
-              :after-save="afterSaveContact"
-              :on-cancel="onCancelAddContact"
-            />
+            <div v-if="$currentUser.isAdmin">
+              <v-btn
+                v-if="!isAddingContact"
+                id="add-dept-contact-btn"
+                class="text-capitalize pl-2 my-1 mx-2"
+                color="tertiary"
+                text
+                @click="() => isAddingContact = true"
+              >
+                <v-icon>mdi-plus-thick</v-icon>
+                Add Contact
+              </v-btn>
+              <EditDepartmentContact
+                v-if="isAddingContact"
+                :id="`add-department-contact`"
+                :after-save="afterSaveContact"
+                :on-cancel="onCancelAddContact"
+              />
+            </div>
           </div>
         </v-col>
         <v-col cols="12" md="7">

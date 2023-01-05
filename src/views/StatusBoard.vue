@@ -24,9 +24,9 @@
           <SortableTableHeader :headers="headers" :on-sort="sort">
             <template #select>
               <div class="d-flex flex-row notify-all">
+                <label class="sr-only" for="checkbox-select-dept-all">Select all department rows</label>
                 <v-checkbox
                   id="checkbox-select-dept-all"
-                  aria-label="Select all department rows"
                   class="align-center mt-0 pt-0"
                   color="tertiary"
                   :disabled="loading"
