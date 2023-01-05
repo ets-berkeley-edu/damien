@@ -34,6 +34,7 @@
     <UpdateEvaluations
       :apply-action="applyDuplicate"
       :cancel-action="cancelDuplicate"
+      :is-applying="isApplying"
       :is-updating="isDuplicating"
       :midterm-form-available="midtermFormAvailable"
       :title="`Duplicate ${selectedEvaluationsDescription}`"
@@ -43,6 +44,7 @@
     <UpdateEvaluations
       :apply-action="applyEdit"
       :cancel-action="cancelEdit"
+      :is-applying="isApplying"
       :is-updating="isEditing"
       :title="`Edit ${selectedEvaluationsDescription}`"
       v-bind="bulkUpdateOptions"
@@ -117,6 +119,7 @@ export default {
       startDate: undefined,
     },
     courseActions: {},
+    isApplying: false,
     isDuplicating: false,
     isEditing: false,
     isLoading: false,
@@ -195,20 +198,24 @@ export default {
         this.alertScreenReader(`${this.applyingAction.completedText} ${target}`)
         this.$putFocusNextTick('select-all-evals-checkbox')
         this.reset()
-      }).finally(() => this.setDisableControls(false))
+      }).finally(() => {
+        this.isApplying = false
+        this.setDisableControls(false)
+      })
     },
     applyAction(key) {
       let fields = null
       let valid = true
       const target = `${this.selectedEvaluationIds.length || 0} ${this.selectedEvaluationIds.length === 1 ? 'row' : 'rows'}`
       this.applyingAction = this.courseActions[key]
+      this.isApplying = true
       this.alertScreenReader(`${this.applyingAction.inProgressText} ${target}`)
       if (this.$_.includes(['duplicate', 'edit'], key)) {
         fields = {}
         if (this.bulkUpdateOptions.departmentForm) {
           fields.departmentFormId = this.bulkUpdateOptions.departmentForm
         }
-        if (this.bulkUpdateOptions.evaluationStatus) {
+        if (this.$_.has(this.bulkUpdateOptions, 'evaluationStatus')) {
           fields.status = this.bulkUpdateOptions.evaluationStatus
         }
         if (this.bulkUpdateOptions.evaluationType) {
@@ -239,6 +246,8 @@ export default {
           this.selectedTermId,
           fields
         ).then(response => this.afterApply(response), error => this.handleError(error))
+      } else {
+        this.isApplying = false
       }
     },
     applyDuplicate(options) {
@@ -261,9 +270,10 @@ export default {
     },
     handleError(error) {
       this.showErrorDialog(this.$_.get(error, 'response.data.message', 'An unknown error occurred.'))
-      this.refreshEvaluations().then(() => {
+      this.refreshEvaluations().finally(() => {
         this.setDisableControls(false)
         this.applyingAction = null
+        this.isApplying = false
         this.isLoading = false
       })
 
@@ -296,6 +306,7 @@ export default {
       this.isDuplicating = false
       this.isEditing = false
       this.applyingAction = null
+      this.isApplying = false
       this.isLoading = false
       this.midtermFormAvailable = false
     },
