@@ -238,3 +238,10 @@ VALUES
 ('2222', '30643', '77777'),
 ('2222', '30643', '88888'),
 ('2222', '30643', '99999');
+
+TRUNCATE TABLE unholy_loch.sis_terms;
+INSERT INTO unholy_loch.sis_terms (term_id, term_name, term_begins, term_ends)
+VALUES
+('2219', 'Fall 2021', '2021-08-18', '2021-12-17'),
+('2222', 'Spring 2022', '2022-01-11', '2022-05-13'),
+('2225', 'Summer 2022', '2022-05-23', '2022-08-12');

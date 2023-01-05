@@ -82,6 +82,14 @@ CREATE TABLE unholy_loch.sis_enrollments (
     ldap_uid VARCHAR(80) NOT NULL
 );
 
+CREATE TABLE unholy_loch.sis_terms
+(
+    term_id VARCHAR(4) NOT NULL,
+    term_name VARCHAR NOT NULL,
+    term_begins DATE NOT NULL,
+    term_ends DATE NOT NULL
+);
+
 -- Translation tables keep track of cross listings and room shares.
 
 CREATE TABLE unholy_loch.cross_listings (

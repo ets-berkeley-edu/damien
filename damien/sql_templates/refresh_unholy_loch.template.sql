@@ -32,6 +32,24 @@ DELETE FROM public.json_cache WHERE term_id = '{term_id}';
 
 --
 
+TRUNCATE unholy_loch.sis_terms;
+
+INSERT INTO unholy_loch.sis_terms(term_id, term_name, term_begins, term_ends)
+(SELECT * FROM 
+  dblink('{dblink_nessie_rds}',$NESSIE$
+    SELECT term_id, term_name, term_begins, term_ends
+    FROM sis_terms.term_definitions
+  $NESSIE$)
+  AS nessie_sis_terms (
+    term_id VARCHAR(4),
+    term_name VARCHAR(80),
+    term_begins DATE,
+    term_ends DATE
+  )
+);
+
+--
+
 DELETE FROM unholy_loch.sis_sections WHERE term_id = '{term_id}';
 
 INSERT INTO unholy_loch.sis_sections (term_id, course_number,
