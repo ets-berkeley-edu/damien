@@ -71,7 +71,8 @@
           :disabled="isSending"
           hide-details="auto"
           outlined
-        ></v-text-field>
+          @keydown.esc="onCancel"
+        />
         <label for="input-notification-message" class="form-label">
           Message
         </label>
@@ -154,7 +155,7 @@ export default {
   created() {
     this.selectedRecipients = this.$_.cloneDeep(this.recipients)
     this.alertScreenReader('Send notification form is ready.')
-    this.$putFocusNextTick('input-notification-subject')
+    this.$putFocusNextTick('send-notification-section-header')
   },
   methods: {
     recipientLabel(recipient) {
