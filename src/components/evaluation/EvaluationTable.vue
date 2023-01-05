@@ -642,7 +642,7 @@ export default {
     maxStartDate(evaluation) {
       const courseEndDate = this.$moment(this.$_.get(evaluation, 'meetingDates.end'))
       const selectedTerm = this.$_.find(this.$config.availableTerms, {'id': this.selectedTermId})
-      const defaultEndDate = this.$moment(selectedTerm.defaultDates.end)
+      const defaultEndDate = this.$moment(this.$_.get(selectedTerm, 'defaultDates.end'))
 
       let lastEndDate = courseEndDate > defaultEndDate ? courseEndDate : defaultEndDate
       if (lastEndDate === defaultEndDate && !this.selectedTermName.includes('Summer')) {

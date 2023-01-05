@@ -39,6 +39,12 @@ from flask_login import current_user, login_required
 @app.route('/api/config')
 def app_config():
     def _term_feed(term_id, default_meeting_dates, valid_meeting_dates):
+        if not (default_meeting_dates and valid_meeting_dates):
+            app.logger.warn(f'No meeting dates found for term_id {term_id}')
+            return {
+                'id': term_id,
+                'name': term_name_for_sis_id(term_id),
+            }
         return {
             'id': term_id,
             'name': term_name_for_sis_id(term_id),
