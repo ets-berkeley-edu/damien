@@ -1,6 +1,6 @@
 <template>
   <div class="pt-2">
-    <div class="pb-2 d-flex">
+    <div class="d-flex">
       <h1 id="page-title">List Management</h1>
       <v-spacer class="d-flex justify-center"></v-spacer>
       <v-banner
@@ -20,11 +20,17 @@
             elevation="2"
             min-width="fit-content"
           >
-            <v-card-title>Department Forms</v-card-title>
+            <v-card-title
+              id="department-forms-card-title"
+              class="pb-0"
+              tabindex="-1"
+            >
+              Department Forms
+            </v-card-title>
             <v-btn
               v-if="!isAddingDepartmentForm"
               id="add-dept-form-btn"
-              class="text-capitalize pl-2 mt-1"
+              class="text-capitalize pl-3 mb-1"
               color="tertiary"
               :disabled="disableControls"
               text
@@ -46,7 +52,8 @@
                 :disabled="isSaving"
                 outlined
                 required
-              ></v-text-field>
+                @keydown.esc="cancelAdd('add-dept-form-btn')"
+              />
               <v-btn
                 :id="'save-dept-form-btn'"
                 class="text-capitalize mr-2"
@@ -113,11 +120,17 @@
             elevation="2"
             min-width="fit-content"
           >
-            <v-card-title>Evaluation Types</v-card-title>
+            <v-card-title
+              id="evaluation-types-card-title"
+              class="pb-0"
+              tabindex="-1"
+            >
+              Evaluation Types
+            </v-card-title>
             <v-btn
               v-if="!isAddingEvaluationType"
               id="add-eval-type-btn"
-              class="text-capitalize pl-2 mt-1"
+              class="text-capitalize pl-3 mb-1"
               color="tertiary"
               :disabled="disableControls"
               text
@@ -139,7 +152,8 @@
                 :disabled="isSaving"
                 outlined
                 required
-              ></v-text-field>
+                @keydown.esc="cancelAdd('add-eval-type-btn')"
+              />
               <v-btn
                 :id="'save-eval-type-btn'"
                 class="text-capitalize mr-2"

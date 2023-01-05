@@ -118,7 +118,10 @@ const actions = {
       return deleteDepartmentForm(state.itemToDelete.name).then(() => {
         $_refreshDepartmentForms(commit)
         resolve(state.itemToDelete)
-      }).finally(() => commit('reset'))
+      }).finally(() => {
+        commit('reset')
+        Vue.prototype.$putFocusNextTick('department-forms-card-title')
+      })
     })
   },
   deleteEvaluationType: ({commit, state}) => {
@@ -127,7 +130,10 @@ const actions = {
       return deleteEvaluationType(state.itemToDelete.name).then(() => {
         $_refreshEvaluationTypes(commit)
         resolve(state.itemToDelete)
-      }).finally(() => commit('reset'))
+      }).finally(() => {
+        commit('reset')
+        Vue.prototype.$putFocusNextTick('evaluation-types-card-title')
+      })
     })
   },
   deleteInstructor: ({commit, state}) => {

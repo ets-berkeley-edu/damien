@@ -23,7 +23,7 @@ https://github.com/python-cas/python-cas/archive/master.zip
 moto==3.0.7
 pytest==6.2.5
 pytest-flask==1.2.0
-tox==3.24.3
+tox==4.2.4
 
 # For Mrs Baylock
 selenium==4.3.0
