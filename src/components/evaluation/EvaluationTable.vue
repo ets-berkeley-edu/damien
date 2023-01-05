@@ -71,7 +71,6 @@
                 'inactive': !filterTypes[type].enabled
               }"
               :color="filterTypes[type].enabled ? 'secondary' : ''"
-              role="tablist"
               small
               tabindex="0"
               :text-color="filterTypes[type].enabled ? 'white' : 'inactive-contrast'"
