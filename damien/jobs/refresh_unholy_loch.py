@@ -72,32 +72,33 @@ def _refresh_unholy_loch(app):
             app.logger.info('Test run in progress; will not muddy the waters by actually kicking off a background thread.')
             return True
         else:
-            with advisory_lock(LOCH_REFRESH_LOCK_ID) as has_lock:
-                if has_lock:
-                    app.logger.info('About to start background thread.')
-                    thread = Thread(target=_bg_refresh_unholy_loch, name='refresh_unholy_loch', args=[app], daemon=True)
-                    thread.start()
-                return has_lock
+            app.logger.info('About to start background thread.')
+            thread = Thread(target=_bg_refresh_unholy_loch, name='refresh_unholy_loch', args=[app], daemon=True)
+            thread.start()
+            return True
 
 
 def _bg_refresh_unholy_loch(app):
     with app.app_context():
-        app.logger.info('Starting unholy loch refresh...')
-        try:
-            term_id = app.config['CURRENT_TERM_ID']
-            template_sql = 'refresh_unholy_loch.template.sql'
-            resolved_ddl = resolve_sql_template(template_sql, term_id=term_id)
-            db.session().execute(text(resolved_ddl))
-            refresh_additional_instructors()
-            std_commit()
+        with advisory_lock(LOCH_REFRESH_LOCK_ID) as has_lock:
+            if not has_lock:
+                return
+            app.logger.info('Starting unholy loch refresh...')
+            try:
+                term_id = app.config['CURRENT_TERM_ID']
+                template_sql = 'refresh_unholy_loch.template.sql'
+                resolved_ddl = resolve_sql_template(template_sql, term_id=term_id)
+                db.session().execute(text(resolved_ddl))
+                refresh_additional_instructors()
+                std_commit()
 
-            # Pre-populate term cache by generating full evaluation feeds for all departments.
-            department_ids = [d.id for d in Department.all_enrolled()]
-            for dept_id in department_ids:
-                d = Department.find_by_id(dept_id)
-                d.evaluations_feed(term_id=term_id)
+                # Pre-populate term cache by generating full evaluation feeds for all departments.
+                department_ids = [d.id for d in Department.all_enrolled()]
+                for dept_id in department_ids:
+                    d = Department.find_by_id(dept_id)
+                    d.evaluations_feed(term_id=term_id)
 
-            app.logger.info('Unholy loch refresh completed, cache refreshed.')
-        except Exception as e:
-            app.logger.error('Unholy loch refresh failed:')
-            app.logger.exception(e)
+                app.logger.info('Unholy loch refresh completed, cache refreshed.')
+            except Exception as e:
+                app.logger.error('Unholy loch refresh failed:')
+                app.logger.exception(e)
