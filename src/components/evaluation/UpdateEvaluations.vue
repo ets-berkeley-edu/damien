@@ -163,6 +163,10 @@ export default {
       required: false,
       type: Object
     },
+    isApplying: {
+      required: true,
+      type: Boolean
+    },
     isUpdating: {
       required: true,
       type: Boolean
@@ -183,7 +187,6 @@ export default {
   },
   data: () => ({
     evaluationTypes: [],
-    isApplying: false,
     isInstructorRequired: false,
     midtermFormEnabled: false,
     model: false,
@@ -202,7 +205,6 @@ export default {
     isUpdating(isUpdating) {
       this.model = isUpdating
       if (isUpdating) {
-        this.isApplying = false
         this.midtermFormEnabled = false
         this.selectedDepartmentForm = this.departmentForm
         this.selectedEvaluationStatus = this.evaluationStatus
@@ -232,10 +234,9 @@ export default {
   },
   methods: {
     onClickApply() {
-      this.isApplying = true
       this.applyAction({
         departmentForm: this.selectedDepartmentForm,
-        evaluationStatus: this.selectedEvaluationStatus,
+        evaluationStatus: this.selectedEvaluationStatus === 'none' ? null : this.selectedEvaluationStatus,
         evaluationType: this.selectedEvaluationType,
         instructor: this.selectedInstructor,
         midtermFormEnabled: this.midtermFormEnabled,
@@ -243,7 +244,6 @@ export default {
       })
     },
     onClickCancel() {
-      this.isApplying = false
       this.isInstructorRequired = false
       this.midtermFormEnabled = false
       this.selectedDepartmentForm = null
