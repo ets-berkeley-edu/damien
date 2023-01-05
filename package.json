@@ -8,19 +8,19 @@
     "serve-vue": "vue-cli-service serve --open"
   },
   "dependencies": {
-    "@mdi/font": "^6.5.95",
-    "axios": "0.26.1",
-    "core-js": "^3.6.5",
-    "lodash": "^4.17.21",
-    "moment-timezone": "0.5.34",
-    "v-calendar": "2.3.4",
-    "vue": "2.6.14",
-    "vue-class-component": "^7.2.3",
+    "@mdi/font": "6.9.96",
+    "axios": "0.27.2",
+    "core-js": "3.27.1",
+    "lodash": "4.17.21",
+    "moment-timezone": "0.5.40",
+    "v-calendar": "2.4.1",
+    "vue": "2.7.14",
+    "vue-class-component": "7.2.6",
     "vue-linkify": "1.0.1",
     "vue-moment": "4.1.0",
-    "vue-property-decorator": "^9.1.2",
-    "vue-router": "^3.2.0",
-    "vuetify": "^2.6.0",
+    "vue-property-decorator": "9.1.2",
+    "vue-router": "3.6.5",
+    "vuetify": "2.6.13",
     "vuex": "3.6.2"
   },
   "devDependencies": {
@@ -44,8 +44,8 @@
     "vue-eslint-parser": "^9.0.2",
     "vue-select": "^3.18.3",
     "vue-svg-loader": "^0.16.0",
-    "vue-template-compiler": "^2.6.11",
-    "vuetify-loader": "^1.7.0"
+    "vue-template-compiler": "^2.7.14",
+    "vuetify-loader": "^1.9.2"
   },
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
