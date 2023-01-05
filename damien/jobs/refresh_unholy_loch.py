@@ -24,14 +24,18 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import os
-from threading import enumerate, Thread
+from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from damien import db, std_commit
 from damien.lib.queries import refresh_additional_instructors
 from damien.lib.util import resolve_sql_template
 from damien.models.department import Department
+from damien.models.util import advisory_lock, get_granted_lock_ids
 from sqlalchemy.sql import text
+
+
+LOCH_REFRESH_LOCK_ID = 666
 
 
 def initialize_refresh_schedule(app):
@@ -52,11 +56,8 @@ def initialize_refresh_schedule(app):
 
 
 def is_refreshing():
-    alive_threads = enumerate()
-    for t in alive_threads:
-        if t.name == 'refresh_unholy_loch':
-            return True
-    return False
+    lock_ids = get_granted_lock_ids()
+    return (LOCH_REFRESH_LOCK_ID in lock_ids)
 
 
 def refresh_from_api():
@@ -71,10 +72,12 @@ def _refresh_unholy_loch(app):
             app.logger.info('Test run in progress; will not muddy the waters by actually kicking off a background thread.')
             return True
         else:
-            app.logger.info('About to start background thread.')
-            thread = Thread(target=_bg_refresh_unholy_loch, name='refresh_unholy_loch', args=[app], daemon=True)
-            thread.start()
-            return True
+            with advisory_lock(LOCH_REFRESH_LOCK_ID) as has_lock:
+                if has_lock:
+                    app.logger.info('About to start background thread.')
+                    thread = Thread(target=_bg_refresh_unholy_loch, name='refresh_unholy_loch', args=[app], daemon=True)
+                    thread.start()
+                return has_lock
 
 
 def _bg_refresh_unholy_loch(app):

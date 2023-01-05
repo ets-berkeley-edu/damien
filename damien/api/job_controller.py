@@ -36,7 +36,7 @@ def refresh_unholy_loch():
     if refresh_from_api():
         return tolerant_jsonify({'status': 'started'})
     else:
-        raise InternalServerError('Refresh job failed.')
+        raise InternalServerError('Failed to kick off refresh job. A job may already be running.')
 
 
 @app.route('/api/job/status')
