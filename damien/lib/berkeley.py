@@ -23,11 +23,35 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from datetime import date, timedelta
+import threading
+
+from damien.models.util import select_column
 from flask import current_app as app
 
 
+cache_thread = threading.local()
+
+
 def available_term_ids():
-    return term_ids_range(app.config['EARLIEST_TERM_ID'], app.config['CURRENT_TERM_ID'])
+    return term_ids_range(app.config['EARLIEST_TERM_ID'], get_current_term_id())
+
+
+def get_current_term_id():
+    if app.config['CURRENT_TERM_ID'] == 'auto':
+        current_term_id = getattr(cache_thread, 'current_term_id', None)
+        if not current_term_id:
+            # Auto-configured terms roll over in advance of the term start date.
+            term_start_cutoff = date.today() + timedelta(days=app.config['TERM_TRANSITION_ADVANCE_DAYS'])
+            current_term_id = select_column(f"""
+                SELECT term_id from unholy_loch.sis_terms
+                WHERE term_begins <= '{term_start_cutoff.strftime('%Y-%m-%d')}'
+                ORDER BY term_id DESC
+                LIMIT 1""")[0]
+            cache_thread.current_term_id = current_term_id
+        return current_term_id
+    else:
+        return app.config['CURRENT_TERM_ID']
 
 
 def term_ids_range(earliest_term_id, latest_term_id):

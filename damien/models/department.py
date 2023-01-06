@@ -26,6 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from itertools import groupby
 
 from damien import db, std_commit
+from damien.lib.berkeley import get_current_term_id
 from damien.lib.cache import fetch_all_sections, fetch_department_cache, set_department_cache
 from damien.lib.queries import get_cross_listings, get_loch_instructors, get_loch_sections, get_loch_sections_by_ids, get_room_shares
 from damien.lib.util import extract_int, isoformat
@@ -162,7 +163,7 @@ class Department(Base):
 
     def get_visible_sections(self, term_id=None, section_id=None, include_empty_sections=False):
         sections = []
-        term_id = term_id or app.config['CURRENT_TERM_ID']
+        term_id = term_id or get_current_term_id()
 
         if section_id:
             # If we're fetching a feed for a specific section only, grab matching rows.
@@ -240,7 +241,7 @@ class Department(Base):
         return exports
 
     def evaluations_feed(self, term_id=None, section_id=None, evaluation_ids=None):
-        term_id = term_id or app.config['CURRENT_TERM_ID']
+        term_id = term_id or get_current_term_id()
         sections_cache = fetch_all_sections(self.id, term_id)
         dept_uses_midterm_forms = self.uses_midterm_forms(term_id)
 
