@@ -137,7 +137,7 @@
                     {{ $_.get(evaluation.department, 'name') }}
                   </router-link>
                 </td>
-                <td v-if="!readonly && allowEdits" class="align-middle text-center pr-1">
+                <td v-if="!readonly && allowEdits && !(allowEdits && isEditing(evaluation))" class="align-middle text-center pr-1">
                   <v-checkbox
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${rowIndex}-checkbox`"
@@ -153,6 +153,7 @@
                   :id="`evaluation-${rowIndex}-status`"
                   :class="{'align-middle position-relative': !isEditing(evaluation)}"
                   class="px-1"
+                  :colspan="allowEdits && isEditing(evaluation) ? 2 : 1"
                 >
                   <div
                     v-if="isStatusVisible(evaluation)"
@@ -180,17 +181,31 @@
                       Edit
                     </v-btn>
                   </div>
-                  <div v-if="allowEdits && isEditing(evaluation)" class="mt-1 pb-2">
-                    <label id="select-evaluation-status-label" for="select-evaluation-status">
+                  <div v-if="allowEdits && isEditing(evaluation)" class="mt-1 pl-2 py-2 select-evaluation-status">
+                    <label for="select-evaluation-status">
                       Status:
                     </label>
                     <select
                       id="select-evaluation-status"
                       v-model="selectedEvaluationStatus"
-                      class="native-select-override light d-block mx-auto"
+                      class="d-block light mx-auto native-select-override"
                       :disabled="saving"
                     >
-                      <option v-for="s in evaluationStatuses" :key="s.text" :value="s.value">{{ s.text }}</option>
+                      <option
+                        v-if="!selectedEvaluationStatus"
+                        selected
+                        :value="selectedEvaluationStatus"
+                      >
+                        Select...
+                      </option>
+                      <option
+                        v-for="s in evaluationStatuses"
+                        :key="s.text"
+                        :selected="selectedEvaluationStatus === s.value"
+                        :value="s.value"
+                      >
+                        {{ s.text }}
+                      </option>
                     </select>
                   </div>
                 </td>
@@ -208,7 +223,7 @@
                     {{ evaluation.roomSharedWith.join(', ') }})
                   </div>
                 </td>
-                <td class="evaluation-course-name px-1" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
+                <td class="evaluation-course-name px-1" :class="{'pt-3': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
                   <label :id="`evaluation-${rowIndex}-courseName`" :for="`evaluation-${rowIndex}-checkbox`">
                     {{ evaluation.subjectArea }}
                     {{ evaluation.catalogId }}
@@ -239,7 +254,7 @@
                     message="Instructor required"
                   />
                   <div v-if="!evaluation.instructor && isEditing(evaluation) && allowEdits">
-                    <div class="mt-1 pb-2">
+                    <div class="mt-1 py-2">
                       <label id="input-instructor-lookup-autocomplete-label" for="input-instructor-lookup-autocomplete">
                         Instructor<span class="sr-only"> search by name or UID</span>:
                       </label>
@@ -278,7 +293,7 @@
                     :hover="hover || focusedEditButtonEvaluationId === evaluation.id"
                     message="Department form required"
                   />
-                  <div v-if="allowEdits && isEditing(evaluation)" class="mt-1 pb-2">
+                  <div v-if="allowEdits && isEditing(evaluation)" class="mt-1 py-2">
                     <label id="select-department-form-label" for="select-department-form">
                       Department Form:
                     </label>
@@ -309,7 +324,7 @@
                     :hover="hover || focusedEditButtonEvaluationId === evaluation.id"
                     message="Evaluation type required"
                   />
-                  <div v-if="allowEdits && isEditing(evaluation)" class="mt-1 pb-2">
+                  <div v-if="allowEdits && isEditing(evaluation)" class="mt-1 py-2">
                     <label id="select-evaluation-type-label" for="select-evaluation-type">
                       Evaluation Type:
                     </label>
@@ -319,7 +334,21 @@
                       class="native-select-override light"
                       :disabled="saving"
                     >
-                      <option v-for="et in evaluationTypes" :key="et.id" :value="et.id">{{ et.name }}</option>
+                      <option
+                        v-if="!selectedEvaluationType"
+                        selected
+                        :value="selectedEvaluationType"
+                      >
+                        Select...
+                      </option>
+                      <option
+                        v-for="et in evaluationTypes"
+                        :key="et.id"
+                        :selected="selectedEvaluationType === et.id"
+                        :value="et.id"
+                      >
+                        {{ et.name }}
+                      </option>
                     </select>
                   </div>
                 </td>
@@ -337,7 +366,7 @@
                       from ${conflict.department} department`"
                     />
                   </span>
-                  <div v-if="allowEdits && isEditing(evaluation)" class="mt-1 pb-2">
+                  <div v-if="allowEdits && isEditing(evaluation)" class="mt-1 py-2">
                     <div class="d-flex align-center">
                       <label id="input-evaluation-start-date-label" for="input-evaluation-start-date">
                         Start date:
@@ -373,7 +402,7 @@
             </v-hover>
             <tr v-if="isEditing(evaluation)" :key="`${evaluation.id}-edit`" class="secondary white--text border-top-none">
               <td></td>
-              <td colspan="8" class="px-2">
+              <td colspan="8" class="pb-2 px-2">
                 <div class="d-flex justify-end">
                   <v-btn
                     id="save-evaluation-edit-btn"
@@ -570,9 +599,6 @@ export default {
       this.alertScreenReader(`${selected.name} department form selected.`)
       this.$putFocusNextTick('input-department-form')
     },
-    clearPendingInstructor() {
-      this.pendingInstructor = null
-    },
     customFilter(value, search, item) {
       if (!value || !search || typeof value === 'boolean') {
         return false
@@ -721,15 +747,11 @@ export default {
       }
       this.updateEvaluation(evaluation, fields)
     },
-    setPendingInstructor(instructor) {
-      this.pendingInstructor = instructor
-      this.$putFocusNextTick('input-instructor-lookup-autocomplete')
-    },
     selectInstructor(instructor) {
       if (instructor) {
         instructor.emailAddress = instructor.email
       }
-      this.setPendingInstructor(instructor)
+      this.pendingInstructor = instructor
     },
     sort(sortBy, sortDesc) {
       this.sortBy = sortBy
@@ -932,6 +954,9 @@ tr.border-top-none td {
 .select-all-evals {
   height: 36px;
   width: 6.5rem;
+}
+.select-evaluation-status {
+  width: 80%;
 }
 .sticky {
   position: sticky;

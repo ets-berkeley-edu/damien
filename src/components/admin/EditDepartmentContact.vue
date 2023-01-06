@@ -5,7 +5,7 @@
     lazy-validation
   >
     <div v-if="!contact">
-      <h3 class="form-title my-2">
+      <h3 id="add-contact-sub-header" class="form-title my-2" tabindex="-1">
         Add Contact
       </h3>
       <PersonLookup
@@ -193,6 +193,7 @@ export default {
   },
   created() {
     this.populateForm(this.contact)
+    this.$putFocusNextTick('add-contact-sub-header')
     this.alertScreenReader(`${this.contact ? 'Edit' : 'Add'} department contact form is ready`)
   },
   watch: {
