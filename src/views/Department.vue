@@ -21,32 +21,9 @@
             <v-expansion-panels v-model="contactsPanel" disable-icon-rotate flat>
               <v-expansion-panel class="panel-override">
                 <template #default>
-                  <div class="d-flex" :class="$currentUser.isAdmin ? 'flex-column' : 'align-center justify-space-between flex-wrap'">
+                  <div class="align-center d-flex flex-wrap justify-space-between">
                     <h2 class="pb-1 px-2">Department Contacts</h2>
-                    <div
-                      class="d-flex height-unset"
-                      :class="{
-                        'flex-column': isCreatingNotification,
-                        'align-center justify-space-between': !isCreatingNotification
-                      }"
-                    >
-                      <div v-if="$currentUser.isAdmin">
-                        <v-btn
-                          v-if="!isCreatingNotification"
-                          id="open-notification-form-btn"
-                          class="ma-2 secondary text-capitalize"
-                          :disabled="disableControls || $_.isEmpty(contacts)"
-                          @click="() => isCreatingNotification = true"
-                        >
-                          Send notification
-                        </v-btn>
-                        <NotificationForm
-                          v-if="isCreatingNotification"
-                          :after-send="afterSendNotification"
-                          :on-cancel="cancelSendNotification"
-                          :recipients="[notificationRecipients]"
-                        />
-                      </div>
+                    <div class="align-center d-flex height-unset justify-space-between">
                       <v-expansion-panel-header
                         class="w-fit-content ml-auto mr-3"
                         hide-actions
@@ -84,6 +61,23 @@
                       />
                     </v-expansion-panels>
                   </v-expansion-panel-content>
+                  <div v-if="$currentUser.isAdmin" class="pl-4">
+                    <v-btn
+                      v-if="!isCreatingNotification"
+                      id="open-notification-form-btn"
+                      class="ma-2 secondary text-capitalize"
+                      :disabled="disableControls || $_.isEmpty(contacts)"
+                      @click="() => isCreatingNotification = true"
+                    >
+                      Send notification
+                    </v-btn>
+                    <NotificationForm
+                      v-if="isCreatingNotification"
+                      :after-send="afterSendNotification"
+                      :on-cancel="cancelSendNotification"
+                      :recipients="[notificationRecipients]"
+                    />
+                  </div>
                 </template>
               </v-expansion-panel>
             </v-expansion-panels>
@@ -130,6 +124,7 @@ import EditDepartmentContact from '@/components/admin/EditDepartmentContact'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
 import NotificationForm from '@/components/admin/NotificationForm'
 import TermSelect from '@/components/util/TermSelect'
+import Util from '@/mixins/Util.vue'
 
 export default {
   name: 'Department',
@@ -141,7 +136,7 @@ export default {
     NotificationForm,
     TermSelect
   },
-  mixins: [Context, DepartmentEditSession],
+  mixins: [Context, DepartmentEditSession, Util],
   data: () => ({
     contactDetailsPanel: [],
     contactsPanel: undefined,
@@ -171,6 +166,7 @@ export default {
     cancelSendNotification() {
       this.isCreatingNotification = false
       this.alertScreenReader('Notification canceled.')
+      this.scrollToTop(1000)
     },
     collapseAllContacts() {
       if (this.contactsPanel === 0) {

@@ -47,9 +47,12 @@
               @change="toggleSelectAll"
             >
               <template #label>
-                <div v-if="!(someEvaluationsSelected || allEvaluationsSelected)" class="text-nowrap pl-1 py-2">
+                <span
+                  v-if="!(someEvaluationsSelected || allEvaluationsSelected)"
+                  class="text-nowrap pl-1 py-2"
+                >
                   Select all
-                </div>
+                </span>
               </template>
             </v-checkbox>
             <EvaluationActions v-if="!readonly" />
@@ -144,7 +147,7 @@
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
                     @change="toggleSelectEvaluation(evaluation.id)"
-                  ></v-checkbox>
+                  />
                 </td>
                 <td
                   :id="`evaluation-${rowIndex}-status`"
@@ -206,12 +209,12 @@
                   </div>
                 </td>
                 <td class="evaluation-course-name px-1" :class="{'pt-5': isEditing(evaluation), 'align-middle': !isEditing(evaluation)}">
-                  <div :id="`evaluation-${rowIndex}-courseName`">
+                  <label :id="`evaluation-${rowIndex}-courseName`" :for="`evaluation-${rowIndex}-checkbox`">
                     {{ evaluation.subjectArea }}
                     {{ evaluation.catalogId }}
                     {{ evaluation.instructionFormat }}
                     {{ evaluation.sectionNumber }}
-                  </div>
+                  </label>
                   <div :id="`evaluation-${rowIndex}-courseTitle`">
                     {{ evaluation.courseTitle }}
                   </div>
