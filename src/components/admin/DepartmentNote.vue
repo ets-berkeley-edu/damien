@@ -9,7 +9,7 @@
       <div
         v-if="item && !isEditing"
         id="dept-note"
-        class="text-condensed pb-2"
+        class="text-condensed pb-2 pl-4"
       >
         <pre class="body-2 text-condensed text-prewrap">{{ item }} </pre>
       </div>
@@ -43,7 +43,7 @@
           text
           @click="onEdit"
         >
-          Edit
+          {{ item ? 'Edit' : 'Create' }}
         </v-btn>
         <v-divider
           v-if="item"
