@@ -221,8 +221,14 @@ class Department(Base):
             'sections': {},
         }
         vs = self.get_visible_sections(term_id, include_empty_sections=True)
+        dept_uses_midterm_forms = self.uses_midterm_forms(term_id)
+
         for s in vs['sections']:
-            section_evaluation_exports = s.get_evaluation_exports(department_id=self.id, evaluation_ids=evaluation_ids)
+            section_evaluation_exports = s.get_evaluation_exports(
+                department_id=self.id,
+                evaluation_ids=evaluation_ids,
+                uses_midterm_forms=dept_uses_midterm_forms,
+            )
             exports['evaluations'].update(section_evaluation_exports)
             exports['sections'][s.course_number] = s
 
@@ -236,12 +242,21 @@ class Department(Base):
     def evaluations_feed(self, term_id=None, section_id=None, evaluation_ids=None):
         term_id = term_id or app.config['CURRENT_TERM_ID']
         sections_cache = fetch_all_sections(self.id, term_id)
+        dept_uses_midterm_forms = self.uses_midterm_forms(term_id)
 
         app.logger.debug(
             f'Generating evaluations feed (dept_id={self.id}, term_id={term_id}, section_id={section_id}, evaluation_ids={evaluation_ids}')
         feed = []
+
         for s in self.get_visible_sections(term_id, section_id)['sections']:
-            feed.extend(s.get_evaluation_feed(department_id=self.id, sections_cache=sections_cache, evaluation_ids=evaluation_ids))
+            feed.extend(
+                s.get_evaluation_feed(
+                    department_id=self.id,
+                    uses_midterm_forms=dept_uses_midterm_forms,
+                    sections_cache=sections_cache,
+                    evaluation_ids=evaluation_ids,
+                ),
+            )
 
         if not section_id and not evaluation_ids:
             self.row_count = len(feed)
