@@ -1,10 +1,10 @@
 <template>
   <div class="d-flex align-center justify-end flex-wrap">
-    <div class="d-flex align-baseline mr-3">
+    <div class="float-right mr-3">
       <label
         id="select-term-label"
         for="select-term"
-        class="align-self-baseline sr-only text-nowrap pr-3"
+        class="sr-only"
       >
         Term:
       </label>
@@ -27,7 +27,7 @@
         </option>
       </select>
     </div>
-    <div class="ml-auto">
+    <div class="flex-md-shrink-0">
       <label for="toggle-term-locked" class="sr-only">
         Evaluation term is {{ isSelectedTermLocked ? 'locked' : 'unlocked' }}.
       </label>
