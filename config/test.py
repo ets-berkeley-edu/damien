@@ -28,6 +28,8 @@ import os
 # Base directory for the application (one level up from this config file).
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
+CURRENT_TERM_ID = '2222'
+
 EB_ENVIRONMENT = 'damien-test'
 
 FIXTURES_PATH = f'{BASE_DIR}/fixtures'

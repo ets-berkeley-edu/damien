@@ -24,8 +24,8 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from damien import db, std_commit
+from damien.lib.berkeley import get_current_term_id
 from damien.lib.util import isoformat, utc_now
-from flask import current_app as app
 
 
 class EvaluationTerm(db.Model):
@@ -52,7 +52,7 @@ class EvaluationTerm(db.Model):
         evaluation_term = cls.query.filter_by(term_id=term_id).first()
         if not evaluation_term:
             evaluation_term = cls(term_id=term_id)
-            evaluation_term.is_locked = False if term_id == app.config['CURRENT_TERM_ID'] else True
+            evaluation_term.is_locked = False if term_id == get_current_term_id() else True
             db.session.add(evaluation_term)
             std_commit()
         return evaluation_term

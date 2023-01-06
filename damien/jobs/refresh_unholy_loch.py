@@ -28,6 +28,7 @@ from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from damien import db, std_commit
+from damien.lib.berkeley import get_current_term_id
 from damien.lib.queries import refresh_additional_instructors
 from damien.lib.util import resolve_sql_template
 from damien.models.department import Department
@@ -85,7 +86,7 @@ def _bg_refresh_unholy_loch(app):
                 return
             app.logger.info('Starting unholy loch refresh...')
             try:
-                term_id = app.config['CURRENT_TERM_ID']
+                term_id = get_current_term_id()
                 template_sql = 'refresh_unholy_loch.template.sql'
                 resolved_ddl = resolve_sql_template(template_sql, term_id=term_id)
                 db.session().execute(text(resolved_ddl))

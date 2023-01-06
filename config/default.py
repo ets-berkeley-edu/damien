@@ -46,7 +46,7 @@ CACHE_TYPE = 'FileSystemCache'
 
 CAS_SERVER = 'https://auth-test.berkeley.edu/cas/'
 
-CURRENT_TERM_ID = '2222'
+CURRENT_TERM_ID = 'auto'
 EARLIEST_TERM_ID = '2218'
 
 # Override in local configs.
@@ -95,6 +95,8 @@ SQLALCHEMY_DATABASE_URI = 'postgresql://damien:damien@localhost:5432/bugenhagen'
 
 # A common configuration; one request thread, one background worker thread.
 THREADS_PER_PAGE = 2
+
+TERM_TRANSITION_ADVANCE_DAYS = 28
 
 TIMEZONE = 'America/Los_Angeles'
 

@@ -25,7 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien.api.errors import BadRequestError
 from damien.api.util import admin_required
-from damien.lib.berkeley import available_term_ids
+from damien.lib.berkeley import available_term_ids, get_current_term_id
 from damien.lib.http import tolerant_jsonify
 from damien.lib.util import get as get_param
 from damien.models.evaluation_term import EvaluationTerm
@@ -44,7 +44,7 @@ def get_evaluation_term(term_id):
 @app.route('/api/evaluation_term/lock', methods=['POST'])
 @admin_required
 def lock_evaluation_term():
-    term_id = get_param(request.get_json(), 'termId', app.config['CURRENT_TERM_ID'])
+    term_id = get_param(request.get_json(), 'termId', get_current_term_id())
     _validate(term_id)
     evaluation_term = EvaluationTerm.lock(term_id, current_user.get_uid())
     return tolerant_jsonify(evaluation_term.to_api_json())
@@ -53,7 +53,7 @@ def lock_evaluation_term():
 @app.route('/api/evaluation_term/unlock', methods=['POST'])
 @admin_required
 def unlock_evaluation_term():
-    term_id = get_param(request.get_json(), 'termId', app.config['CURRENT_TERM_ID'])
+    term_id = get_param(request.get_json(), 'termId', get_current_term_id())
     _validate(term_id)
     evaluation_term = EvaluationTerm.unlock(term_id, current_user.get_uid())
     return tolerant_jsonify(evaluation_term.to_api_json())

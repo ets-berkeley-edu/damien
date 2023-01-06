@@ -25,7 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from damien.api.errors import BadRequestError
 from damien.api.util import admin_required
-from damien.lib.berkeley import available_term_ids, term_name_for_sis_id
+from damien.lib.berkeley import available_term_ids, get_current_term_id, term_name_for_sis_id
 from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_default_meeting_dates, get_valid_meeting_dates
 from damien.lib.util import safe_strftime, to_bool_or_none
@@ -59,6 +59,7 @@ def app_config():
         }
 
     term_ids = available_term_ids()
+    current_term_id = get_current_term_id()
     default_meeting_dates = {row['term_id']: row for row in get_default_meeting_dates(term_ids)}
     valid_meeting_dates = {row['term_id']: row for row in get_valid_meeting_dates(term_ids)}
 
@@ -73,8 +74,8 @@ def app_config():
             default_meeting_dates.get(term_id),
             valid_meeting_dates.get(term_id),
         ) for term_id in term_ids],
-        'currentTermId': app.config['CURRENT_TERM_ID'],
-        'currentTermName': term_name_for_sis_id(app.config['CURRENT_TERM_ID']),
+        'currentTermId': current_term_id,
+        'currentTermName': term_name_for_sis_id(current_term_id),
         'damienEnv': app.config['DAMIEN_ENV'],
         'departmentForms': [d.to_api_json() for d in department_forms],
         'devAuthEnabled': app.config['DEVELOPER_AUTH_ENABLED'],

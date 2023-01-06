@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from damien import db
-from damien.lib.berkeley import term_ids_range
+from damien.lib.berkeley import get_current_term_id, term_ids_range
 from damien.models.base import Base
 from flask import current_app as app
 from sqlalchemy import func
@@ -83,7 +83,7 @@ class DepartmentCatalogListing(Base):
     def department_terms(cls, department_id):
         results = db.session.query(
             func.coalesce(cls.start_term_id, app.config['EARLIEST_TERM_ID']),
-            func.coalesce(cls.end_term_id, app.config['CURRENT_TERM_ID']),
+            func.coalesce(cls.end_term_id, get_current_term_id()),
         ).filter(cls.department_id == department_id).all()
         term_ids = []
         for r in results:
