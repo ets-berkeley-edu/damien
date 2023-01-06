@@ -263,6 +263,7 @@ def _generate_xlisted_course_supervisor_rows(course_id, course_number, sections,
     rows = []
     cln = _cross_listed_name(sections[course_number])
     if cln:
+        supervisor_uids = set()
         for n in cln.split('-'):
             catalog_listing = None
             try:
@@ -273,7 +274,9 @@ def _generate_xlisted_course_supervisor_rows(course_id, course_number, sections,
                 )
             if catalog_listing and catalog_listing.default_form:
                 for supervisor_uid in dept_forms_to_uids.get(catalog_listing.default_form.name, []):
-                    rows.append({'COURSE_ID': course_id, 'LDAP_UID': supervisor_uid})
+                    supervisor_uids.add(supervisor_uid)
+        for supervisor_uid in sorted(supervisor_uids):
+            rows.append({'COURSE_ID': course_id, 'LDAP_UID': supervisor_uid})
     return rows
 
 
