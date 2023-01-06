@@ -1,7 +1,7 @@
 <template>
   <div class="pt-2">
     <v-row class="pb-2" no-gutters>
-      <v-col cols="12" lg="9" class="d-flex align-baseline">
+      <v-col cols="9" class="d-flex align-center">
         <h1 v-if="$_.get(department, 'deptName')" id="page-title">
           {{ department.deptName }}&MediumSpace;
           <span v-if="department.catalogListings">
@@ -10,7 +10,7 @@
           <span v-if="selectedTermName"> - {{ selectedTermName }}</span>
         </h1>
       </v-col>
-      <v-col cols="12" lg="3">
+      <v-col cols="3">
         <TermSelect :after-select="refresh" :term-ids="$_.get(department, 'enrolledTerms')" />
       </v-col>
     </v-row>

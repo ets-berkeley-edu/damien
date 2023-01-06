@@ -4,14 +4,14 @@
       <label
         id="select-term-label"
         for="select-term"
-        class="align-self-baseline text-nowrap pr-3"
+        class="align-self-baseline sr-only text-nowrap pr-3"
       >
         Term:
       </label>
       <select
         id="select-term"
         v-model="selectedTermId"
-        class="native-select-override select-term my-2 px-3"
+        class="native-select-override select-term my-2"
         :class="this.$vuetify.theme.dark ? 'dark' : 'light'"
         :disabled="loading"
         @change="onChangeTerm"
@@ -27,35 +27,38 @@
         </option>
       </select>
     </div>
-    <div class="d-flex ml-4">
-      <label
-        v-if="$currentUser.isAdmin"
-        for="toggle-term-locked"
-        class="lock-label text-nowrap pr-4 py-2"
-      >
-        {{ `${isSelectedTermLocked ? 'Unlock' : 'Lock'} term` }}
+    <div class="ml-auto">
+      <label for="toggle-term-locked" class="sr-only">
+        Evaluation term is {{ isSelectedTermLocked ? 'locked' : 'unlocked' }}.
       </label>
-      <v-switch
-        v-if="$currentUser.isAdmin"
+      <v-btn
         id="toggle-term-locked"
-        class="my-auto"
-        color="tertiary"
-        dense
-        :disabled="loading"
-        hide-details
-        :input-value="isSelectedTermLocked"
-        inset
-        :ripple="false"
-        @change="toggleTermLocked"
-      />
-      <div class="lock-indicator">
-        <div v-if="isSelectedTermLocked" class="ml-auto">
-          <span class="sr-only">Evaluation term is locked.</span>
-          <v-icon large>
-            mdi-lock
-          </v-icon>
-        </div>
-      </div>
+        class="px-0"
+        :disabled="isTogglingLock || loading"
+        icon
+        @click="toggleTermLocked"
+        @keydown.enter="toggleTermLocked"
+      >
+        <span class="sr-only">
+          {{ isTogglingLock ? 'Toggling...' : (isSelectedTermLocked ? 'Unlock' : 'Lock') }}
+        </span>
+        <v-progress-circular
+          v-if="isTogglingLock"
+          class="spinner"
+          :indeterminate="true"
+          rotate="5"
+          size="24"
+          width="4"
+          color="primary"
+        />
+        <v-icon
+          v-if="!isTogglingLock"
+          :color="isSelectedTermLocked ? 'red' : 'success'"
+          large
+        >
+          {{ isSelectedTermLocked ? 'mdi-lock' : 'mdi-lock-open' }}
+        </v-icon>
+      </v-btn>
     </div>
   </div>
 </template>
@@ -79,6 +82,9 @@ export default {
       type: Array
     }
   },
+  data: () => ({
+    isTogglingLock: false
+  }),
   created() {
     const termId = this.$_.get(this.$route.query, 'term')
     if (termId) {
@@ -108,15 +114,18 @@ export default {
       })
     },
     toggleTermLocked() {
+      this.isTogglingLock = true
       if (!this.isSelectedTermLocked) {
         lockEvaluationTerm(this.selectedTermId).then(data => {
           this.setIsSelectedTermLocked(data.isLocked === true)
           this.alertScreenReader(`Locked ${this.selectedTermName}`)
+          this.isTogglingLock = false
         })
       } else {
         unlockEvaluationTerm(this.selectedTermId).then(data => {
           this.setIsSelectedTermLocked(data.isLocked === true)
           this.alertScreenReader(`Unlocked ${this.selectedTermName}`)
+          this.isTogglingLock = false
         })
       }
     }
@@ -125,9 +134,6 @@ export default {
 </script>
 
 <style scoped>
-.lock-indicator {
-  min-width: 50px;
-}
 .lock-label {
   min-width: 6.5rem;
   text-align: end;

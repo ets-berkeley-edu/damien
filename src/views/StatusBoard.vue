@@ -1,10 +1,10 @@
 <template>
   <div class="pt-2">
-    <v-row class="pb-2" no-gutters>
-      <v-col cols="12" md="9" class="d-flex align-baseline">
+    <v-row no-gutters>
+      <v-col cols="9" class="d-flex align-center">
         <h1 id="page-title">Evaluation Status Dashboard - {{ selectedTermName }}</h1>
       </v-col>
-      <v-col cols="12" md="3">
+      <v-col cols="3">
         <TermSelect :after-select="refresh" />
       </v-col>
     </v-row>
@@ -58,6 +58,9 @@
             <template v-for="(department, index) in items">
               <tr :id="`department-${index}`" :key="department.name">
                 <td>
+                  <label class="sr-only" :for="`checkbox-select-dept-${$_.kebabCase(department.deptName)}`">
+                    {{ department.deptName }}
+                  </label>
                   <v-checkbox
                     :id="`checkbox-select-dept-${$_.kebabCase(department.deptName)}`"
                     class="align-center mt-0 pt-0"
@@ -67,7 +70,7 @@
                     :ripple="false"
                     :value="isSelected(department)"
                     @change="toggleSelect(department)"
-                  ></v-checkbox>
+                  />
                 </td>
                 <td class="department-name">
                   <div class="d-flex align-top">
