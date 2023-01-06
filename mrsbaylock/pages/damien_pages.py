@@ -202,3 +202,9 @@ class DamienPages(Page):
 
     def await_error_and_accept(self):
         self.wait_for_element_and_click(DamienPages.ERROR_DIALOG_OK_BUTTON)
+
+    def clear_date_input_value(self):
+        for i in range(10):
+            self.hit_delete()
+            self.hit_backspace()
+            time.sleep(0.5)

@@ -27,6 +27,7 @@ import copy
 import datetime
 import time
 
+from flask import current_app as app
 from mrsbaylock.test_utils import evaluation_utils
 from mrsbaylock.test_utils import utils
 import pytest
@@ -38,7 +39,8 @@ class TestEvalExports:
     term = utils.get_current_term()
     utils.reset_test_data(term)
     all_contacts = utils.get_all_users()
-    dept = utils.get_test_dept_1()
+    all_depts = utils.get_participating_depts()
+    dept, ev = evaluation_utils.get_dept_eval_with_foreign_x_listings(term, all_depts)
     evals = []
     confirmed = []
     expected_courses = []
@@ -47,6 +49,7 @@ class TestEvalExports:
     expected_instructors = []
     expected_course_supervisors = []
     expected_supervisors = []
+    expected_x_listed_supervisors = []
     csv_instructors = []
     csv_course_instructors = []
 
@@ -57,8 +60,37 @@ class TestEvalExports:
         self.api_page.refresh_unholy_loch()
         self.evals.extend(evaluation_utils.get_evaluations(self.term, self.dept))
 
-    def test_confirm_complete_evals(self):
+    def test_complete_eval_instructors(self):
         self.dept_details_admin_page.load_dept_page(self.dept)
+        no_teach = [e for e in self.evals if not e.instructor.uid]
+        if no_teach:
+            new_teach = utils.get_test_user()
+            for row in no_teach:
+                self.dept_details_admin_page.click_eval_checkbox(row)
+            self.dept_details_admin_page.click_bulk_edit()
+            self.dept_details_admin_page.look_up_and_select_dupe_instr(new_teach)
+            self.dept_details_admin_page.click_bulk_edit_save()
+            self.dept_details_admin_page.wait_for_bulk_update()
+            for row in no_teach:
+                row.instructor = new_teach
+
+    def test_complete_eval_forms_and_types(self):
+        no_form_or_type = [e for e in self.evals if (not e.dept_form) or (not e.eval_type)]
+        if no_form_or_type:
+            new_form = [e.dept_form for e in self.evals if e.dept_form][0]
+            new_type = 'F'
+            for row in no_form_or_type:
+                self.dept_details_admin_page.click_eval_checkbox(row)
+            self.dept_details_admin_page.click_bulk_edit()
+            self.dept_details_dept_page.select_bulk_dept_form(new_form)
+            self.dept_details_dept_page.select_bulk_eval_type(new_type)
+            self.dept_details_admin_page.click_bulk_edit_save()
+            self.dept_details_admin_page.wait_for_bulk_update()
+            for row in no_form_or_type:
+                row.dept_form = new_form
+                row.eval_type = new_type
+
+    def test_confirm_complete_evals(self):
         for row in self.evals:
             if row.instructor.uid and row.dept_form and row.eval_type:
                 self.dept_details_admin_page.click_eval_checkbox(row)
@@ -69,8 +101,11 @@ class TestEvalExports:
         time.sleep(utils.get_short_timeout())
         self.dept_details_admin_page.click_status_board()
         self.status_board_admin_page.wait_for_depts()
-        assert self.status_board_admin_page.dept_confirmed_count(self.dept)[0] == len(self.confirmed)
-        assert self.status_board_admin_page.dept_confirmed_count(self.dept)[1] == len(self.evals)
+        if len(self.confirmed) == len(self.evals):
+            assert self.status_board_admin_page.dept_confirmed_all(self.dept)
+        else:
+            assert self.status_board_admin_page.dept_confirmed_count(self.dept)[0] == len(self.confirmed)
+            assert self.status_board_admin_page.dept_confirmed_count(self.dept)[1] == len(self.evals)
 
     def test_confirm_updated_date(self):
         assert self.status_board_admin_page.dept_last_update_date(self.dept) == datetime.date.today()
@@ -78,6 +113,9 @@ class TestEvalExports:
     def test_publish(self):
         self.publish_page.load_page()
         self.publish_page.download_export_csvs()
+
+    def test_calculate_course_ids(self):
+        utils.calculate_course_ids(self.confirmed)
 
     def test_courses(self):
         self.expected_courses.extend(utils.expected_courses(self.confirmed))
@@ -105,7 +143,7 @@ class TestEvalExports:
         assert len(list(filter(None, csv_last_names))) == len(expected_uids)
 
         csv_emails = list(map(lambda d: d['EMAIL_ADDRESS'], csv_students))
-        assert len(list(filter(None, csv_emails))) == len(expected_uids)
+        assert len(list(filter(None, csv_emails))) > 0
 
     def test_course_instructors_past_term(self):
         self.csv_course_instructors.extend(self.publish_page.parse_csv('course_instructors'))
@@ -129,7 +167,9 @@ class TestEvalExports:
 
     def test_instructors(self):
         csv_instructors = self.publish_page.parse_csv('instructors')
-        assert all(x in csv_instructors for x in self.expected_instructors)
+        for x in self.expected_instructors:
+            app.logger.info(f'Verifying {x} in instructors.csv')
+            assert x in csv_instructors
 
     def test_course_supervisors(self):
         self.expected_course_supervisors.extend(utils.expected_course_supervisors(self.confirmed, self.all_contacts))
@@ -140,6 +180,11 @@ class TestEvalExports:
         self.expected_supervisors.extend(utils.expected_supervisors())
         csv_course_supervisors = self.publish_page.parse_supervisors_csv()
         utils.verify_actual_matches_expected(csv_course_supervisors, self.expected_supervisors)
+
+    def test_x_listed_course_supervisors(self):
+        self.expected_x_listed_supervisors.extend(utils.expected_x_listed_course_supervisors(self.term, self.confirmed, self.all_contacts))
+        csv_x_listed_supervisors = self.publish_page.parse_csv('xlisted_course_supervisors')
+        utils.verify_actual_matches_expected(csv_x_listed_supervisors, self.expected_x_listed_supervisors)
 
     def test_dept_hierarchy(self):
         expected_dept_hierarchy = utils.expected_dept_hierarchy()

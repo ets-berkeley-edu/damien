@@ -51,7 +51,10 @@ class User(object):
 
     @property
     def csid(self):
-        return self.data['csid']
+        try:
+            return self.data['csid']
+        except KeyError:
+            return None
 
     @csid.setter
     def csid(self, value):

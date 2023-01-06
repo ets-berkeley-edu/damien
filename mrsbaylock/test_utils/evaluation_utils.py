@@ -50,7 +50,6 @@ def get_evaluations(term, dept):
     get_sis_sections_to_evaluate(evals_total, term, dept)
     get_x_listings_and_shares(evals_total, term, dept)
     merge_dupe_rows(evals_total)
-    remove_empty_listings(evals_total)
     remove_listing_dept_forms(evals_total)
     get_manual_sections(evals_total, term, dept)
     edits = get_edited_sections(term, dept)
@@ -140,7 +139,7 @@ def calculate_eval_dates(evals):
         e.eval_end_date = row_eval_end_from_eval_start(e.course_start_date, e.eval_start_date, e.course_end_date)
 
 
-def result_row_to_eval(row, term, dept):
+def result_row_to_eval(row, term, dept, foreign_listing=False):
     listings = row_x_listings(row)
     shares = row_room_shares(row)
     for i in listings:
@@ -171,6 +170,7 @@ def result_row_to_eval(row, term, dept):
         'ccn': row['ccn'],
         'x_listing_ccns': listings,
         'room_share_ccns': shares,
+        'foreign_listing': foreign_listing,
         'instructor': instructor,
         'subject': row['subject'],
         'catalog_id': row['catalog_id'],
@@ -186,9 +186,9 @@ def result_row_to_eval(row, term, dept):
     return Evaluation(eval_data)
 
 
-def result_to_evals(result, evaluations, term, dept):
+def result_to_evals(result, evaluations, term, dept, foreign_listings=False):
     for row in result:
-        evaluations.append(result_row_to_eval(row, term, dept))
+        evaluations.append(result_row_to_eval(row, term, dept, foreign_listings))
 
 
 def get_sis_sections_to_evaluate(evals_total, term, dept):
@@ -198,12 +198,14 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     all_subjects = [row['subject_area'] for row in result]
+    date_cond = f"(start_term_id IS NULL OR start_term_id <= '{term.term_id}') AND (end_term_id IS NULL OR end_term_id >= '{term.term_id}')"
 
     # Dept subjects
     sql = f"""
-        SELECT DISTINCT department_catalog_listings.subject_area
+        SELECT DISTINCT subject_area
           FROM department_catalog_listings
-         WHERE department_catalog_listings.department_id = '{dept.dept_id}'
+         WHERE department_id = '{dept.dept_id}'
+           AND {date_cond}
     """
     app.logger.info(sql)
     result = db.session.execute(text(sql))
@@ -272,16 +274,34 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
 
     for subject in dept_subjects:
         evals_to_include = []
-        sql = f"SELECT catalog_id FROM department_catalog_listings WHERE subject_area = \'{subject}\' AND department_id = '{dept.dept_id}'"
+        sql = f"""
+            SELECT catalog_id
+              FROM department_catalog_listings
+             WHERE department_id = '{dept.dept_id}'
+               AND subject_area = \'{subject}\'
+               AND {date_cond}
+        """
         catalog_ids_to_include = get_subj_catalog_ids(sql)
         app.logger.info(f'Catalog IDs to include {catalog_ids_to_include}')
         get_matching_evals(subject, catalog_ids_to_include, evaluations, evals_to_include, evals_total)
         evals_total += evals_to_include
 
         evals_to_exclude = []
-        sql = f'SELECT catalog_id FROM department_catalog_listings WHERE subject_area = \'\' AND department_id != \'{dept.dept_id}\''
+        sql = f"""
+            SELECT catalog_id
+              FROM department_catalog_listings
+             WHERE subject_area = \'\'
+               AND department_id != \'{dept.dept_id}\'
+               AND {date_cond}
+        """
         catalog_ids_to_exclude = get_subj_catalog_ids(sql)
-        sql = f'SELECT catalog_id FROM department_catalog_listings WHERE subject_area = \'{subject}\' AND department_id != \'{dept.dept_id}\''
+        sql = f"""
+            SELECT catalog_id
+              FROM department_catalog_listings
+             WHERE subject_area = \'{subject}\'
+               AND department_id != \'{dept.dept_id}\'
+               AND {date_cond}
+        """
         catalog_ids_to_exclude += get_subj_catalog_ids(sql)
         app.logger.info(f'Catalog IDs to exclude {catalog_ids_to_exclude}')
         get_matching_evals(subject, catalog_ids_to_exclude, evaluations, evals_to_exclude, evals_total)
@@ -378,7 +398,7 @@ def get_x_listings_and_shares(evals, term, dept):
         app.logger.info(sql)
         result = db.session.execute(text(sql))
         std_commit(allow_test_environment=True)
-        result_to_evals(result, evals, term, dept)
+        result_to_evals(result, evals, term, dept, foreign_listings=True)
 
 
 def remove_empty_listings(evals):
@@ -676,13 +696,23 @@ def set_section_instructor(evaluation):
     std_commit(allow_test_environment=True)
 
 
+def get_dept_with_listings_or_shares(term, depts):
+    test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
+    for dept in test_depts:
+        if dept.row_count < 50:
+            dept.evaluations = get_evaluations(term, dept)
+            for ev in dept.evaluations:
+                if ev.room_share_ccns or ev.x_listing_ccns:
+                    return dept
+
+
 def get_dept_eval_with_foreign_room_shares(term, depts):
     # Exclude depts with many room shares that appear on no other dept pages
     dept_ids = [d.dept_id for d in depts]
     test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
     for dept in test_depts:
-        evals = get_evaluations(term, dept)
-        for ev in evals:
+        dept.evaluations = get_evaluations(term, dept)
+        for ev in dept.evaluations:
             if ev.room_share_ccns and not ev.x_listing_ccns:
                 share = ev.room_share_ccns[-1]
                 share_dept = get_section_dept(term, share)
@@ -690,15 +720,16 @@ def get_dept_eval_with_foreign_room_shares(term, depts):
                     return dept, ev
 
 
-def get_dept_eval_with_foreign_x_listings(term, depts):
+def get_dept_eval_with_foreign_x_listings(term, depts, max_row_count=None):
     # Exclude depts with many x-listings that appear on no other dept pages
     dept_ids = [d.dept_id for d in depts]
     test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
     for dept in test_depts:
-        evals = get_evaluations(term, dept)
-        for ev in evals:
-            if ev.x_listing_ccns and not ev.room_share_ccns:
-                listing = ev.x_listing_ccns[-1]
-                listing_dept = get_section_dept(term, listing)
-                if listing_dept.dept_id in dept_ids and listing_dept.users and listing_dept.dept_id != dept.dept_id:
-                    return dept, ev
+        if (max_row_count and dept.row_count <= max_row_count) or not max_row_count:
+            dept.evaluations = get_evaluations(term, dept)
+            for ev in dept.evaluations:
+                if ev.x_listing_ccns and not ev.room_share_ccns:
+                    listing = ev.x_listing_ccns[-1]
+                    listing_dept = get_section_dept(term, listing)
+                    if listing_dept.dept_id in dept_ids and listing_dept.users and listing_dept.dept_id != dept.dept_id:
+                        return dept, ev

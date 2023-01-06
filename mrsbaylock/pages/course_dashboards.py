@@ -38,6 +38,9 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 class CourseDashboards(DamienPages):
     EVALUATION_ROW = (By.XPATH, '//tr[contains(@class, "evaluation-row")]')
     EVALUATION_STATUS = (By.XPATH, '//td[contains(@id, "-status")]')
+    EVALUATION_FORM = (By.XPATH, '//td[contains(@id, "-departmentForm")]')
+    EVALUATION_TYPE = (By.XPATH, '//td[contains(@id, "-evaluationType")]')
+    EVALUATION_PERIOD = (By.XPATH, '//td[contains(@id, "-period")]')
     NO_SECTIONS_MGS = (By.XPATH, '//span[text()="No eligible sections to load."]')
 
     @staticmethod
@@ -69,6 +72,29 @@ class CourseDashboards(DamienPages):
 
     def visible_evaluation_rows(self):
         return [el.text for el in self.elements(CourseDashboards.EVALUATION_ROW)]
+
+    def visible_evaluation_statuses(self):
+        statuses = [el.text.strip() for el in self.elements(CourseDashboards.EVALUATION_STATUS)]
+        if 'EDIT' in statuses:
+            statuses.remove('EDIT')
+        return statuses
+
+    def visible_evaluation_column_selections(self, locator):
+        a = []
+        for el in self.elements(locator):
+            vis_text = el.text.strip()
+            if vis_text:
+                a.append(vis_text.split()[0])
+        return a
+
+    def visible_evaluation_dept_forms(self):
+        return self.visible_evaluation_column_selections(CourseDashboards.EVALUATION_FORM)
+
+    def visible_evaluation_types(self):
+        return self.visible_evaluation_column_selections(CourseDashboards.EVALUATION_TYPE)
+
+    def visible_evaluation_starts(self):
+        return self.visible_evaluation_column_selections(CourseDashboards.EVALUATION_PERIOD)
 
     def wait_for_eval_rows(self):
         time.sleep(1)

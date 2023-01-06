@@ -30,6 +30,7 @@ from damien import db, std_commit
 from flask import current_app as app
 from mrsbaylock.models.department import Department
 from mrsbaylock.models.department_note import DepartmentNote
+from mrsbaylock.models.instructor import Instructor
 from mrsbaylock.models.term import Term
 from mrsbaylock.models.user import User
 from mrsbaylock.models.user_dept_role import UserDeptRole
@@ -210,7 +211,7 @@ def get_user_dept_role(user, dept):
 
 
 def get_test_user(dept_role=None, blue_permissions=None):
-    user = User({
+    user = Instructor({
         'uid': app.config['TEST_DEPT_CONTACT_UID'],
         'csid': app.config['TEST_DEPT_CONTACT_CSID'],
         'first_name': app.config['TEST_DEPT_CONTACT_FIRST_NAME'],
@@ -434,39 +435,27 @@ def reset_test_data(term, dept=None):
 def calculate_course_ids(evaluations):
     for evaluation in evaluations:
         evaluation.alpha_suffix = False
-
     sorted_by_ccn = sorted(evaluations, key=lambda e: e.ccn)
     eval_lists_by_ccn = [list(result) for key, result in itertools.groupby(sorted_by_ccn, key=lambda e: e.ccn)]
     for eval_list_by_ccn in eval_lists_by_ccn:
         types = list(set([e.eval_type for e in eval_list_by_ccn]))
         types.sort()
         forms = list(set([e.dept_form.replace('_MID', '') for e in eval_list_by_ccn]))
+        sorted_by_form_and_type = sorted(eval_list_by_ccn, key=lambda e: [e.dept_form, e.eval_type, e.eval_start_date])
         if len(forms) != 1 or (len(types) != 1 and len([x for x in types if x not in ['F', 'G']]) != 0):
-            for e in eval_list_by_ccn:
-                e.alpha_suffix = True
-
-        sorted_by_form_and_type = sorted(eval_list_by_ccn, key=lambda e: [e.dept_form, e.eval_type])
-        eval_lists_by_ccn_form_type = [list(result) for key, result in itertools.groupby(
-            sorted_by_form_and_type, key=lambda e: [e.dept_form, e.eval_type],
-        )]
-        for eval_list_by_ccn_form_type in eval_lists_by_ccn_form_type:
-            dates = list(set([e.eval_start_date for e in eval_list_by_ccn_form_type]))
-            if len(dates) != 1:
+            eval_lists_by_ccn_form_type = [list(result) for key, result in itertools.groupby(
+                sorted_by_form_and_type, key=lambda e: [e.dept_form, e.eval_type])]
+            for eval_list_by_ccn_form_type in eval_lists_by_ccn_form_type:
                 for e in eval_list_by_ccn_form_type:
-                    e.alpha_suffix = True
-                break
-
-    for eval_list_by_ccn in eval_lists_by_ccn:
-        eval_list_by_ccn.sort(key=lambda e: e.eval_start_date)
-        for e in eval_list_by_ccn:
-            if e.alpha_suffix:
-                i = eval_list_by_ccn.index(e)
-                suffix = '' if i == 0 else f'_{chr(64 + i)}'
-                mid_suffix = ''
-            else:
+                    i = eval_lists_by_ccn_form_type.index(eval_list_by_ccn_form_type)
+                    suffix = '' if i == 0 else f'_{chr(64 + i)}'
+                    mid_suffix = ''
+                    e.course_id = f'{e.term.prefix}-{e.ccn}{suffix}{mid_suffix}'
+        else:
+            for e in eval_list_by_ccn:
                 suffix = '_GSI' if e.eval_type == 'G' else ''
                 mid_suffix = '_MID' if '_MID' in e.dept_form else ''
-            e.course_id = f'{e.term.prefix}-{e.ccn}{suffix}{mid_suffix}'
+                e.course_id = f'{e.term.prefix}-{e.ccn}{suffix}{mid_suffix}'
 
 
 def verify_actual_matches_expected(actual, expected):
@@ -482,10 +471,11 @@ def verify_actual_matches_expected(actual, expected):
     assert len(actual) == len(unique)
 
 
-def expected_courses(evaluations):
+def expected_courses(evaluations, calc_course_ids=False):
     term = get_current_term()
     courses = []
-    calculate_course_ids(evaluations)
+    if calc_course_ids:
+        calculate_course_ids(evaluations)
     for row in evaluations:
         gsi = ' (EVAL FOR GSI)' if row.eval_type == 'G' else ''
         if row.x_listing_ccns:
@@ -541,9 +531,10 @@ def expected_courses(evaluations):
     return courses
 
 
-def expected_course_students(evaluations):
+def expected_course_students(evaluations, calc_course_ids=False):
     term = get_current_term()
-    calculate_course_ids(evaluations)
+    if calc_course_ids:
+        calculate_course_ids(evaluations)
     course_ids = list(map(lambda ev: ev.course_id, evaluations))
     course_ids = list(set(course_ids))
     ccns = "', '".join(e.ccn for e in evaluations)
@@ -584,9 +575,10 @@ def expected_instructors(evaluations):
     return {v['LDAP_UID']: v for v in instructors}.values()
 
 
-def expected_course_instructors(evaluations):
+def expected_course_instructors(evaluations, calc_course_ids=False):
     instructors = []
-    calculate_course_ids(evaluations)
+    if calc_course_ids:
+        calculate_course_ids(evaluations)
     for row in evaluations:
         data = {
             'COURSE_ID': row.course_id,
@@ -642,9 +634,10 @@ def expected_supervisors():
     return supervisors
 
 
-def expected_course_supervisors(evaluations, all_contacts):
+def expected_course_supervisors(evaluations, all_contacts, calc_course_ids=False):
     forms_per_uid = []
-    calculate_course_ids(evaluations)
+    if calc_course_ids:
+        calculate_course_ids(evaluations)
     for contact in all_contacts:
         forms_per_uid.append({'uid': contact.uid, 'forms': contact.dept_forms})
 
@@ -656,6 +649,83 @@ def expected_course_supervisors(evaluations, all_contacts):
                     'COURSE_ID': row.course_id,
                     'LDAP_UID': uid['uid'],
                     'DEPT_NAME': row.dept_form,
+                }
+                supervisors.append(data)
+    return supervisors
+
+
+def get_foreign_ccns(evaluations):
+    eval_domestic_ccns = []
+    eval_foreign_ccns = []
+    non_eval_foreign_ccns = []
+    for ev in evaluations:
+        if ev.x_listing_ccns:
+            if ev.foreign_listing:
+                eval_foreign_ccns.append(ev.ccn)
+            else:
+                eval_domestic_ccns.append(ev.ccn)
+    eval_foreign_ccns = list(set(eval_foreign_ccns))
+    for ev in evaluations:
+        for listing_ccn in ev.x_listing_ccns:
+            if listing_ccn not in eval_domestic_ccns and listing_ccn not in eval_foreign_ccns:
+                non_eval_foreign_ccns.append(listing_ccn)
+    non_eval_foreign_ccns = list(set(non_eval_foreign_ccns))
+    return eval_foreign_ccns, non_eval_foreign_ccns
+
+
+def expected_x_listed_course_supervisors(term, evaluations, all_contacts):
+    dept_uids_and_forms = []
+    for contact in all_contacts:
+        dept_uids_and_forms.append({'uid': contact.uid, 'forms': contact.dept_forms})
+
+    eval_foreign_ccns, non_eval_foreign_ccns = get_foreign_ccns(evaluations)
+    foreign_ccns_str = evaluation_utils.list_to_str(eval_foreign_ccns + non_eval_foreign_ccns)
+
+    # Get test department's supervisors
+    supervisors = []
+    for ev in evaluations:
+        if ev.x_listing_ccns and not ev.foreign_listing:
+            for uid in dept_uids_and_forms:
+                if ev.dept_form in uid['forms']:
+                    data = {
+                        'COURSE_ID': ev.course_id,
+                        'LDAP_UID': uid['uid'],
+                    }
+                    supervisors.append(data)
+                    for listing_ccn in ev.x_listing_ccns:
+                        if listing_ccn in eval_foreign_ccns:
+                            listing = next(filter(lambda l: l.ccn == listing_ccn, evaluations))
+                            data = {
+                                'COURSE_ID': listing.course_id,
+                                'LDAP_UID': uid['uid'],
+                            }
+                            supervisors.append(data)
+
+    # Get x-listed departments' supervisors
+    sql = f"""
+        SELECT DISTINCT unholy_loch.sis_sections.course_number,
+               users.uid
+          FROM unholy_loch.sis_sections
+          JOIN unholy_loch.cross_listings
+            ON unholy_loch.sis_sections.course_number = unholy_loch.cross_listings.cross_listing_number
+          JOIN department_forms
+            ON unholy_loch.sis_sections.subject_area = department_forms.name
+          JOIN user_department_forms
+            ON user_department_forms.department_form_id = department_forms.id
+          JOIN users
+            ON users.id = user_department_forms.user_id
+         WHERE unholy_loch.sis_sections.course_number IN ({foreign_ccns_str})
+           AND unholy_loch.sis_sections.term_id = '{term.term_id}';
+    """
+    app.logger.info(sql)
+    result = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    for row in result:
+        for ev in evaluations:
+            if row['course_number'] == ev.ccn or row['course_number'] in ev.x_listing_ccns:
+                data = {
+                    'COURSE_ID': ev.course_id,
+                    'LDAP_UID': row['uid'],
                 }
                 supervisors.append(data)
     return supervisors

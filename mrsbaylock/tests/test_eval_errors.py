@@ -61,8 +61,7 @@ class TestEvalErrors:
     share_contact_1 = share_dept_1.users[0]
     share_contact_2 = utils.get_dept_users(share_dept_2, exclude_uid=share_contact_1.uid)[0]
 
-    x_list_evals = evaluation_utils.get_evaluations(term, x_list_dept_1)
-    for e in x_list_evals:
+    for e in x_list_dept_1.evaluations:
         if e.ccn == x_list_eval.ccn:
             x_list_eval = e
 
@@ -76,8 +75,7 @@ class TestEvalErrors:
     app.logger.info(f'Cross-listing department 2 is {x_list_dept_2.name}, UID {x_list_contact_2.uid}')
     app.logger.info(f'Cross-listed CCN is {x_list_eval.ccn}')
 
-    share_evals = evaluation_utils.get_evaluations(term, share_dept)
-    for e in share_evals:
+    for e in share_dept_1.evaluations:
         if e.ccn == share_eval.ccn:
             share_eval = e
 

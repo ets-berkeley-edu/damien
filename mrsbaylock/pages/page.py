@@ -104,6 +104,9 @@ class Page(object):
                 else:
                     time.sleep(1)
 
+    def when_not_visible(self, locator, timeout):
+        Wait(self.driver, timeout).until(ec.invisibility_of_element_located(locator))
+
     def wait_for_element(self, locator, timeout):
         app.logger.info(f'Waiting for element at {locator}')
         if utils.get_browser() == 'chrome':
@@ -190,7 +193,7 @@ class Page(object):
         self.element(locator).send_keys(string)
 
     def wait_for_select_and_click_option(self, select_el_loc, option_str):
-        self.wait_for_element(select_el_loc, utils.get_short_timeout())
+        self.wait_for_page_and_click_js(select_el_loc)
         select_el = Select(self.element(select_el_loc))
         select_el.select_by_visible_text(option_str)
 

@@ -38,7 +38,10 @@ class Instructor(User):
 
     @property
     def role_code(self):
-        return self.data['role_code']
+        try:
+            return self.data['role_code']
+        except KeyError:
+            return None
 
     @role_code.setter
     def role_code(self, value):
