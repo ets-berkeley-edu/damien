@@ -1,12 +1,12 @@
 <template>
   <div class="pt-2">
-    <v-row class="pb-2" no-gutters>
-      <v-col cols="12" md="9" class="d-flex align-baseline">
+    <v-row no-gutters>
+      <v-col cols="9" class="d-flex align-center">
         <h1 id="page-title">
           Publish<span v-if="selectedTermName"> - {{ selectedTermName }}</span>
         </h1>
       </v-col>
-      <v-col cols="12" md="3">
+      <v-col cols="3">
         <TermSelect :after-select="refresh" />
       </v-col>
     </v-row>
