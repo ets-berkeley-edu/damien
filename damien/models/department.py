@@ -296,6 +296,7 @@ class Department(Base):
             'createdAt': isoformat(self.created_at),
             'enrolledTerms': self.enrolled_terms(),
             'updatedAt': isoformat(self.updated_at),
+            'usesMidtermForms': self.uses_midterm_forms(term_id=term_id),
         }
 
         note = None

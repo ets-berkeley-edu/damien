@@ -317,16 +317,18 @@ export default {
     showDuplicateOptions() {
       this.showUpdateOptions()
       this.bulkUpdateOptions.instructor = {}
-      // Show midterm form option only if a midterm form exists for all selected evals.
-      this.midtermFormAvailable = true
-      const availableFormNames = this.$_.map(this.activeDepartmentForms, 'name')
-      this.$_.each(this.selectedEvaluations, e => {
-        const formName = this.$_.get(e, 'departmentForm.name')
-        if (!formName || !(formName.endsWith('_MID') || availableFormNames.includes(formName + '_MID'))) {
-          this.midtermFormAvailable = false
-          return false
-        }
-      })
+      this.midtermFormAvailable = this.department.usesMidtermForms
+      if (this.midtermFormAvailable) {
+        // Show midterm form option only if a midterm form exists for all selected evals.
+        const availableFormNames = this.$_.map(this.activeDepartmentForms, 'name')
+        this.$_.each(this.selectedEvaluations, e => {
+          const formName = this.$_.get(e, 'departmentForm.name')
+          if (!formName || !(formName.endsWith('_MID') || availableFormNames.includes(formName + '_MID'))) {
+            this.midtermFormAvailable = false
+            return false
+          }
+        })
+      }
       this.isDuplicating = true
       this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
     },

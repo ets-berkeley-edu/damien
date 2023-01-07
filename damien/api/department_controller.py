@@ -135,6 +135,7 @@ def update_evaluations(department_id):  # noqa C901
         raise BadRequestError('No evaluation ids supplied.')
     term_id = get_term_id(request)
     updated_ids = []
+    uses_midterm_forms = department.uses_midterm_forms(term_id)
     if action == 'confirm':
         evaluations_feed = department.evaluations_feed(term_id=term_id)
         _validate_confirmable(evaluation_ids, term_id, evaluations_feed)
@@ -149,10 +150,10 @@ def update_evaluations(department_id):  # noqa C901
     elif action == 'duplicate':
         fields = None
         if params.get('fields'):
-            fields = _validate_evaluation_fields(params.get('fields'), term_id)
+            fields = _validate_evaluation_fields(params.get('fields'), term_id, uses_midterm_forms)
         updated_ids = Evaluation.duplicate_bulk(department=department, term_id=term_id, evaluation_ids=evaluation_ids, fields=fields)
     elif action == 'edit':
-        fields = _validate_evaluation_fields(params.get('fields'), term_id)
+        fields = _validate_evaluation_fields(params.get('fields'), term_id, uses_midterm_forms)
         evaluations_feed = None
         if fields.get('status') == 'confirmed':
             evaluations_feed = department.evaluations_feed(term_id=term_id)
@@ -201,7 +202,7 @@ def _validate_confirmable(evaluation_ids, term_id, evaluations_feed, fields={}):
             raise BadRequestError('Could not confirm evaluations with conflicting information.')
 
 
-def _validate_evaluation_fields(fields, term_id):  # noqa C901
+def _validate_evaluation_fields(fields, term_id, dept_uses_midterm_forms):  # noqa C901
     validated_fields = {}
     if not fields or not type(fields) is dict:
         raise BadRequestError('No fields supplied for evaluation edit.')
@@ -240,7 +241,7 @@ def _validate_evaluation_fields(fields, term_id):  # noqa C901
             except (TypeError, ValueError):
                 raise BadRequestError(f'Invalid instructor UID {v}.')
         elif k == 'midterm':
-            if v == 'true':
+            if v == 'true' and dept_uses_midterm_forms:
                 validated_fields[k] = True
             elif v == 'false':
                 validated_fields[k] = False
