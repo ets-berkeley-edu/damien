@@ -16,7 +16,7 @@
         <slot name="status" :status="selectedEvaluationStatus" :on="{change: e => selectedEvaluationStatus = e.target.value}"></slot>
         <div class="d-flex align-center mt-2">
           <PersonLookup
-            v-if="instructor !== null"
+            v-if="$_.isObject(instructor)"
             id="update-evaluations-instructor-lookup-autocomplete"
             :disabled="disableControls"
             :instructor-lookup="true"
