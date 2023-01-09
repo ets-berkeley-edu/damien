@@ -34,7 +34,7 @@ EB_ENVIRONMENT = 'damien-test'
 
 FIXTURES_PATH = f'{BASE_DIR}/fixtures'
 
-INDEX_HTML = 'tests/static/test-index.html'
+INDEX_HTML = f'{BASE_DIR}/tests/static/test-index.html'
 
 LOGGING_LOCATION = 'STDOUT'
 
