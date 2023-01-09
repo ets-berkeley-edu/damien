@@ -43,7 +43,7 @@
           text
           @click="onEdit"
         >
-          {{ item ? 'Edit' : 'Create' }}
+          {{ item ? 'Edit ' : 'Create ' }}<span class="sr-only">Note</span>
         </v-btn>
         <v-divider
           v-if="item"
@@ -62,9 +62,10 @@
           text
           @click.stop="() => isConfirming = true"
         >
-          Delete
+          Delete <span class="sr-only">Note</span>
         </v-btn>
         <ConfirmDialog
+          :button-context="'Delete Note'"
           :cancel-action="onCancelDelete"
           :confirming="isConfirming"
           :perform-action="onDelete"
@@ -93,7 +94,7 @@
           text
           @click="onCancelSave"
         >
-          Cancel
+          Cancel <span class="sr-only">{{ item ? 'Edit' : 'Create' }} Note</span>
         </v-btn>
       </div>
     </v-card>

@@ -15,18 +15,20 @@
           <div class="mr-2">
             <v-btn
               id="confirm-dialog-btn"
+              class="text-capitalize"
               color="primary"
               @click="performAction"
             >
-              Confirm
+              Confirm <span class="sr-only">{{ buttonContext }}</span>
             </v-btn>
           </div>
           <div>
             <v-btn
               id="cancel-dialog-btn"
+              class="text-capitalize"
               @click="cancelAction"
             >
-              Cancel
+              Cancel <span class="sr-only">{{ buttonContext }}</span>
             </v-btn>
           </div>
         </div>
@@ -39,6 +41,11 @@
 export default {
   name: 'ConfirmDialog',
   props: {
+    buttonContext: {
+      default: '',
+      required: false,
+      type: String
+    },
     cancelAction: {
       required: true,
       type: Function
