@@ -167,6 +167,7 @@ export default {
       this.isCreatingNotification = false
       this.alertScreenReader('Notification canceled.')
       this.scrollToTop(1000)
+      this.$putFocusNextTick('open-notification-form-btn')
     },
     collapseAllContacts() {
       if (this.contactsPanel === 0) {

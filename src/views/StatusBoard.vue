@@ -17,6 +17,7 @@
         hide-default-footer
         hide-default-header
         :items="departments"
+        :loading="loading"
         :sort-by.sync="sortBy"
         :sort-desc.sync="sortDesc"
       >
@@ -54,7 +55,7 @@
           </SortableTableHeader>
         </template>
         <template #body="{items}">
-          <tbody>
+          <tbody class="h-100vh">
             <template v-for="(department, index) in items">
               <tr :id="`department-${index}`" :key="department.name">
                 <td>

@@ -20,10 +20,11 @@
         :headers="headers"
         hide-default-footer
         :items="departments"
+        :loading="loading"
         must-sort
       >
         <template #body="{items}">
-          <tbody @mouseleave="() => hoveredDept = null" @focusout="() => hoveredDept = null">
+          <tbody class="h-100vh" @mouseleave="() => hoveredDept = null" @focusout="() => hoveredDept = null">
             <template v-for="(department, deptIndex) in items">
               <tr
                 v-if="$_.isEmpty(department.contacts)"
@@ -117,9 +118,11 @@
 <script>
 import BooleanIcon from '@/components/util/BooleanIcon'
 import {getDepartmentsEnrolled} from '@/api/departments'
+import Context from '@/mixins/Context'
 
 export default {
   name: 'TheMonastery',
+  mixins: [Context],
   components: {BooleanIcon},
   data: () => ({
     departments: [],
