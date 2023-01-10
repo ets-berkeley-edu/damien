@@ -30,47 +30,48 @@ from flask_login import UserMixin
 class UserSession(UserMixin):
 
     def __init__(self, user_id):
-        self.user = User.find_by_id(user_id) if user_id else None
+        self.user = self._load_user(user_id)
 
     def get_departments(self):
-        return self.user and [dm.department for dm in self.user.department_memberships or []]
+        return self.user['departments']
 
     def get_id(self):
-        return self.user and self.user.id
+        return self.user.get('id', None)
 
     def get_uid(self):
-        return self.user and self.user.uid
+        return self.user.get('uid', None)
 
     @property
     def is_active(self):
-        return self.is_authenticated
+        return self.user['isAuthenticated']
 
     @property
     def is_anonymous(self):
-        return not self.is_authenticated
+        return not self.user['isAuthenticated']
 
     @property
     def is_admin(self):
-        return self.user.is_admin
+        return self.user.get('isAdmin', False)
 
     @property
     def is_authenticated(self):
-        return self.user is not None
+        return self.user['isAuthenticated']
 
     def logout(self):
-        self.user = None
+        self.user = self._load_user()
 
     def to_api_json(self):
-        api_json = {
-            **(self.user.to_api_json() if self.user else {}),
-            'isAuthenticated': self.is_authenticated,
-        }
+        return self.user
 
-        def _department(department_membership):
-            return {
-                'id': department_membership.department_id,
-                'name': department_membership.department.dept_name,
-            }
-        if self.user:
-            api_json['departments'] = [_department(dm) for dm in self.user.department_memberships]
-        return api_json
+    @classmethod
+    def _load_user(cls, user_id=None):
+        def _to_json(membership):
+            return {'id': membership.department_id, 'name': membership.department.dept_name}
+
+        user = User.find_by_id(user_id) if user_id else None
+        memberships = user.department_memberships if user else []
+        return {
+            **(user.to_api_json() if user else {}),
+            'departments': [_to_json(m) for m in memberships],
+            'isAuthenticated': user is not None,
+        }

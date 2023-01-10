@@ -48,7 +48,7 @@ def department_membership_required(func):
         department_id = kw['department_id']
         if current_user.is_authenticated and (
             current_user.is_admin
-            or department_id in [str(d.id) for d in current_user.get_departments() or []]
+            or department_id in [str(d['id']) for d in current_user.get_departments() or []]
         ):
             return func(*args, **kw)
         else:

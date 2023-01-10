@@ -26,8 +26,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import json
 import os
 
+from flask_login import logout_user
 import pytest  # noqa
 import damien.factory  # noqa
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 from tests.util import override_config
 
 os.environ['DAMIEN_ENV'] = 'test'  # noqa
@@ -99,15 +102,18 @@ def db_session(db):
     # or not it has an explicit database dependency.
     db.session.rollback()
     try:
-        db.session.get_bind().close()
+        bind = db.session.get_bind()
+        if isinstance(bind, Engine):
+            bind.dispose()
+        else:
+            bind.close()
     # The session bind will close only if it was provided a specific connection via this fixture.
     except TypeError:
         pass
     db.session.remove()
 
     connection = db.engine.connect()
-    options = dict(bind=connection, binds={})
-    _session = db.create_scoped_session(options=options)
+    _session = scoped_session(sessionmaker(bind=connection))
     db.session = _session
 
     return _session
@@ -122,7 +128,8 @@ def cache_session():
 @pytest.fixture(scope='function')
 def fake_auth(app, db, client):
     """Shortcut to start an authenticated session."""
-    return FakeAuth(app, client)
+    yield FakeAuth(app, client)
+    logout_user()
 
 
 @pytest.fixture(scope='session')
