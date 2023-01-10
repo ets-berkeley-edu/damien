@@ -11,7 +11,12 @@
       ></v-progress-circular>
     </div>
     <v-card-title class="pa-3" :class="isSending ? 'muted--text' : ''">
-      <h3>Send Notification</h3>
+      <h3
+        id="send-notification-section-header"
+        tabindex="-1"
+      >
+        Send Notification
+      </h3>
     </v-card-title>
     <v-card-subtitle v-if="selectedRecipients" class="pr-0">
       <div class="mt-2 mb-1">Message will be sent to:</div>

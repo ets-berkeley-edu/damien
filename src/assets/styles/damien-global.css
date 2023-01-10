@@ -24,6 +24,9 @@
 .height-unset {
   min-height: unset !important;
 }
+.h-100vh {
+  height: 100vh;
+}
 .input-override {
   background-color: transparent !important;
   border-radius: 4px;
