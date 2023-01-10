@@ -172,17 +172,27 @@ class TestTermAutomation:
             assert response.status_code == 200
             return response.json['currentTermId']
 
+    @staticmethod
+    def _get_refreshable_term_ids(app):
+        from damien.lib import berkeley
+        berkeley.cache_thread.current_term_id = None
+        with override_config(app, 'CURRENT_TERM_ID', 'auto'):
+            return berkeley.get_refreshable_term_ids()
+
     @freeze_time('2022-01-06')
     def test_early_spring(self, app, client):
         assert self._get_automated_term_id(app, client) == '2222'
+        assert self._get_refreshable_term_ids(app) == ['2222']
 
     @freeze_time('2022-04-20')
     def test_mid_spring(self, app, client):
         assert self._get_automated_term_id(app, client) == '2222'
+        assert self._get_refreshable_term_ids(app) == ['2222']
 
     @freeze_time('2022-04-27')
     def test_late_spring(self, app, client):
         assert self._get_automated_term_id(app, client) == '2225'
+        assert self._get_refreshable_term_ids(app) == ['2222', '2225']
 
 
 class TestUpdateAnnouncement:

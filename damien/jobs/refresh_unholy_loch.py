@@ -28,7 +28,7 @@ from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from damien import db, std_commit
-from damien.lib.berkeley import get_current_term_id
+from damien.lib.berkeley import get_refreshable_term_ids
 from damien.lib.queries import refresh_additional_instructors
 from damien.lib.util import resolve_sql_template
 from damien.models.department import Department
@@ -85,21 +85,26 @@ def _bg_refresh_unholy_loch(app):
             if not has_lock:
                 return
             app.logger.info('Starting unholy loch refresh...')
+
             try:
-                term_id = get_current_term_id()
                 template_sql = 'refresh_unholy_loch.template.sql'
-                resolved_ddl = resolve_sql_template(template_sql, term_id=term_id)
-                db.session().execute(text(resolved_ddl))
-                refresh_additional_instructors()
-                std_commit()
+                term_ids = get_refreshable_term_ids()
+                for term_id in term_ids:
+                    resolved_ddl = resolve_sql_template(template_sql, term_id=term_id)
+                    db.session().execute(text(resolved_ddl))
+                    refresh_additional_instructors()
+                    std_commit()
 
-                # Pre-populate term cache by generating full evaluation feeds for all departments.
-                department_ids = [d.id for d in Department.all_enrolled()]
-                for dept_id in department_ids:
-                    d = Department.find_by_id(dept_id)
-                    d.evaluations_feed(term_id=term_id)
+                    # Pre-populate term cache by generating full evaluation feeds for all departments.
+                    department_ids = [d.id for d in Department.all_enrolled()]
+                    for dept_id in department_ids:
+                        d = Department.find_by_id(dept_id)
+                        d.evaluations_feed(term_id=term_id)
 
-                app.logger.info('Unholy loch refresh completed, cache refreshed.')
+                    app.logger.info(f'Term {term_id} refreshed.')
+
+                app.logger.info(f"Unholy loch refresh completed (term_ids={','.join(term_ids)}), cache refreshed.")
+
             except Exception as e:
                 app.logger.error('Unholy loch refresh failed:')
                 app.logger.exception(e)
