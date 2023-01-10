@@ -1,6 +1,5 @@
 <template>
   <v-dialog
-    id="update-evaluations-dialog"
     v-model="model"
     aria-labelledby="update-evaluations-dialog-title"
     class="overflow-y-visible"

@@ -220,7 +220,12 @@
             elevation="2"
             min-width="fit-content"
           >
-            <v-card-title>Manually Added Instructors</v-card-title>
+            <v-card-title
+              id="manually-added-instructors-title"
+              tabindex="-1"
+            >
+              Manually Added Instructors
+            </v-card-title>
             <v-btn
               v-if="!isAddingInstructor"
               id="add-instructor-btn"
@@ -251,7 +256,7 @@
                 outlined
                 required
                 :rules="rules.numeric"
-              ></v-text-field>
+              />
               <label for="input-instructor-csid" class="form-label">
                 CSID
               </label>
@@ -264,7 +269,7 @@
                 :disabled="isSaving"
                 outlined
                 :rules="rules.numeric"
-              ></v-text-field>
+              />
               <label for="input-instructor-first-name" class="form-label">
                 First name
               </label>
@@ -276,7 +281,7 @@
                 dense
                 :disabled="isSaving"
                 outlined
-              ></v-text-field>
+              />
               <label for="input-instructor-last-name" class="form-label">
                 Last name
               </label>
@@ -289,7 +294,7 @@
                 :disabled="isSaving"
                 outlined
                 required
-              ></v-text-field>
+              />
               <label for="input-instructor-last-name" class="form-label">
                 Email
               </label>
@@ -303,7 +308,7 @@
                 outlined
                 required
                 :rules="rules.email"
-              ></v-text-field>
+              />
               <v-btn
                 id="save-instructor-btn"
                 class="text-capitalize mr-2"

@@ -142,7 +142,10 @@ const actions = {
       return deleteInstructor(state.itemToDelete.uid).then(() => {
         $_refreshInstructors(commit)
         resolve(state.itemToDelete)
-      }).finally(() => commit('reset'))
+      }).finally(() => {
+        commit('reset')
+        Vue.prototype.$putFocusNextTick('manually-added-instructors-title')
+      })
     })
   },
   init: ({commit}) => {
