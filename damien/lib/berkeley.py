@@ -54,6 +54,18 @@ def get_current_term_id():
         return app.config['CURRENT_TERM_ID']
 
 
+def get_refreshable_term_ids():
+    current_term_id = get_current_term_id()
+    term_in_progress_result = select_column(f"""
+        SELECT term_id from unholy_loch.sis_terms
+        WHERE term_begins <= '{date.today().strftime('%Y-%m-%d')}'
+        AND term_ends >= '{date.today().strftime('%Y-%m-%d')}'""")
+    if term_in_progress_result and term_in_progress_result[0] < current_term_id:
+        return term_ids_range(term_in_progress_result[0], current_term_id)
+    else:
+        return [current_term_id]
+
+
 def term_ids_range(earliest_term_id, latest_term_id):
     """Return SIS ID of each term in the range, from oldest to newest."""
     term_id = int(earliest_term_id)
