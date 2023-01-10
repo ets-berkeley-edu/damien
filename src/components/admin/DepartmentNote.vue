@@ -1,6 +1,12 @@
 <template>
   <div>
-    <h2 class="pb-1 px-2">Notes</h2>
+    <h2
+      id="notes-title"
+      class="pb-1 px-2"
+      tabindex="-1"
+    >
+      Notes
+    </h2>
     <v-card
       class="my-1 pa-2"
       :flat="!isEditing"
@@ -133,7 +139,7 @@ export default {
     onDelete() {
       this.updateNote({note: null, termId: this.selectedTermId}).then(() => {
         this.alertScreenReader('Note deleted.')
-        this.$putFocusNextTick('delete-dept-note-btn')
+        this.$putFocusNextTick('notes-title')
         this.reset()
       })
     },
