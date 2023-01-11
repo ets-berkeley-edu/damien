@@ -91,18 +91,23 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     # COURSE ACTIONS
 
+    SELECT_ALL_EVALS_CBX = (By.ID, 'select-all-evals-checkbox')
     COURSE_ACTIONS_SELECT = (By.ID, 'select-course-actions')
     REVIEW_BUTTON = (By.ID, 'apply-course-action-btn-review')
     CONFIRM_BUTTON = (By.ID, 'apply-course-action-btn-confirm')
     UNMARK_BUTTON = (By.ID, 'apply-course-action-btn-unmark')
     IGNORE_BUTTON = (By.ID, 'apply-course-action-btn-ignore')
     DUPE_BUTTON = (By.ID, 'apply-course-action-btn-duplicate')
-    DUPE_SECTION_INSTR_INPUT = (By.ID, 'bulk-duplicate-instructor-lookup-autocomplete')
-    DUPE_EVAL_TYPE_SELECT = (By.ID, 'bulk-duplicate-select-type')
+    EDIT_BUTTON = (By.ID, 'apply-course-action-btn-edit')
+    DUPE_SECTION_INSTR_INPUT = (By.ID, 'update-evaluations-instructor-lookup-autocomplete')
+    DUPE_EVAL_TYPE_SELECT = (By.ID, 'update-evaluations-select-type')
     DUPE_CXL_BUTTON = (By.ID, 'cancel-duplicate-btn')
     USE_MIDTERM_FORM_CBX = (By.XPATH, '//label[text()="Use midterm department forms"]/preceding-sibling::div')
-    USE_START_DATE_INPUT = (By.ID, 'bulk-duplicate-start-date')
+    USE_START_DATE_INPUT = (By.ID, 'update-evaluations-start-date')
     ACTION_APPLY_BUTTON = (By.XPATH, '//button[contains(., "Apply")]')
+
+    def click_select_all_evals(self):
+        self.wait_for_page_and_click_js(CourseDashboardEditsPage.SELECT_ALL_EVALS_CBX)
 
     def click_bulk_done_button(self):
         self.wait_for_element_and_click(CourseDashboardEditsPage.CONFIRM_BUTTON)
@@ -150,14 +155,17 @@ class CourseDashboardEditsPage(CourseDashboards):
         for evaluation in evaluations:
             evaluation.status = EvaluationStatus.UNMARKED
 
+    def look_up_and_select_dupe_instr(self, instructor):
+        self.look_up_uid(instructor.uid, CourseDashboardEditsPage.DUPE_SECTION_INSTR_INPUT)
+        self.click_look_up_result(instructor)
+
     def duplicate_section(self, evaluation, evaluations, midterm=None, start_date=None, instructor=None,
                           eval_type=None):
         app.logger.info(f'Duplicating row for CCN {evaluation.ccn}')
         self.click_eval_checkbox(evaluation)
         self.wait_for_page_and_click(CourseDashboardEditsPage.DUPE_BUTTON)
         if instructor:
-            self.look_up_uid(instructor.uid, CourseDashboardEditsPage.DUPE_SECTION_INSTR_INPUT)
-            self.click_look_up_result(instructor)
+            self.look_up_and_select_dupe_instr(instructor)
         if midterm:
             self.wait_for_element_and_click(CourseDashboardEditsPage.USE_MIDTERM_FORM_CBX)
         if start_date:
@@ -173,7 +181,7 @@ class CourseDashboardEditsPage(CourseDashboards):
             app.logger.info('Setting default evaluation type')
             self.wait_for_select_and_click_option(CourseDashboardEditsPage.DUPE_EVAL_TYPE_SELECT, 'Default')
         time.sleep(1)
-        self.wait_for_page_and_click_js(CourseDashboardEditsPage.ACTION_APPLY_BUTTON)
+        self.wait_for_element_and_click(CourseDashboardEditsPage.ACTION_APPLY_BUTTON)
         time.sleep(utils.get_short_timeout())
         dupe = copy.deepcopy(evaluation)
         if instructor:
@@ -189,6 +197,56 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def cancel_dupe(self):
         app.logger.info('Cancelling dupe')
+        self.wait_for_element_and_click(CourseDashboardEditsPage.DUPE_CXL_BUTTON)
+        time.sleep(1)
+
+    BULK_EDIT_DIALOG_TITLE = (By.ID, 'update-evaluations-dialog-title')
+    BULK_EDIT_STATUS_SELECT = (By.ID, 'update-evaluations-select-status')
+    BULK_EDIT_FORM_SELECT = (By.ID, 'update-evaluations-select-form')
+    BULK_EDIT_TYPE_SELECT = (By.ID, 'update-evaluations-select-type')
+    BULK_EDIT_DATE_INPUT = (By.ID, 'update-evaluations-start-date')
+    BULK_EDIT_APPLY_BUTTON = (By.ID, 'apply-course-action-btn')
+
+    def click_bulk_edit(self):
+        self.wait_for_element_and_click(CourseDashboardEditsPage.EDIT_BUTTON)
+
+    def bulk_edit_eval_count(self):
+        self.wait_for_element(CourseDashboardEditsPage.BULK_EDIT_DIALOG_TITLE, 2)
+        time.sleep(1)
+        title = self.element(CourseDashboardEditsPage.BULK_EDIT_DIALOG_TITLE).text
+        return int(title.split()[1])
+
+    def select_bulk_status(self, status):
+        app.logger.info(f"Selecting bulk eval status {status.value['option']}")
+        self.wait_for_select_and_click_option(CourseDashboardEditsPage.BULK_EDIT_STATUS_SELECT, status.value['option'])
+
+    def select_bulk_dept_form(self, dept_form):
+        app.logger.info(f'Selecting bulk dept form {dept_form}')
+        self.wait_for_select_and_click_option(CourseDashboardEditsPage.BULK_EDIT_FORM_SELECT, dept_form)
+        time.sleep(1)
+
+    def select_bulk_eval_type(self, eval_type):
+        app.logger.info(f'Selecting bulk eval type {eval_type}')
+        self.wait_for_select_and_click_option(CourseDashboardEditsPage.BULK_EDIT_TYPE_SELECT, eval_type)
+        time.sleep(1)
+
+    def enter_bulk_start_date(self, date):
+        self.wait_for_element_and_click(CourseDashboardEditsPage.BULK_EDIT_DATE_INPUT)
+        self.clear_date_input_value()
+        date_str = date.strftime('%m/%d/%Y')
+        app.logger.info(f'Entering bulk eval start date {date_str}')
+        self.element(CourseDashboardEditsPage.BULK_EDIT_DATE_INPUT).send_keys(date_str)
+        self.hit_tab()
+        self.hit_tab()
+
+    def click_bulk_edit_save(self):
+        self.wait_for_element_and_click(CourseDashboardEditsPage.BULK_EDIT_APPLY_BUTTON)
+
+    def wait_for_bulk_update(self):
+        self.when_not_visible(CourseDashboardEditsPage.BULK_EDIT_DIALOG_TITLE, utils.get_medium_timeout())
+        time.sleep(2)
+
+    def click_bulk_edit_cancel(self):
         self.wait_for_element_and_click(CourseDashboardEditsPage.DUPE_CXL_BUTTON)
         time.sleep(1)
 
@@ -296,7 +354,8 @@ class CourseDashboardEditsPage(CourseDashboards):
     def click_eval_checkbox(self, evaluation):
         xpath = f'{self.eval_row_xpath(evaluation)}//input[contains(@id, "checkbox")]'
         app.logger.info(f'Selecting {evaluation.ccn}')
-        self.wait_for_page_and_click_js((By.XPATH, xpath))
+        self.wait_for_element((By.XPATH, xpath), utils.get_short_timeout())
+        self.driver.execute_script('arguments[0].click();', self.element((By.XPATH, xpath)))
 
     def click_edit_evaluation(self, evaluation):
         self.scroll_to_top()
@@ -366,10 +425,7 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def change_eval_start_date(self, evaluation, date=None):
         self.wait_for_element_and_click(CourseDashboardEditsPage.EVAL_CHANGE_START_DATE_INPUT)
-        for i in range(10):
-            self.hit_delete()
-            self.hit_backspace()
-            time.sleep(0.5)
+        self.clear_date_input_value()
         if date:
             date_str = date.strftime('%m/%d/%Y')
             app.logger.info(f'Setting start date {date_str} on CCN {evaluation.ccn}')

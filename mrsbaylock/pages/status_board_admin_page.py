@@ -114,6 +114,10 @@ class StatusBoardAdminPage(DamienPages):
         elif self.is_present((By.XPATH, f'{xpath}/i[@aria-label="no errors"]')):
             return 0
 
+    def dept_confirmed_all(self, dept):
+        xpath = f'{StatusBoardAdminPage.dept_row_xpath(dept)}/td[@class="department-confirmed"]/i[@aria-label="all confirmed"]'
+        return self.is_present((By.XPATH, xpath))
+
     def dept_confirmed_count(self, dept):
         xpath = f'{StatusBoardAdminPage.dept_row_xpath(dept)}/td[@class="department-confirmed"]/span/span'
         self.wait_for_element((By.XPATH, xpath), utils.get_short_timeout())

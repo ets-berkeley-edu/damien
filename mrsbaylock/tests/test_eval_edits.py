@@ -22,7 +22,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
 ENHANCEMENTS, OR MODIFICATIONS.
 """
-
+import datetime
 from datetime import timedelta
 import time
 
@@ -38,6 +38,7 @@ class TestEvaluationManagement:
     term = utils.get_current_term()
     utils.reset_test_data(term)
     all_contacts = utils.get_all_users()
+    depts = utils.get_participating_depts()
 
     dept_1 = utils.get_test_dept_1(all_contacts)
     dept_1.evaluations = evaluation_utils.get_evaluations(term, dept_1)
@@ -52,6 +53,13 @@ class TestEvaluationManagement:
     dept_1.evaluations[2] = dept_1.evaluations[2]
     eval_sans_form = next(filter(lambda row: (row.dept_form is None), dept_1.evaluations))
 
+    dept_ids = [dept_1.dept_id, dept_2.dept_id]
+    for d in depts:
+        if d.dept_id in dept_ids:
+            depts.remove(d)
+    bulk_dept = evaluation_utils.get_dept_with_listings_or_shares(term, depts)
+    bulk_contact = bulk_dept.users[0]
+
     confirmed = []
 
     def test_clear_cache(self):
@@ -59,6 +67,8 @@ class TestEvaluationManagement:
         self.login_page.dev_auth()
         self.status_board_admin_page.click_list_mgmt()
         self.api_page.refresh_unholy_loch()
+
+    # INDIVIDUAL EDITS
 
     def test_ensure_no_midterm_form(self):
         self.homepage.load_page()
@@ -192,8 +202,8 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_edit_evaluation(self.dept_1.evaluations[1])
         self.dept_details_admin_page.change_dept_form(self.dept_1.evaluations[1], form)
         self.dept_details_admin_page.click_save_eval_changes(self.dept_1.evaluations[1])
-        self.dept_1.evaluations[1].dept_form = form
         self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_1.evaluations[1].dept_form = form
         dupe = self.dept_details_admin_page.duplicate_section(self.dept_1.evaluations[1], self.dept_1.evaluations,
                                                               midterm=True, start_date=date)
         self.dept_details_admin_page.wait_for_eval_rows()
@@ -264,3 +274,90 @@ class TestEvaluationManagement:
         expected = utils.expected_course_supervisors(self.confirmed, self.all_contacts)
         actual = self.publish_page.parse_csv('course_supervisors')
         utils.verify_actual_matches_expected(actual, expected)
+
+    # BULK EDITS
+
+    def test_bulk_edit_dept(self):
+        self.publish_page.log_out()
+        self.login_page.dev_auth(self.bulk_contact, self.bulk_dept)
+
+    def test_bulk_edit_count(self):
+        self.dept_details_dept_page.click_select_all_evals()
+        self.dept_details_dept_page.click_bulk_edit()
+        assert self.dept_details_dept_page.bulk_edit_eval_count() == len(self.bulk_dept.evaluations)
+
+    def test_bulk_edit_status_validation(self):
+        self.dept_details_dept_page.select_bulk_status(EvaluationStatus.CONFIRMED)
+        self.dept_details_dept_page.click_bulk_edit_save()
+        self.dept_details_dept_page.await_error_and_accept()
+
+    def test_bulk_edit_status(self):
+        new_status = EvaluationStatus.FOR_REVIEW
+        self.dept_details_dept_page.click_bulk_edit_cancel()
+        self.dept_details_dept_page.click_bulk_edit()
+        self.dept_details_dept_page.select_bulk_status(new_status)
+        self.dept_details_dept_page.click_bulk_edit_save()
+        self.dept_details_dept_page.wait_for_bulk_update()
+        assert list(set(self.dept_details_dept_page.visible_evaluation_statuses())) == [new_status.value['ui']]
+
+    def test_bulk_edit_dept_form(self):
+        new_form = 'HISTORY'
+        self.dept_details_dept_page.click_select_all_evals()
+        self.dept_details_dept_page.click_bulk_edit()
+        self.dept_details_dept_page.select_bulk_dept_form(new_form)
+        self.dept_details_dept_page.click_bulk_edit_save()
+        self.dept_details_dept_page.wait_for_bulk_update()
+        assert list(set(self.dept_details_dept_page.visible_evaluation_dept_forms())) == [new_form]
+
+    def test_bulk_edit_eval_type(self):
+        new_type = 'G'
+        self.dept_details_dept_page.click_select_all_evals()
+        self.dept_details_dept_page.click_bulk_edit()
+        self.dept_details_dept_page.select_bulk_eval_type(new_type)
+        self.dept_details_dept_page.click_bulk_edit_save()
+        self.dept_details_dept_page.wait_for_bulk_update()
+        assert list(set(self.dept_details_dept_page.visible_evaluation_types())) == [new_type]
+
+    def test_bulk_edit_start_date(self):
+        new_date = self.bulk_dept.evaluations[0].eval_start_date - timedelta(days=1)
+        self.dept_details_dept_page.click_select_all_evals()
+        self.dept_details_dept_page.click_bulk_edit()
+        self.dept_details_dept_page.enter_bulk_start_date(new_date)
+        self.dept_details_dept_page.click_bulk_edit_save()
+        self.dept_details_dept_page.wait_for_bulk_update()
+        new_date_str = datetime.datetime.strftime(new_date, '%m/%d/%y')
+        assert list(set(self.dept_details_dept_page.visible_evaluation_starts())) == [new_date_str]
+
+    def test_bulk_edit_all_fields(self):
+        new_status = EvaluationStatus.IGNORED
+        new_form = 'ENGLISH'
+        new_type = 'F'
+        new_date = self.bulk_dept.evaluations[0].eval_start_date
+        self.dept_details_dept_page.select_ignored_filter()
+        self.dept_details_dept_page.click_select_all_evals()
+        self.dept_details_dept_page.click_bulk_edit()
+        self.dept_details_dept_page.select_bulk_status(new_status)
+        self.dept_details_dept_page.select_bulk_dept_form(new_form)
+        self.dept_details_dept_page.select_bulk_eval_type(new_type)
+        self.dept_details_dept_page.enter_bulk_start_date(new_date)
+        self.dept_details_dept_page.click_bulk_edit_save()
+        self.dept_details_dept_page.wait_for_bulk_update()
+        assert list(set(self.dept_details_dept_page.visible_evaluation_statuses())) == [new_status.value['ui']]
+        assert list(set(self.dept_details_dept_page.visible_evaluation_dept_forms())) == [new_form]
+        assert list(set(self.dept_details_dept_page.visible_evaluation_types())) == [new_type]
+        new_date_str = datetime.datetime.strftime(new_date, '%m/%d/%y')
+        assert list(set(self.dept_details_dept_page.visible_evaluation_starts())) == [new_date_str]
+
+    def test_bulk_edit_instructor(self):
+        evals = evaluation_utils.get_evaluations(self.term, self.bulk_dept)
+        no_teach = list(filter(lambda ev: (ev.instructor.uid is None), evals))
+        new_teach = utils.get_test_user()
+        for row in no_teach:
+            self.dept_details_dept_page.click_eval_checkbox(row)
+        self.dept_details_dept_page.click_bulk_edit()
+        self.dept_details_dept_page.look_up_and_select_dupe_instr(new_teach)
+        self.dept_details_dept_page.click_bulk_edit_save()
+        self.dept_details_dept_page.wait_for_bulk_update()
+        for row in no_teach:
+            row.instructor = new_teach
+            assert new_teach.uid in self.dept_details_dept_page.eval_instructor(row)

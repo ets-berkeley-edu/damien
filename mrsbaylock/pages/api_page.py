@@ -71,5 +71,4 @@ class ApiPage(Page):
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.presence_of_element_located((By.XPATH, '//*[contains(text(), "started")]')),
         )
-        # Until the loch refresh job status becomes reliable again, revert to a hard wait for the refresh to finish
-        time.sleep(900)
+        self.wait_for_refresh_job()
