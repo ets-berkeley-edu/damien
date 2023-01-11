@@ -1,7 +1,7 @@
 <template>
   <div class="pt-2">
     <div class="pb-2 d-flex">
-      <h1 id="page-title">Group Management</h1>
+      <h1 id="page-title" :style="{color: primaryHexColor}">Group Management</h1>
       <v-spacer class="d-flex justify-center"></v-spacer>
       <v-banner
         v-if="$config.isVueAppDebugMode && $config.easterEggMonastery && $vuetify.theme.dark"
@@ -117,12 +117,13 @@
 
 <script>
 import BooleanIcon from '@/components/util/BooleanIcon'
-import {getDepartmentsEnrolled} from '@/api/departments'
 import Context from '@/mixins/Context'
+import Util from '@/mixins/Util'
+import {getDepartmentsEnrolled} from '@/api/departments'
 
 export default {
   name: 'TheMonastery',
-  mixins: [Context],
+  mixins: [Context, Util],
   components: {BooleanIcon},
   data: () => ({
     departments: [],

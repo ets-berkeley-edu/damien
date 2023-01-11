@@ -1,19 +1,33 @@
 <template>
   <div class="pt-2">
-    <v-row class="pb-2" no-gutters>
-      <v-col cols="9" class="d-flex align-center">
-        <h1 v-if="$_.get(department, 'deptName')" id="page-title" tabindex="-1">
-          {{ department.deptName }}&MediumSpace;
-          <span v-if="department.catalogListings">
-            ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})&MediumSpace;
-          </span>
-          <span v-if="selectedTermName"> - {{ selectedTermName }}</span>
+    <div class="align-center d-flex flex-wrap justify-space-between">
+      <div>
+        <h1
+          v-if="$_.get(department, 'deptName')"
+          id="page-title"
+          :style="{color: primaryHexColor}"
+          tabindex="-1"
+        >
+          <div class="d-flex flex-wrap">
+            <div>
+              <span>
+                {{ department.deptName }}&MediumSpace;
+                <span v-if="department.catalogListings">
+                  ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})&MediumSpace;
+                </span>
+              </span>
+              <span v-if="selectedTermName" class="mr-2">&mdash;&nbsp;</span>
+            </div>
+            <div v-if="selectedTermName">
+              {{ selectedTermName }}
+            </div>
+          </div>
         </h1>
-      </v-col>
-      <v-col cols="3">
+      </div>
+      <div class="text-nowrap">
         <TermSelect :after-select="refresh" :term-ids="$_.get(department, 'enrolledTerms')" />
-      </v-col>
-    </v-row>
+      </div>
+    </div>
     <v-container v-if="!loading" class="mx-0 px-0 pb-2" fluid>
       <v-row justify="start">
         <v-col cols="12" md="5">

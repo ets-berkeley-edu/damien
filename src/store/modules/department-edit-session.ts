@@ -90,7 +90,7 @@ const state = {
   errorDialogText: null,
   evaluations: [],
   note: undefined,
-  selectedEvaluationIds: []
+  selectedEvaluationIds: [] as any[]
 }
 
 const getters = {
@@ -193,8 +193,11 @@ const actions = {
     commit('setErrorDialog', true)
     commit('setErrorDialogText', text)
   },
-  toggleSelectEvaluation: ({commit}, evaluationId: any) => {
-    commit('setIsSelected', evaluationId)
+  toggleSelectEvaluation: ({commit}, evaluation: any) => {
+    const course = `${evaluation.subjectArea} ${evaluation.catalogId}`
+    const message = `${course} evaluation ${state.selectedEvaluationIds.includes(evaluation.id) ? 'un' : ''}selected`
+    store.dispatch('context/alertScreenReader', message).then(_.noop)
+    commit('setIsSelected', evaluation.id)
   },
   updateContact: ({commit, state}, contact: any) => {
     commit('setDisableControls', true)

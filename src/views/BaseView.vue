@@ -66,43 +66,47 @@
     </v-navigation-drawer>
     <v-app-bar
       app
-      class="nav"
+      class="align-center nav"
       clipped-left
       color="primary"
       dark
     >
-      <div class="display-1 text-no-wrap">
+      <div class="display-1 mr-4 text-no-wrap">
         Course Evaluations
       </div>
-      <v-spacer class="d-flex justify-center">
-        <v-chip
-          v-if="$config.isVueAppDebugMode && screenReaderAlert"
-          id="screen-reader-alert-debug"
-          class="sr-debug font-italic"
-          color="primary-contrast"
-          outlined
-        >
-          {{ screenReaderAlert }}
-        </v-chip>
-      </v-spacer>
-      <v-menu offset-y rounded="lg">
-        <template #activator="{ on, attrs }">
-          <v-btn
-            id="btn-main-menu"
-            v-bind="attrs"
-            color="primary"
-            dark
-            v-on="on"
+      <div>
+        <v-spacer>
+          <v-chip
+            v-if="$config.isVueAppDebugMode && screenReaderAlert"
+            id="screen-reader-alert-debug"
+            class="sr-debug font-italic"
+            color="primary-contrast"
+            outlined
           >
-            <span class="sr-only">User profile for </span>{{ $currentUser.firstName }}
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item id="menu-item-log-out" link @click="logOut">
-            <v-list-item-content>Log Out</v-list-item-content>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+            {{ screenReaderAlert }}
+          </v-chip>
+        </v-spacer>
+      </div>
+      <div class="ml-auto">
+        <v-menu offset-y rounded="lg">
+          <template #activator="{ on, attrs }">
+            <v-btn
+              id="btn-main-menu"
+              v-bind="attrs"
+              color="primary"
+              dark
+              v-on="on"
+            >
+              <span class="sr-only">User profile for </span>{{ $currentUser.firstName }}
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item id="menu-item-log-out" link @click="logOut">
+              <v-list-item-content>Log Out</v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
     </v-app-bar>
     <v-main id="content" class="ma-0">
       <Snackbar />

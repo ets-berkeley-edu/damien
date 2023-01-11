@@ -5,6 +5,7 @@
         <h1
           id="page-title"
           class="py-2"
+          :style="{color: primaryHexColor}"
           tabindex="-1"
         >
           Evaluation Status Dashboard - {{ selectedTermName }}
@@ -157,11 +158,12 @@ import Context from '@/mixins/Context'
 import NotificationForm from '@/components/admin/NotificationForm'
 import SortableTableHeader from '@/components/util/SortableTableHeader'
 import TermSelect from '@/components/util/TermSelect'
+import Util from '@/mixins/Util'
 
 export default {
   name: 'StatusBoard',
   components: {NotificationForm, SortableTableHeader, TermSelect},
-  mixins: [Context],
+  mixins: [Context, Util],
   data: () => ({
     blockers: {},
     departments: [],
@@ -243,18 +245,17 @@ export default {
     },
     toggleSelect(department) {
       const index = this.$_.indexOf(this.selectedDepartmentIds, department.id)
-      if (index === -1) {
+      const isSelecting = index === -1
+      if (isSelecting) {
         this.selectedDepartmentIds.push(department.id)
       } else {
         this.selectedDepartmentIds.splice(index, 1)
       }
+      this.alertScreenReader(`${department.name} ${isSelecting ? '' : 'un'}selected`)
     },
     toggleSelectAll() {
-      if (this.allDepartmentsSelected) {
-        this.selectedDepartmentIds = []
-      } else {
-        this.selectedDepartmentIds = this.$_.map(this.departments, 'id')
-      }
+      this.selectedDepartmentIds = this.allDepartmentsSelected ? [] : this.$_.map(this.departments, 'id')
+      this.alertScreenReader(`All departments ${this.allDepartmentsSelected ? '' : 'un'}selected.`)
     }
   }
 }

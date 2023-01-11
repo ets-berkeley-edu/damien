@@ -35,14 +35,15 @@
       <v-checkbox
         :id="`checkbox-communications-${contactId}`"
         v-model="canReceiveCommunications"
+        :aria-checked="canReceiveCommunications"
         class="mt-1"
         color="tertiary"
         dense
         :disabled="disableControls"
         label="Receive notifications"
         :ripple="false"
-      >
-      </v-checkbox>
+        @change="value => srAlert('receive notifications', value)"
+      />
       <legend :for="`checkbox-communications-${contactId}`" class="form-label">
         Blue Access
       </legend>
@@ -56,25 +57,28 @@
       >
         <v-radio
           :id="`radio-no-blue-${contactId}`"
-          :value="null"
+          :aria-checked="$_.isNil(permissions)"
           class="mb-1"
           color="tertiary"
           label="No access to Blue"
-        ></v-radio>
+          :value="null"
+        />
         <v-radio
           :id="`radio-reports-only-${contactId}`"
-          value="reports_only"
+          :aria-checked="permissions === 'reports_only'"
           class="mb-1"
           color="tertiary"
           label="View reports"
-        ></v-radio>
+          value="reports_only"
+        />
         <v-radio
           :id="`radio-response-rates-${contactId}`"
-          value="response_rates"
+          :aria-checked="permissions === 'response_rates'"
           class="mb-1"
           color="tertiary"
           label="View reports and response rates"
-        ></v-radio>
+          value="response_rates"
+        />
       </v-radio-group>
       <legend :for="`select-deptForms-${contactId}`" class="form-label">
         Department Forms
@@ -206,6 +210,15 @@ export default {
           return item
         }
       }).filter(v => v)
+    },
+    permissions(value) {
+      if (this.$_.isNil(value)) {
+        this.srAlert('have access to Blue', false)
+      } else if (value === 'reports_only') {
+        this.srAlert('be able to view reports', true)
+      } else if (value === 'response_rates') {
+        this.srAlert('be able to view reports and response rates', true)
+      }
     }
   },
   methods: {
@@ -272,6 +285,10 @@ export default {
       this.contactDepartmentForms.splice(indexOf, 1)
       this.alertScreenReader(`Removed ${formName} from ${this.fullName} department forms.`)
       this.$putFocusNextTick(`input-deptForms-${this.contactId}`)
+    },
+    srAlert(label, isSelected) {
+      const name = `${this.contact.firstName} ${this.contact.lastName}`
+      this.alertScreenReader(`${name} will ${isSelected ? '' : 'not '} ${label}.`)
     }
   }
 }

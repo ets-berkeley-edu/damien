@@ -3,6 +3,7 @@
     <div class="d-flex">
       <h1
         id="page-title"
+        :style="{color: primaryHexColor}"
         tabindex="-1"
       >
         List Management
@@ -398,13 +399,14 @@
 import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context.vue'
 import EditServiceAnnouncement from '@/components/admin/EditServiceAnnouncement'
-import SortableTableHeader from '@/components/util/SortableTableHeader'
 import ListManagementSession from '@/mixins/ListManagementSession'
+import SortableTableHeader from '@/components/util/SortableTableHeader'
+import Util from '@/mixins/Util'
 
 export default {
   name: 'NannysRoom',
   components: {ConfirmDialog, EditServiceAnnouncement, SortableTableHeader},
-  mixins: [Context, ListManagementSession],
+  mixins: [Context, ListManagementSession, Util],
   data: () => ({
     instructorValid: true,
     rules: {
