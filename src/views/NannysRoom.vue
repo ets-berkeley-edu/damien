@@ -1,7 +1,12 @@
 <template>
   <div class="pt-2">
     <div class="d-flex">
-      <h1 id="page-title">List Management</h1>
+      <h1
+        id="page-title"
+        tabindex="-1"
+      >
+        List Management
+      </h1>
       <v-spacer class="d-flex justify-center"></v-spacer>
       <v-banner
         v-if="$config.isVueAppDebugMode && $config.easterEggMonastery && $vuetify.theme.dark"
@@ -18,6 +23,7 @@
           <v-card
             class="mr-4"
             elevation="2"
+            height="100%"
             min-width="fit-content"
           >
             <v-card-title
@@ -118,6 +124,7 @@
           <v-card
             class="mr-4"
             elevation="2"
+            height="100%"
             min-width="fit-content"
           >
             <v-card-title
@@ -222,6 +229,7 @@
           >
             <v-card-title
               id="manually-added-instructors-title"
+              class="pb-0"
               tabindex="-1"
             >
               Manually Added Instructors
@@ -229,7 +237,7 @@
             <v-btn
               v-if="!isAddingInstructor"
               id="add-instructor-btn"
-              class="text-capitalize pl-2 mt-1"
+              class="text-capitalize pl-2 my-1"
               color="tertiary"
               :disabled="disableControls"
               text
@@ -361,6 +369,11 @@
                     Delete
                   </v-btn>
                 </template>
+                <template #no-data>
+                  <div class="my-5">
+                    No manually added instructors
+                  </div>
+                </template>
               </v-data-table>
             </div>
           </v-card>
@@ -426,6 +439,7 @@ export default {
     this.resetNewInstructor()
     this.init().then(() => {
       this.$ready('List Management')
+      this.$putFocusNextTick('page-title')
     })
   },
   methods: {

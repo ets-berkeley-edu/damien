@@ -13,6 +13,9 @@
   max-width: 7rem;
   padding-left: 12px !important;
 }
+.font-size-18 {
+  font-size: 18px;
+}
 .form-label {
   font-size: 15px;
   font-weight: 700;
@@ -199,6 +202,9 @@ input.vs__search:enabled {
 }
 .vue-select-override.light .vs__actions .vs__open-indicator {
   fill: rgba(0, 0, 0, 0.38) !important;
+}
+.w-75 {
+  width: 75%;
 }
 a {
   text-decoration: none !important;

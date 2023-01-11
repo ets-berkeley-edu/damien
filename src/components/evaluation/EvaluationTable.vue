@@ -1,107 +1,99 @@
 <template>
   <div v-if="evaluations.length > 0">
     <div class="elevation-2 sticky" :class="$vuetify.theme.dark ? 'sticky-dark' : 'sticky-light'">
-      <v-row class="mt-0">
-        <v-col cols="7" md="8" class="d-flex flex-column pt-2">
-          <v-text-field
-            id="evaluation-search-input"
-            v-model="searchFilter"
-            append-icon="mdi-magnify"
-            class="flex-grow-0 flex-shrink-1 ml-4 pt-0 evaluation-search-input"
-            color="tertiary"
-            hide-details
-            label="Find"
-            max-width="600px"
-            single-line
-          ></v-text-field>
-        </v-col>
-        <v-col cols="5" md="4" class="pt-2">
+      <div class="align-baseline d-flex flex-wrap px-5 pb-3 pt-1 w-75">
+        <v-text-field
+          id="evaluation-search-input"
+          v-model="searchFilter"
+          append-icon="mdi-magnify"
+          class="evaluation-search-input mr-3"
+          color="tertiary"
+          hide-details
+          label="Find"
+          max-width="600px"
+          single-line
+        />
+        <div class="text-left">
           <AddCourseSection
             v-if="!readonly"
             id="add-course-section"
             :evaluations="evaluations"
             :allow-edits="allowEdits"
           />
-        </v-col>
-      </v-row>
-      <v-row class="d-flex flex-column-reverse flex-md-row">
-        <v-col
-          v-if="!readonly && allowEdits"
-          cols="12"
-          lg="7"
-          md="8"
-          class="d-flex"
-        >
-          <div class="d-flex align-self-stretch align-end mt-auto mx-4">
-            <v-checkbox
-              id="select-all-evals-checkbox"
-              class="select-all-evals align-center mt-0 pt-0"
-              color="tertiary"
-              :disabled="$_.isEmpty(searchFilterResults)"
-              :false-value="!someEvaluationsSelected && !allEvaluationsSelected"
-              hide-details
-              :indeterminate="someEvaluationsSelected"
-              :input-value="someEvaluationsSelected || allEvaluationsSelected"
-              :ripple="false"
-              :value="allEvaluationsSelected"
-              @change="toggleSelectAll"
-            >
-              <template #label>
-                <span
-                  v-if="!(someEvaluationsSelected || allEvaluationsSelected)"
-                  class="text-nowrap pl-1 py-2"
-                >
-                  Select all
-                </span>
-              </template>
-            </v-checkbox>
+        </div>
+      </div>
+      <div class="align-center d-flex flex-wrap justify-space-between px-5 py-3">
+        <div v-if="!readonly && allowEdits">
+          <div class="d-flex">
+            <div>
+              <v-checkbox
+                id="select-all-evals-checkbox"
+                class="select-all-evals align-center mt-0 pt-0"
+                color="tertiary"
+                :disabled="$_.isEmpty(searchFilterResults)"
+                :false-value="!someEvaluationsSelected && !allEvaluationsSelected"
+                hide-details
+                :indeterminate="someEvaluationsSelected"
+                :input-value="someEvaluationsSelected || allEvaluationsSelected"
+                :ripple="false"
+                :value="allEvaluationsSelected"
+                @change="toggleSelectAll"
+              >
+                <template #label>
+                  <span
+                    v-if="!(someEvaluationsSelected || allEvaluationsSelected)"
+                    class="text-nowrap pl-1 py-2"
+                  >
+                    Select all
+                  </span>
+                </template>
+              </v-checkbox>
+            </div>
             <EvaluationActions v-if="!readonly" />
           </div>
-        </v-col>
-        <v-col cols="12" lg="5" md="4">
-          <div class="d-flex flex-wrap align-baseline justify-end mt-auto mx-4">
-            <div class="mr-2">Show statuses:</div>
-            <v-chip
-              v-for="type in $_.keys(filterTypes)"
-              :id="`evaluations-filter-${type}`"
-              :key="type"
-              :aria-label="`Toggle evaluation filter ${filterTypes[type].label}`"
-              aria-controls="evaluation-table"
-              :aria-selected="filterTypes[type].enabled"
-              class="ma-1 px-4 text-center text-nowrap text-uppercase"
-              :class="{
-                'secondary': filterTypes[type].enabled,
-                'inactive': !filterTypes[type].enabled
-              }"
-              :color="filterTypes[type].enabled ? 'secondary' : ''"
+        </div>
+        <div class="align-center d-flex flex-wrap">
+          <div class="mr-2">Show statuses:</div>
+          <v-chip
+            v-for="type in $_.keys(filterTypes)"
+            :id="`evaluations-filter-${type}`"
+            :key="type"
+            :aria-label="`Toggle evaluation filter ${filterTypes[type].label}`"
+            aria-controls="evaluation-table"
+            :aria-selected="filterTypes[type].enabled"
+            class="ma-1 px-4 text-center text-nowrap text-uppercase"
+            :class="{
+              'secondary': filterTypes[type].enabled,
+              'inactive': !filterTypes[type].enabled
+            }"
+            :color="filterTypes[type].enabled ? 'secondary' : ''"
+            small
+            tabindex="0"
+            :text-color="filterTypes[type].enabled ? 'white' : 'inactive-contrast'"
+            @click="toggleFilter(type)"
+            @keypress.enter.prevent="toggleFilter(type)"
+          >
+            <v-icon
+              v-if="filterTypes[type].enabled"
+              color="white"
               small
-              tabindex="0"
-              :text-color="filterTypes[type].enabled ? 'white' : 'inactive-contrast'"
-              @click="toggleFilter(type)"
-              @keypress.enter.prevent="toggleFilter(type)"
+              left
             >
-              <v-icon
-                v-if="filterTypes[type].enabled"
-                color="white"
-                small
-                left
-              >
-                mdi-check-circle
-              </v-icon>
-              <v-icon
-                v-if="!filterTypes[type].enabled"
-                color="inactive-contrast"
-                small
-                left
-              >
-                mdi-plus-circle
-              </v-icon>
-              {{ filterTypes[type].label }}
-              {{ filterTypeCounts(type) }}
-            </v-chip>
-          </div>
-        </v-col>
-      </v-row>
+              mdi-check-circle
+            </v-icon>
+            <v-icon
+              v-if="!filterTypes[type].enabled"
+              color="inactive-contrast"
+              small
+              left
+            >
+              mdi-plus-circle
+            </v-icon>
+            {{ filterTypes[type].label }}
+            {{ filterTypeCounts(type) }}
+          </v-chip>
+        </div>
+      </div>
     </div>
     <v-data-table
       id="evaluation-table"
@@ -113,6 +105,7 @@
       hide-default-footer
       hide-default-header
       :items="evaluations"
+      :loading="loading"
       :sort-by.sync="sortBy"
       :sort-desc.sync="sortDesc"
       @current-items="onChangeSearchFilter"
@@ -532,10 +525,10 @@ export default {
     editRowId: null,
     evaluationTypes: [],
     filterTypes: {
-      'unmarked': {label: 'None', enabled: true},
-      'review': {label: 'To-Do', enabled: true},
-      'confirmed': {label: 'Done', enabled: true},
-      'ignore': {label: 'Ignore', enabled: false}
+      unmarked: {label: 'None', enabled: true},
+      review: {label: 'To-Do', enabled: true},
+      confirmed: {label: 'Done', enabled: true},
+      ignore: {label: 'Ignore', enabled: false}
     },
     focusedEditButtonEvaluationId: null,
     headers: [
@@ -851,9 +844,6 @@ tr.border-bottom-none td {
 tr.border-top-none td {
   border-top: none !important;
 }
-.filter-div {
-  padding:  16px 16px 16px 50px;
-}
 </style>
 
 <style scoped>
@@ -909,22 +899,12 @@ tr.border-top-none td {
 .evaluation-type {
   min-width: 145px;
 }
-.hidden {
-  visibility: hidden;
-}
-.input-department-form {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-}
 .instructor-lookup {
   max-width: 168px !important;
 }
 .no-eligible-sections {
   font-size: 20px;
   height: fit-content;
-
 }
 .pill {
   border: 1px solid #999;
