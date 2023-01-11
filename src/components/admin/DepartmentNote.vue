@@ -29,7 +29,8 @@
           flat
           hide-details="auto"
           outlined
-        ></v-textarea>
+          @keydown.esc="onCancelSave"
+        />
       </v-form>
       <v-toolbar
         v-if="!isEditing"

@@ -8,7 +8,7 @@
       max-rows="5"
       hide-details="auto"
       solo
-    ></v-textarea>
+    />
     <v-checkbox
       id="service-announcement-published"
       v-model="isPublished"

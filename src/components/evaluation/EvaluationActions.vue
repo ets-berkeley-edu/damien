@@ -1,35 +1,32 @@
 <template>
-  <div class="d-flex align-center">
-    <div class="d-flex">
-      <template v-for="(action, key) in courseActions">
-        <v-btn
-          :id="`apply-course-action-btn-${key}`"
-          :key="key"
-          class="position-relative text-capitalize text-nowrap px-2 mr-1"
-          :color="$vuetify.theme.dark ? 'tertiary' : 'secondary'"
-          :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length || isLoading || isInvalidAction(action)"
-          text
-          @click.stop="action.apply(key)"
-        >
-          <span v-if="!(isLoading && key !== 'duplicate' && applyingAction.key === key)">{{ action.text }}</span>
-          <v-progress-circular
-            v-if="isLoading && key !== 'duplicate' && applyingAction.key === key"
-            :indeterminate="true"
-            color="tertiary"
-            rotate="5"
-            size="20"
-            width="3"
-          ></v-progress-circular>
-        </v-btn>
-        <v-divider
-          v-if="key === 'ignore'"
-          :key="`${key}-divider`"
-          class="align-self-stretch primary--text separator ma-2"
-          inset
-          role="presentation"
-          vertical
-        ></v-divider>
-      </template>
+  <div class="align-center d-flex">
+    <div class="align-center d-flex flex-wrap pl-2">
+      <div v-for="(action, key) in courseActions" :key="key" class="align-center d-flex">
+        <div class="">
+          <v-btn
+            :id="`apply-course-action-btn-${key}`"
+            :key="key"
+            class="text-capitalize text-nowrap mx-0 px-2"
+            :color="$vuetify.theme.dark ? 'tertiary' : 'secondary'"
+            :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length || isLoading || isInvalidAction(action)"
+            text
+            @click.stop="action.apply(key)"
+          >
+            <span v-if="!(isLoading && key !== 'duplicate' && applyingAction.key === key)">{{ action.text }}</span>
+            <v-progress-circular
+              v-if="isLoading && key !== 'duplicate' && applyingAction.key === key"
+              :indeterminate="true"
+              color="tertiary"
+              rotate="5"
+              size="20"
+              width="3"
+            />
+          </v-btn>
+        </div>
+        <div v-if="key === 'ignore'" class="align-self-center pt-1 px-1">
+          <span class="font-size-18 text--secondary">|</span>
+        </div>
+      </div>
     </div>
     <UpdateEvaluations
       :apply-action="applyDuplicate"
@@ -39,8 +36,7 @@
       :midterm-form-available="midtermFormAvailable"
       :title="`Duplicate ${selectedEvaluationsDescription}`"
       v-bind="bulkUpdateOptions"
-    >
-    </UpdateEvaluations>
+    />
     <UpdateEvaluations
       :apply-action="applyEdit"
       :cancel-action="cancelEdit"
@@ -127,7 +123,7 @@ export default {
   }),
   created() {
     this.courseActions = {
-      // TO DO: Clean up dictionary keys and and statuses
+      // TO DO: Clean up dictionary keys and statuses
       review: {
         apply: this.applyAction,
         completedText: 'Marked as to-do',
@@ -210,7 +206,7 @@ export default {
       this.applyingAction = this.courseActions[key]
       this.isApplying = true
       this.alertScreenReader(`${this.applyingAction.inProgressText} ${target}`)
-      if (this.$_.includes(['duplicate', 'edit'], key)) {
+      if (['duplicate', 'edit'].includes(key)) {
         fields = {}
         if (this.bulkUpdateOptions.departmentForm) {
           fields.departmentFormId = this.bulkUpdateOptions.departmentForm

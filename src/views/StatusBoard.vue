@@ -2,10 +2,16 @@
   <div class="pt-2">
     <v-row no-gutters>
       <v-col cols="9" class="d-flex align-center">
-        <h1 id="page-title">Evaluation Status Dashboard - {{ selectedTermName }}</h1>
+        <h1
+          id="page-title"
+          class="py-2"
+          tabindex="-1"
+        >
+          Evaluation Status Dashboard - {{ selectedTermName }}
+        </h1>
       </v-col>
       <v-col cols="3">
-        <TermSelect :after-select="refresh" />
+        <TermSelect />
       </v-col>
     </v-row>
     <v-card outlined class="elevation-1">
@@ -24,7 +30,7 @@
         <template #header="{props: {headers}}">
           <SortableTableHeader :headers="headers" :on-sort="sort">
             <template #select>
-              <div class="d-flex flex-row notify-all">
+              <div class="d-flex flex-row notify-all py-2">
                 <label class="sr-only" for="checkbox-select-dept-all">Select all department rows</label>
                 <v-checkbox
                   id="checkbox-select-dept-all"
@@ -36,7 +42,7 @@
                   :ripple="false"
                   :value="allDepartmentsSelected"
                   @change="toggleSelectAll"
-                ></v-checkbox>
+                />
                 <div class="d-flex align-center">Send notification</div>
                 <v-btn
                   v-if="!isCreatingNotification"
@@ -159,7 +165,14 @@ export default {
   data: () => ({
     blockers: {},
     departments: [],
-    headers: [],
+    headers: [
+      {class: 'text-start text-nowrap px-4', text: 'Select', value: 'select', width: '30px'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Department', value: 'deptName', width: '50%'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Last Updated', value: 'lastUpdated', width: '20%'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Errors', value: 'totalInError', width: '10%'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Confirmed', value: 'totalConfirmed', width: '10%'},
+      {class: 'text-nowrap pt-12 pb-3', text: 'Notes', value: 'note.note', width: '30%'}
+    ],
     isCreatingNotification: false,
     isExporting: false,
     selectedDepartmentIds: [],
@@ -191,14 +204,15 @@ export default {
     }
   },
   created() {
-    this.headers = [
-      {class: 'text-start text-nowrap px-4', text: 'Select', value: 'select', width: '30px'},
-      {class: 'text-nowrap pt-12 pb-3', text: 'Department', value: 'deptName', width: '50%'},
-      {class: 'text-nowrap pt-12 pb-3', text: 'Last Updated', value: 'lastUpdated', width: '20%'},
-      {class: 'text-nowrap pt-12 pb-3', text: 'Errors', value: 'totalInError', width: '10%'},
-      {class: 'text-nowrap pt-12 pb-3', text: 'Confirmed', value: 'totalConfirmed', width: '10%'},
-      {class: 'text-nowrap pt-12 pb-3', text: 'Notes', value: 'note.note', width: '30%'}
-    ]
+    this.$loading()
+    this.alertScreenReader(`Loading ${this.selectedTermName}`)
+    this.departments = []
+    getDepartmentsEnrolled(true, false, true, this.selectedTermId).then(data => {
+      this.departments = data
+      this.loadBlockers()
+      this.$ready(`Evaluation Status Dashboard for ${this.selectedTermName}`)
+      this.$putFocusNextTick('page-title')
+    })
   },
   methods: {
     afterSendNotification() {
@@ -221,16 +235,6 @@ export default {
         if (d.totalBlockers) {
           this.blockers[d.deptName] = d.totalBlockers
         }
-      })
-    },
-    refresh() {
-      this.$loading()
-      this.alertScreenReader(`Loading ${this.selectedTermName}`)
-      this.departments = []
-      getDepartmentsEnrolled(true, false, true, this.selectedTermId).then(data => {
-        this.departments = data
-        this.loadBlockers()
-        this.$ready(`Evaluation Status Dashboard for ${this.selectedTermName}`)
       })
     },
     sort(sortBy, sortDesc) {

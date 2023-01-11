@@ -2,7 +2,7 @@
   <div class="pt-2">
     <v-row class="pb-2" no-gutters>
       <v-col cols="9" class="d-flex align-center">
-        <h1 v-if="$_.get(department, 'deptName')" id="page-title">
+        <h1 v-if="$_.get(department, 'deptName')" id="page-title" tabindex="-1">
           {{ department.deptName }}&MediumSpace;
           <span v-if="department.catalogListings">
             ({{ $_.compact($_.keys(department.catalogListings)).join(', ') }})&MediumSpace;
@@ -14,7 +14,7 @@
         <TermSelect :after-select="refresh" :term-ids="$_.get(department, 'enrolledTerms')" />
       </v-col>
     </v-row>
-    <v-container v-if="!loading" class="mx-0 px-0 pb-6" fluid>
+    <v-container v-if="!loading" class="mx-0 px-0 pb-2" fluid>
       <v-row justify="start">
         <v-col cols="12" md="5">
           <div class="contacts-container">
@@ -112,6 +112,25 @@
         <EvaluationTable />
       </v-card>
     </v-container>
+    <v-overlay :value="showTheOmenPoster" z-index="300">
+      <v-card>
+        <v-toolbar dark color="secondary" dense>
+          <v-icon
+            class="font-weight-bold pb-1 pl-0"
+            @click="showTheOmenPoster = false"
+          >
+            mdi-close
+          </v-icon>
+        </v-toolbar>
+        <v-card-text class="text-center py-2">
+          <img
+            alt="Movie poster of The Omen"
+            class="omen-poster-img"
+            src="@/assets/omen_poster.png"
+          />
+        </v-card-text>
+      </v-card>
+    </v-overlay>
   </div>
 </template>
 
@@ -142,15 +161,20 @@ export default {
     contactsPanel: undefined,
     isAddingContact: false,
     isCreatingNotification: false,
+    showTheOmenPoster: undefined
   }),
   computed: {
     notificationRecipients() {
       return {
-        'deptName': this.department.deptName,
-        'deptId': this.department.id,
-        'recipients': this.$_.filter(this.contacts, 'canReceiveCommunications')
+        deptName: this.department.deptName,
+        deptId: this.department.id,
+        recipients: this.$_.filter(this.contacts, 'canReceiveCommunications')
       }
     }
+  },
+  created() {
+    this.showTheOmenPoster = this.$route.query.n === '666'
+    this.$putFocusNextTick('page-title')
   },
   methods: {
     afterSaveContact() {
@@ -194,6 +218,9 @@ export default {
 <style scoped>
 .contacts-container {
   max-width: 500px;
+}
+.omen-poster-img {
+  height: 90vh;
 }
 .w-fit-content {
   width: fit-content;

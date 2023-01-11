@@ -88,7 +88,7 @@ const router = new Router({
         },
         {
           path: '/publish',
-          component: Megiddo,
+            component: Megiddo,
           meta: {
             title: 'Publish'
           }

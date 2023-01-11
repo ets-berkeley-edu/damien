@@ -32,6 +32,7 @@
             outlined
             required
             @keypress.enter.prevent="lookupSection"
+            @keydown.esc="onCancel"
           >
             <template #message="{message}">
               <div :id="sectionError ? 'section-not-found-error' : 'lookup-course-number-error'" class="text-condensed">
