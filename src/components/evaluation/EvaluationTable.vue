@@ -43,8 +43,9 @@
                   <span
                     v-if="!(someEvaluationsSelected || allEvaluationsSelected)"
                     class="text-nowrap pl-1 py-2"
+                    :class="{'sr-only': someEvaluationsSelected || allEvaluationsSelected}"
                   >
-                    Select all
+                    {{ someEvaluationsSelected || allEvaluationsSelected ? 'Unselect' : 'Select' }} all
                   </span>
                 </template>
               </v-checkbox>
@@ -134,12 +135,13 @@
                   <v-checkbox
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${rowIndex}-checkbox`"
-                    :value="selectedEvaluationIds.includes(evaluation.id)"
+                    :aria-label="`${evaluation.subjectArea} ${evaluation.catalogId} ${selectedEvaluationIds.includes(evaluation.id) ? '' : 'not '}selected`"
                     class="pr-1"
                     :color="`${hover ? 'primary' : 'tertiary'}`"
                     :disabled="editRowId === evaluation.id"
                     :ripple="false"
-                    @change="toggleSelectEvaluation(evaluation.id)"
+                    :value="selectedEvaluationIds.includes(evaluation.id)"
+                    @change="toggleSelectEvaluation(evaluation)"
                   />
                 </td>
                 <td
@@ -769,7 +771,9 @@ export default {
     toggleSelectAll() {
       if (this.allEvaluationsSelected || this.someEvaluationsSelected) {
         this.deselectAllEvaluations()
+        this.alertScreenReader('All evaluations unselected')
       } else {
+        this.alertScreenReader('All evaluations selected')
         this.selectAllEvaluations({
           searchFilterResults: this.searchFilterResults,
           enabledStatuses: this.enabledStatusFilterTypes

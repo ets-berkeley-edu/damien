@@ -8,7 +8,7 @@
       mdi-alert
     </v-icon>
     <div>
-      <h2>Error</h2>
+      <h2 :style="{color: primaryHexColor}">Error</h2>
       <div
         id="error-message"
         class="pt-4"
@@ -22,8 +22,11 @@
 </template>
 
 <script>
+import Util from '@/mixins/Util'
+
 export default {
   name: 'Error',
+  mixins: [Util],
   data: () => ({
     message: undefined
   }),

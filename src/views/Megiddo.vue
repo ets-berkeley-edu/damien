@@ -2,7 +2,7 @@
   <div class="pt-2">
     <v-row no-gutters>
       <v-col cols="9" class="d-flex align-center">
-        <h1 id="page-title">
+        <h1 id="page-title" :style="{color: primaryHexColor}">
           Publish<span v-if="selectedTermName"> - {{ selectedTermName }}</span>
         </h1>
       </v-col>
@@ -118,6 +118,7 @@ import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
 import TermSelect from '@/components/util/TermSelect'
+import Util from '@/mixins/Util'
 
 export default {
   name: 'Megiddo',
@@ -125,7 +126,7 @@ export default {
     EvaluationTable,
     TermSelect
   },
-  mixins: [Context, DepartmentEditSession],
+  mixins: [Context, DepartmentEditSession, Util],
   data: () => ({
     blockers: {},
     confirmed: [],
