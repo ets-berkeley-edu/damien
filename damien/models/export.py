@@ -84,8 +84,9 @@ class Export(Base):
     @classmethod
     def update_status(cls, s3_path, status):
         export = cls.query.filter_by(s3_path=s3_path).first()
-        export.status = status
-        std_commit()
+        if export:
+            export.status = status
+            std_commit()
         return export
 
     def to_api_json(self):
