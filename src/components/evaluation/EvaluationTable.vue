@@ -55,44 +55,55 @@
         </div>
         <div class="align-center d-flex flex-wrap">
           <div class="mr-2">Show statuses:</div>
-          <v-chip
-            v-for="type in $_.keys(filterTypes)"
-            :id="`evaluations-filter-${type}`"
-            :key="type"
-            :aria-label="`Toggle evaluation filter ${filterTypes[type].label}`"
+          <v-btn-toggle
+            v-model="selectedFilterTypes"
             aria-controls="evaluation-table"
-            :aria-selected="filterTypes[type].enabled"
-            class="ma-1 px-4 text-center text-nowrap text-uppercase"
-            :class="{
-              'secondary': filterTypes[type].enabled,
-              'inactive': !filterTypes[type].enabled
-            }"
-            :color="filterTypes[type].enabled ? 'secondary' : ''"
-            small
-            tabindex="0"
-            :text-color="filterTypes[type].enabled ? 'white' : 'inactive-contrast'"
-            @click="toggleFilter(type)"
-            @keypress.enter.prevent="toggleFilter(type)"
+            borderless
+            dense
+            multiple
+            rounded
           >
-            <v-icon
-              v-if="filterTypes[type].enabled"
-              color="white"
+            <v-btn
+              v-for="type in $_.keys(filterTypes)"
+              :id="`evaluations-filter-${type}`"
+              :key="type"
+              :aria-selected="filterTypes[type].enabled"
+              class="mr-1 pl-3 rounded-pill"
+              :class="{
+                'secondary': filterTypes[type].enabled,
+                'inactive': !filterTypes[type].enabled
+              }"
               small
-              left
+              text
+              :value="type"
             >
-              mdi-check-circle
-            </v-icon>
-            <v-icon
-              v-if="!filterTypes[type].enabled"
-              color="inactive-contrast"
-              small
-              left
-            >
-              mdi-plus-circle
-            </v-icon>
-            {{ filterTypes[type].label }}
-            {{ filterTypeCounts(type) }}
-          </v-chip>
+              <div class="align-center d-flex justify-space-between">
+                <div>
+                  <v-icon
+                    v-if="filterTypes[type].enabled"
+                    :color="filterTypes[type].enabled ? 'green' : 'inactive-contrast'"
+                    left
+                    small
+                  >
+                    {{ filterTypes[type].enabled ? 'mdi-check-circle' : 'mdi-plus-circle' }}
+                  </v-icon>
+                </div>
+                <div :class="filterTypes[type].enabled ? 'white--text' : 'grey--text darken-2'">
+                  <span class="sr-only">{{ filterTypes[type].enabled ? 'Hide' : 'Show' }} evaluations of marked with</span>
+                  {{ filterTypes[type].label }}
+                </div>
+                <div :class="filterTypes[type].enabled ? 'white--text' : 'grey--text darken-2'">
+                  <v-chip
+                    class="ml-2 px-1"
+                    :class="{'font-weight-bold': filterTypes[type].enabled}"
+                    x-small
+                  >
+                    {{ filterTypeCounts(type) }}<span class="sr-only"> evaluations</span>
+                  </v-chip>
+                </div>
+              </div>
+            </v-btn>
+          </v-btn-toggle>
         </div>
       </div>
     </div>
@@ -560,21 +571,29 @@ export default {
     sortDesc: false
   }),
   computed: {
+    allEvaluationsSelected() {
+      return !!(this.$_.size(this.selectedEvaluationIds) && this.$_.size(this.selectedEvaluationIds) === this.$_.size(this.evaluations))
+    },
     allowEdits() {
       return this.$currentUser.isAdmin || !this.isSelectedTermLocked
-    },
-    enabledStatusFilterTypes() {
-      return this.$_.keys(this.$_.pickBy(this.filterTypes, 'enabled'))
     },
     rowValid() {
       const evaluation = this.$_.find(this.evaluations, ['id', this.editRowId])
       return this.selectedStartDate >= this.minStartDate(evaluation) && this.selectedStartDate <= this.maxStartDate(evaluation)
     },
+    selectedFilterTypes: {
+      get: function() {
+        return this.$_.keys(this.$_.pickBy(this.filterTypes, 'enabled'))
+      },
+      set: function(types) {
+        this.alertScreenReader(`Showing ${types.length ? `evaluations marked ${this.oxfordJoin(types)}` : 'no evaluations'}`)
+        this.$_.each(this.$_.keys(this.filterTypes), type => {
+          this.filterTypes[type].enabled = types.includes(type)
+        })
+      }
+    },
     someEvaluationsSelected() {
       return !!(this.$_.size(this.selectedEvaluationIds) && this.$_.size(this.selectedEvaluationIds) < this.$_.size(this.evaluations))
-    },
-    allEvaluationsSelected() {
-      return !!(this.$_.size(this.selectedEvaluationIds) && this.$_.size(this.selectedEvaluationIds) === this.$_.size(this.evaluations))
     }
   },
   methods: {
@@ -695,7 +714,7 @@ export default {
     onChangeSearchFilter(searchFilterResults) {
       this.searchFilterResults = searchFilterResults
       if (this.$_.size(this.selectedEvaluationIds)) {
-        this.filterSelectedEvaluations(searchFilterResults, this.enabledStatusFilterTypes)
+        this.filterSelectedEvaluations(searchFilterResults, this.selectedFilterTypes)
       }
       if (!this.$_.some(this.searchFilterResults, {'id': this.editRowId})) {
         this.editRowId = null
@@ -761,7 +780,7 @@ export default {
       filter.enabled = !filter.enabled
       this.filterSelectedEvaluations({
           searchFilterResults: this.searchFilterResults,
-          enabledStatuses: this.enabledStatusFilterTypes
+          enabledStatuses: this.selectedFilterTypes
         })
       if (this.$_.some(this.evaluations, {'id': this.editRowId, 'status': type})) {
         this.editRowId = null
@@ -776,7 +795,7 @@ export default {
         this.alertScreenReader('All evaluations selected')
         this.selectAllEvaluations({
           searchFilterResults: this.searchFilterResults,
-          enabledStatuses: this.enabledStatusFilterTypes
+          enabledStatuses: this.selectedFilterTypes
         })
       }
     },
