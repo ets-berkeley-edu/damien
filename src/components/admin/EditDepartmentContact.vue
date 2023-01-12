@@ -287,8 +287,9 @@ export default {
       this.$putFocusNextTick(`input-deptForms-${this.contactId}`)
     },
     srAlert(label, isSelected) {
-      const name = `${this.contact.firstName} ${this.contact.lastName}`
-      this.alertScreenReader(`${name} will ${isSelected ? '' : 'not '} ${label}.`)
+      if (this.firstName || this.lastName) {
+        this.alertScreenReader(`${this.firstName} ${this.lastName} will ${isSelected ? '' : 'not '} ${label}.`)
+      }
     }
   }
 }
