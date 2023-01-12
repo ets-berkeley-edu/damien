@@ -49,6 +49,7 @@ def background_generate_exports(app_arg, term_id, timestamp):
         except Exception as e:
             app.logger.error('Background thread is stopping')
             app.logger.exception(e)
+            Export.update_status(get_s3_path(term_id, timestamp), 'error')
             raise e
 
 
