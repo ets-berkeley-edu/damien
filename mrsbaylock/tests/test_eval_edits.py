@@ -254,6 +254,9 @@ class TestEvaluationManagement:
         self.publish_page.load_page()
         self.publish_page.download_export_csvs()
 
+    def test_calculate_course_ids(self):
+        utils.calculate_course_ids(self.confirmed)
+
     def test_courses(self):
         expected = utils.expected_courses(self.confirmed)
         actual = self.publish_page.parse_csv('courses')
@@ -352,12 +355,13 @@ class TestEvaluationManagement:
         evals = evaluation_utils.get_evaluations(self.term, self.bulk_dept)
         no_teach = list(filter(lambda ev: (ev.instructor.uid is None), evals))
         new_teach = utils.get_test_user()
-        for row in no_teach:
-            self.dept_details_dept_page.click_eval_checkbox(row)
-        self.dept_details_dept_page.click_bulk_edit()
-        self.dept_details_dept_page.look_up_and_select_dupe_instr(new_teach)
-        self.dept_details_dept_page.click_bulk_edit_save()
-        self.dept_details_dept_page.wait_for_bulk_update()
-        for row in no_teach:
-            row.instructor = new_teach
-            assert new_teach.uid in self.dept_details_dept_page.eval_instructor(row)
+        if no_teach:
+            for row in no_teach:
+                self.dept_details_dept_page.click_eval_checkbox(row)
+            self.dept_details_dept_page.click_bulk_edit()
+            self.dept_details_dept_page.look_up_and_select_dupe_instr(new_teach)
+            self.dept_details_dept_page.click_bulk_edit_save()
+            self.dept_details_dept_page.wait_for_bulk_update()
+            for row in no_teach:
+                row.instructor = new_teach
+                assert new_teach.uid in self.dept_details_dept_page.eval_instructor(row)

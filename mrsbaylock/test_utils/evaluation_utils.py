@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import copy
 import datetime
 from datetime import timedelta
 import itertools
@@ -50,6 +51,7 @@ def get_evaluations(term, dept):
     get_sis_sections_to_evaluate(evals_total, term, dept)
     get_x_listings_and_shares(evals_total, term, dept)
     merge_dupe_rows(evals_total)
+    remove_empty_listings(evals_total)
     remove_listing_dept_forms(evals_total)
     get_manual_sections(evals_total, term, dept)
     edits = get_edited_sections(term, dept)
@@ -169,6 +171,7 @@ def result_row_to_eval(row, term, dept, foreign_listing=False):
         'status': status,
         'ccn': row['ccn'],
         'x_listing_ccns': listings,
+        'x_listing_ccns_all': copy.deepcopy(listings),
         'room_share_ccns': shares,
         'foreign_listing': foreign_listing,
         'instructor': instructor,
@@ -504,7 +507,8 @@ def merge_edited_evals(evaluations, edited_evals):
         for e in evaluations:
             if (
                     e.ccn == edit.ccn
-                    and e.instructor and e.instructor.uid == uid
+                    and (e.instructor and e.instructor.uid == uid
+                         or (edit.instructor.uid and not e.instructor.uid))
                     and (e.dept_form and not form
                          or form and not e.dept_form
                          or (e.dept_form and form and e.dept_form == form)
@@ -515,6 +519,8 @@ def merge_edited_evals(evaluations, edited_evals):
                 e.status = edit.status
                 edit.x_listing_ccns = e.x_listing_ccns
                 edit.room_share_ccns = e.room_share_ccns
+                if edit.instructor.uid:
+                    e.instructor = edit.instructor
                 if edit.dept_form:
                     e.dept_form = edit.dept_form
                 if edit.eval_type:
@@ -612,6 +618,7 @@ def get_instructors(evals):
                 'affiliations': row['affiliations'],
             }))
 
+        instructors_uids = list(map(lambda instructor: instructor.uid, instructors))
         for e in evals:
             for i in instructors:
                 if e.instructor and e.instructor.uid == i.uid:
@@ -620,6 +627,12 @@ def get_instructors(evals):
                     e.instructor.last_name = i.last_name
                     e.instructor.email = i.email
                     e.instructor.affiliations = i.affiliations
+            if e.instructor and e.instructor.uid and e.instructor.uid not in instructors_uids:
+                e.instructor.csid = None
+                e.instructor.first_name = None
+                e.instructor.last_name = None
+                e.instructor.email = None
+                e.instructor.affiliations = None
 
 
 def get_section_dept(term, ccn, all_users=None):

@@ -49,8 +49,8 @@ class StatusBoardAdminPage(DamienPages):
             ec.visibility_of_any_elements_located((By.XPATH, '//a[starts-with(@id, "link-to-dept-")]')),
         )
 
-    LOCK_BOX = (By.XPATH, '//label[text()=" Lock term "]/following-sibling::div//input/..')
-    UNLOCK_BOX = (By.XPATH, '//label[text()=" Unlock term "]/following-sibling::div//input/..')
+    LOCK_BOX = (By.XPATH, '//label[text()=" Evaluation term is unlocked. "]/following-sibling::button')
+    UNLOCK_BOX = (By.XPATH, '//label[text()=" Evaluation term is locked. "]/following-sibling::button')
 
     def lock_current_term(self):
         app.logger.info('Locking current term edits')

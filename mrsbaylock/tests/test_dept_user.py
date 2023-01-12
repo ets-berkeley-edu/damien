@@ -44,7 +44,7 @@ class TestDeptUser:
     depts = utils.get_participating_depts()
     for d in depts:
         single_role_users = list(map(lambda u: len(u.dept_roles) == 1, d.users))
-        if len(single_role_users) and (30 <= d.row_count <= 60):
+        if len(single_role_users) and (60 <= d.row_count <= 90):
             dept = d
             break
     evaluations = evaluation_utils.get_evaluations(term, dept)

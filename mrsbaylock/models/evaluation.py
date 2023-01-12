@@ -46,6 +46,10 @@ class Evaluation(object):
         return self.data['x_listing_ccns']
 
     @property
+    def x_listing_ccns_all(self):
+        return self.data['x_listing_ccns_all']
+
+    @property
     def foreign_listing(self):
         return self.data['foreign_listing']
 

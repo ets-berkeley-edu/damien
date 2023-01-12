@@ -293,7 +293,7 @@ def get_dept(name, all_users=None):
           FROM departments
      LEFT JOIN department_notes
             ON departments.id = department_notes.department_id
-         WHERE departments.dept_name = '{name}';
+         WHERE departments.dept_name = '{name.replace("'", "''")}';
     """
     app.logger.info(sql)
     result = db.session.execute(text(sql))
@@ -478,10 +478,10 @@ def expected_courses(evaluations, calc_course_ids=False):
         calculate_course_ids(evaluations)
     for row in evaluations:
         gsi = ' (EVAL FOR GSI)' if row.eval_type == 'G' else ''
-        if row.x_listing_ccns:
+        if row.x_listing_ccns_all:
             flag = 'Y'
             ccns = []
-            ccns.extend(row.x_listing_ccns)
+            ccns.extend(row.x_listing_ccns_all)
             ccns.append(row.ccn)
             ccns.sort()
             x_listed_name = '-'.join(ccns)
@@ -659,14 +659,14 @@ def get_foreign_ccns(evaluations):
     eval_foreign_ccns = []
     non_eval_foreign_ccns = []
     for ev in evaluations:
-        if ev.x_listing_ccns:
+        if ev.x_listing_ccns_all:
             if ev.foreign_listing:
                 eval_foreign_ccns.append(ev.ccn)
             else:
                 eval_domestic_ccns.append(ev.ccn)
     eval_foreign_ccns = list(set(eval_foreign_ccns))
     for ev in evaluations:
-        for listing_ccn in ev.x_listing_ccns:
+        for listing_ccn in ev.x_listing_ccns_all:
             if listing_ccn not in eval_domestic_ccns and listing_ccn not in eval_foreign_ccns:
                 non_eval_foreign_ccns.append(listing_ccn)
     non_eval_foreign_ccns = list(set(non_eval_foreign_ccns))
@@ -684,7 +684,7 @@ def expected_x_listed_course_supervisors(term, evaluations, all_contacts):
     # Get test department's supervisors
     supervisors = []
     for ev in evaluations:
-        if ev.x_listing_ccns and not ev.foreign_listing:
+        if ev.x_listing_ccns_all and not ev.foreign_listing:
             for uid in dept_uids_and_forms:
                 if ev.dept_form in uid['forms']:
                     data = {
@@ -692,7 +692,7 @@ def expected_x_listed_course_supervisors(term, evaluations, all_contacts):
                         'LDAP_UID': uid['uid'],
                     }
                     supervisors.append(data)
-                    for listing_ccn in ev.x_listing_ccns:
+                    for listing_ccn in ev.x_listing_ccns_all:
                         if listing_ccn in eval_foreign_ccns:
                             listing = next(filter(lambda l: l.ccn == listing_ccn, evaluations))
                             data = {
@@ -722,7 +722,7 @@ def expected_x_listed_course_supervisors(term, evaluations, all_contacts):
     std_commit(allow_test_environment=True)
     for row in result:
         for ev in evaluations:
-            if row['course_number'] == ev.ccn or row['course_number'] in ev.x_listing_ccns:
+            if row['course_number'] == ev.ccn or row['course_number'] in ev.x_listing_ccns_all:
                 data = {
                     'COURSE_ID': ev.course_id,
                     'LDAP_UID': row['uid'],
