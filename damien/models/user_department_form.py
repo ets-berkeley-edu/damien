@@ -57,11 +57,7 @@ class UserDepartmentForm(Base):
             department_form_id,
             user_id,
     ):
-        user_department_form = cls(
-            department_form_id=department_form_id,
-            user_id=user_id,
-        )
-        db.session.add(user_department_form)
+        user_department_form = cls(department_form_id=department_form_id, user_id=user_id)
         std_commit()
         return user_department_form
 

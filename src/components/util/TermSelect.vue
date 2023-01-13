@@ -53,7 +53,7 @@
         />
         <v-icon
           v-if="!isTogglingLock"
-          :color="isSelectedTermLocked ? 'red' : 'success'"
+          :color="isSelectedTermLocked ? 'error' : 'success'"
           large
         >
           {{ isSelectedTermLocked ? 'mdi-lock' : 'mdi-lock-open' }}
