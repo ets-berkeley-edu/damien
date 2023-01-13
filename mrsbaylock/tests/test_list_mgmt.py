@@ -207,6 +207,9 @@ class TestListManagement:
         self.publish_page.load_page()
         self.publish_page.download_export_csvs()
 
+    def test_get_course_ids(self):
+        utils.calculate_course_ids(self.confirmed)
+
     def test_courses(self):
         expected = utils.expected_courses(self.confirmed)
         actual = self.publish_page.parse_csv('courses')
