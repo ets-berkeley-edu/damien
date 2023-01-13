@@ -87,18 +87,21 @@
         v-model="contactDepartmentForms"
         auto-select-first
         chips
-        class="my-2"
+        class="mb-4 mt-2"
         color="tertiary"
         deletable-chips
+        dense
         :disabled="disableControls"
         hide-details
         hide-selected
         item-color="secondary"
         item-text="name"
         :items="availableDepartmentForms"
+        :menu-props="{closeOnClick: true, closeOnContentClick: true}"
         multiple
         outlined
         return-object
+        @change="onChangeContactDepartmentForms"
       >
         <template #selection="data">
           <v-chip
@@ -148,10 +151,11 @@ import {getUserDepartmentForms} from '@/api/user'
 import Context from '@/mixins/Context.vue'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import PersonLookup from '@/components/admin/PersonLookup'
+import Util from '@/mixins/Util'
 
 export default {
   name: 'EditDepartmentContact',
-  mixins: [Context, DepartmentEditSession],
+  mixins: [Context, DepartmentEditSession, Util],
   components: {PersonLookup},
   props: {
     afterSave: {
@@ -231,6 +235,14 @@ export default {
       getUserDepartmentForms(uid).then(data => {
         this.contactDepartmentForms = data
       })
+    },
+    onChangeContactDepartmentForms(selectedValues) {
+      const names = this.$_.map(selectedValues, 'name')
+      if (names.length) {
+        this.alertScreenReader(`Selected department form${names.length === 1 ? 's are' : 'is'} ${this.oxfordJoin(names)}.`)
+      } else {
+        this.alertScreenReader('No department forms selected.')
+      }
     },
     onSave() {
       this.alertScreenReader('Saving')

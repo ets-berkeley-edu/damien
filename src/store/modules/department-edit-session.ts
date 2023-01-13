@@ -90,7 +90,8 @@ const state = {
   errorDialogText: null,
   evaluations: [],
   note: undefined,
-  selectedEvaluationIds: [] as any[]
+  selectedEvaluationIds: [] as any[],
+  showTheOmenPoster: undefined
 }
 
 const getters = {
@@ -103,7 +104,8 @@ const getters = {
   errorDialogText: (state: any): boolean => state.errorDialogText,
   evaluations: (state: any): any[] => state.evaluations,
   note: (state: any): string => state.note,
-  selectedEvaluationIds: (state: any): any[] => state.selectedEvaluationIds
+  selectedEvaluationIds: (state: any): any[] => state.selectedEvaluationIds,
+  showTheOmenPoster: (): boolean => !!state.showTheOmenPoster
 }
 
 const actions = {
@@ -186,9 +188,8 @@ const actions = {
   setEvaluations: ({commit}, evaluations: any[]) => {
     commit('setEvaluations', evaluations)
   },
-  setDisableControls: ({commit}, disable: boolean) => {
-    commit('setDisableControls', disable)
-  },
+  setDisableControls: ({commit}, disable: boolean) => commit('setDisableControls', disable),
+  setShowTheOmenPoster: ({commit}, show: boolean) => commit('setShowTheOmenPoster', show),
   showErrorDialog: ({commit}, text: string) => {
     commit('setErrorDialog', true)
     commit('setErrorDialogText', text)
@@ -286,6 +287,12 @@ const mutations = {
         evaluation.isSelected = false
         state.selectedEvaluationIds.splice(index, 1)
       }
+    }
+  },
+  setShowTheOmenPoster: (state: any, show: boolean) => {
+    // This easter-egg flag can only be enabled once.
+    if (!show || _.isUndefined(state.showTheOmenPoster)) {
+      state.showTheOmenPoster = show
     }
   },
   updateSelectedEvaluationIds: (state: any) => {

@@ -131,7 +131,7 @@
         <v-toolbar dark color="secondary" dense>
           <v-icon
             class="font-weight-bold pb-1 pl-0"
-            @click="showTheOmenPoster = false"
+            @click="() => setShowTheOmenPoster(false)"
           >
             mdi-close
           </v-icon>
@@ -174,8 +174,7 @@ export default {
     contactDetailsPanel: [],
     contactsPanel: undefined,
     isAddingContact: false,
-    isCreatingNotification: false,
-    showTheOmenPoster: undefined
+    isCreatingNotification: false
   }),
   computed: {
     notificationRecipients() {
@@ -187,7 +186,7 @@ export default {
     }
   },
   created() {
-    this.showTheOmenPoster = this.$route.query.n === '666'
+    this.setShowTheOmenPoster(this.$route.query.n === this.NUMBER_OF_THE_BEAST)
     this.$putFocusNextTick('page-title')
   },
   methods: {

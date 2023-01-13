@@ -8,6 +8,9 @@ const $_isInvalid = (e, evaluationIds) => {
 
 export default {
   name: 'DepartmentEditSession',
+  data: () => ({
+    NUMBER_OF_THE_BEAST: '666'
+  }),
   computed: {
     ...mapGetters('departmentEditSession', [
       'activeDepartmentForms',
@@ -19,7 +22,8 @@ export default {
       'errorDialogText',
       'evaluations',
       'note',
-      'selectedEvaluationIds'
+      'selectedEvaluationIds',
+      'showTheOmenPoster'
     ]),
     evaluationStatuses() {
       return [
@@ -66,6 +70,7 @@ export default {
       'selectAllEvaluations',
       'setDisableControls',
       'setEvaluations',
+      'setShowTheOmenPoster',
       'showErrorDialog',
       'toggleSelectEvaluation',
       'updateContact',
