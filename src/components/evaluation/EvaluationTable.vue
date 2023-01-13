@@ -1,17 +1,23 @@
 <template>
   <div v-if="evaluations.length > 0">
-    <div class="elevation-2 sticky" :class="$vuetify.theme.dark ? 'sticky-dark' : 'sticky-light'">
+    <div
+      class="elevation-2 sticky"
+      :class="$vuetify.theme.dark ? 'sticky-dark' : 'sticky-light'"
+      role="search"
+    >
       <div class="align-baseline d-flex flex-wrap px-5 pb-3 pt-1 w-75">
         <v-text-field
           id="evaluation-search-input"
           v-model="searchFilter"
           append-icon="mdi-magnify"
+          aria-label="Filter evaluations table by search terms."
           class="evaluation-search-input mr-3"
           color="tertiary"
           hide-details
           label="Find"
           max-width="600px"
           single-line
+          type="search"
         />
         <div class="text-left">
           <AddCourseSection
@@ -107,8 +113,17 @@
         </div>
       </div>
     </div>
+    <div
+      id="evaluation-table-search-results-desc"
+      aria-atomic="true"
+      aria-live="polite"
+      class="sr-only"
+    >
+      <span v-if="searchFilter">{{ pluralize('evaluation', $_.size(searchFilterResults)) }} displayed.</span>
+    </div>
     <v-data-table
       id="evaluation-table"
+      aria-label="Evaluations"
       class="mt-3"
       disable-pagination
       :headers="headers"
@@ -614,7 +629,10 @@ export default {
       this.$putFocusNextTick('input-department-form')
     },
     customFilter(value, search, item) {
-      if (!value || !search || typeof value === 'boolean') {
+      if (!search) {
+        return true
+      }
+      if (!value || typeof value === 'boolean') {
         return false
       }
       if (value === item.sortableInstructor) {
