@@ -78,8 +78,11 @@ class Export(Base):
         return cls.query.filter_by(term_id=term_id, status='success').order_by(cls.created_at.desc()).all()
 
     @classmethod
-    def get_latest(cls):
-        return cls.query.order_by(cls.created_at.desc()).first()
+    def get_latest(cls, term_id=None):
+        q = cls.query
+        if term_id:
+            q = q.filter_by(term_id=term_id)
+        return q.order_by(cls.created_at.desc()).first()
 
     @classmethod
     def update_status(cls, s3_path, status):

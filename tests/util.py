@@ -35,8 +35,11 @@ def mock_s3_bucket(app):
         bucket = app.config['AWS_S3_BUCKET']
         s3 = boto3.resource('s3', app.config['AWS_S3_REGION'])
         bucket = s3.create_bucket(Bucket=bucket, CreateBucketConfiguration={'LocationConstraint': app.config['AWS_S3_REGION']})
+
+        # Fall 2021 export data to be picked up by Spring 2022 jobs.
         with open(f"{app.config['FIXTURES_PATH']}/legacy_course_instructors.csv", 'rb') as f:
-            bucket.put_object(Key='exports/legacy/course_instructors.csv', Body=f)
+            bucket.put_object(Key='exports/2218/2021_12_21_03_03_03/course_instructors.csv', Body=f)
+
         yield s3
 
 
