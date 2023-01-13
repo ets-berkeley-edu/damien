@@ -57,6 +57,7 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
     CONTACT_NO_BLUE_RADIO = (By.XPATH, '//input[contains(@id, "radio-no-blue-")]/..')
     CONTACT_REPORTS_RADIO = (By.XPATH, '//input[contains(@id, "radio-reports-only-")]/..')
     CONTACT_RESPONSES_RADIO = (By.XPATH, '//input[contains(@id, "radio-response-rates-")]/..')
+    ADD_CONTACT_DEPT_FORM_SELECT = (By.XPATH, '//legend[text()=" Department Forms "]/following-sibling::div//div[@class="v-input__control"]')
     ADD_CONTACT_DEPT_FORM_INPUT = (By.XPATH, '//legend[text()=" Department Forms "]/following-sibling::div//input')
     ADD_CONTACT_DEPT_FORM_OPTION = (By.XPATH, '//li[@role="option"]')
     ADD_CONTACT_SAVE_BUTTON = (By.ID, 'save-dept-contact-add-contact-btn')
@@ -87,10 +88,11 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         Wait(self.driver, utils.get_short_timeout()).until(
             ec.presence_of_element_located(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT),
         )
-        self.wait_for_page_and_click_js(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
+        self.wait_for_page_and_click(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_SELECT)
         self.remove_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT)
 
     def enter_and_select_dept_form(self, form):
+        self.wait_for_element_and_click(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_SELECT)
         self.enter_chars(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_INPUT, form)
         self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_option(form))
         Wait(self.driver, utils.get_short_timeout()).until(
@@ -98,7 +100,6 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         )
 
     def select_dept_forms(self, dept_forms, user=None):
-        self.clear_dept_form_input(user)
         for form in dept_forms:
             self.enter_and_select_dept_form(form)
 
