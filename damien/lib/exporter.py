@@ -59,40 +59,29 @@ def generate_exports(term_id, timestamp):
     all_catalog_listings = DepartmentCatalogListing.query.all()
     dept_forms_to_uids = {df.name: [udf.user.uid for udf in df.users] for df in DepartmentForm.query.all()}
 
-    # Past terms are included in 1) course-instructor mappings; 2) course-supervisor mappings for cross-listed courses; 3) instructor data.
-    past_term_ids = term_ids_range(app.config['EARLIEST_TERM_ID'], term_id)[:-1]
-    course_instructors = list(csv.DictReader(stream_object_text('exports/legacy/course_instructors.csv') or []))
-    xlisted_course_supervisors = []
-    instructors_by_uid = {}
+    # We fetch past-term exports for 1) course-instructor mappings; 2) course-supervisor mappings for cross-listed courses; 3) instructor data.
+    if term_id == app.config['EARLIEST_TERM_ID']:
+        past_term_export_path = 'exports/legacy'
+    else:
+        previous_term_id = term_ids_range(app.config['EARLIEST_TERM_ID'], term_id)[-2]
+        past_term_export_path = Export.get_latest(term_id=previous_term_id).s3_path
 
-    for past_term_id in past_term_ids:
-        evaluation_keys_to_instructor_uids, past_term_instructors, sections = _generate_evaluation_maps(past_term_id)
-        instructors_by_uid.update(past_term_instructors)
-        sorted_keys = sorted(evaluation_keys_to_instructor_uids.keys(), key=lambda k: (k.course_number, k.department_form, k.evaluation_type))
-        for course_number, keys in groupby(sorted_keys, lambda k: k.course_number):
-            keys = list(keys)
-            course_ids = _generate_course_id_map(keys, course_number, past_term_id)
-            for key in keys:
-                course_instructors.extend(
-                    _generate_course_instructor_rows(course_ids[key], evaluation_keys_to_instructor_uids[key], key.evaluation_type))
-                xlisted_course_supervisors.extend(
-                    _generate_xlisted_course_supervisor_rows(course_ids[key], course_number, sections, dept_forms_to_uids, all_catalog_listings))
-
-    # All other exports are for the current term only.
     evaluation_keys_to_instructor_uids, current_term_instructors, sections = _generate_evaluation_maps(term_id)
     courses, current_term_course_instructors, course_students, course_supervisors, students, current_term_xlisted_course_supervisors =\
         _generate_course_rows(term_id, sections, evaluation_keys_to_instructor_uids, dept_forms_to_uids, all_catalog_listings)
 
+    course_instructors = list(csv.DictReader(stream_object_text(f'{past_term_export_path}/course_instructors.csv') or []))
     course_instructors.extend(current_term_course_instructors)
+
+    xlisted_course_supervisors = list(csv.DictReader(stream_object_text(f'{past_term_export_path}/xlisted_course_supervisors.csv') or []))
     xlisted_course_supervisors.extend(current_term_xlisted_course_supervisors)
-    instructors_by_uid.update(current_term_instructors)
 
     instructors = []
-    for legacy_instructor in csv.DictReader(stream_object_text('exports/legacy/instructors.csv') or []):
-        if legacy_instructor['LDAP_UID'] not in instructors_by_uid:
+    for legacy_instructor in csv.DictReader(stream_object_text(f'{past_term_export_path}/instructors.csv') or []):
+        if legacy_instructor['LDAP_UID'] not in current_term_instructors:
             instructors.append(legacy_instructor)
-    for instructor_uid in sorted(instructors_by_uid.keys()):
-        instructors.append(_export_instructor_row(instructors_by_uid[instructor_uid]))
+    for instructor_uid in sorted(current_term_instructors.keys()):
+        instructors.append(_export_instructor_row(current_term_instructors[instructor_uid]))
 
     supervisors = [_export_supervisor_row(u) for u in User.get_dept_contacts_with_blue_permissions()]
     department_hierarchy, report_viewer_hierarchy = _generate_hierarchy_rows(dept_forms_to_uids)
