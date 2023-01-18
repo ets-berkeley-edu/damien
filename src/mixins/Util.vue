@@ -18,6 +18,9 @@
         default: return _.join(_.concat(_.initial(arr), ` and ${_.last(arr)}`), ', ')
         }
       },
+      pluralize: (noun, count, substitutions = {}, pluralSuffix = 's') => {
+        return (`${substitutions[count] || substitutions['other'] || count} ` + (count !== 1 ? `${noun}${pluralSuffix}` : noun))
+      },
       scrollTo: anchor => VueScrollTo.scrollTo(anchor, 400),
       scrollToTop: delay => VueScrollTo.scrollTo('#app', (delay || 400)),
       stripAnchorRef: path => _.split(path, '#', 1)[0]
