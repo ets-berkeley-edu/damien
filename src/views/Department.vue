@@ -5,7 +5,7 @@
         <h1
           v-if="$_.get(department, 'deptName')"
           id="page-title"
-          :style="{color: primaryHexColor}"
+          :style="{color: titleHexColor}"
           tabindex="-1"
         >
           <div class="d-flex flex-wrap">

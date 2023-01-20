@@ -94,7 +94,6 @@
         <v-btn
           id="cancel-dept-note-btn"
           class="text-capitalize ml-1"
-          color="secondary"
           :disabled="disableControls || !isEditable"
           elevation="2"
           outlined

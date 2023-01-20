@@ -2,7 +2,7 @@
   <div class="pt-2">
     <v-row no-gutters>
       <v-col cols="9" class="d-flex align-center">
-        <h1 id="page-title" :style="{color: primaryHexColor}">
+        <h1 id="page-title" :style="{color: titleHexColor}">
           Publish<span v-if="selectedTermName"> - {{ selectedTermName }}</span>
         </h1>
       </v-col>
@@ -34,7 +34,7 @@
         <v-btn
           id="publish-btn"
           class="publish-btn align-self-end my-4 mr-2"
-          color="primary"
+          color="secondary"
           :disabled="isExporting || loading || !!$_.size(blockers)"
           @click="publish"
           @keypress.enter.prevent="publish"

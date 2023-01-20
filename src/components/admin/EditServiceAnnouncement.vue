@@ -4,8 +4,10 @@
       id="service-announcement-textarea"
       v-model="text"
       aria-label="Enter service announcement for users to read"
+      color="tertiary"
       rows="3"
       max-rows="5"
+      outlined
       hide-details="auto"
       solo
     />
@@ -17,7 +19,7 @@
     />
     <v-btn
       id="service-announcement-save"
-      color="primary"
+      color="secondary"
       :disabled="!$_.trim(text)"
       @click="save"
     >

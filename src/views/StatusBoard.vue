@@ -5,7 +5,7 @@
         <h1
           id="page-title"
           class="py-2"
-          :style="{color: primaryHexColor}"
+          :style="{color: titleHexColor}"
           tabindex="-1"
         >
           Evaluation Status Dashboard - {{ selectedTermName }}

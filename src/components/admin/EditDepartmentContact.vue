@@ -134,7 +134,6 @@
     <v-btn
       :id="`cancel-dept-contact-${contactId}-btn`"
       class="text-capitalize ml-1"
-      color="secondary"
       :disabled="disableControls"
       elevation="2"
       outlined

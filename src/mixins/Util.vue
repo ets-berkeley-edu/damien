@@ -5,9 +5,9 @@
   export default {
     name: 'Utils',
     computed: {
-      primaryHexColor() {
+      titleHexColor() {
         const theme = this.$vuetify.theme
-        return theme.dark ? theme.themes.dark.primary : theme.themes.light.primary
+        return theme.dark ? theme.themes.dark.title : theme.themes.light.title
       }
     },
     methods: {
