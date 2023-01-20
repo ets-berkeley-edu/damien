@@ -8,7 +8,7 @@
       mdi-alert
     </v-icon>
     <div>
-      <h2 :style="{color: primaryHexColor}">Error</h2>
+      <h2 :style="{color: titleHexColor}">Error</h2>
       <div
         id="error-message"
         class="pt-4"

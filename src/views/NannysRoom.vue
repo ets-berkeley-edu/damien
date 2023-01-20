@@ -3,7 +3,7 @@
     <div class="d-flex">
       <h1
         id="page-title"
-        :style="{color: primaryHexColor}"
+        :style="{color: titleHexColor}"
         tabindex="-1"
       >
         List Management
@@ -74,7 +74,6 @@
               <v-btn
                 :id="'cancel-save-dept-form-btn'"
                 class="text-capitalize ml-1"
-                color="tertiary"
                 :disabled="isSaving"
                 elevation="2"
                 outlined
@@ -175,7 +174,6 @@
               <v-btn
                 :id="'cancel-save-eval-type-btn'"
                 class="text-capitalize ml-1"
-                color="tertiary"
                 :disabled="isSaving"
                 elevation="2"
                 outlined
@@ -331,7 +329,6 @@
               <v-btn
                 id="cancel-save-instructor-btn"
                 class="text-capitalize ml-1"
-                color="tertiary"
                 :disabled="!instructorValid || isSaving"
                 elevation="2"
                 outlined

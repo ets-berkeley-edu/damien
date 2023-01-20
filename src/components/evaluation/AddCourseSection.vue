@@ -56,7 +56,6 @@
             <v-btn
               id="lookup-course-number-cancel"
               class="text-capitalize ml-1 mb-1"
-              color="secondary"
               elevation="2"
               outlined
               text
@@ -92,7 +91,6 @@
           <v-btn
             id="add-course-section-cancel"
             class="text-capitalize ml-1 mb-1"
-            color="secondary"
             elevation="2"
             outlined
             text

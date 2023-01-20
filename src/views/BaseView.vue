@@ -93,7 +93,7 @@
             <v-btn
               id="btn-main-menu"
               v-bind="attrs"
-              color="primary"
+              color="secondary"
               dark
               v-on="on"
             >

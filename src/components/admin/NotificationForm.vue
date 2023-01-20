@@ -110,7 +110,6 @@
         <v-btn
           id="cancel-send-notification-btn"
           class="text-capitalize ml-1"
-          color="tertiary"
           :disabled="isSending"
           elevation="2"
           outlined
