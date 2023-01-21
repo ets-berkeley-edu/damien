@@ -125,7 +125,8 @@ INSERT INTO departments (dept_name, is_enrolled) VALUES
   ('Spanish and Portuguese', TRUE),
   ('Statistics', TRUE),
   ('Theater, Dance and Performance Studies', TRUE),
-  ('Undergraduate and Interdisciplinary Studies', TRUE);
+  ('Undergraduate and Interdisciplinary Studies', TRUE),
+  ('Computational Precision Health', TRUE);
 
 CREATE TEMP TABLE listings (
   dept_name VARCHAR,
@@ -360,7 +361,8 @@ INSERT INTO listings (dept_name, subject_area, catalog_id, default_form, start_t
   ('Undergraduate and Interdisciplinary Studies', 'BIC', NULL, 'BIC', NULL, NULL),
   ('Undergraduate and Interdisciplinary Studies', 'LS', NULL, 'L & S', NULL, NULL),
   ('Undergraduate and Interdisciplinary Studies', 'RELIGST', NULL, 'RELIGST', NULL, NULL),
-  ('Undergraduate and Interdisciplinary Studies', 'UGIS', NULL, 'UGIS', NULL, NULL);
+  ('Undergraduate and Interdisciplinary Studies', 'UGIS', NULL, 'UGIS', NULL, NULL),
+  ('Computational Precision Health', 'CPH', NULL, 'CPH', NULL, NULL);
 
 INSERT INTO department_forms (name) SELECT DISTINCT default_form FROM listings;
 

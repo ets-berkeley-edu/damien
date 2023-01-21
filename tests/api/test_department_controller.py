@@ -54,7 +54,7 @@ class TestEnrolledDepartments:
     def test_authorized(self, client, fake_auth):
         fake_auth.login(admin_uid)
         departments = _api_enrolled_departments(client)
-        assert len(departments) == 83
+        assert len(departments) == 84
         for d in departments:
             assert d['deptName']
             assert d['enrolledTerms']
@@ -82,7 +82,7 @@ class TestEnrolledDepartments:
     def test_include_contacts_sections_and_status(self, client, fake_auth):
         fake_auth.login(admin_uid)
         departments = _api_enrolled_departments(client, include_contacts=True, include_sections=True, include_status=True)
-        assert len(departments) == 83
+        assert len(departments) == 84
         for d in departments:
             assert 'contacts' in d
             assert 'enrolledTerms' in d
