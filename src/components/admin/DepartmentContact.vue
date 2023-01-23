@@ -94,9 +94,9 @@
                 Delete
               </v-btn>
               <ConfirmDialog
-                :cancel-action="onCancelDelete"
-                :confirming="isConfirming"
-                :perform-action="onDelete"
+                v-if="isConfirming"
+                :on-click-cancel="onCancelDelete"
+                :on-click-confirm="onDelete"
                 :text="`Are you sure you want to remove ${fullName}?`"
                 :title="'Delete contact?'"
               />
