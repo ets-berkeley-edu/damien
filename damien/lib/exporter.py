@@ -60,11 +60,12 @@ def generate_exports(term_id, timestamp):
     dept_forms_to_uids = {df.name: [udf.user.uid for udf in df.users] for df in DepartmentForm.query.all()}
 
     # We fetch past-term exports for 1) course-instructor mappings; 2) course-supervisor mappings for cross-listed courses; 3) instructor data.
-    if term_id == app.config['EARLIEST_TERM_ID']:
-        past_term_export_path = 'exports/legacy'
-    else:
+    past_term_export_path = 'exports/legacy'
+    if term_id != app.config['EARLIEST_TERM_ID']:
         previous_term_id = term_ids_range(app.config['EARLIEST_TERM_ID'], term_id)[-2]
-        past_term_export_path = Export.get_latest(term_id=previous_term_id).s3_path
+        last_export = Export.get_latest(term_id=previous_term_id)
+        if last_export:
+            past_term_export_path = last_export.s3_path
 
     evaluation_keys_to_instructor_uids, current_term_instructors, sections = _generate_evaluation_maps(term_id)
     courses, current_term_course_instructors, course_students, course_supervisors, students, current_term_xlisted_course_supervisors =\
