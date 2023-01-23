@@ -7,7 +7,6 @@
     light
     max-width="unset"
     multi-line
-    outlined
     :timeout="snackbar.timeout"
     text
     :top="true"
@@ -16,7 +15,7 @@
       <div
         id="alert-text"
         aria-live="polite"
-        class="ml-4 mr-4 title text-condensed"
+        class="ml-4 mr-4 font-size-18 text-condensed"
         role="alert"
         v-html="snackbar.text"
       >
@@ -25,6 +24,7 @@
         <v-btn
           id="btn-close-alert"
           aria-label="Close this dialog box."
+          :color="snackbar.color"
           text
           @click="snackbarClose"
           @keypress.enter.prevent="snackbarClose"
