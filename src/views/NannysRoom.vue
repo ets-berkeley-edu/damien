@@ -97,7 +97,7 @@
                 :sort-desc.sync="sortDesc.departmentForms"
               >
                 <template #header="{props: {headers}}">
-                  <SortableTableHeader :headers="headers" :on-sort="sortDepartmentForms" />
+                  <SortableTableHeader :id="'form-'" :headers="headers" :on-sort="sortDepartmentForms" />
                 </template>
                 <template #item.name="{item}">
                   <div class="d-flex justify-space-between">
@@ -197,7 +197,7 @@
                 :sort-desc.sync="sortDesc.evaluationTypes"
               >
                 <template #header="{props: {headers}}">
-                  <SortableTableHeader :headers="headers" :on-sort="sortEvaluationTypes" />
+                  <SortableTableHeader :id="'eval-'" :headers="headers" :on-sort="sortEvaluationTypes" />
                 </template>
                 <template #item.name="{item}">
                   <div class="d-flex justify-space-between">
@@ -351,7 +351,7 @@
                 :sort-desc.sync="sortDesc.instructors"
               >
                 <template #header="{props: {headers}}">
-                  <SortableTableHeader :headers="headers" :on-sort="sortInstructors" />
+                  <SortableTableHeader :id="'instructor-'" :headers="headers" :on-sort="sortInstructors" />
                 </template>
                 <template #item.delete="{ item }">
                   <v-btn
