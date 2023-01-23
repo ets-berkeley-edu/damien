@@ -20,7 +20,7 @@
         id="department-table"
         disable-pagination
         :disable-sort="loading"
-        :headers="headers"
+        :headers="departmentHeaders"
         hide-default-footer
         hide-default-header
         :items="departments"
@@ -167,7 +167,7 @@ export default {
   data: () => ({
     blockers: {},
     departments: [],
-    headers: [
+    departmentHeaders: [
       {class: 'text-start text-nowrap px-4', text: 'Select', value: 'select', width: '30px'},
       {class: 'text-nowrap pt-12 pb-3', text: 'Department', value: 'deptName', width: '50%'},
       {class: 'text-nowrap pt-12 pb-3', text: 'Last Updated', value: 'lastUpdated', width: '20%'},

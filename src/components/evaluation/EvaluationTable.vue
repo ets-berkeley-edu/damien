@@ -126,7 +126,7 @@
       aria-label="Evaluations"
       class="mt-3"
       disable-pagination
-      :headers="headers"
+      :headers="evaluationHeaders"
       :search="searchFilter"
       :custom-filter="customFilter"
       hide-default-footer
@@ -559,7 +559,7 @@ export default {
       ignore: {label: 'Ignore', enabled: false}
     },
     focusedEditButtonEvaluationId: null,
-    headers: [
+    evaluationHeaders: [
       {class: 'text-center text-nowrap', text: 'Status', value: 'status', width: '115px'},
       {class: 'text-start text-nowrap', text: 'Last Updated', value: 'lastUpdated', width: '5%'},
       {class: 'text-start text-nowrap', text: 'Course Number', value: 'sortableCourseNumber', width: '5%'},
@@ -855,9 +855,9 @@ export default {
   },
   created() {
     if (this.readonly) {
-      this.headers = [{class: 'text-start text-nowrap pl-3', text: 'Department', value: 'department.id'}].concat(this.headers)
+      this.evaluationHeaders = [{class: 'text-start text-nowrap pl-3', text: 'Department', value: 'department.id'}].concat(this.evaluationHeaders)
     } else if (this.allowEdits) {
-      this.headers = [{class: 'text-start text-nowrap pl-1', text: 'Select', value: 'select', width: '30px'}].concat(this.headers)
+      this.evaluationHeaders = [{class: 'text-start text-nowrap pl-1', text: 'Select', value: 'select', width: '30px'}].concat(this.evaluationHeaders)
     }
 
     this.departmentForms = [{id: null, name: 'Revert'}].concat(this.activeDepartmentForms)

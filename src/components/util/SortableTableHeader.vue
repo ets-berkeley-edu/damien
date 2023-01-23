@@ -13,7 +13,7 @@
         <template v-if="item.value === 'select'">
           <slot name="select">
             <v-btn
-              :id="`sort-col-${item.value}-btn`"
+              :id="`sort-col-${id}${item.value}-btn`"
               :aria-label="`${item.text}: ${item.value === sortBy ? (sortDesc ? 'Sorted descending' : 'Sorted ascending') : 'Not sorted'}. Activate to sort ${item.value === sortBy && !sortDesc ? 'descending' : 'ascending'}.`"
               class="sort-col-btn font-weight-bold text-capitalize text-nowrap px-1"
               small
@@ -27,7 +27,7 @@
         </template>
         <template v-else>
           <v-btn
-            :id="`sort-col-${item.value}-btn`"
+            :id="`sort-col-${id}${item.value}-btn`"
             :aria-label="`${item.text}: ${item.value === sortBy ? (sortDesc ? 'Sorted descending' : 'Sorted ascending') : 'Not sorted'}. Activate to sort ${item.value === sortBy && !sortDesc ? 'descending' : 'ascending'}.`"
             class="sort-col-btn font-weight-bold text-capitalize text-nowrap px-1"
             small
@@ -50,6 +50,11 @@ export default {
     headers: {
       type: Array,
       required: true
+    },
+    id: {
+      default: '',
+      type: String,
+      required: false
     },
     onSort: {
       default: () => {},
