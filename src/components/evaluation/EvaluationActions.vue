@@ -29,8 +29,8 @@
       </div>
     </div>
     <UpdateEvaluations
-      :apply-action="applyDuplicate"
-      :cancel-action="cancelDuplicate"
+      :apply-action="onConfirmDuplicate"
+      :cancel-action="onCancelDuplicate"
       :is-applying="isApplying"
       :is-updating="isDuplicating"
       :midterm-form-available="midtermFormAvailable"
@@ -38,8 +38,8 @@
       v-bind="bulkUpdateOptions"
     />
     <UpdateEvaluations
-      :apply-action="applyEdit"
-      :cancel-action="cancelEdit"
+      :apply-action="onConfirmEdit"
+      :cancel-action="onCancelEdit"
       :is-applying="isApplying"
       :is-updating="isEditing"
       :title="`Edit ${selectedEvaluationsDescription}`"
@@ -125,7 +125,7 @@ export default {
     this.courseActions = {
       // TO DO: Clean up dictionary keys and statuses
       review: {
-        apply: this.applyAction,
+        apply: this.onClickReview,
         completedText: 'Marked as to-do',
         inProgressText: 'Marking as to-do',
         key: 'review',
@@ -133,7 +133,7 @@ export default {
         text: 'Mark as to-do'
       },
       confirm: {
-        apply: this.applyAction,
+        apply: this.onClickConfirm,
         completedText: 'Marked as done',
         inProgressText: 'Marking as done',
         key: 'confirm',
@@ -141,7 +141,7 @@ export default {
         text: 'Mark as done'
       },
       unmark: {
-        apply: this.applyAction,
+        apply: this.onClickUnmark,
         completedText: 'Unmarked',
         inProgressText: 'Unmarking',
         key: 'unmark',
@@ -149,7 +149,7 @@ export default {
         text: 'Unmark'
       },
       ignore: {
-        apply: this.applyAction,
+        apply: this.onClickIgnore,
         completedText: 'Ignored',
         inProgressText: 'Ignoring',
         key: 'ignore',
@@ -157,14 +157,14 @@ export default {
         text: 'Ignore'
       },
       duplicate: {
-        apply: this.showDuplicateOptions,
+        apply: this.onClickDuplicate,
         completedText: 'Duplicated',
         inProgressText: 'Duplicating',
         key: 'duplicate',
         text: 'Duplicate'
       },
       edit: {
-        apply: this.showEditOptions,
+        apply: this.onClickEdit,
         completedText: 'Edited',
         inProgressText: 'Editing',
         key: 'edit',
@@ -187,19 +187,7 @@ export default {
     }
   },
   methods: {
-    afterApply(response) {
-      this.refreshAll().then(() => {
-        const selectedRowCount = this.applyingAction.key === 'duplicate' ? ((response.length || 0) / 2) : (response.length || 0)
-        const target = `${selectedRowCount} ${selectedRowCount === 1 ? 'row' : 'rows'}`
-        this.alertScreenReader(`${this.applyingAction.completedText} ${target}`)
-        this.$putFocusNextTick('select-all-evals-checkbox')
-        this.reset()
-      }).finally(() => {
-        this.isApplying = false
-        this.setDisableControls(false)
-      })
-    },
-    applyAction(key) {
+    validateAndUpdate(key) {
       let valid = true
       const target = `${this.selectedEvaluationIds.length || 0} ${this.selectedEvaluationIds.length === 1 ? 'row' : 'rows'}`
       this.applyingAction = this.courseActions[key]
@@ -213,33 +201,37 @@ export default {
         valid = this.validateConfirmable(this.selectedEvaluationIds)
       }
       if (valid) {
-        this.setDisableControls(true)
-        this.isLoading = true
-        updateEvaluations(
-          this.department.id,
-          key,
-          this.selectedEvaluationIds,
-          this.selectedTermId,
-          fields
-        ).then(response => this.afterApply(response), error => this.handleError(error))
+        this.update(fields, key)
       } else {
         this.isApplying = false
       }
     },
-    applyDuplicate(options) {
-      this.bulkUpdateOptions = options
-      this.applyAction('duplicate')
+    onClickConfirm(key) {
+      this.validateAndUpdate(key)
     },
-    applyEdit(options) {
-      this.bulkUpdateOptions = options
-      this.applyAction('edit')
+    onClickIgnore(key) {
+      this.validateAndUpdate(key)
     },
-    cancelDuplicate() {
+    onClickReview(key) {
+      this.validateAndUpdate(key)
+    },
+    onClickUnmark(key) {
+      this.validateAndUpdate(key)
+    },
+    onConfirmDuplicate(options) {
+      this.bulkUpdateOptions = options
+      this.validateAndUpdate('duplicate')
+    },
+    onConfirmEdit(options) {
+      this.bulkUpdateOptions = options
+      this.validateAndUpdate('edit')
+    },
+    onCancelDuplicate() {
       this.reset()
       this.alertScreenReader('Canceled duplication.')
       this.$putFocusNextTick('apply-course-action-btn-duplicate')
     },
-    cancelEdit() {
+    onCancelEdit() {
       this.reset()
       this.alertScreenReader('Canceled edit.')
       this.$putFocusNextTick('apply-course-action-btn-edit')
@@ -271,31 +263,52 @@ export default {
       }
       return fields
     },
-    handleError(error) {
-      this.showErrorDialog(this.$_.get(error, 'response.data.message', 'An unknown error occurred.'))
-      this.refreshEvaluations().finally(() => {
-        this.setDisableControls(false)
-        this.applyingAction = null
-        this.isApplying = false
-        this.isLoading = false
-      })
-
-    },
     isInvalidAction(action) {
       const uniqueStatuses = this.$_.uniq(this.evaluations
                   .filter(e => this.selectedEvaluationIds.includes(e.id))
                   .map(e => e.status))
-
       return (uniqueStatuses.length === 1 && uniqueStatuses[0] === action.status)
     },
-    refreshEvaluations() {
-      const selectedCourseNumbers = this.$_.uniq(this.evaluations
-                  .filter(e => this.selectedEvaluationIds.includes(e.id))
-                  .map(e => e.courseNumber))
-      if (selectedCourseNumbers.length === 1) {
-        return this.refreshSection({sectionId: selectedCourseNumbers[0], termId: this.selectedTermId})
-      }
-      return this.refreshAll()
+    update(fields, key) {
+      this.setDisableControls(true)
+      this.isLoading = true
+      updateEvaluations(
+        this.department.id,
+        key,
+        this.selectedEvaluationIds,
+        this.selectedTermId,
+        fields
+      ).then(
+        response => {
+          this.refreshAll().then(() => {
+            const selectedRowCount = this.applyingAction.key === 'duplicate' ? ((response.length || 0) / 2) : (response.length || 0)
+            const target = `${selectedRowCount} ${selectedRowCount === 1 ? 'row' : 'rows'}`
+            this.alertScreenReader(`${this.applyingAction.completedText} ${target}`)
+            this.$putFocusNextTick('select-all-evals-checkbox')
+            this.reset()
+          }).finally(() => {
+            this.isApplying = false
+            this.setDisableControls(false)
+          })
+        },
+        error => {
+          this.showErrorDialog(this.$_.get(error, 'response.data.message', 'An unknown error occurred.'))
+          const selectedCourseNumbers = this.$_.uniq(this.evaluations
+                      .filter(e => this.selectedEvaluationIds.includes(e.id))
+                      .map(e => e.courseNumber))
+          const refresh = () => {
+            return selectedCourseNumbers.length === 1
+              ? this.refreshSection({sectionId: selectedCourseNumbers[0], termId: this.selectedTermId})
+              : this.refreshAll()
+          }
+          refresh.finally(() => {
+            this.setDisableControls(false)
+            this.applyingAction = null
+            this.isApplying = false
+            this.isLoading = false
+          })
+        }
+      )
     },
     reset() {
       this.bulkUpdateOptions = {
@@ -317,7 +330,7 @@ export default {
       this.bulkUpdateOptions.instructor = suggestion
       this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
     },
-    showDuplicateOptions() {
+    onClickDuplicate() {
       this.showUpdateOptions()
       this.bulkUpdateOptions.instructor = {}
       this.midtermFormAvailable = this.department.usesMidtermForms
@@ -335,7 +348,7 @@ export default {
       this.isDuplicating = true
       this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
     },
-    showEditOptions() {
+    onClickEdit() {
       this.showUpdateOptions()
       // Pre-populate form if shared by all selected evals
       const uniqueForms = this.$_.chain(this.selectedEvaluations).map(e => this.$_.get(e, 'departmentForm.id')).uniq().value()
