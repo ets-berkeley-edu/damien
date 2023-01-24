@@ -2,11 +2,20 @@
   <v-dialog
     v-model="model"
     width="500"
-    @click:outside="cancelAction"
-    @keydown.esc="cancelAction"
+    @click:outside="cancel"
+    @keydown.esc="cancel"
   >
     <v-card>
-      <v-card-title id="confirm-dialog-title" tabindex="-1">{{ title }}</v-card-title>
+      <v-card-title id="confirm-dialog-title" tabindex="-1">
+        <div class="align-center d-flex">
+          <div v-if="icon" class="pb-1 pr-2">
+            <v-icon aria-label="Error icon" color="error">{{ icon }}</v-icon>
+          </div>
+          <div>
+            {{ title }}
+          </div>
+        </div>
+      </v-card-title>
       <v-card-text class="pt-3">{{ text }}</v-card-text>
       <v-divider />
       <v-card-actions>
@@ -17,16 +26,16 @@
               id="confirm-dialog-btn"
               class="text-capitalize"
               color="primary"
-              @click="performAction"
+              @click="onClickConfirm"
             >
-              Confirm <span class="sr-only">{{ buttonContext }}</span>
+              {{ confirmButtonLabel }} <span class="sr-only">{{ buttonContext }}</span>
             </v-btn>
           </div>
           <div>
             <v-btn
               id="cancel-dialog-btn"
               class="text-capitalize"
-              @click="cancelAction"
+              @click="cancel"
             >
               Cancel <span class="sr-only">{{ buttonContext }}</span>
             </v-btn>
@@ -46,15 +55,21 @@ export default {
       required: false,
       type: String
     },
-    cancelAction: {
+    confirmButtonLabel: {
+      default: 'Confirm',
+      required: false,
+      type: String
+    },
+    icon: {
+      default: undefined,
+      required: false,
+      type: String
+    },
+    onClickCancel: {
       required: true,
       type: Function
     },
-    confirming: {
-      required: true,
-      type: Boolean
-    },
-    performAction: {
+    onClickConfirm: {
       required: true,
       type: Function
     },
@@ -70,9 +85,18 @@ export default {
   data: () => ({
     model: false
   }),
-  watch: {
-    confirming(isConfirming) {
-      this.model = isConfirming
+  created() {
+    this.model = true
+    this.$putFocusNextTick('confirm-dialog-title')
+  },
+  methods: {
+    cancel() {
+      this.model = false
+      this.onClickCancel()
+    },
+    confirm() {
+      this.model = false
+      this.onClickConfirm()
     }
   }
 }

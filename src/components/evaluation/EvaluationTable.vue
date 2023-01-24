@@ -462,9 +462,9 @@
       </template>
     </v-data-table>
     <ConfirmDialog
-      :cancel-action="onCancelConfirm"
-      :confirming="isConfirmingCancelEdit"
-      :perform-action="onConfirm"
+      v-if="isConfirmingCancelEdit"
+      :on-click-cancel="onCancelConfirm"
+      :on-click-confirm="onConfirm"
       :text="'You have unsaved changes that will be lost.'"
       :title="'Cancel edit?'"
     />
