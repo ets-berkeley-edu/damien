@@ -88,11 +88,21 @@
         </div>
       </template>
     </UpdateEvaluations>
+    <ConfirmDialog
+      v-if="markAsDoneWarning"
+      confirm-button-label="Proceed"
+      :on-click-cancel="() => markAsDoneWarning = undefined"
+      :on-click-confirm="onProceedMarkAsDone"
+      :text="markAsDoneWarning"
+      icon="mdi-alert-circle"
+      title="Warning"
+    />
   </div>
 </template>
 
 <script>
 import {updateEvaluations} from '@/api/departments'
+import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import UpdateEvaluations from '@/components/evaluation/UpdateEvaluations'
@@ -101,6 +111,7 @@ import Util from '@/mixins/Util'
 export default {
   name: 'EvaluationActions',
   components: {
+    ConfirmDialog,
     UpdateEvaluations
   },
   mixins: [Context, DepartmentEditSession, Util],
@@ -119,7 +130,8 @@ export default {
     isDuplicating: false,
     isEditing: false,
     isLoading: false,
-    midtermFormAvailable: false,
+    markAsDoneWarning: undefined,
+    midtermFormAvailable: false
   }),
   created() {
     this.courseActions = {
@@ -133,7 +145,7 @@ export default {
         text: 'Mark as to-do'
       },
       confirm: {
-        apply: this.onClickConfirm,
+        apply: this.onClickMarkDone,
         completedText: 'Marked as done',
         inProgressText: 'Marking as done',
         key: 'confirm',
@@ -206,8 +218,32 @@ export default {
         this.isApplying = false
       }
     },
-    onClickConfirm(key) {
-      this.validateAndUpdate(key)
+    onProceedMarkAsDone() {
+      this.markAsDoneWarning = null
+      this.validateAndUpdate('confirm')
+    },
+    onClickMarkDone(key) {
+      const selected = this.$_.filter(this.evaluations, e => this.$_.includes(this.selectedEvaluationIds, e.id))
+      const now = this.$moment()
+      const inProgress = this.$_.filter(selected, evaluation => now.isAfter(evaluation.startDate))
+      if (inProgress.length) {
+        // Grab the first in-progress evaluation, to give the user an example of the problem.
+        const e = inProgress[0]
+        const course = `${e.subjectArea} ${e.catalogId} ${e.instructionFormat} ${e.sectionNumber}`
+        let startDate = this.$moment(e.startDate)
+        startDate = startDate.format(startDate.year() === now.year() ? 'MMMM Do' : 'MMMM Do, YYYY')
+
+        if (inProgress.length === 1) {
+          this.markAsDoneWarning = `The ${course} evaluation period started on ${startDate}.
+            Are you sure you want to mark it as done?`
+        } else {
+          this.markAsDoneWarning = `Some of the selected evaluation periods have already started.
+            For example, ${course} evaluation period started on ${startDate}.
+            Are you sure you want to mark those as done?`
+        }
+      } else {
+        this.validateAndUpdate(key)
+      }
     },
     onClickIgnore(key) {
       this.validateAndUpdate(key)
