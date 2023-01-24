@@ -200,34 +200,14 @@ export default {
       })
     },
     applyAction(key) {
-      let fields = null
       let valid = true
       const target = `${this.selectedEvaluationIds.length || 0} ${this.selectedEvaluationIds.length === 1 ? 'row' : 'rows'}`
       this.applyingAction = this.courseActions[key]
       this.isApplying = true
       this.alertScreenReader(`${this.applyingAction.inProgressText} ${target}`)
-      if (['duplicate', 'edit'].includes(key)) {
-        fields = {}
-        if (this.bulkUpdateOptions.departmentForm) {
-          fields.departmentFormId = this.bulkUpdateOptions.departmentForm
-        }
-        if (this.$_.has(this.bulkUpdateOptions, 'evaluationStatus')) {
-          fields.status = this.bulkUpdateOptions.evaluationStatus
-        }
-        if (this.bulkUpdateOptions.evaluationType) {
-          fields.evaluationTypeId = this.bulkUpdateOptions.evaluationType
-        }
-        if (this.bulkUpdateOptions.instructor) {
-          fields.instructorUid = this.$_.get(this.bulkUpdateOptions.instructor, 'uid')
-        }
-        if (this.bulkUpdateOptions.startDate) {
-          fields.startDate = this.$moment(this.bulkUpdateOptions.startDate).format('YYYY-MM-DD')
-        }
-      }
+
+      const fields = this.getEvaluationFieldsForUpdate(key)
       if (key === 'duplicate') {
-        if (this.bulkUpdateOptions.midtermFormEnabled) {
-          fields.midterm = 'true'
-        }
         valid = this.validateDuplicable(this.selectedEvaluationIds, fields)
       } else if (key === 'confirm' || (key === 'edit' && this.bulkUpdateOptions.evaluationStatus === 'confirmed')) {
         valid = this.validateConfirmable(this.selectedEvaluationIds)
@@ -263,6 +243,33 @@ export default {
       this.reset()
       this.alertScreenReader('Canceled edit.')
       this.$putFocusNextTick('apply-course-action-btn-edit')
+    },
+    getEvaluationFieldsForUpdate(key) {
+      let fields = null
+      if (['duplicate', 'edit'].includes(key)) {
+        fields = {}
+        if (this.bulkUpdateOptions.departmentForm) {
+          fields.departmentFormId = this.bulkUpdateOptions.departmentForm
+        }
+        if (this.$_.has(this.bulkUpdateOptions, 'evaluationStatus')) {
+          fields.status = this.bulkUpdateOptions.evaluationStatus
+        }
+        if (this.bulkUpdateOptions.evaluationType) {
+          fields.evaluationTypeId = this.bulkUpdateOptions.evaluationType
+        }
+        if (this.bulkUpdateOptions.instructor) {
+          fields.instructorUid = this.$_.get(this.bulkUpdateOptions.instructor, 'uid')
+        }
+        if (this.bulkUpdateOptions.startDate) {
+          fields.startDate = this.$moment(this.bulkUpdateOptions.startDate).format('YYYY-MM-DD')
+        }
+        if (key === 'duplicate') {
+          if (this.bulkUpdateOptions.midtermFormEnabled) {
+            fields.midterm = 'true'
+          }
+        }
+      }
+      return fields
     },
     handleError(error) {
       this.showErrorDialog(this.$_.get(error, 'response.data.message', 'An unknown error occurred.'))
