@@ -34,6 +34,8 @@ tmp/
 .cache
 .flask_cache/
 .pytest_cache/
+scripts/bugenhagen/csv_files/*
+scripts/bugenhagen/local/*
 
 # Environments
 .venv
