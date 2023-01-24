@@ -36,7 +36,7 @@
           label="Use midterm department forms"
           :ripple="false"
         />
-        <slot name="form" :form="selectedDepartmentForm" :on="{change: e => selectedDepartmentForm = e.target.value}"></slot>
+        <slot name="form" :form="selectedDepartmentForm" :on="{change: e => selectedDepartmentForm = $_.toInteger(e.target.value)}"></slot>
         <div class="my-4">
           <label
             id="update-evaluations-select-type-label"
