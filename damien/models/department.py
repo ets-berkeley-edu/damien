@@ -158,7 +158,9 @@ class Department(Base):
     def merge_cross_listings(self, sections, term_id, course_numbers=None):
         if not course_numbers:
             course_numbers = list(set(s.course_number for s in sections if Section.is_visible_by_default(s)))
-        sections.extend(get_room_shares(term_id, course_numbers))
+        room_shares = get_room_shares(term_id, course_numbers)
+        sections.extend(room_shares)
+        course_numbers.extend(list(set(s.course_number for s in room_shares if Section.is_visible_by_default(s))))
         sections.extend(get_cross_listings(term_id, course_numbers))
 
     def get_visible_sections(self, term_id=None, section_id=None, include_empty_sections=False):
