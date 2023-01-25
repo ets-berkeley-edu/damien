@@ -199,28 +199,55 @@ export default {
     }
   },
   methods: {
-    validateAndUpdate(key) {
-      let valid = true
-      const target = `${this.selectedEvaluationIds.length || 0} ${this.selectedEvaluationIds.length === 1 ? 'row' : 'rows'}`
-      this.applyingAction = this.courseActions[key]
-      this.isApplying = true
-      this.alertScreenReader(`${this.applyingAction.inProgressText} ${target}`)
-
-      const fields = this.getEvaluationFieldsForUpdate(key)
-      if (key === 'duplicate') {
-        valid = this.validateDuplicable(this.selectedEvaluationIds, fields)
-      } else if (key === 'confirm' || (key === 'edit' && this.bulkUpdateOptions.evaluationStatus === 'confirmed')) {
-        valid = this.validateConfirmable(this.selectedEvaluationIds)
-      }
-      if (valid) {
-        this.update(fields, key)
-      } else {
-        this.isApplying = false
-      }
+    onCancelDuplicate() {
+      this.reset()
+      this.alertScreenReader('Canceled duplication.')
+      this.$putFocusNextTick('apply-course-action-btn-duplicate')
     },
-    onProceedMarkAsDone() {
-      this.markAsDoneWarning = null
-      this.validateAndUpdate('confirm')
+    onCancelEdit() {
+      this.reset()
+      this.alertScreenReader('Canceled edit.')
+      this.$putFocusNextTick('apply-course-action-btn-edit')
+    },
+    onClickDuplicate() {
+      this.showUpdateOptions()
+      this.bulkUpdateOptions.instructor = {}
+      this.midtermFormAvailable = this.department.usesMidtermForms
+      if (this.midtermFormAvailable) {
+        // Show midterm form option only if a midterm form exists for all selected evals.
+        const availableFormNames = this.$_.map(this.activeDepartmentForms, 'name')
+        this.$_.each(this.selectedEvaluations, e => {
+          const formName = this.$_.get(e, 'departmentForm.name')
+          if (!formName || !(formName.endsWith('_MID') || availableFormNames.includes(formName + '_MID'))) {
+            this.midtermFormAvailable = false
+            return false
+          }
+        })
+      }
+      this.isDuplicating = true
+      this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
+    },
+    onClickEdit() {
+      this.showUpdateOptions()
+      // Pre-populate form if shared by all selected evals
+      const uniqueForms = this.$_.chain(this.selectedEvaluations).map(e => this.$_.get(e, 'departmentForm.id')).uniq().value()
+      if (uniqueForms.length === 1) {
+        this.bulkUpdateOptions.departmentForm = this.$_.get(this.selectedEvaluations, '0.departmentForm.id')
+      }
+      // Show instructor lookup if instructor is missing from all selected evals
+      if (this.$_.every(this.selectedEvaluations, {'instructor': null})) {
+        this.bulkUpdateOptions.instructor = {}
+      }
+      // Pre-populate status if shared by all selected evals
+      const uniqueStatuses = this.$_.chain(this.selectedEvaluations).map(e => this.$_.get(e, 'status')).uniq().value()
+      if (uniqueStatuses.length === 1) {
+        this.bulkUpdateOptions.evaluationStatus = this.$_.get(this.selectedEvaluations, '0.status', 'none')
+      }
+      this.isEditing = true
+      this.$putFocusNextTick('update-evaluations-select-status')
+    },
+    onClickIgnore(key) {
+      this.validateAndUpdate(key)
     },
     onClickMarkDone(key) {
       const selected = this.$_.filter(this.evaluations, e => this.$_.includes(this.selectedEvaluationIds, e.id))
@@ -245,9 +272,6 @@ export default {
         this.validateAndUpdate(key)
       }
     },
-    onClickIgnore(key) {
-      this.validateAndUpdate(key)
-    },
     onClickReview(key) {
       this.validateAndUpdate(key)
     },
@@ -262,15 +286,9 @@ export default {
       this.bulkUpdateOptions = options
       this.validateAndUpdate('edit')
     },
-    onCancelDuplicate() {
-      this.reset()
-      this.alertScreenReader('Canceled duplication.')
-      this.$putFocusNextTick('apply-course-action-btn-duplicate')
-    },
-    onCancelEdit() {
-      this.reset()
-      this.alertScreenReader('Canceled edit.')
-      this.$putFocusNextTick('apply-course-action-btn-edit')
+    onProceedMarkAsDone() {
+      this.markAsDoneWarning = null
+      this.validateAndUpdate('confirm')
     },
     getEvaluationFieldsForUpdate(key) {
       let fields = null
@@ -304,6 +322,38 @@ export default {
                   .filter(e => this.selectedEvaluationIds.includes(e.id))
                   .map(e => e.status))
       return (uniqueStatuses.length === 1 && uniqueStatuses[0] === action.status)
+    },
+    reset() {
+      this.bulkUpdateOptions = {
+        departmentForm: null,
+        evaluationStatus: null,
+        evaluationType: null,
+        instructor: null,
+        midtermFormEnabled: false,
+        startDate: null,
+      }
+      this.isDuplicating = false
+      this.isEditing = false
+      this.applyingAction = null
+      this.isApplying = false
+      this.isLoading = false
+      this.midtermFormAvailable = false
+    },
+    selectInstructor(suggestion) {
+      this.bulkUpdateOptions.instructor = suggestion
+      this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
+    },
+    showUpdateOptions() {
+      // Pre-populate start date if shared by all selected evals.
+      const uniqueStartDates = this.$_.chain(this.selectedEvaluations).map(e => new Date(e.startDate).toDateString()).uniq().value()
+      if (uniqueStartDates.length === 1) {
+        this.bulkUpdateOptions.startDate = new Date(uniqueStartDates[0])
+      }
+      // Pre-populate type if shared by all selected evals
+      const uniqueTypes = this.$_.chain(this.selectedEvaluations).map(e => this.$_.get(e, 'evaluationType.id')).uniq().value()
+      if (uniqueTypes.length === 1) {
+        this.bulkUpdateOptions.evaluationType = this.$_.get(this.selectedEvaluations, '0.evaluationType.id')
+      }
     },
     update(fields, key) {
       this.setDisableControls(true)
@@ -346,73 +396,23 @@ export default {
         }
       )
     },
-    reset() {
-      this.bulkUpdateOptions = {
-        departmentForm: null,
-        evaluationStatus: null,
-        evaluationType: null,
-        instructor: null,
-        midtermFormEnabled: false,
-        startDate: null,
+    validateAndUpdate(key) {
+      let valid = true
+      const target = `${this.selectedEvaluationIds.length || 0} ${this.selectedEvaluationIds.length === 1 ? 'row' : 'rows'}`
+      this.applyingAction = this.courseActions[key]
+      this.isApplying = true
+      this.alertScreenReader(`${this.applyingAction.inProgressText} ${target}`)
+
+      const fields = this.getEvaluationFieldsForUpdate(key)
+      if (key === 'duplicate') {
+        valid = this.validateDuplicable(this.selectedEvaluationIds, fields)
+      } else if (key === 'confirm' || (key === 'edit' && this.bulkUpdateOptions.evaluationStatus === 'confirmed')) {
+        valid = this.validateConfirmable(this.selectedEvaluationIds)
       }
-      this.isDuplicating = false
-      this.isEditing = false
-      this.applyingAction = null
-      this.isApplying = false
-      this.isLoading = false
-      this.midtermFormAvailable = false
-    },
-    selectInstructor(suggestion) {
-      this.bulkUpdateOptions.instructor = suggestion
-      this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
-    },
-    onClickDuplicate() {
-      this.showUpdateOptions()
-      this.bulkUpdateOptions.instructor = {}
-      this.midtermFormAvailable = this.department.usesMidtermForms
-      if (this.midtermFormAvailable) {
-        // Show midterm form option only if a midterm form exists for all selected evals.
-        const availableFormNames = this.$_.map(this.activeDepartmentForms, 'name')
-        this.$_.each(this.selectedEvaluations, e => {
-          const formName = this.$_.get(e, 'departmentForm.name')
-          if (!formName || !(formName.endsWith('_MID') || availableFormNames.includes(formName + '_MID'))) {
-            this.midtermFormAvailable = false
-            return false
-          }
-        })
-      }
-      this.isDuplicating = true
-      this.$putFocusNextTick('update-evaluations-instructor-lookup-autocomplete')
-    },
-    onClickEdit() {
-      this.showUpdateOptions()
-      // Pre-populate form if shared by all selected evals
-      const uniqueForms = this.$_.chain(this.selectedEvaluations).map(e => this.$_.get(e, 'departmentForm.id')).uniq().value()
-      if (uniqueForms.length === 1) {
-        this.bulkUpdateOptions.departmentForm = this.$_.get(this.selectedEvaluations, '0.departmentForm.id')
-      }
-      // Show instructor lookup if instructor is missing from all selected evals
-      if (this.$_.every(this.selectedEvaluations, {'instructor': null})) {
-        this.bulkUpdateOptions.instructor = {}
-      }
-      // Pre-populate status if shared by all selected evals
-      const uniqueStatuses = this.$_.chain(this.selectedEvaluations).map(e => this.$_.get(e, 'status')).uniq().value()
-      if (uniqueStatuses.length === 1) {
-        this.bulkUpdateOptions.evaluationStatus = this.$_.get(this.selectedEvaluations, '0.status', 'none')
-      }
-      this.isEditing = true
-      this.$putFocusNextTick('update-evaluations-select-status')
-    },
-    showUpdateOptions() {
-      // Pre-populate start date if shared by all selected evals.
-      const uniqueStartDates = this.$_.chain(this.selectedEvaluations).map(e => new Date(e.startDate).toDateString()).uniq().value()
-      if (uniqueStartDates.length === 1) {
-        this.bulkUpdateOptions.startDate = new Date(uniqueStartDates[0])
-      }
-      // Pre-populate type if shared by all selected evals
-      const uniqueTypes = this.$_.chain(this.selectedEvaluations).map(e => this.$_.get(e, 'evaluationType.id')).uniq().value()
-      if (uniqueTypes.length === 1) {
-        this.bulkUpdateOptions.evaluationType = this.$_.get(this.selectedEvaluations, '0.evaluationType.id')
+      if (valid) {
+        this.update(fields, key)
+      } else {
+        this.isApplying = false
       }
     }
   }
