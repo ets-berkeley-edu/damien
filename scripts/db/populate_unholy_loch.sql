@@ -201,6 +201,8 @@ VALUES
 ('2222','30669','MELC','18','DIS','102','Introduction to Ancient Egypt',FALSE,'624490','TNIC','Social Sciences Building 185','MO','15:00','15:59','2022-01-18','2022-05-06',9,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30672','MELC','18','DIS','105','Introduction to Ancient Egypt',FALSE,'713836','TNIC','Social Sciences Building 104','FR','12:00','12:59','2022-01-18','2022-05-06',13,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30455','MELC','R1B','LEC','001','Reading and Composition in Middle Eastern Languages and Cultures',TRUE,'999999','TNIC','Social Sciences Building 180','MOWEFR','14:00','14:59','2022-01-18','2022-05-06',18,'2022-01-19 17:01:10.324583-08',NULL),
+('2222','31742','AHMA','210','SEM','001','Ancient History and Mediterranean Archaeology Interdisciplinary Seminar',TRUE,'999999','PI','Doe Library 308B','MOWEFR','14:00','14:59','2022-01-18','2022-05-06',18,'2022-01-19 17:01:10.324583-08',NULL),
+('2222','31120','HISTART','290','SEM','001','Special Topics in Fields of Art History',TRUE,'999999','PI','Doe Library 308B','MOWEFR','14:00','14:59','2022-01-18','2022-05-06',18,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30673','MELC','18','DIS','106','Introduction to Ancient Egypt',FALSE,'833298','TNIC','Wheeler 24','FR','13:00','13:59','2022-01-18','2022-05-06',17,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','33843','MELC','C188','DIS','107','Magic, Religion, and Science: The Ancient and Medieval Worlds',FALSE,'124194','TNIC','Dwinelle 106','W','16:00','16:59','2022-01-18','2022-05-06',5,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','32947','MELC','290F','IND','003','Special Studies: Persian',TRUE,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,'2022-01-19 17:01:10.324583-08',NULL),
@@ -225,12 +227,20 @@ VALUES
 INSERT INTO unholy_loch.co_schedulings (term_id, course_number, room_share_number)
 VALUES
 ('2222', '30462', '32159'),
-('2222', '32159', '30462');
+('2222', '32159', '30462'),
+('2222', '30455', '31742'),
+('2222', '30455', '31120'),
+('2222', '31742', '30455'),
+('2222', '31742', '31120'),
+('2222', '31120', '30455'),
+('2222', '31120', '31742');
 
 INSERT INTO unholy_loch.cross_listings (term_id, course_number, cross_listing_number)
 VALUES
 ('2222', '30643', '30470'),
-('2222', '30470', '30643');
+('2222', '30470', '30643'),
+('2222', '31742', '31120'),
+('2222', '31120', '31742');
 
 TRUNCATE TABLE unholy_loch.sis_enrollments;
 INSERT INTO unholy_loch.sis_enrollments (term_id, course_number, ldap_uid)
