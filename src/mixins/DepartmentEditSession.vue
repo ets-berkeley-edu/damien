@@ -57,6 +57,28 @@ export default {
       }
       return true
     },
+    validateMarkAsDone(selectedEvaluations) {
+      let warningMessage
+      const now = this.$moment()
+      const evaluationsInProgress = this.$_.filter(selectedEvaluations, e => now.isAfter(e.startDate))
+      if (evaluationsInProgress.length) {
+        // Grab the first in-progress evaluation, to give the user an example of the problem.
+        const e = evaluationsInProgress[0]
+        const course = `${e.subjectArea} ${e.catalogId} ${e.instructionFormat} ${e.sectionNumber}`
+        let startDate = this.$moment(e.startDate)
+        startDate = startDate.format(startDate.year() === now.year() ? 'MMMM Do' : 'MMMM Do, YYYY')
+
+        if (evaluationsInProgress.length === 1) {
+          warningMessage = `The ${course} evaluation period started on ${startDate}.
+            Are you sure you want to mark it as done?`
+        } else {
+          warningMessage = `Some of the selected evaluation periods have already started.
+            For example, ${course} evaluation period started on ${startDate}.
+            Are you sure you want to mark those as done?`
+        }
+      }
+      return warningMessage
+    },
     ...mapActions('departmentEditSession', [
       'addSection',
       'deleteContact',
