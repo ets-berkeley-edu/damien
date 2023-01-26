@@ -32,18 +32,28 @@
       <legend :for="`checkbox-communications-${contactId}`" class="form-label">
         Communications
       </legend>
-      <v-checkbox
-        :id="`checkbox-communications-${contactId}`"
-        v-model="canReceiveCommunications"
-        :aria-checked="canReceiveCommunications"
-        class="mt-1"
-        color="tertiary"
-        dense
-        :disabled="disableControls"
-        label="Receive notifications"
-        :ripple="false"
-        @change="value => srAlert('receive notifications', value)"
-      />
+      <div class="d-flex my-2">
+        <v-simple-checkbox
+          :id="`checkbox-communications-${contactId}`"
+          :aria-checked="canReceiveCommunications"
+          aria-label="Receive notifications"
+          class="checkbox-override rounded-sm"
+          color="tertiary"
+          :disabled="disableControls"
+          :ripple="false"
+          role="checkbox"
+          tabindex="0"
+          :value="canReceiveCommunications"
+          @input="() => canReceiveCommunications = !canReceiveCommunications"
+        />
+        <label
+          class="v-label d-flex align-center"
+          :class="$vuetify.theme.dark ? 'theme--dark' : 'theme--light'"
+          :for="`checkbox-communications-${contactId}`"
+        >
+          Receive notifications
+        </label>
+      </div>
       <legend :for="`checkbox-communications-${contactId}`" class="form-label">
         Blue Access
       </legend>
@@ -85,6 +95,7 @@
       </legend>
       <v-combobox
         v-model="contactDepartmentForms"
+        aria-label="Department Forms"
         auto-select-first
         chips
         class="mb-4 mt-2"
@@ -108,6 +119,7 @@
             :id="`selected-deptForm-${data.item.id}-${contactId}`"
             :key="data.item.id"
             v-bind="data.attrs"
+            :aria-label="`Remove ${data.item.name} from ${fullName}'s department forms`"
             class="px-4 ma-1"
             close
             :close-label="`Remove ${data.item.name} from ${fullName}'s department forms`"
@@ -204,6 +216,9 @@ export default {
     this.alertScreenReader(`${this.contact ? 'Edit' : 'Add'} department contact form is ready`)
   },
   watch: {
+    canReceiveCommunications(value) {
+      this.srAlert('receive notifications', value)
+    },
     contactDepartmentForms(val, prev) {
       if (!val || !prev || val.length === prev.length) return
       this.contactDepartmentForms = val.map(item => {
@@ -317,5 +332,22 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+</style>
+
+<style scoped>
+.checkbox-override.v-simple-checkbox {
+  left: -2px;
+  margin-right: 4px;
+  padding: 4px;
+}
+.checkbox-override.v-simple-checkbox div {
+  height: 20px;
+  margin: 0px;
+  width: 20px;
+}
+.mdi-checkbox-blank-outline, .mdi-checkbox-marked {
+  font-size: 20px;
+  line-height: 16px;
 }
 </style>
