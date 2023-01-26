@@ -251,24 +251,8 @@ export default {
     },
     onClickMarkDone(key) {
       const selected = this.$_.filter(this.evaluations, e => this.$_.includes(this.selectedEvaluationIds, e.id))
-      const now = this.$moment()
-      const inProgress = this.$_.filter(selected, evaluation => now.isAfter(evaluation.startDate))
-      if (inProgress.length) {
-        // Grab the first in-progress evaluation, to give the user an example of the problem.
-        const e = inProgress[0]
-        const course = `${e.subjectArea} ${e.catalogId} ${e.instructionFormat} ${e.sectionNumber}`
-        let startDate = this.$moment(e.startDate)
-        startDate = startDate.format(startDate.year() === now.year() ? 'MMMM Do' : 'MMMM Do, YYYY')
-
-        if (inProgress.length === 1) {
-          this.markAsDoneWarning = `The ${course} evaluation period started on ${startDate}.
-            Are you sure you want to mark it as done?`
-        } else {
-          this.markAsDoneWarning = `Some of the selected evaluation periods have already started.
-            For example, ${course} evaluation period started on ${startDate}.
-            Are you sure you want to mark those as done?`
-        }
-      } else {
+      this.markAsDoneWarning = this.validateMarkAsDone(selected)
+      if (!this.markAsDoneWarning) {
         this.validateAndUpdate(key)
       }
     },
