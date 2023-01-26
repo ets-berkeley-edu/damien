@@ -425,14 +425,23 @@
               <td></td>
               <td colspan="8" class="pb-2 px-2">
                 <div class="d-flex justify-end">
+                  <ConfirmDialog
+                    v-if="markAsDoneWarning"
+                    confirm-button-label="Proceed"
+                    :on-click-cancel="() => markAsDoneWarning = undefined"
+                    :on-click-confirm="onProceedMarkAsDone"
+                    :text="markAsDoneWarning.message"
+                    icon="mdi-alert-circle"
+                    title="Warning"
+                  />
                   <v-btn
                     id="save-evaluation-edit-btn"
                     class="ma-2 evaluation-form-btn"
                     color="primary"
                     width="150px"
                     :disabled="disableControls || !rowValid || saving"
-                    @click.prevent="saveEvaluation(evaluation)"
-                    @keypress.enter.prevent="saveEvaluation(evaluation)"
+                    @click.prevent="validateAndSave(evaluation)"
+                    @keypress.enter.prevent="validateAndSave(evaluation)"
                   >
                     <span v-if="!saving">Save</span>
                     <v-progress-circular
@@ -570,6 +579,7 @@ export default {
       {class: 'text-start text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '10%'}
     ],
     isConfirmingCancelEdit: false,
+    markAsDoneWarning: undefined,
     pendingEditRowId: null,
     pendingInstructor: null,
     rules: {
@@ -744,6 +754,12 @@ export default {
       const evaluation = this.$_.find(this.evaluations, ['id', this.pendingEditRowId])
       this.onEditEvaluation(evaluation)
     },
+    onProceedMarkAsDone() {
+      const evaluation = this.markAsDoneWarning.evaluation
+      const fields = this.markAsDoneWarning.fields
+      this.markAsDoneWarning = undefined
+      this.updateEvaluation(evaluation, fields)
+    },
     onEditEvaluation(evaluation) {
       if (this.editRowId) {
         const editingEvaluation = this.$_.find(this.evaluations, ['id', this.editRowId])
@@ -767,17 +783,29 @@ export default {
         this.$putFocusNextTick(`${this.readonly ? '' : 'select-evaluation-status'}`)
       }
     },
-    saveEvaluation(evaluation) {
+    validateAndSave(evaluation) {
+      this.markAsDoneWarning = undefined
+      const departmentFormId = this.selectedDepartmentForm || this.$_.get(evaluation, 'defaultDepartmentForm.id') || null
+      const status = this.selectedEvaluationStatus === 'none' ? null : this.selectedEvaluationStatus
+      const startDate = this.selectedStartDate ? this.$moment(this.selectedStartDate).format('YYYY-MM-DD') : null
       const fields = {
-        'departmentFormId': this.selectedDepartmentForm || this.$_.get(evaluation, 'defaultDepartmentForm.id') || null,
-        'evaluationTypeId': this.selectedEvaluationType,
-        'instructorUid': this.$_.get(this.pendingInstructor, 'uid'),
-        'status': this.selectedEvaluationStatus === 'none' ? null : this.selectedEvaluationStatus
+        departmentFormId,
+        evaluationTypeId: this.selectedEvaluationType,
+        instructorUid: this.$_.get(this.pendingInstructor, 'uid'),
+        startDate,
+        status
       }
-      if (this.selectedStartDate) {
-        fields.startDate = this.$moment(this.selectedStartDate).format('YYYY-MM-DD')
+      let warning
+      if (status === 'confirmed') {
+        // If evaluation start-date is in the past then put up a warning dialog.
+        const proposedUpdate = {...evaluation, ...fields}
+        warning = this.validateMarkAsDone([proposedUpdate])
       }
-      this.updateEvaluation(evaluation, fields)
+      if (warning) {
+        this.markAsDoneWarning = {evaluation, fields, message: warning}
+      } else {
+        this.updateEvaluation(evaluation, fields)
+      }
     },
     selectInstructor(instructor) {
       if (instructor) {
