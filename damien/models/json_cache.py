@@ -65,6 +65,10 @@ class JsonCache(Base):
         cls.query.filter_by(term_id=term_id).delete(synchronize_session=False)
 
     @classmethod
+    def delete_matching(cls, token):
+        cls.query.filter(cls.json[0].astext.like(f'%{token}%')).delete(synchronize_session=False)
+
+    @classmethod
     def fetch_all_departments(cls, term_id):
         return cls.query.filter_by(term_id=term_id, course_number=None).all()
 

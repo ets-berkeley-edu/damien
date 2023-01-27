@@ -215,8 +215,11 @@ def _validate_evaluation_fields(fields, term_id, dept_uses_midterm_forms):  # no
                     department_form = DepartmentForm.find_by_id(int(v))
                 except (TypeError, ValueError):
                     department_form = None
+                    raise BadRequestError('Invalid department form.')
                 if not department_form:
-                    raise BadRequestError(f'Invalid department form id {v}.')
+                    raise BadRequestError('Invalid department form.')
+                elif department_form and department_form.deleted_at:
+                    raise BadRequestError(f'Invalid department form {department_form.name}.')
                 validated_fields['departmentForm'] = department_form
         elif k == 'startDate':
             try:

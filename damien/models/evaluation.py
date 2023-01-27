@@ -642,6 +642,8 @@ class Evaluation(Base):
                     break
         if default_form and not self.department_form:
             self.department_form = default_form
+        if self.department_form and self.status != 'confirmed' and self.department_form.deleted_at:
+            self.department_form = None
 
     def set_evaluation_type(self, saved_evaluation, foreign_dept_evaluations, instructor, default_evaluation_types):
         if saved_evaluation and saved_evaluation.evaluation_type:
@@ -708,7 +710,7 @@ class Evaluation(Base):
                     self.status = 'confirmed'
 
     def to_api_json(self, section):
-        default_dept_form_feed = section.default_form.to_api_json() if section.default_form else None
+        default_dept_form_feed = section.default_form.to_api_json() if section.default_form and not section.default_form.deleted_at else None
         dept_form_feed = self.department_form.to_api_json() if self.department_form else None
         eval_type_feed = self.evaluation_type.to_api_json() if self.evaluation_type else None
 

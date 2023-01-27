@@ -24,6 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from damien.api.util import admin_required
+from damien.lib.cache import delete_from_cache
 from damien.lib.http import tolerant_jsonify
 from damien.models.department_form import DepartmentForm
 from flask import current_app as app
@@ -41,6 +42,7 @@ def add_department_form(name):
 @admin_required
 def delete_department_form(name):
     DepartmentForm.delete(name)
+    delete_from_cache(name)
     return tolerant_jsonify({'message': f'Department form {name} has been deleted'}), 200
 
 
