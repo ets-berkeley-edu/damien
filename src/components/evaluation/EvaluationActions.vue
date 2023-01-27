@@ -2,7 +2,7 @@
   <div class="align-center d-flex">
     <div class="align-center d-flex flex-wrap pl-2">
       <div v-for="(action, key) in courseActions" :key="key" class="align-center d-flex">
-        <div class="">
+        <div :class="`evaluation-${key}-btn`">
           <v-btn
             :id="`apply-course-action-btn-${key}`"
             :key="key"
@@ -418,3 +418,24 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.evaluation-confirm-btn {
+  min-width: 7.6em
+}
+.evaluation-duplicate-btn {
+  min-width: 5.45em
+}
+.evaluation-edit-btn {
+  min-width: 4.02em
+}
+.evaluation-ignore-btn {
+  min-width: 4.05em
+}
+.evaluation-review-btn {
+  min-width: 7.84em
+}
+.evaluation-unmark-btn {
+  min-width: 4.65em
+}
+</style>

@@ -42,6 +42,11 @@ def clear_section_cache(term_id, course_number):
     JsonCache.clear_section(term_id, course_number)
 
 
+def delete_from_cache(token):
+    app.logger.debug(f'Deleting from cache (json LIKE {token})')
+    JsonCache.delete_matching(token)
+
+
 def fetch_all_departments(term_id):
     app.logger.debug(f'Fetching departments (term_id={term_id})')
     return {d.department_id: d.json for d in JsonCache.fetch_all_departments(term_id)}
