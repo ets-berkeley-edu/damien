@@ -428,6 +428,7 @@
                   <ConfirmDialog
                     v-if="markAsDoneWarning"
                     confirm-button-label="Proceed"
+                    :disabled="disableControls"
                     :on-click-cancel="() => markAsDoneWarning = undefined"
                     :on-click-confirm="onProceedMarkAsDone"
                     :text="markAsDoneWarning.message"
@@ -472,6 +473,7 @@
     </v-data-table>
     <ConfirmDialog
       v-if="isConfirmingCancelEdit"
+      :disabled="disableControls"
       :on-click-cancel="onCancelConfirm"
       :on-click-confirm="onConfirm"
       :text="'You have unsaved changes that will be lost.'"

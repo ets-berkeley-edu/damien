@@ -384,8 +384,9 @@
     </v-container>
     <ConfirmDialog
       v-if="isConfirming"
+      :disabled="disableControls"
       :on-click-cancel="cancelDelete"
-      :on-click-confirm="() => onDelete().then(afterDelete)"
+      :on-click-confirm="confirmDelete"
       :text="`Are you sure you want to delete ${$_.get(itemToDelete, 'name')}?`"
       :title="`Delete ${$_.get(itemToDelete, 'description')}?`"
     />
@@ -443,6 +444,7 @@ export default {
   },
   methods: {
     afterDelete(deletedItem) {
+      this.setDisableControls(false)
       this.alertScreenReader(`Deleted ${deletedItem.description} ${deletedItem.name}.`)
     },
     cancelAdd(elementId) {
@@ -456,6 +458,10 @@ export default {
       this.$putFocusNextTick(this.itemToDelete.elementId)
       this.reset()
       this.alertScreenReader('Canceled. Nothing deleted.')
+    },
+    confirmDelete() {
+      this.setDisableControls(true)
+      this.onDelete().then(this.afterDelete)
     },
     onClickAddDepartmentForm() {
       this.setAddingDepartmentForm().then(() => {
