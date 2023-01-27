@@ -127,6 +127,7 @@ def get_all_users():
           LEFT JOIN departments ON departments.id = department_members.department_id
           LEFT JOIN user_department_forms ON user_department_forms.user_id = users.id
           LEFT JOIN department_forms ON department_forms.id = user_department_forms.department_form_id
+              WHERE users.deleted_at IS NULL
            GROUP BY users.id, users.uid, users.csid, users.first_name, users.last_name, users.blue_permissions,
                     department_members.department_id,
                     department_members.can_receive_communications
@@ -472,7 +473,6 @@ def verify_actual_matches_expected(actual, expected):
 
 
 def expected_courses(evaluations, calc_course_ids=False):
-    term = get_current_term()
     courses = []
     if calc_course_ids:
         calculate_course_ids(evaluations)
@@ -485,24 +485,27 @@ def expected_courses(evaluations, calc_course_ids=False):
             ccns.append(row.ccn)
             ccns.sort()
             x_listed_name = '-'.join(ccns)
-        elif row.room_share_ccns:
+        elif row.room_share_ccns_all:
             flag = 'RM SHARE'
             ccns = []
-            ccns.extend(row.room_share_ccns)
+            ccns.extend(row.room_share_ccns_all)
             ccns.append(row.ccn)
             ccns.sort()
             x_listed_name = '-'.join(ccns)
         else:
             flag = ''
             x_listed_name = ''
+
         if row.course_start_date and row.course_end_date:
-            modular = 'Y' if (term.start_date != row.course_start_date or term.end_date != row.course_end_date) else ''
+            modular = 'Y' if (row.course_end_date - row.course_start_date).days < 90 else ''
         else:
             modular = ''
+
         if row.eval_end_date:
             end_date = row.eval_end_date.strftime('%-m/%-d/%y')
         else:
-            eval_end = evaluation_utils.row_eval_end_from_eval_start(row.course_start_date, row.eval_start_date, row.course_end_date)
+            eval_end = evaluation_utils.row_eval_end_from_eval_start(row.course_start_date, row.eval_start_date,
+                                                                     row.course_end_date)
             if eval_end:
                 end_date = eval_end.strftime('%-m/%-d/%y')
             else:
@@ -664,27 +667,41 @@ def get_foreign_ccns(evaluations):
                 eval_foreign_ccns.append(ev.ccn)
             else:
                 eval_domestic_ccns.append(ev.ccn)
+        elif ev.room_share_ccns_all:
+            if ev.foreign_listing:
+                eval_foreign_ccns.append(ev.ccn)
+            else:
+                eval_domestic_ccns.append(ev.ccn)
     eval_foreign_ccns = list(set(eval_foreign_ccns))
     for ev in evaluations:
         for listing_ccn in ev.x_listing_ccns_all:
             if listing_ccn not in eval_domestic_ccns and listing_ccn not in eval_foreign_ccns:
                 non_eval_foreign_ccns.append(listing_ccn)
+        for share_ccn in ev.room_share_ccns_all:
+            if share_ccn not in eval_domestic_ccns and share_ccn not in eval_foreign_ccns:
+                non_eval_foreign_ccns.append(share_ccn)
     non_eval_foreign_ccns = list(set(non_eval_foreign_ccns))
     return eval_foreign_ccns, non_eval_foreign_ccns
 
 
-def expected_x_listed_course_supervisors(term, evaluations, all_contacts):
-    dept_uids_and_forms = []
-    for contact in all_contacts:
-        dept_uids_and_forms.append({'uid': contact.uid, 'forms': contact.dept_forms})
-
-    eval_foreign_ccns, non_eval_foreign_ccns = get_foreign_ccns(evaluations)
-    foreign_ccns_str = evaluation_utils.list_to_str(eval_foreign_ccns + non_eval_foreign_ccns)
-
-    # Get test department's supervisors
-    supervisors = []
-    for ev in evaluations:
-        if ev.x_listing_ccns_all and not ev.foreign_listing:
+def get_evaluation_supervisors(evaluations, ev, dept_uids_and_forms, foreign_ccns, supervisors):
+    if ev.x_listing_ccns_all and not ev.foreign_listing:
+        for uid in dept_uids_and_forms:
+            if ev.dept_form in uid['forms']:
+                data = {
+                    'COURSE_ID': ev.course_id,
+                    'LDAP_UID': uid['uid'],
+                }
+                supervisors.append(data)
+                for listing_ccn in ev.x_listing_ccns_all:
+                    if listing_ccn in foreign_ccns:
+                        listing = next(filter(lambda l: l.ccn == listing_ccn, evaluations))
+                        data = {
+                            'COURSE_ID': listing.course_id,
+                            'LDAP_UID': uid['uid'],
+                        }
+                        supervisors.append(data)
+        if ev.room_share_ccns_all and not ev.foreign_listing:
             for uid in dept_uids_and_forms:
                 if ev.dept_form in uid['forms']:
                     data = {
@@ -692,43 +709,75 @@ def expected_x_listed_course_supervisors(term, evaluations, all_contacts):
                         'LDAP_UID': uid['uid'],
                     }
                     supervisors.append(data)
-                    for listing_ccn in ev.x_listing_ccns_all:
-                        if listing_ccn in eval_foreign_ccns:
-                            listing = next(filter(lambda l: l.ccn == listing_ccn, evaluations))
+                    for share_ccn in ev.room_share_ccns_all:
+                        if share_ccn in foreign_ccns:
+                            share = next(filter(lambda l: l.ccn == share_ccn, evaluations))
                             data = {
-                                'COURSE_ID': listing.course_id,
+                                'COURSE_ID': share.course_id,
                                 'LDAP_UID': uid['uid'],
                             }
                             supervisors.append(data)
 
-    # Get x-listed departments' supervisors
-    sql = f"""
-        SELECT DISTINCT unholy_loch.sis_sections.course_number,
-               users.uid
-          FROM unholy_loch.sis_sections
-          JOIN unholy_loch.cross_listings
-            ON unholy_loch.sis_sections.course_number = unholy_loch.cross_listings.cross_listing_number
-          JOIN department_forms
-            ON unholy_loch.sis_sections.subject_area = department_forms.name
-          JOIN user_department_forms
-            ON user_department_forms.department_form_id = department_forms.id
-          JOIN users
-            ON users.id = user_department_forms.user_id
-         WHERE unholy_loch.sis_sections.course_number IN ({foreign_ccns_str})
-           AND unholy_loch.sis_sections.term_id = '{term.term_id}';
-    """
-    app.logger.info(sql)
-    result = db.session.execute(text(sql))
-    std_commit(allow_test_environment=True)
-    for row in result:
-        for ev in evaluations:
-            if row['course_number'] == ev.ccn or row['course_number'] in ev.x_listing_ccns_all:
-                data = {
-                    'COURSE_ID': ev.course_id,
-                    'LDAP_UID': row['uid'],
-                }
-                supervisors.append(data)
+
+def get_domestic_supervisors(evaluations, foreign_ccns, all_contacts):
+    supervisors = []
+    dept_uids_and_forms = []
+    for contact in all_contacts:
+        dept_uids_and_forms.append({'uid': contact.uid, 'forms': contact.dept_forms})
+    for ev in evaluations:
+        get_evaluation_supervisors(evaluations, ev, dept_uids_and_forms, foreign_ccns, supervisors)
     return supervisors
+
+
+def get_foreign_supervisors(term, evaluations, foreign_ccns_str):
+    supervisors = []
+    if foreign_ccns_str:
+        sql = f"""
+            SELECT DISTINCT unholy_loch.sis_sections.course_number,
+                   users.uid
+              FROM unholy_loch.sis_sections
+              JOIN department_catalog_listings
+                ON unholy_loch.sis_sections.subject_area = department_catalog_listings.subject_area
+              JOIN departments
+                ON department_catalog_listings.department_id = departments.id
+              JOIN department_members
+                ON departments.id = department_members.department_id
+              JOIN department_forms
+                ON unholy_loch.sis_sections.subject_area = REGEXP_REPLACE(department_forms.name, ' & ', '')
+              JOIN user_department_forms
+                ON user_department_forms.department_form_id = department_forms.id
+              JOIN users
+                ON department_members.user_id = users.id
+               AND users.id = user_department_forms.user_id
+             WHERE unholy_loch.sis_sections.course_number IN ({foreign_ccns_str})
+               AND unholy_loch.sis_sections.term_id = '{term.term_id}'
+               AND users.deleted_at IS NULL
+               AND unholy_loch.sis_sections.catalog_id NOT IN (SELECT department_catalog_listings.catalog_id
+                                                                 FROM department_catalog_listings
+                                                                WHERE department_catalog_listings.subject_area = unholy_loch.sis_sections.subject_area
+                                                                  AND department_catalog_listings.department_id != departments.id);
+        """
+        app.logger.info(sql)
+        result = db.session.execute(text(sql))
+        std_commit(allow_test_environment=True)
+        for row in result:
+            for ev in evaluations:
+                if row['course_number'] == ev.ccn or row['course_number'] in ev.x_listing_ccns_all or row['course_number'] in ev.room_share_ccns_all:
+                    data = {
+                        'COURSE_ID': ev.course_id,
+                        'LDAP_UID': row['uid'],
+                    }
+                    if data not in supervisors:
+                        supervisors.append(data)
+    return supervisors
+
+
+def expected_x_listed_course_supervisors(term, evaluations, all_contacts):
+    eval_foreign_ccns, non_eval_foreign_ccns = get_foreign_ccns(evaluations)
+    foreign_ccns_str = evaluation_utils.list_to_str(eval_foreign_ccns + non_eval_foreign_ccns)
+    domestic_supervisors = get_domestic_supervisors(evaluations, eval_foreign_ccns, all_contacts)
+    foreign_supervisors = get_foreign_supervisors(term, evaluations, foreign_ccns_str)
+    return domestic_supervisors + foreign_supervisors
 
 
 def expected_dept_hierarchy():

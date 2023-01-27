@@ -58,6 +58,10 @@ class Evaluation(object):
         return self.data['room_share_ccns']
 
     @property
+    def room_share_ccns_all(self):
+        return self.data['room_share_ccns_all']
+
+    @property
     def subject(self):
         return self.data['subject']
 

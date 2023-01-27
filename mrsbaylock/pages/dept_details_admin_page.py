@@ -53,7 +53,7 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
     ADD_CONTACT_EMAIL = (By.ID, 'input-email-add-contact')
     EMAIL_REQUIRED_MSG = (By.XPATH, '//div[text()="E-mail is required"]')
     EMAIL_INVALID_MSG = (By.XPATH, '//div[text()="E-mail must be valid"]')
-    CONTACT_COMMS_CBX = (By.XPATH, '//input[contains(@id, "checkbox-communications-")]')
+    CONTACT_COMMS_CBX = (By.XPATH, '//div[contains(@id, "checkbox-communications-")]')
     CONTACT_NO_BLUE_RADIO = (By.XPATH, '//input[contains(@id, "radio-no-blue-")]/..')
     CONTACT_REPORTS_RADIO = (By.XPATH, '//input[contains(@id, "radio-reports-only-")]/..')
     CONTACT_RESPONSES_RADIO = (By.XPATH, '//input[contains(@id, "radio-response-rates-")]/..')

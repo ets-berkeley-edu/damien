@@ -173,6 +173,7 @@ def result_row_to_eval(row, term, dept, foreign_listing=False):
         'x_listing_ccns': listings,
         'x_listing_ccns_all': copy.deepcopy(listings),
         'room_share_ccns': shares,
+        'room_share_ccns_all': copy.deepcopy(shares),
         'foreign_listing': foreign_listing,
         'instructor': instructor,
         'subject': row['subject'],
@@ -196,14 +197,17 @@ def result_to_evals(result, evaluations, term, dept, foreign_listings=False):
 
 def get_sis_sections_to_evaluate(evals_total, term, dept):
     # All subjects
-    sql = 'SELECT department_catalog_listings.subject_area FROM department_catalog_listings'
+    sql = f"""SELECT DISTINCT(subject_area)
+                FROM unholy_loch.sis_sections
+               WHERE unholy_loch.sis_sections.term_id = '{term.term_id}'
+    """
     app.logger.info(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     all_subjects = [row['subject_area'] for row in result]
-    date_cond = f"(start_term_id IS NULL OR start_term_id <= '{term.term_id}') AND (end_term_id IS NULL OR end_term_id >= '{term.term_id}')"
 
     # Dept subjects
+    date_cond = f"(start_term_id IS NULL OR start_term_id <= '{term.term_id}') AND (end_term_id IS NULL OR end_term_id >= '{term.term_id}')"
     sql = f"""
         SELECT DISTINCT subject_area
           FROM department_catalog_listings
@@ -500,17 +504,18 @@ def merge_edited_evals(evaluations, edited_evals):
     for e in evaluations:
         eval_ccns.append(e.ccn)
     for edit in edited_evals:
-        uid = edit.instructor.uid if edit.instructor else ''
+        uid = edit.instructor.uid if edit.instructor else None
         form = edit.dept_form
         app.logger.info(f'Checking edited eval for {edit.ccn}-{uid}')
         match = None
         for e in evaluations:
             if (
                     e.ccn == edit.ccn
-                    and (e.instructor and e.instructor.uid == uid
+                    and ((e.instructor and e.instructor.uid == uid)
                          or (edit.instructor.uid and not e.instructor.uid))
                     and (e.dept_form and not form
                          or form and not e.dept_form
+                         or not form and not e.dept_form
                          or (e.dept_form and form and e.dept_form == form)
                          or (e.dept_form and form and e.dept_form != form and '_MID' not in e.dept_form and '_MID' not in form))
             ):
@@ -519,6 +524,8 @@ def merge_edited_evals(evaluations, edited_evals):
                 e.status = edit.status
                 edit.x_listing_ccns = e.x_listing_ccns
                 edit.room_share_ccns = e.room_share_ccns
+                edit.course_start_date = e.course_start_date
+                edit.course_end_date = e.course_end_date
                 if edit.instructor.uid:
                     e.instructor = edit.instructor
                 if edit.dept_form:

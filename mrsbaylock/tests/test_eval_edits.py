@@ -82,6 +82,8 @@ class TestEvaluationManagement:
         self.status_board_admin_page.click_dept_link(self.dept_1)
         self.dept_details_admin_page.wait_for_eval_rows()
 
+    # DEPT FORM
+
     def test_add_dept_form(self):
         form = self.dept_forms[1]
         self.dept_details_admin_page.reload_page()
@@ -110,6 +112,8 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.wait_for_eval_rows()
         assert form in self.dept_details_admin_page.eval_dept_form(self.eval_sans_form)
 
+    # EVAL TYPE
+
     def test_eval_types_available(self):
         e = next(filter(lambda row: row.dept_form, self.dept_1.evaluations))
         self.dept_details_admin_page.click_edit_evaluation(e)
@@ -120,7 +124,7 @@ class TestEvaluationManagement:
         assert visible == self.eval_types
 
     def test_add_eval_type(self):
-        eval_type = self.eval_types[-1]
+        eval_type = next(filter(lambda t: t != self.dept_1.evaluations[2].eval_type and t != 'Revert', self.eval_types))
         self.dept_details_admin_page.click_edit_evaluation(self.dept_1.evaluations[2])
         self.dept_details_admin_page.change_eval_type(self.dept_1.evaluations[2], eval_type)
         self.dept_details_admin_page.click_save_eval_changes(self.dept_1.evaluations[2])
@@ -129,13 +133,15 @@ class TestEvaluationManagement:
         assert eval_type in self.dept_details_admin_page.eval_type(self.dept_1.evaluations[2])
 
     def test_change_eval_type(self):
-        eval_type = self.eval_types[-2]
+        eval_type = next(filter(lambda t: t != self.dept_1.evaluations[2].eval_type and t != 'Revert', self.eval_types))
         self.dept_details_admin_page.click_edit_evaluation(self.dept_1.evaluations[2])
         self.dept_details_admin_page.change_eval_type(self.dept_1.evaluations[2], eval_type)
         self.dept_details_admin_page.click_save_eval_changes(self.dept_1.evaluations[2])
         self.dept_1.evaluations[2].eval_type = eval_type
         self.dept_details_admin_page.wait_for_eval_rows()
         assert eval_type in self.dept_details_admin_page.eval_type(self.dept_1.evaluations[2])
+
+    # EVAL DATES
 
     def test_change_start_date(self):
         e = self.dept_1.evaluations[0]
@@ -155,6 +161,8 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.hit_escape()
         self.dept_details_admin_page.wait_for_element(CourseDashboardEditsPage.EVAL_CHANGE_START_REQ_MSG, utils.get_short_timeout())
 
+    # DUPLICATION
+
     def test_identical_duplicate_not_allowed(self):
         e = next(filter(lambda ev: ev.dept_form and ev.instructor.uid, self.dept_1.evaluations))
         self.dept_details_admin_page.click_cancel_eval_changes()
@@ -168,7 +176,7 @@ class TestEvaluationManagement:
 
     def test_duplicate_section_new_instructor_and_eval_type(self):
         instructor = utils.get_test_user()
-        eval_type = next(filter(lambda t: t == 'WRIT', self.eval_types))
+        eval_type = 'LANG'
         e = next(filter(lambda ev: ev.dept_form, self.dept_1.evaluations))
         self.dept_details_admin_page.cancel_dupe()
         self.dept_details_admin_page.click_eval_checkbox(e)
@@ -210,6 +218,8 @@ class TestEvaluationManagement:
         assert len(self.dept_details_admin_page.rows_of_evaluation(self.dept_1.evaluations[1])) == 1
         assert len(self.dept_details_admin_page.rows_of_evaluation(dupe)) == 1
 
+    # MANUAL SECTION
+
     def test_add_existing_supp_section(self):
         e = self.dept_1.evaluations[0]
         self.dept_details_admin_page.reload_page()
@@ -233,6 +243,8 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.wait_for_eval_row(e)
         self.dept_1.evaluations.append(e)
+
+    # CONFIRM, PUBLISH, AND VERIFY CSV EXPORTS
 
     def test_confirm_complete_evals(self):
         evals = evaluation_utils.get_evaluations(self.term, self.dept_1)

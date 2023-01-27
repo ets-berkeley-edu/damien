@@ -36,7 +36,9 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 term = utils.get_current_term()
 previous_term = Term(utils.get_previous_term_code(term.term_id), None)
 depts = utils.get_participating_depts()
-depts_with_users = [d for d in depts if d.users]
+depts_with_users = [
+    d for d in depts if d.users and len(list(filter(lambda u: u.dept_roles[0].receives_comms, d.users))) > 1 and d.row_count > 0
+]
 
 dept_1 = depts_with_users[0]
 dept_2 = depts_with_users[1]
@@ -85,7 +87,8 @@ class TestDeptMgmt:
     def test_previous_term_note(self):
         self.dept_details_admin_page.select_term(previous_term)
         self.dept_details_admin_page.wait_for_note()
-        disabled = self.dept_details_admin_page.element(DeptDetailsAdminPage.DEPT_NOTE_EDIT_BUTTON).get_attribute('disabled')
+        disabled = self.dept_details_admin_page.element(DeptDetailsAdminPage.DEPT_NOTE_EDIT_BUTTON).get_attribute(
+            'disabled')
         assert disabled == 'true'
 
     # CONTACTS
@@ -264,7 +267,11 @@ class TestDeptMgmt:
         test_email.body = f'Bulk test body to some departments, some contacts {self.test_id}'
         recips_to_exclude = []
         for d in depts_with_users[5:6]:
-            recips_to_exclude.append({'user': d.users[-1], 'dept': d})
+            for u in d.users:
+                for r in u.dept_roles:
+                    if r.dept_id == d.dept_id and r.receives_comms:
+                        user = u
+            recips_to_exclude.append({'user': user, 'dept': d})
             self.status_board_admin_page.check_dept_notif_cbx(d)
         self.status_board_admin_page.send_notif_to_depts(test_email, recips_to_exclude)
 

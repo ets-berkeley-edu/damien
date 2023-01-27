@@ -97,7 +97,7 @@ class CourseDashboards(DamienPages):
         return self.visible_evaluation_column_selections(CourseDashboards.EVALUATION_PERIOD)
 
     def wait_for_eval_rows(self):
-        time.sleep(1)
+        time.sleep(2)
         Wait(self.driver, utils.get_medium_timeout()).until(
             ec.presence_of_all_elements_located(CourseDashboards.EVALUATION_ROW),
         )
@@ -270,8 +270,16 @@ class CourseDashboards(DamienPages):
     @staticmethod
     def split_listings(dept, evaluations):
         dept_subj = utils.get_dept_subject_areas(dept)
-        dept_listings = list(filter(lambda e: e.subject in dept_subj, evaluations))
-        foreign_listings = [e for e in evaluations if e not in dept_listings]
+        domestic_listings = list(filter(lambda e: e.subject in dept_subj, evaluations))
+        foreign_listings = [e for e in evaluations if e not in domestic_listings]
+        # Treat domestic room shares like foreigners
+        for listing in domestic_listings:
+            ccns = listing.room_share_ccns
+            matches = [ev for ev in domestic_listings if ev.ccn in ccns and ev.ccn != listing.ccn]
+            for match in matches:
+                foreign_listings.append(match)
+                domestic_listings.remove(match)
+
         foreign_listings.sort(
             key=lambda e: (
                 e.subject,
@@ -279,32 +287,51 @@ class CourseDashboards(DamienPages):
                 (e.instructor.first_name.lower() if e.instructor.uid else ''),
             ),
         )
-        return dept_listings, foreign_listings
+        return domestic_listings, foreign_listings
 
     @staticmethod
-    def insert_listings(evaluations, listings, reverse=False):
-        all_evaluations = []
-        key = lambda c: c.ccn
-        grouped_evals = itertools.groupby(evaluations, key)
+    def pair_foreign_listings(domestic_grp, foreign_listings):
+        foreign_grp = []
+        ccns = domestic_grp[0].x_listing_ccns or domestic_grp[0].room_share_ccns
+        for foreigner in foreign_listings:
+            for ccn in ccns:
+                matches = []
+                for ev in domestic_grp:
+                    if foreigner.ccn == ccn and (
+                            foreigner.instructor.uid == ev.instructor.uid) and foreigner not in matches:
+                        matches.append(foreigner)
+                if matches:
+                    foreign_grp.append(matches)
+        foreign_grp.sort(
+            key=lambda f: (
+                (f[0].instructor.last_name.lower() if f[0].instructor.last_name else ''),
+                (f[0].instructor.first_name.lower() if f[0].instructor.first_name else ''),
+            ),
+        )
+        return foreign_grp
+
+    @staticmethod
+    def insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse):
+        evaluations = []
+        grouped_evals = itertools.groupby(domestic_listings, key=lambda c: c.ccn)
         for k, g in grouped_evals:
-            grp = list(g)
-            if not reverse:
-                for i in grp:
-                    all_evaluations.append(i)
-            matches = []
-            for x in listings:
-                if grp[0].x_listing_ccns:
-                    if x.ccn in grp[0].x_listing_ccns:
-                        matches.append(x)
-                elif grp[0].room_share_ccns:
-                    if x.ccn in grp[0].room_share_ccns:
-                        matches.append(x)
-            for m in matches:
-                all_evaluations.append(m)
+            domestic_grp = list(g)
+            domestic_grp.sort(
+                key=lambda d: (
+                    (d.instructor.last_name.lower() if d.instructor.last_name else ''),
+                    (d.instructor.first_name.lower() if d.instructor.first_name else ''),
+                ),
+            )
+            foreign_grp = CourseDashboards.pair_foreign_listings(domestic_grp, foreign_listings)
+            all_grp = [i for i in foreign_grp]
             if reverse:
-                for i in grp:
-                    all_evaluations.append(i)
-        return all_evaluations
+                all_grp.append(domestic_grp)
+            else:
+                all_grp.insert(0, domestic_grp)
+            all_grp = itertools.chain(*all_grp)
+            for listing in all_grp:
+                evaluations.append(listing)
+        return evaluations
 
     @staticmethod
     def get_catalog_id_suffix(evaluation):
@@ -312,37 +339,22 @@ class CourseDashboards(DamienPages):
         return evaluation.catalog_id.split(num)[1]
 
     def sort_by_course(self, dept, evaluations, reverse=False):
-        split_listings = self.split_listings(dept, evaluations)
-        split_listings[0].sort(
-            key=lambda e: (
-                e.subject,
-                int(''.join([i for i in e.catalog_id if i.isdigit()])),
-                (e.catalog_id.split(''.join([i for i in e.catalog_id if i.isdigit()]))[1]),
-                e.instruction_format,
-                e.section_num,
-                (e.eval_type or ''),
-                (e.dept_form or ''),
-                (e.instructor.last_name.lower() if e.instructor.last_name else ''),
-                (e.instructor.first_name.lower() if e.instructor.first_name else ''),
-                e.eval_start_date,
-            ),
-            reverse=reverse,
-        )
-        return self.insert_listings(split_listings[0], split_listings[1], reverse)
+        domestic_listings, foreign_listings = self.split_listings(dept, evaluations)
+        for listings in [domestic_listings, foreign_listings]:
+            self.sort_default(listings, reverse)
+        return self.insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse)
 
     def sort_by_status(self, dept, evaluations, reverse=False):
-        evaluations = self.sort_by_course(dept, evaluations)
-        evaluations.sort(
-            key=lambda e: (e.status.value['ui'] if e.status else ''),
-            reverse=reverse,
-        )
-        return evaluations
+        domestic_listings, foreign_listings = self.split_listings(dept, evaluations)
+        for listings in [domestic_listings, foreign_listings]:
+            self.sort_default(listings, reverse=False)
+        domestic_listings.sort(key=lambda e: (e.status.value['ui'] if e.status else ''), reverse=reverse)
+        return self.insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse=False)
 
     def sort_by_ccn(self, dept, evaluations, reverse=False):
-        dept_subj = utils.get_dept_subject_areas(dept)
-        dept_listings = list(filter(lambda e: e.subject in dept_subj, evaluations))
-        foreign_listings = [e for e in evaluations if e not in dept_listings]
-        dept_listings.sort(
+        domestic_listings, foreign_listings = self.split_listings(dept, evaluations)
+        foreign_listings.sort(key=lambda e: int(e.ccn), reverse=reverse)
+        domestic_listings.sort(
             key=lambda e: (
                 int(e.ccn),
                 (e.eval_type or ''),
@@ -353,48 +365,46 @@ class CourseDashboards(DamienPages):
             ),
             reverse=reverse,
         )
-        return self.insert_listings(dept_listings, foreign_listings, reverse)
+        return self.insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse)
 
     def sort_by_instructor(self, dept, evaluations, reverse=False):
-        evaluations = self.sort_by_course(dept, evaluations)
-        evaluations.sort(
+        domestic_listings, foreign_listings = self.split_listings(dept, evaluations)
+        for listings in [domestic_listings, foreign_listings]:
+            self.sort_default(listings, reverse=False)
+        domestic_listings.sort(
             key=lambda e: (
                 (e.instructor.last_name.lower() if e.instructor.uid else ''),
                 (e.instructor.first_name.lower() if e.instructor.uid else ''),
-            ),
-            reverse=reverse,
-        )
-        return evaluations
-
-    def sort_by_dept_form(self, dept, evaluations, reverse=False):
-        evaluations = self.sort_by_course(dept, evaluations)
-        evaluations.sort(
-            key=lambda e: (
-                (e.dept_form or ''),
-            ),
-            reverse=reverse,
-        )
-        return evaluations
-
-    def sort_by_eval_type(self, dept, evaluations, reverse=False):
-        evaluations = self.sort_by_course(dept, evaluations)
-        evaluations.sort(
-            key=lambda e: (
                 (e.eval_type or ''),
-            ),
-            reverse=reverse,
-        )
-        return evaluations
-
-    def sort_by_eval_period(self, dept, evaluations, reverse=False):
-        evaluations = self.sort_by_course(dept, evaluations)
-        evaluations.sort(
-            key=lambda e: (
+                (e.dept_form or ''),
                 e.eval_start_date,
             ),
             reverse=reverse,
         )
-        return evaluations
+        return self.insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse=False)
+
+    def sort_by_dept_form(self, dept, evaluations, reverse=False):
+        domestic_listings, foreign_listings = self.split_listings(dept, evaluations)
+        for listings in [domestic_listings, foreign_listings]:
+            self.sort_default(listings, reverse=False)
+        domestic_listings.sort(key=lambda e: (e.dept_form or ''), reverse=reverse)
+        return self.insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse=False)
+
+    def sort_by_eval_type(self, dept, evaluations, reverse=False):
+        domestic_listings, foreign_listings = self.split_listings(dept, evaluations)
+        for listings in [domestic_listings, foreign_listings]:
+            self.sort_default(listings, reverse=False)
+        domestic_listings.sort(
+            key=lambda e: (e.eval_type or ''), reverse=reverse)
+        return self.insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse=False)
+
+    def sort_by_eval_period(self, dept, evaluations, reverse=False):
+        domestic_listings, foreign_listings = self.split_listings(dept, evaluations)
+        for listings in [domestic_listings, foreign_listings]:
+            self.sort_default(listings, reverse=False)
+        all_listings = self.insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse=False)
+        all_listings.sort(key=lambda e: e.eval_start_date, reverse=reverse)
+        return all_listings
 
     @staticmethod
     def sorted_eval_data(evaluations):
@@ -404,6 +414,7 @@ class CourseDashboards(DamienPages):
                 {
                     'ccn': e.ccn,
                     'course': f'{e.subject} {e.catalog_id} {e.instruction_format} {e.section_num}',
+                    'uid': (e.instructor.uid or ''),
                 },
             )
         return data
@@ -413,7 +424,6 @@ class CourseDashboards(DamienPages):
         for d in data:
             d.pop('dates')
             d.pop('name')
-            d.pop('uid')
             d.pop('form')
             d.pop('type')
             d.pop('listings')
