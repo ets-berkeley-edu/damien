@@ -91,6 +91,7 @@
     <ConfirmDialog
       v-if="markAsDoneWarning"
       confirm-button-label="Proceed"
+      :disabled="disableControls"
       :on-click-cancel="() => markAsDoneWarning = undefined"
       :on-click-confirm="onProceedMarkAsDone"
       :text="markAsDoneWarning"

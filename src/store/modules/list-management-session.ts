@@ -172,7 +172,8 @@ const actions = {
       commit('setAddingInstructor')
       resolve()
     })
-  }
+  },
+  setDisableControls: ({commit}, disable: boolean) => commit('setDisableControls', disable),
 }
 
 const mutations = {

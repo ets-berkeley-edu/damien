@@ -26,6 +26,7 @@
               id="confirm-dialog-btn"
               class="text-capitalize"
               color="primary"
+              :disabled="disabled"
               @click="onClickConfirm"
             >
               {{ confirmButtonLabel }} <span class="sr-only">{{ buttonContext }}</span>
@@ -35,6 +36,7 @@
             <v-btn
               id="cancel-dialog-btn"
               class="text-capitalize"
+              :disabled="disabled"
               @click="cancel"
             >
               Cancel <span class="sr-only">{{ buttonContext }}</span>
@@ -59,6 +61,10 @@ export default {
       default: 'Confirm',
       required: false,
       type: String
+    },
+    disabled: {
+      required: false,
+      type: Boolean
     },
     icon: {
       default: undefined,
