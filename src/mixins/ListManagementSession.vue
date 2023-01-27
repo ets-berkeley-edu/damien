@@ -33,7 +33,8 @@ export default {
       'reset',
       'setAddingDepartmentForm',
       'setAddingEvaluationType',
-      'setAddingInstructor'
+      'setAddingInstructor',
+      'setDisableControls'
     ])
   }
 }

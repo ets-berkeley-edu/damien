@@ -95,6 +95,7 @@
               </v-btn>
               <ConfirmDialog
                 v-if="isConfirming"
+                :disabled="disableControls"
                 :on-click-cancel="onCancelDelete"
                 :on-click-confirm="onDelete"
                 :text="`Are you sure you want to remove ${fullName}?`"
