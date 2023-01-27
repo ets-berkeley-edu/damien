@@ -422,13 +422,14 @@ def _cross_listed_flag(section):
 
 
 def _cross_listed_name(section):
-    if section.cross_listed_with or section.room_shared_with:
-        course_numbers = {section.course_number}
+    course_numbers = {section.course_number}
+    if section.cross_listed_with:
         course_numbers.update(section.cross_listed_with)
+    elif section.room_shared_with:
         course_numbers.update(section.room_shared_with)
-        return '-'.join(sorted(s for s in course_numbers if s))
     else:
         return ''
+    return '-'.join(sorted(s for s in course_numbers if s))
 
 
 def _export_instructor_row(instructor):
