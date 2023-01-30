@@ -57,7 +57,7 @@ def generate_exports(term_id, timestamp):
     s3_path = get_s3_path(term_id, timestamp)
     export = Export.create(term_id, s3_path)
     all_catalog_listings = DepartmentCatalogListing.query.all()
-    dept_forms_to_uids = {df.name: [udf.user.uid for udf in df.users] for df in DepartmentForm.query.all()}
+    dept_forms_to_uids = {df.name: [udf.user.uid for udf in df.users if not udf.user.deleted_at] for df in DepartmentForm.query.all()}
 
     # We fetch past-term exports for 1) course-instructor mappings; 2) course-supervisor mappings for cross-listed courses; 3) instructor data.
     past_term_export_path = 'exports/legacy'
