@@ -66,6 +66,8 @@ class TestListManagement:
         self.homepage.load_page()
         self.status_board_admin_page.click_list_mgmt()
 
+    # ADDING FORM, TYPE, AND INSTRUCTOR
+
     def test_add_dept_form(self):
         self.list_mgmt_page.add_dept_form(self.form)
         assert self.form in self.list_mgmt_page.visible_dept_form_names()
@@ -142,6 +144,8 @@ class TestListManagement:
         assert self.instructor.uid in self.dept_details_admin_page.eval_instructor(dupe)
         assert self.instructor.first_name in self.dept_details_admin_page.eval_instructor(dupe)
         assert self.instructor.last_name in self.dept_details_admin_page.eval_instructor(dupe)
+
+    # DELETING FORM, TYPE, AND INSTRUCTOR
 
     def test_delete_dept_form(self):
         self.dept_details_admin_page.click_list_mgmt()

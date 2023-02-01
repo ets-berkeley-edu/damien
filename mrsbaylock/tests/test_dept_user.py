@@ -43,10 +43,11 @@ class TestDeptUser:
     term = utils.get_current_term()
     depts = utils.get_participating_depts()
     for d in depts:
-        single_role_users = list(map(lambda u: len(u.dept_roles) == 1, d.users))
-        if len(single_role_users) and (60 <= d.row_count <= 90):
+        single_role_users = [u for u in d.users if len(u.dept_roles) == 1]
+        if (len(single_role_users) > 0) and (40 <= d.row_count <= 60):
             dept = d
             break
+    utils.reset_test_data(term, dept)
     evaluations = evaluation_utils.get_evaluations(term, dept)
     contact = next(filter(lambda u: (len(u.dept_roles) == 1), dept.users))
 
@@ -54,6 +55,7 @@ class TestDeptUser:
         self.login_page.load_page()
         self.login_page.dev_auth()
         self.status_board_admin_page.click_list_mgmt()
+        self.api_page.refresh_unholy_loch()
 
     # TERM LOCK / UNLOCK
 
@@ -147,7 +149,7 @@ class TestDeptUser:
         self.dept_details_dept_page.click_save_eval_changes(done)
         done.status = EvaluationStatus.CONFIRMED
 
-        remaining = list(filter(lambda e: e.status == EvaluationStatus.UNMARKED, self.evaluations))
+        remaining = list(filter(lambda e: e.instructor.uid and (e.status == EvaluationStatus.UNMARKED), self.evaluations))
         to_do = remaining[0]
         self.dept_details_dept_page.click_edit_evaluation(to_do)
         self.dept_details_dept_page.select_eval_status(to_do, EvaluationStatus.FOR_REVIEW)
@@ -181,6 +183,9 @@ class TestDeptUser:
         app.logger.info(f'Missing {missing}')
         unexpected = [x for x in visible if x not in expected]
         app.logger.info(f'Unexpected {unexpected}')
+        if visible != expected:
+            app.logger.info(f'Visible {visible}')
+            app.logger.info(f'Expected {expected}')
         assert visible == expected
 
     def test_sort_by_status_asc(self):
@@ -379,7 +384,7 @@ class TestDeptUser:
     # EVALUATION STATUS AND FILTERING
 
     def test_set_review_status_bulk(self):
-        e = next(filter(lambda row: (row.status == EvaluationStatus.UNMARKED), self.evaluations))
+        e = next(filter(lambda row: row.instructor.uid and (row.status == EvaluationStatus.UNMARKED), self.evaluations))
         self.dept_details_dept_page.reload_page()
         self.dept_details_dept_page.wait_for_eval_rows()
         self.dept_details_dept_page.bulk_mark_for_review([e])
@@ -389,7 +394,7 @@ class TestDeptUser:
         assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
 
     def test_set_review_status_single(self):
-        e = next(filter(lambda row: (row.status == EvaluationStatus.UNMARKED), self.evaluations))
+        e = next(filter(lambda row: row.instructor.uid and (row.status == EvaluationStatus.UNMARKED), self.evaluations))
         self.dept_details_dept_page.click_edit_evaluation(e)
         self.dept_details_dept_page.select_eval_status(e, EvaluationStatus.FOR_REVIEW)
         self.dept_details_dept_page.click_save_eval_changes(e)

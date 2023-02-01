@@ -52,6 +52,7 @@ class TestEvalExports:
     expected_x_listed_supervisors = []
     csv_instructors = []
     csv_course_instructors = []
+    csv_x_listed_supervisors = []
 
     def test_refresh_loch(self):
         self.login_page.load_page()
@@ -59,6 +60,8 @@ class TestEvalExports:
         self.status_board_admin_page.click_list_mgmt()
         self.api_page.refresh_unholy_loch()
         self.evals.extend(evaluation_utils.get_evaluations(self.term, self.dept))
+
+    # FILL IN DATA FOR EXPORT
 
     def test_complete_eval_instructors(self):
         self.dept_details_admin_page.load_dept_page(self.dept)
@@ -109,6 +112,8 @@ class TestEvalExports:
 
     def test_confirm_updated_date(self):
         assert self.status_board_admin_page.dept_last_update_date(self.dept) == datetime.date.today()
+
+    # PUBLISH AND VERIFY CSV CONTENT
 
     def test_publish(self):
         self.publish_page.load_page()
@@ -181,10 +186,15 @@ class TestEvalExports:
         csv_course_supervisors = self.publish_page.parse_supervisors_csv()
         utils.verify_actual_matches_expected(csv_course_supervisors, self.expected_supervisors)
 
+    def test_x_listed_course_supervisors_past_term(self):
+        self.csv_x_listed_supervisors.extend(self.publish_page.parse_csv('xlisted_course_supervisors'))
+        past_term_rows = list(filter(lambda r: (self.term.prefix not in r['COURSE_ID']), self.csv_x_listed_supervisors))
+        assert past_term_rows
+
     def test_x_listed_course_supervisors(self):
-        self.expected_x_listed_supervisors.extend(utils.expected_x_listed_course_supervisors(self.term, self.confirmed, self.all_contacts))
-        csv_x_listed_supervisors = self.publish_page.parse_csv('xlisted_course_supervisors')
-        utils.verify_actual_matches_expected(csv_x_listed_supervisors, self.expected_x_listed_supervisors)
+        self.expected_x_listed_supervisors.extend((utils.expected_x_listed_course_supervisors(self.term, self.confirmed, self.all_contacts)))
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), self.csv_x_listed_supervisors))
+        utils.verify_actual_matches_expected(current_term_rows, self.expected_x_listed_supervisors)
 
     def test_dept_hierarchy(self):
         expected_dept_hierarchy = utils.expected_dept_hierarchy()
@@ -196,16 +206,11 @@ class TestEvalExports:
         csv_viewers = self.publish_page.parse_csv('report_viewer_hierarchy')
         utils.verify_actual_matches_expected(csv_viewers, expected_viewers)
 
-    # SIS DATA CHANGES
+    # SIS DATA CHANGES, REPUBLISH
 
     def test_section_deleted(self):
         evaluation = self.confirmed[0]
         evaluation_utils.set_section_deleted(evaluation)
-
-    def test_section_enrollment_zero(self):
-        evaluation = self.confirmed[1]
-        evaluation_utils.set_enrollment_count_zero(evaluation)
-        self.confirmed.remove(evaluation)
 
     def test_instructor_removed(self):
         evaluation = copy.deepcopy(self.confirmed[3])

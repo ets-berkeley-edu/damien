@@ -24,7 +24,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import datetime
-import re
 import time
 
 from flask import current_app as app
@@ -69,8 +68,7 @@ class StatusBoardAdminPage(DamienPages):
 
     @staticmethod
     def notif_select_dept_cbx(dept):
-        dept_str = re.sub('[& ]', '-', dept.name.lower().replace(',', ''))
-        return By.ID, f'checkbox-select-dept-{dept_str}'
+        return By.XPATH, f'//label[text()=" {dept.name} "]/following-sibling::div//input'
 
     def check_dept_notif_cbx(self, dept):
         app.logger.info(f'Clicking the notification checkbox for {dept.name}')
