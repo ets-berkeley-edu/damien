@@ -110,7 +110,12 @@ class PublishPage(CourseDashboards):
         file = f'{utils.default_download_dir()}/{file_name}.csv'
         rows = []
         with open(file) as csv_file:
-            for row in csv.DictReader(csv_file):
+            parsed = csv.DictReader(csv_file)
+            for row in parsed:
+                try:
+                    del row['MODULAR_COURSE']
+                except KeyError:
+                    pass
                 rows.append(row)
         return rows
 
