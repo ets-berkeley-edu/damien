@@ -27,6 +27,7 @@ import json
 
 from damien import std_commit
 from damien.models.department import Department
+from damien.models.department_form import DepartmentForm
 from damien.models.department_member import DepartmentMember
 from damien.models.user import User
 
@@ -268,3 +269,43 @@ class TestUpdateDepartmentContact:
 
         department = Department.find_by_name('Philosophy')
         assert len(department.members) == original_count + 1
+
+    def test_add_remove_dept_forms(self, client, fake_auth, history_id, form_history_id, form_melc_id):
+        fake_auth.login(admin_uid)
+        department = Department.find_by_id(history_id)
+        User.create_or_restore(
+            csid='294982',
+            uid='23948',
+            email='sb@berkeley.edu',
+            first_name='Smedley',
+            last_name='Bretile',
+        )
+        std_commit(allow_test_environment=True)
+        user = User.find_by_uid('23948')
+
+        # Add HISTORY
+        history_form = DepartmentForm.find_by_id(form_history_id)
+        params = {
+            'csid': user.csid,
+            'canReceiveCommunications': False,
+            'departmentForms': [history_form.to_api_json()],
+            'email': user.email,
+            'firstName': user.first_name,
+            'lastName': user.last_name,
+            'uid': user.uid,
+            'userId': user.id,
+        }
+        contact = _api_update_contact(client, dept_id=department.id, params=params)
+        assert contact['departmentId'] == str(department.id)
+        assert contact['userId'] == user.id
+        assert len(contact['departmentForms']) == 1
+        assert contact['departmentForms'][0]['name'] == 'HISTORY'
+
+        # Remove HISTORY and add MELC
+        melc_form = DepartmentForm.find_by_id(form_melc_id)
+        params['departmentForms'] = [melc_form.to_api_json()]
+        contact = _api_update_contact(client, dept_id=department.id, params=params)
+        # assert contact['departmentId'] == str(department.id)
+        assert contact['userId'] == user.id
+        assert len(contact['departmentForms']) == 1
+        assert contact['departmentForms'][0]['name'] == 'MELC'

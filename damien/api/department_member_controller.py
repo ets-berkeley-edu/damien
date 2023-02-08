@@ -97,7 +97,8 @@ def update_contact(department_id):
         blue_permissions = 'response_rates'
     elif can_view_reports:
         blue_permissions = 'reports_only'
-    UserDepartmentForm.update(department_forms=department_forms, user_id=user.id)
+    department_form_ids = [df['id'] for df in department_forms or []]
+    UserDepartmentForm.update(department_form_ids=department_form_ids, user=user)
     department_member = DepartmentMember.upsert(
         blue_permissions=blue_permissions,
         can_receive_communications=can_receive_communications,

@@ -31,11 +31,18 @@ from damien.models.department_form import DepartmentForm
 class UserDepartmentForm(Base):
     __tablename__ = 'user_department_forms'
 
-    department_form_id = db.Column(db.Integer, db.ForeignKey('department_forms.id'), nullable=False, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, primary_key=True)
-
-    department_form = db.relationship(DepartmentForm.__name__, back_populates='users', lazy='joined')
-    user = db.relationship('User', back_populates='department_forms')
+    department_form_id = db.Column(
+        db.Integer,
+        db.ForeignKey('department_forms.id', ondelete='CASCADE'),
+        nullable=False,
+        primary_key=True,
+    )
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='CASCADE'),
+        nullable=False,
+        primary_key=True,
+    )
 
     def __init__(
         self,
@@ -58,6 +65,7 @@ class UserDepartmentForm(Base):
             user_id,
     ):
         user_department_form = cls(department_form_id=department_form_id, user_id=user_id)
+        db.session.add(user_department_form)
         std_commit()
         return user_department_form
 
@@ -72,17 +80,19 @@ class UserDepartmentForm(Base):
         return cls.query.filter_by(user_id=user_id).all()
 
     @classmethod
-    def update(cls, department_forms, user_id):
-        department_form_ids = set(df['id'] for df in department_forms) if department_forms else set()
-        existing_department_form_ids = set(udf.department_form_id for udf in cls.find_by_user_id(user_id))
+    def update(cls, department_form_ids, user):
+        department_form_ids = set(department_form_ids)
+        existing_department_form_ids = set(udf.department_form_id for udf in cls.find_by_user_id(user.id))
         department_form_ids_to_delete = existing_department_form_ids - department_form_ids
         department_form_ids_to_add = department_form_ids - existing_department_form_ids
 
         for department_form_id in department_form_ids_to_delete:
-            cls.delete(department_form_id, user_id)
-
+            df = DepartmentForm.find_by_id(department_form_id, include_deleted=True)
+            user.department_forms.remove(df)
+            db.session.flush()
+        print(department_form_ids_to_add)
         for department_form_id in department_form_ids_to_add:
-            cls.create(department_form_id, user_id)
-
-    def to_api_json(self):
-        return self.department_form.to_api_json()
+            df = DepartmentForm.find_by_id(department_form_id, include_deleted=True)
+            print(df)
+            user.department_forms.add(df)
+        std_commit()
