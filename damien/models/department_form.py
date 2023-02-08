@@ -42,8 +42,9 @@ class DepartmentForm(Base):
         lazy='dynamic',
     )
     users = db.relationship(
-        'UserDepartmentForm',
-        back_populates='department_form',
+        'User',
+        back_populates='department_forms',
+        secondary='user_department_forms',
     )
 
     def __init__(
@@ -85,9 +86,10 @@ class DepartmentForm(Base):
             return None
 
     @classmethod
-    def find_by_id(cls, db_id):
-        query = cls.query.filter_by(id=db_id, deleted_at=None)
-        return query.first()
+    def find_by_id(cls, db_id, include_deleted=False):
+        if include_deleted:
+            return cls.query.filter_by(id=db_id).first()
+        return cls.query.filter_by(id=db_id, deleted_at=None).first()
 
     @classmethod
     def find_by_name(cls, name):
