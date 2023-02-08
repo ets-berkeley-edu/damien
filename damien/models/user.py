@@ -28,8 +28,8 @@ from datetime import datetime
 from damien import db, std_commit
 from damien.lib.util import isoformat, parse_search_snippet
 from damien.models.base import Base
+from damien.models.department_form import DepartmentForm
 from damien.models.department_member import DepartmentMember
-from damien.models.user_department_form import UserDepartmentForm
 from sqlalchemy.dialects.postgresql import ENUM
 
 
@@ -56,9 +56,10 @@ class User(Base):
     login_at = db.Column(db.DateTime)
 
     department_forms = db.relationship(
-        UserDepartmentForm.__name__,
-        back_populates='user',
-        lazy='joined',
+        DepartmentForm.__name__,
+        back_populates='users',
+        collection_class=set,
+        secondary='user_department_forms',
     )
     department_memberships = db.relationship(
         DepartmentMember.__name__,
@@ -193,5 +194,5 @@ class User(Base):
             'updatedAt': isoformat(self.updated_at),
             'deletedAt': isoformat(self.deleted_at),
             'lastLoginAt': isoformat(self.login_at),
-            'departmentForms': [udf.to_api_json() for udf in self.department_forms],
+            'departmentForms': [df.to_api_json() for df in self.department_forms],
         }

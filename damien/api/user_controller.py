@@ -28,7 +28,6 @@ from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_loch_basic_attributes_by_uid_or_name
 from damien.lib.util import get as get_param
 from damien.models.user import User
-from damien.models.user_department_form import UserDepartmentForm
 from flask import current_app as app, request
 from flask_login import current_user
 
@@ -38,8 +37,7 @@ from flask_login import current_user
 def get_user_department_forms(uid):
     user = User.find_by_uid(uid)
     if user:
-        department_forms = UserDepartmentForm.find_by_user_id(user.id)
-        results = [udf.to_api_json() for udf in department_forms]
+        results = [df.to_api_json() for df in user.department_forms]
         return tolerant_jsonify(results)
     return tolerant_jsonify([])
 
