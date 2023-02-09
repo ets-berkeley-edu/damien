@@ -228,10 +228,8 @@ class TestGetDepartment:
         department = _api_get_melc(client)
         for e in department['evaluations']:
             if e['subjectArea'] == 'HISTORY':
-                print(e)
                 assert e['evaluationType'] is None
             elif e.get('instructor', {}).get('affiliations'):
-                print(e)
                 assert e['evaluationType']
 
     def test_include_room_share(self, client, fake_auth):
