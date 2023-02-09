@@ -100,6 +100,9 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         )
 
     def select_dept_forms(self, dept_forms, user=None):
+        for el in self.elements(DeptDetailsAdminPage.EDIT_CONTACT_REMOVE_FORM_BTN):
+            el.click()
+            time.sleep(1)
         for form in dept_forms:
             self.enter_and_select_dept_form(form)
 
@@ -135,11 +138,14 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         self.select_dept_forms(user.dept_forms)
         self.hit_escape()
         self.click_save_new_contact()
+        time.sleep(2)
         self.wait_for_contact(user)
         user.user_id = utils.get_user_id(user)
         dept.users.append(user)
 
     # Edit contact
+
+    EDIT_CONTACT_REMOVE_FORM_BTN = (By.XPATH, '//button[contains(@aria-label, "Remove")]')
 
     @staticmethod
     def dept_contact_edit_button(user):
@@ -181,6 +187,7 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         self.select_dept_forms(user.dept_forms)
         self.hit_escape()
         self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_save_edit_button(user))
+        time.sleep(2)
 
     def click_cancel_contact_edits(self, user):
         self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_cancel_edit_button(user))
