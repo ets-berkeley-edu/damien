@@ -165,8 +165,17 @@ class TestDeptMgmt:
         self.dept_details_admin_page.click_add_contact()
         self.dept_details_admin_page.add_contact(dept_1_user, dept_1)
 
-    def test_edit_contact_bad_email(self):
+    def test_add_contact_verify(self):
         self.dept_details_admin_page.expand_dept_contact(dept_1_user)
+        expected_comms = 'Does receive notifications' if dept_1_role.receives_comms else 'Does not receive notifications'
+        assert self.dept_details_admin_page.dept_contact_comms_perms(dept_1_user) == expected_comms
+        expected_blue = dept_1_user.blue_permissions.value['description']
+        assert self.dept_details_admin_page.dept_contact_blue_perms(dept_1_user) == expected_blue
+        expected_forms = list(filter(None, dept_1_user.dept_forms))
+        actual_forms = self.dept_details_admin_page.dept_contact_dept_forms(dept_1_user)
+        assert actual_forms == expected_forms
+
+    def test_edit_contact_bad_email(self):
         self.dept_details_admin_page.click_edit_contact(dept_1_user)
         self.dept_details_admin_page.enter_dept_contact_email_edit(dept_1_user, 'foo.com')
         Wait(self.driver, 2).until(ec.visibility_of_element_located(DeptDetailsAdminPage.EMAIL_INVALID_MSG))
@@ -179,8 +188,19 @@ class TestDeptMgmt:
         new_role = UserDeptRole(dept_1.dept_id, receives_comms=False)
         dept_1_user.dept_roles = [new_role]
         dept_1_user.blue_permissions = 'response_rates'
+        dept_1_user.dept_forms = ['PHYSICS']
         self.dept_details_admin_page.click_cancel_contact_edits(dept_1_user)
         self.dept_details_admin_page.edit_contact(dept_1_user, dept_1)
+
+    def test_edit_contact_verify(self):
+        self.dept_details_admin_page.expand_dept_contact(dept_1_user)
+        expected_comms = 'Does receive notifications' if dept_1_user.dept_roles[0].receives_comms else 'Does not receive notifications'
+        assert self.dept_details_admin_page.dept_contact_comms_perms(dept_1_user) == expected_comms
+        expected_blue = dept_1_user.blue_permissions.value['description']
+        assert self.dept_details_admin_page.dept_contact_blue_perms(dept_1_user) == expected_blue
+        expected_forms = list(filter(None, dept_1_user.dept_forms))
+        actual_forms = self.dept_details_admin_page.dept_contact_dept_forms(dept_1_user)
+        assert actual_forms == expected_forms
 
     def test_add_contact_dept_2(self):
         dept_2_user.dept_forms.append('ENGLISH')
