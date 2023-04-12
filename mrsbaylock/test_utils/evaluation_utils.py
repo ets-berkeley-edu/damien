@@ -123,9 +123,11 @@ def row_eval_start_from_course_end(course_end, course_start):
     term_end_date = datetime.datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d').date()
     start = course_start or datetime.datetime.strptime(app.config['CURRENT_TERM_BEGIN'], '%Y-%m-%d').date()
     end = course_end or term_end_date
-    # TODO - fix this to handle summer logic
-    grace_pd = 2 if (end == term_end_date) else 0
-    graceful_end = end + timedelta(days=grace_pd)
+    if app.config['CURRENT_TERM_ID'][3] == '5':
+        graceful_end = end
+    else:
+        grace_pd = 2 if (end == term_end_date) else 0
+        graceful_end = end + timedelta(days=grace_pd)
     return graceful_end - timedelta(days=20) if (graceful_end - start).days > 90 else graceful_end - timedelta(days=13)
 
 
@@ -654,9 +656,16 @@ def get_section_dept(term, ccn, all_users=None):
            AND unholy_loch.sis_sections.term_id = '{term.term_id}'
     """
     app.logger.info(sql)
-    result = db.session.execute(text(sql)).first()
+    result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
-    return utils.get_dept(result['dept_name'], all_users)
+    for row in result:
+        dept = utils.get_dept(row['dept_name'], all_users)
+        evals = get_evaluations(term, dept)
+        try:
+            next(filter(lambda e: e.ccn == ccn, evals))
+            return dept
+        except StopIteration:
+            app.logger.info(f'{dept.name} is not the right dept')
 
 
 def get_eval_types(evals):

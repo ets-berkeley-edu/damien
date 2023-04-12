@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from datetime import datetime
 import itertools
+import os
 
 from damien import db, std_commit
 from flask import current_app as app
@@ -67,11 +68,11 @@ def get_admin_uid():
 
 
 def get_admin_username():
-    return app.config['ADMIN_USERNAME']
+    return os.getenv('USERNAME')
 
 
 def get_admin_password():
-    return app.config['ADMIN_PASSWORD']
+    return os.getenv('PASSWORD')
 
 
 def get_test_dept_contact_uid():
@@ -496,11 +497,6 @@ def expected_courses(evaluations, calc_course_ids=False):
             flag = ''
             x_listed_name = ''
 
-        if row.course_start_date and row.course_end_date:
-            modular = 'Y' if (row.course_end_date - row.course_start_date).days < 90 else ''
-        else:
-            modular = ''
-
         if row.eval_end_date:
             end_date = row.eval_end_date.strftime('%-m/%-d/%y')
         else:
@@ -524,7 +520,6 @@ def expected_courses(evaluations, calc_course_ids=False):
             'EVALUATE': 'Y',
             'DEPT_FORM': row.dept_form,
             'EVALUATION_TYPE': row.eval_type,
-            'MODULAR_COURSE': modular,
             'START_DATE': row.eval_start_date.strftime('%-m/%-d/%y'),
             'END_DATE': end_date,
             'CANVAS_COURSE_ID': '',
@@ -809,6 +804,7 @@ def expected_report_viewers():
                   LEFT JOIN user_department_forms ON user_department_forms.user_id = users.id
                   LEFT JOIN department_forms ON department_forms.id = user_department_forms.department_form_id
                       WHERE department_forms.name IS NOT NULL
+                        AND users.deleted_at IS NULL
                    ORDER BY uid, form
     """
     app.logger.info(sql)

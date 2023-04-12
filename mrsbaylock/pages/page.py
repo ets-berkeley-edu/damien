@@ -39,8 +39,9 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 class Page(object):
 
-    def __init__(self, driver):
+    def __init__(self, driver, headless):
         self.driver = driver
+        self.headless = headless
 
     PAGE_HEADING = (By.XPATH, '//h1')
     FOOTER = (By.ID, 'footer')

@@ -27,6 +27,7 @@ from datetime import datetime
 import os
 
 from damien.factory import create_app
+from flask import current_app as app
 from mrsbaylock.pages.api_page import ApiPage
 from mrsbaylock.pages.calnet_page import CalNetPage
 from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
@@ -49,22 +50,29 @@ ctx = _app.app_context()
 ctx.push()
 
 
+def pytest_addoption(parser):
+    parser.addoption('--browser', action='store', default=app.config['BROWSER'])
+    parser.addoption('--headless', action='store')
+
+
 @pytest.fixture(scope='session')
 def page_objects(request):
-    driver = WebDriverManager.launch_browser()
+    browser = request.config.getoption('--browser')
+    headless = request.config.getoption('--headless')
+    driver = WebDriverManager.launch_browser(browser=browser, headless=headless)
     test_id = datetime.strftime(datetime.now(), '%s')
 
     # Define page objects
-    api_page = ApiPage(driver)
-    calnet_page = CalNetPage(driver)
-    dept_details_admin_page = DeptDetailsAdminPage(driver)
-    dept_details_dept_page = CourseDashboardEditsPage(driver)
-    group_mgmt_page = GroupMgmtPage(driver)
-    homepage = Homepage(driver)
-    list_mgmt_page = ListMgmtPage(driver)
-    login_page = LoginPage(driver)
-    publish_page = PublishPage(driver)
-    status_board_admin_page = StatusBoardAdminPage(driver)
+    api_page = ApiPage(driver, headless)
+    calnet_page = CalNetPage(driver, headless)
+    dept_details_admin_page = DeptDetailsAdminPage(driver, headless)
+    dept_details_dept_page = CourseDashboardEditsPage(driver, headless)
+    group_mgmt_page = GroupMgmtPage(driver, headless)
+    homepage = Homepage(driver, headless)
+    list_mgmt_page = ListMgmtPage(driver, headless)
+    login_page = LoginPage(driver, headless)
+    publish_page = PublishPage(driver, headless)
+    status_board_admin_page = StatusBoardAdminPage(driver, headless)
 
     session = request.node
     try:
