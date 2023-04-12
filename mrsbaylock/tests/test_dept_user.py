@@ -39,12 +39,11 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 @pytest.mark.usefixtures('page_objects')
 class TestDeptUser:
-
     term = utils.get_current_term()
     depts = utils.get_participating_depts()
     for d in depts:
         single_role_users = [u for u in d.users if len(u.dept_roles) == 1]
-        if (len(single_role_users) > 0) and (40 <= d.row_count <= 60):
+        if (len(single_role_users) > 0) and (20 <= d.row_count <= 60):
             dept = d
             break
     utils.reset_test_data(term, dept)
@@ -66,7 +65,8 @@ class TestDeptUser:
 
     def test_verify_locked_admin_edits(self):
         self.status_board_admin_page.click_dept_link(self.dept)
-        self.status_board_admin_page.wait_for_element(CourseDashboardEditsPage.ADD_SECTION_BUTTON, utils.get_medium_timeout())
+        self.status_board_admin_page.wait_for_element(CourseDashboardEditsPage.ADD_SECTION_BUTTON,
+                                                      utils.get_medium_timeout())
         assert self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
 
     def test_verify_no_locked_dept_edits(self):
@@ -83,7 +83,8 @@ class TestDeptUser:
 
     def test_verify_unlocked_admin_edits(self):
         self.status_board_admin_page.click_dept_link(self.dept)
-        self.status_board_admin_page.wait_for_element(CourseDashboardEditsPage.ADD_SECTION_BUTTON, utils.get_short_timeout())
+        self.status_board_admin_page.wait_for_element(CourseDashboardEditsPage.ADD_SECTION_BUTTON,
+                                                      utils.get_short_timeout())
         assert self.dept_details_dept_page.element(CourseDashboardEditsPage.ADD_SECTION_BUTTON).is_enabled()
 
     def test_verify_unlocked_dept_edits(self):
@@ -112,7 +113,7 @@ class TestDeptUser:
 
     def test_foreign_dept_page(self):
         all_depts = utils.get_participating_depts()
-        foreign_dept = next(filter(lambda d: d.dept_id != self.dept, all_depts))
+        foreign_dept = next(filter(lambda d: d.dept_id != self.dept.dept_id, all_depts))
         app.logger.info(f'Hitting dept page for dept id {foreign_dept.dept_id}')
         self.driver.get(f'{app.config["BASE_URL"]}/department/{foreign_dept.dept_id}')
         self.homepage.wait_for_title('404 | Course Evaluations')
@@ -143,13 +144,19 @@ class TestDeptUser:
     # EVALUATION SORTING
 
     def test_set_test_data(self):
-        done = next(filter(lambda e: (e.instructor.uid and e.dept_form and e.eval_type), self.evaluations))
+        done = next(
+            filter(lambda e: (e.instructor.uid and not e.x_listing_ccns and not e.room_share_ccns), self.evaluations))
         self.dept_details_dept_page.click_edit_evaluation(done)
         self.dept_details_dept_page.select_eval_status(done, EvaluationStatus.CONFIRMED)
+        self.dept_details_dept_page.change_dept_form(done, 'HISTORY')
+        self.dept_details_dept_page.change_eval_type(done, 'F')
         self.dept_details_dept_page.click_save_eval_changes(done)
+        done.dept_form = 'HISTORY'
+        done.eval_type = 'F'
         done.status = EvaluationStatus.CONFIRMED
 
-        remaining = list(filter(lambda e: e.instructor.uid and (e.status == EvaluationStatus.UNMARKED), self.evaluations))
+        remaining = list(
+            filter(lambda e: e.instructor.uid and (e.status == EvaluationStatus.UNMARKED), self.evaluations))
         to_do = remaining[0]
         self.dept_details_dept_page.click_edit_evaluation(to_do)
         self.dept_details_dept_page.select_eval_status(to_do, EvaluationStatus.FOR_REVIEW)
@@ -168,7 +175,8 @@ class TestDeptUser:
         self.dept_details_dept_page.change_eval_start_date(change_date, new_start)
         self.dept_details_dept_page.click_save_eval_changes(change_date)
         change_date.eval_start_date = new_start
-        new_end = evaluation_utils.row_eval_end_from_eval_start(change_date.course_start_date, change_date.eval_start_date,
+        new_end = evaluation_utils.row_eval_end_from_eval_start(change_date.course_start_date,
+                                                                change_date.eval_start_date,
                                                                 change_date.course_end_date)
         change_date.eval_end_date = new_end
 
@@ -405,7 +413,17 @@ class TestDeptUser:
         assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
 
     def test_set_confirmed_status_bulk(self):
-        e = next(filter(lambda r: (r.status == EvaluationStatus.UNMARKED and r.dept_form and r.eval_type and r.instructor.uid), self.evaluations))
+        e = next(filter(lambda r:
+                        r.status == EvaluationStatus.UNMARKED and r.instructor.uid and not r.x_listing_ccns and not r.room_share_ccns,
+                        self.evaluations,
+                        ),
+                 )
+        self.dept_details_dept_page.click_edit_evaluation(e)
+        self.dept_details_dept_page.change_dept_form(e, 'HISTORY')
+        self.dept_details_dept_page.change_eval_type(e, 'F')
+        self.dept_details_dept_page.click_save_eval_changes(e)
+        e.dept_form = 'HISTORY'
+        e.eval_type = 'F'
         self.dept_details_dept_page.bulk_mark_as_confirmed([e])
         self.dept_details_dept_page.wait_for_eval_rows()
         self.dept_details_dept_page.reload_page()
@@ -413,7 +431,17 @@ class TestDeptUser:
         assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
 
     def test_set_confirmed_status_single(self):
-        e = next(filter(lambda r: (r.status == EvaluationStatus.UNMARKED and r.dept_form and r.eval_type and r.instructor.uid), self.evaluations))
+        e = next(filter(lambda r:
+                        r.status == EvaluationStatus.UNMARKED and r.instructor.uid and not r.x_listing_ccns and not r.room_share_ccns,
+                        self.evaluations,
+                        ),
+                 )
+        self.dept_details_dept_page.click_edit_evaluation(e)
+        self.dept_details_dept_page.change_dept_form(e, 'HISTORY')
+        self.dept_details_dept_page.change_eval_type(e, 'F')
+        self.dept_details_dept_page.click_save_eval_changes(e)
+        e.dept_form = 'HISTORY'
+        e.eval_type = 'F'
         self.dept_details_dept_page.click_edit_evaluation(e)
         self.dept_details_dept_page.select_eval_status(e, EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.click_save_eval_changes(e)

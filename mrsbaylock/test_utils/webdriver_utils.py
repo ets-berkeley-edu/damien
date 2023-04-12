@@ -35,20 +35,27 @@ from selenium.webdriver.firefox.options import Options as Foptions
 class WebDriverManager(object):
 
     @classmethod
-    def launch_browser(cls):
-        app.logger.warning(f'Launching {utils.get_browser().capitalize()}')
-        if utils.get_browser() == 'firefox':
+    def launch_browser(cls, browser=None, headless=None):
+        _browser = browser or utils.get_browser()
+        if headless:
+            _headless = True if headless == 'true' else False
+        else:
+            _headless = utils.browser_is_headless()
+        app.logger.warning(f'Launching {_browser.capitalize()}, headless is {_headless}')
+
+        if _browser == 'firefox':
             p = FirefoxProfile()
             p.set_preference(key='devtools.jsonview.enabled', value=False)
             options = Foptions()
             options.profile = p
-            options.headless = app.config['BROWSER_HEADLESS']
+            options.headless = _headless
             driver = webdriver.Firefox(options=options)
         else:
             d = DesiredCapabilities.CHROME
             d['loggingPrefs'] = {'browser': 'ALL'}
             options = Coptions()
-            options.headless = app.config['BROWSER_HEADLESS']
+            if _headless:
+                options.add_argument('--headless=new')
             prefs = {
                 'profile.default_content_settings.popups': 0,
                 'download.default_directory': utils.default_download_dir(),

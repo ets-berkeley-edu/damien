@@ -311,7 +311,7 @@ class CourseDashboards(DamienPages):
         return foreign_grp
 
     @staticmethod
-    def insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse):
+    def insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse, reverse_instructors=False):
         evaluations = []
         grouped_evals = itertools.groupby(domestic_listings, key=lambda c: c.ccn)
         for k, g in grouped_evals:
@@ -321,6 +321,7 @@ class CourseDashboards(DamienPages):
                     (d.instructor.last_name.lower() if d.instructor.last_name else ''),
                     (d.instructor.first_name.lower() if d.instructor.first_name else ''),
                 ),
+                reverse=reverse_instructors,
             )
             foreign_grp = CourseDashboards.pair_foreign_listings(domestic_grp, foreign_listings)
             all_grp = [i for i in foreign_grp]
@@ -375,13 +376,30 @@ class CourseDashboards(DamienPages):
             key=lambda e: (
                 (e.instructor.last_name.lower() if e.instructor.uid else ''),
                 (e.instructor.first_name.lower() if e.instructor.uid else ''),
+                e.instructor.uid,
                 (e.eval_type or ''),
                 (e.dept_form or ''),
                 e.eval_start_date,
             ),
             reverse=reverse,
         )
-        return self.insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse=False)
+        sorted_lists = []
+        grouped = itertools.groupby(domestic_listings, key=lambda d: d.instructor.uid)
+        for k, g in grouped:
+            sections = list(g)
+            sections.sort(
+                key=lambda l: (
+                    l.subject,
+                    int(''.join([x for x in l.catalog_id if x.isdigit()])),
+                    (l.catalog_id.split(''.join([x for x in l.catalog_id if x.isdigit()]))[1]),
+                    l.instruction_format,
+                    l.section_num,
+                ),
+            )
+            for i in sections:
+                sorted_lists.append(i)
+        return self.insert_x_listings_and_shares(sorted_lists, foreign_listings, reverse=False,
+                                                 reverse_instructors=reverse)
 
     def sort_by_dept_form(self, dept, evaluations, reverse=False):
         domestic_listings, foreign_listings = self.split_listings(dept, evaluations)

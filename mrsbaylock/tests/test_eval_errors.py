@@ -55,12 +55,6 @@ class TestEvalErrors:
     x_list_contact_1 = x_list_dept_1.users[0]
     x_list_contact_2 = utils.get_dept_users(x_list_dept_2, exclude_uid=x_list_contact_1.uid)[0]
 
-    share_dept, share_eval = evaluation_utils.get_dept_eval_with_foreign_room_shares(term, depts)
-    share_dept_1 = share_eval.dept
-    share_dept_2 = evaluation_utils.get_section_dept(term, share_eval.room_share_ccns[-1], all_contacts)
-    share_contact_1 = share_dept_1.users[0]
-    share_contact_2 = utils.get_dept_users(share_dept_2, exclude_uid=share_contact_1.uid)[0]
-
     for e in x_list_dept_1.evaluations:
         if e.ccn == x_list_eval.ccn:
             x_list_eval = e
@@ -75,19 +69,32 @@ class TestEvalErrors:
     app.logger.info(f'Cross-listing department 2 is {x_list_dept_2.name}, UID {x_list_contact_2.uid}')
     app.logger.info(f'Cross-listed CCN is {x_list_eval.ccn}')
 
-    for e in share_dept_1.evaluations:
-        if e.ccn == share_eval.ccn:
-            share_eval = e
+    # Try to get room share test data, but summer term might not have any so skip those tests if there's none
+    try:
+        share_dept, share_eval = evaluation_utils.get_dept_eval_with_foreign_room_shares(term, depts)
+        share_dept_1 = share_eval.dept
+        share_dept_2 = evaluation_utils.get_section_dept(term, share_eval.room_share_ccns[-1], all_contacts)
+        share_contact_1 = share_dept_1.users[0]
+        share_contact_2 = utils.get_dept_users(share_dept_2, exclude_uid=share_contact_1.uid)[0]
+        for e in share_dept_1.evaluations:
+            if e.ccn == share_eval.ccn:
+                share_eval = e
 
-    share_eval_has_instr = True if share_eval.instructor.uid else False
-    share_start_1 = term.end_date - timedelta(days=22)
-    share_end_1 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_1, share_eval.course_end_date)
-    share_start_2 = term.end_date - timedelta(days=21)
-    share_end_2 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_2, share_eval.course_end_date)
+        share_eval_has_instr = True if share_eval.instructor.uid else False
+        share_start_1 = term.end_date - timedelta(days=22)
+        share_end_1 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_1,
+                                                                    share_eval.course_end_date)
+        share_start_2 = term.end_date - timedelta(days=21)
+        share_end_2 = evaluation_utils.row_eval_end_from_eval_start(share_eval.course_start_date, share_start_2,
+                                                                    share_eval.course_end_date)
 
-    app.logger.info(f'Room share department 1 is {share_dept_1.name}, UID {share_contact_1.uid}')
-    app.logger.info(f'Room share department 2 is {share_dept_2.name}, UID {share_contact_2.uid}')
-    app.logger.info(f'Room share CCN is {share_eval.ccn}')
+        app.logger.info(f'Room share department 1 is {share_dept_1.name}, UID {share_contact_1.uid}')
+        app.logger.info(f'Room share department 2 is {share_dept_2.name}, UID {share_contact_2.uid}')
+        app.logger.info(f'Room share CCN is {share_eval.ccn}')
+        share = True
+    except TypeError:
+        app.logger.info('There are no foreign room shares available to test')
+        share = False
 
     manual_dept_1 = utils.get_test_dept_1(all_contacts)
     manual_contact_1 = manual_dept_1.users[0]
@@ -332,6 +339,7 @@ class TestEvalErrors:
 
     # ROOM SHARES
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_unmarked_dept_1_perform_edits(self):
         self.publish_page.log_out()
         self.login_page.dev_auth(self.share_contact_1, self.share_dept_1)
@@ -344,6 +352,7 @@ class TestEvalErrors:
         self.dept_details_dept_page.change_eval_start_date(self.share_eval, self.share_start_1)
         self.dept_details_dept_page.save_eval_changes(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_unmarked_dept_1_verify_edits(self):
         self.dept_details_dept_page.wait_for_eval_rows()
         assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.share_eval)
@@ -351,6 +360,7 @@ class TestEvalErrors:
         expected = f"{self.share_start_1.strftime('%m/%d/%y')} - {self.share_end_1.strftime('%m/%d/%y')}"
         assert expected in self.dept_details_dept_page.eval_period_dates(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_unmarked_dept_2_verify_edits(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.share_contact_2, self.share_dept_2)
@@ -363,6 +373,7 @@ class TestEvalErrors:
         assert 'Conflicts with' not in self.dept_details_dept_page.eval_type(self.share_eval)
         assert 'Conflicts with' not in self.dept_details_dept_page.eval_period_dates(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_unmarked_sl_verify_no_errors(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth()
@@ -372,12 +383,14 @@ class TestEvalErrors:
         self.dept_details_admin_page.click_publish_link()
         self.publish_page.wait_for_no_sections()
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_dept_2_set_status_confirmed(self):
         self.publish_page.log_out()
         self.login_page.dev_auth(self.share_contact_2, self.share_dept_2)
         self.dept_details_dept_page.wait_for_eval_rows()
         self.dept_details_dept_page.bulk_mark_as_confirmed([self.share_eval])
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_2_verify_edits(self):
         self.dept_details_dept_page.wait_for_eval_rows()
         assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.share_eval)
@@ -388,6 +401,7 @@ class TestEvalErrors:
         assert 'Conflicts with' not in self.dept_details_dept_page.eval_type(self.share_eval)
         assert 'Conflicts with' not in self.dept_details_dept_page.eval_period_dates(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_2_attempt_edits(self):
         self.share_eval.dept_form = self.dept_form_1
         self.dept_details_dept_page.click_edit_evaluation(self.share_eval)
@@ -397,11 +411,13 @@ class TestEvalErrors:
         self.dept_details_dept_page.click_save_eval_changes(self.share_eval)
         self.dept_details_dept_page.wait_for_validation_error('Could not confirm evaluations with conflicting information.')
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_dept_2_set_status_to_do(self):
         self.dept_details_dept_page.hit_escape()
         self.dept_details_dept_page.click_cancel_eval_changes()
         self.dept_details_dept_page.bulk_mark_for_review([self.share_eval])
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_2_perform_edits(self):
         self.dept_details_dept_page.click_edit_evaluation(self.share_eval)
         self.dept_details_dept_page.change_dept_form(self.share_eval, self.dept_form_2)
@@ -409,17 +425,20 @@ class TestEvalErrors:
         self.dept_details_dept_page.change_eval_start_date(self.share_eval, self.share_start_2)
         self.dept_details_dept_page.save_eval_changes(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_2_verify_form_conflict(self):
         self.dept_details_dept_page.wait_for_eval_rows()
         assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.share_eval)
         conflict_form = f'Conflicts with value {self.dept_form_1} from {self.share_dept_1.name} department'
         assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_2_verify_type_conflict(self):
         assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.share_eval)
         conflict_type = f'Conflicts with value {self.eval_type_1} from {self.share_dept_1.name} department'
         assert conflict_type in self.dept_details_dept_page.eval_type(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_2_verify_period_conflict(self):
         pd_1 = self.share_start_1.strftime('%m/%d/%y')
         expected = f"{self.share_start_2.strftime('%m/%d/%y')} - {self.share_end_2.strftime('%m/%d/%y')}"
@@ -427,22 +446,26 @@ class TestEvalErrors:
         conflict_date = f'Conflicts with period starting {pd_1} from {self.share_dept_1.name} department'
         assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_1_verify_status(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.share_contact_1, self.share_dept_1)
         self.dept_details_dept_page.wait_for_eval_rows()
         assert self.share_eval.status.value['ui'].upper() in self.dept_details_admin_page.eval_status(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_1_verify_form_conflict(self):
         assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.share_eval)
         conflict_form = f'Conflicts with value {self.dept_form_2} from {self.share_dept_2.name} department'
         assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_1_verify_type_conflict(self):
         assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.share_eval)
         conflict_type = f'Conflicts with value {self.eval_type_2} from {self.share_dept_2.name} department'
         assert conflict_type in self.dept_details_dept_page.eval_type(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_1_verify_period_conflict(self):
         pd_2 = self.share_start_2.strftime('%m/%d/%y')
         expected = f"{self.share_start_1.strftime('%m/%d/%y')} - {self.share_end_1.strftime('%m/%d/%y')}"
@@ -450,6 +473,7 @@ class TestEvalErrors:
         conflict_date = f'Conflicts with period starting {pd_2} from {self.share_dept_2.name} department'
         assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_sl_verify_dept_2_errors(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth()
@@ -457,6 +481,7 @@ class TestEvalErrors:
         assert self.status_board_admin_page.dept_errors_count(self.share_dept_1) == 1
         assert self.status_board_admin_page.dept_errors_count(self.share_dept_2) == 1
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_sl_verify_form_conflict(self):
         self.status_board_admin_page.click_publish_link()
         self.publish_page.wait_for_eval_rows()
@@ -464,11 +489,13 @@ class TestEvalErrors:
         conflict_form = f'Conflicts with value {self.dept_form_1} from {self.share_dept_1.name} department'
         assert conflict_form in self.publish_page.eval_dept_form(self.share_eval, self.share_dept_2)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_sl_verify_type_conflict(self):
         assert self.eval_type_2 in self.publish_page.eval_type(self.share_eval, self.share_dept_2)
         conflict_type = f'Conflicts with value {self.eval_type_1} from {self.share_dept_1.name} department'
         assert conflict_type in self.publish_page.eval_type(self.share_eval, self.share_dept_2)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_sl_verify_period_conflict(self):
         pd_1 = self.share_start_1.strftime('%m/%d/%y')
         expected = f"{self.share_start_2.strftime('%m/%d/%y')} - {self.share_end_2.strftime('%m/%d/%y')}"
@@ -476,9 +503,11 @@ class TestEvalErrors:
         conflict_date = f'Conflicts with period starting {pd_1} from {self.share_dept_1.name} department'
         assert conflict_date in self.publish_page.eval_period_dates(self.share_eval, self.share_dept_2)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_publish_ok_while_to_do_errors(self):
         assert self.publish_page.element(PublishPage.PUBLISH_BUTTON).is_enabled()
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_sl_resolve_conflict(self):
         self.status_board_admin_page.click_dept_link(self.share_dept_2)
         self.dept_details_admin_page.click_edit_evaluation(self.share_eval)
@@ -487,9 +516,11 @@ class TestEvalErrors:
         self.dept_details_admin_page.change_eval_start_date(self.share_eval, self.share_start_1)
         self.dept_details_admin_page.save_eval_changes(self.share_eval)
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_sl_confirm(self):
         self.dept_details_admin_page.bulk_mark_as_confirmed([self.share_eval])
 
+    @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_no_errors(self):
         self.dept_details_admin_page.click_status_board()
         self.status_board_admin_page.wait_for_depts()

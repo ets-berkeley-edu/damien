@@ -86,6 +86,7 @@ class TestDeptMgmt:
 
     def test_previous_term_note(self):
         self.dept_details_admin_page.select_term(previous_term)
+        self.dept_details_admin_page.wait_for_eval_rows()
         self.dept_details_admin_page.wait_for_note()
         disabled = self.dept_details_admin_page.element(DeptDetailsAdminPage.DEPT_NOTE_EDIT_BUTTON).get_attribute(
             'disabled')

@@ -76,7 +76,8 @@ class DamienPages(Page):
         # In case logout doesn't work the first time, try again
         time.sleep(2)
         if self.is_present(DamienPages.LOG_OUT_LINK):
-            self.open_menu()
+            if not self.element(DamienPages.LOG_OUT_LINK).is_displayed():
+                self.open_menu()
             self.wait_for_element_and_click(DamienPages.LOG_OUT_LINK)
         time.sleep(2)
 
@@ -122,7 +123,7 @@ class DamienPages(Page):
 
     @staticmethod
     def add_contact_lookup_result(user):
-        return By.XPATH, f'//div[contains(@id, "list-item")][contains(., "{user.uid}")]'
+        return By.XPATH, f'//div[contains(@id, "list-item")][contains(., "({user.uid})")]'
 
     def look_up_uid(self, uid, input_locator):
         app.logger.info(f'Looking up UID {uid}')
