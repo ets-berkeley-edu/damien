@@ -162,7 +162,6 @@ class CourseDashboardEditsPage(CourseDashboards):
     def duplicate_section(self, evaluation, evaluations, midterm=None, start_date=None, instructor=None,
                           eval_type=None):
         app.logger.info(f'Duplicating row for CCN {evaluation.ccn}')
-        self.click_eval_checkbox(evaluation)
         self.wait_for_page_and_click(CourseDashboardEditsPage.DUPE_BUTTON)
         if instructor:
             self.look_up_and_select_dupe_instr(instructor)

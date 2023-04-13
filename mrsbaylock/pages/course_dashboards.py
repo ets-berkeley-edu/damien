@@ -60,6 +60,7 @@ class CourseDashboards(DamienPages):
         return f'//{dept}{ccn}/{instr}/{dept_form}/ancestor::tr'
 
     def rows_of_evaluation(self, evaluation, dept=None):
+        app.logger.info(f'Checking for eval rows at XPath: {self.eval_row_xpath(evaluation, dept)}')
         return self.elements((By.XPATH, self.eval_row_xpath(evaluation, dept)))
 
     @staticmethod

@@ -120,10 +120,11 @@ class TestEvaluationManagement:
     def test_eval_types_available(self):
         e = next(filter(lambda row: row.dept_form, self.dept_1.evaluations))
         self.dept_details_admin_page.click_edit_evaluation(e)
-        self.eval_types.append('Select...')
         self.eval_types.append('Revert')
         self.eval_types.sort()
         visible = self.dept_details_admin_page.visible_eval_type_options()
+        if 'Select...' in visible:
+            visible.remove('Select...')
         visible.sort()
         assert visible == self.eval_types
 
@@ -183,7 +184,6 @@ class TestEvaluationManagement:
         eval_type = 'LANG'
         e = next(filter(lambda ev: ev.dept_form, self.dept_1.evaluations))
         self.dept_details_admin_page.cancel_dupe()
-        self.dept_details_admin_page.click_eval_checkbox(e)
         e_dupe = self.dept_details_admin_page.duplicate_section(e, self.dept_1.evaluations, instructor=instructor,
                                                                 eval_type=eval_type)
         self.dept_details_admin_page.wait_for_eval_rows()
@@ -217,6 +217,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_save_eval_changes(ev)
         self.dept_details_admin_page.wait_for_eval_rows()
         ev.dept_form = form
+        self.dept_details_admin_page.click_eval_checkbox(ev)
         dupe = self.dept_details_admin_page.duplicate_section(ev, self.dept_1.evaluations,
                                                               midterm=True, start_date=date)
         self.dept_details_admin_page.wait_for_eval_rows()

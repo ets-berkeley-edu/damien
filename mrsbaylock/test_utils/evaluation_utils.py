@@ -456,6 +456,8 @@ def get_edited_sections(term, dept):
                unholy_loch.sis_sections.is_primary AS primary,
                evaluations.instructor_uid AS uid,
                unholy_loch.sis_sections.instructor_role_code AS instructor_role,
+               unholy_loch.sis_sections.meeting_start_date AS course_start_date,
+               unholy_loch.sis_sections.meeting_end_date AS course_end_date,
                evaluations.start_date AS eval_start_date,
                evaluations.end_date AS eval_end_date,
                evaluations.status AS status,
@@ -486,6 +488,8 @@ def get_edited_sections(term, dept):
                unholy_loch.sis_sections.is_primary,
                evaluations.instructor_uid,
                unholy_loch.sis_sections.instructor_role_code,
+               unholy_loch.sis_sections.meeting_start_date,
+               unholy_loch.sis_sections.meeting_end_date,
                evaluations.start_date,
                evaluations.end_date,
                evaluations.status,
@@ -756,9 +760,11 @@ def get_dept_eval_with_foreign_x_listings(term, depts, max_row_count=None):
     for dept in test_depts:
         if (max_row_count and dept.row_count <= max_row_count) or not max_row_count:
             dept.evaluations = get_evaluations(term, dept)
-            for ev in dept.evaluations:
-                if ev.x_listing_ccns and not ev.room_share_ccns:
-                    listing = ev.x_listing_ccns[-1]
-                    listing_dept = get_section_dept(term, listing)
-                    if listing_dept.dept_id in dept_ids and listing_dept.users and listing_dept.dept_id != dept.dept_id:
-                        return dept, ev
+            rows_with_instr = list(filter(lambda e: e.instructor.uid, dept.evaluations))
+            if len(rows_with_instr) > 0:
+                for ev in dept.evaluations:
+                    if ev.x_listing_ccns and not ev.room_share_ccns:
+                        listing = ev.x_listing_ccns[-1]
+                        listing_dept = get_section_dept(term, listing)
+                        if listing_dept.dept_id in dept_ids and listing_dept.users and listing_dept.dept_id != dept.dept_id:
+                            return dept, ev

@@ -129,6 +129,7 @@ class TestListManagement:
         assert self.eval_type in self.dept_details_admin_page.eval_type(self.eval_confirmed)
 
     def test_confirmed_dupe_instructor(self):
+        self.dept_details_admin_page.click_eval_checkbox(self.eval_duped)
         self.dept_details_admin_page.duplicate_section(self.eval_duped, self.evaluations,
                                                        instructor=self.instructor, eval_type=self.eval_type)
         dupe = self.evaluations[-1]
