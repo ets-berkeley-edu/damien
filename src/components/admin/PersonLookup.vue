@@ -1,59 +1,75 @@
 <template>
-  <div class="d-flex flex-column flex-grow-1">
-    <label :id="`${id}-label`" class="sr-only" :for="id">Name or UID</label>
-    <v-autocomplete
-      :id="id"
-      v-model="selected"
-      :allow-overflow="false"
-      :append-icon="null"
-      :aria-disabled="disabled"
-      :aria-labelledby="`${id}-label`"
-      auto-select-first
-      :background-color="disabled ? 'disabled' : 'white'"
-      class="person-lookup"
-      dense
-      :disabled="disabled"
-      :error="required && !!$_.size(errors)"
-      :error-messages="required ? errors : []"
-      hide-details
-      :hide-no-data="isSearching || !search"
-      :items="suggestions"
-      :loading="isSearching ? 'tertiary' : false"
-      :menu-props="menuProps"
-      no-data-text="No results found."
-      no-filter
-      outlined
-      :placeholder="placeholder"
-      return-object
-      :search-input.sync="search"
-      single-line
-      @blur="onBlur"
-      @update:list-index="onHighlight"
-    >
-      <template #selection="data">
-        <span class="text-nowrap">{{ toLabel(data.item) }}</span>
-      </template>
-      <template #item="data">
-        <v-list-item
-          v-bind="data.attrs"
-          :aria-selected="data.item === highlightedItem"
-          class="tertiary--text"
-          v-on="data.on"
-        >
-          <v-list-item-content>
-            <span v-html="suggest(data.item)" />
-          </v-list-item-content>
-        </v-list-item>
-      </template>
-    </v-autocomplete>
-    <div
-      v-if="required && errors && errors[0]"
-      :id="`${id}-error`"
-      class="v-messages error--text px-3 mt-1"
-      :class="$vuetify.theme.dark ? 'text--lighten-2' : ''"
-      role="alert"
-    >
-      {{ errors[0] }}
+  <div :class="containerClass">
+    <div :class="{'col col-4': inline}">
+      <label
+        :id="`${id}-label`"
+        :for="id"
+        :class="labelClass"
+      >
+        <span v-if="label">{{ label }}</span>
+        <span v-if="placeholder" class="sr-only">{{ placeholder }}</span>
+      </label>
+    </div>
+    <div :class="{'col col-6': inline}">
+      <v-autocomplete
+        :id="id"
+        v-model="selected"
+        :allow-overflow="false"
+        :append-icon="null"
+        :aria-disabled="disabled"
+        :aria-labelledby="`${id}-label`"
+        auto-select-first
+        background-color="white"
+        class="person-lookup"
+        :class="inputClass"
+        dense
+        :disabled="disabled"
+        :error="required && !suppressValidation && !!$_.size(errors)"
+        :error-messages="required && !suppressValidation ? errors : []"
+        hide-details
+        :hide-no-data="isSearching || !search"
+        :items="suggestions"
+        light
+        :loading="isSearching ? 'tertiary' : false"
+        :menu-props="menuProps"
+        no-data-text="No results found."
+        no-filter
+        outlined
+        :placeholder="placeholder"
+        return-object
+        :search-input.sync="search"
+        single-line
+        @blur="onBlur"
+        @change="suppressValidation = false"
+        @update:list-index="onHighlight"
+      >
+        <template #selection="data">
+          <span class="text-nowrap">{{ toLabel(data.item) }}</span>
+        </template>
+        <template #item="data">
+          <v-list-item
+            v-bind="data.attrs"
+            :aria-selected="data.item === highlightedItem"
+            class="tertiary--text"
+            v-on="data.on"
+          >
+            <v-list-item-content>
+              <span v-html="suggest(data.item)" />
+            </v-list-item-content>
+          </v-list-item>
+        </template>
+      </v-autocomplete>
+    </div>
+    <div :class="{'col col-2 pl-0': inline}">
+      <div
+        v-if="required && !this.suppressValidation && errors && errors[0]"
+        :id="`${id}-error`"
+        class="v-messages error--text px-3 mt-1"
+        :class="$vuetify.theme.dark ? 'text--lighten-2' : ''"
+        role="alert"
+      >
+        {{ errors[0] }}
+      </div>
     </div>
   </div>
 </template>
@@ -79,9 +95,28 @@ export default {
       required: false,
       type: String
     },
+    inline: {
+      required: false,
+      type: Boolean
+    },
+    inputClass: {
+      default: undefined,
+      required: false,
+      type: String
+    },
     instructorLookup: {
       required: false,
       type: Boolean
+    },
+    label: {
+      default: null,
+      required: false,
+      type: String
+    },
+    labelClass: {
+      default: null,
+      required: false,
+      type: String
     },
     onSelectResult: {
       default: () => {},
@@ -108,8 +143,14 @@ export default {
     search: undefined,
     searchTokenMatcher: undefined,
     selected: undefined,
-    suggestions: []
+    suggestions: [],
+    suppressValidation: true
   }),
+  computed: {
+    containerClass() {
+      return this.inline ? 'row d-flex align-center row--dense' : 'd-flex flex-column flex-grow-1'
+    }
+  },
   watch: {
     search(snippet) {
       this.isSearching = true
@@ -156,7 +197,7 @@ export default {
     },
     validate(suggestion) {
       this.$_.delay(() => {
-        if (!suggestion && this.required) {
+        if (!suggestion && this.required && !this.suppressValidation) {
           this.errors = ['Required']
         } else {
           this.errors = []
@@ -189,6 +230,9 @@ export default {
   outline-color: -webkit-focus-ring-color !important;
   outline-offset: 0px !important;
   outline-style: auto !important;
-  outline-width: 1px !important;
+}
+.person-lookup.v-input--is-focused fieldset {
+  border-color: unset !important;
+  border-width: 1px !important;
 }
 </style>

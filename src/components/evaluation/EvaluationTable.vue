@@ -276,14 +276,12 @@
                   />
                   <div v-if="!evaluation.instructor && isEditing(evaluation) && allowEdits">
                     <div class="mt-1 py-2">
-                      <label id="input-instructor-lookup-autocomplete-label" for="input-instructor-lookup-autocomplete">
-                        Instructor<span class="sr-only"> search by name or UID</span>:
-                      </label>
                       <PersonLookup
                         id="input-instructor-lookup-autocomplete"
                         class="instructor-lookup"
                         :disabled="saving"
                         :instructor-lookup="true"
+                        label="Instructor: "
                         :on-select-result="selectInstructor"
                       />
                     </div>

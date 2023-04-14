@@ -46,46 +46,54 @@
       v-bind="bulkUpdateOptions"
     >
       <template #status="{status, on}">
-        <div class="my-4">
-          <label
-            id="update-evaluations-select-status-label"
-            for="update-evaluations-select-status"
-            class="v-label d-block py-1"
-          >
-            Status:
-          </label>
-          <select
-            id="update-evaluations-select-status"
-            class="native-select-override light d-block mx-auto"
-            :disabled="disableControls"
-            :status="status"
-            :value="status"
-            v-on="on"
-          >
-            <option v-for="s in evaluationStatuses" :key="s.text" :value="s.value">{{ s.text }}</option>
-          </select>
-        </div>
+        <v-row class="d-flex align-center" dense>
+          <v-col cols="4">
+            <label
+              id="update-evaluations-select-status-label"
+              for="update-evaluations-select-status"
+              class="v-label"
+            >
+              Status:
+            </label>
+          </v-col>
+          <v-col cols="8">
+            <select
+              id="update-evaluations-select-status"
+              class="native-select-override bulk-action-form-input light"
+              :disabled="disableControls"
+              :status="status"
+              :value="status"
+              v-on="on"
+            >
+              <option v-for="s in evaluationStatuses" :key="s.text" :value="s.value">{{ s.text }}</option>
+            </select>
+          </v-col>
+        </v-row>
       </template>
       <template #form="{form, on}">
-        <div class="my-4">
-          <label
-            id="update-evaluations-select-form-label"
-            for="update-evaluations-select-form"
-            class="v-label d-block py-1"
-          >
-            Department Form:
-          </label>
-          <select
-            id="update-evaluations-select-form"
-            class="native-select-override light"
-            :disabled="disableControls"
-            :form="form"
-            :value="form"
-            v-on="on"
-          >
-            <option v-for="df in activeDepartmentForms" :key="df.id" :value="df.id">{{ df.name }}</option>
-          </select>
-        </div>
+        <v-row class="d-flex align-center" dense>
+          <v-col cols="4">
+            <label
+              id="update-evaluations-select-form-label"
+              for="update-evaluations-select-form"
+              class="v-label"
+            >
+              Department Form:
+            </label>
+          </v-col>
+          <v-col>
+            <select
+              id="update-evaluations-select-form"
+              class="native-select-override bulk-action-form-input light"
+              :disabled="disableControls"
+              :form="form"
+              :value="form"
+              v-on="on"
+            >
+              <option v-for="df in activeDepartmentForms" :key="df.id" :value="df.id">{{ df.name }}</option>
+            </select>
+          </v-col>
+        </v-row>
       </template>
     </UpdateEvaluations>
     <ConfirmDialog
@@ -392,7 +400,7 @@ export default {
       if (key === 'duplicate') {
         valid = this.validateDuplicable(this.selectedEvaluationIds, fields)
       } else if (key === 'confirm' || (key === 'edit' && this.bulkUpdateOptions.evaluationStatus === 'confirmed')) {
-        valid = this.validateConfirmable(this.selectedEvaluationIds)
+        valid = this.validateConfirmable(this.selectedEvaluationIds, fields)
       }
       if (valid) {
         this.update(fields, key)
