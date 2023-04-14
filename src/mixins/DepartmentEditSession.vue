@@ -2,8 +2,12 @@
 import _ from 'lodash'
 import {mapActions, mapGetters} from 'vuex'
 
-const $_isInvalid = (e, evaluationIds) => {
-  return _.includes(evaluationIds, e.id) && !(e.departmentForm && e.evaluationType && e.instructor)
+const $_isInvalid = (e, evaluationIds, fields) => {
+  return _.includes(evaluationIds, e.id) && !(
+    (e.departmentForm || fields.departmentFormId) &&
+    (e.evaluationType || fields.evaluationTypeId) &&
+    (e.instructor || fields.instructorUid)
+  )
 }
 
 export default {
@@ -35,8 +39,8 @@ export default {
     }
   },
   methods: {
-    validateConfirmable(evaluationIds) {
-      if (this.$_.some(this.evaluations, e => $_isInvalid(e, evaluationIds))) {
+    validateConfirmable(evaluationIds, fields) {
+      if (this.$_.some(this.evaluations, e => $_isInvalid(e, evaluationIds, fields))) {
         this.showErrorDialog('Cannot confirm evaluations with missing fields.')
         return false
       }
