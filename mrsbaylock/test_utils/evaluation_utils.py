@@ -730,13 +730,16 @@ def set_section_instructor(evaluation):
 
 
 def get_dept_with_listings_or_shares(term, depts):
+    depts.sort(key=lambda d: d.row_count)
     test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
     for dept in test_depts:
-        if dept.row_count < 50:
+        if 20 < dept.row_count < 60:
             dept.evaluations = get_evaluations(term, dept)
-            for ev in dept.evaluations:
-                if ev.room_share_ccns or ev.x_listing_ccns:
-                    return dept
+            evals_with_instr = list(filter(lambda e: e.instructor.uid, dept.evaluations))
+            if len(evals_with_instr) > 5:
+                for ev in dept.evaluations:
+                    if ev.room_share_ccns or ev.x_listing_ccns:
+                        return dept
 
 
 def get_dept_eval_with_foreign_room_shares(term, depts):
