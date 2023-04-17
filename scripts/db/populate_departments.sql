@@ -124,6 +124,7 @@ INSERT INTO departments (dept_name, is_enrolled) VALUES
   ('South and Southeast Asian Studies', TRUE),
   ('Spanish and Portuguese', TRUE),
   ('Statistics', TRUE),
+  ('Summer Sessions Online', TRUE),
   ('Theater, Dance and Performance Studies', TRUE),
   ('Undergraduate and Interdisciplinary Studies', TRUE),
   ('Computational Precision Health', TRUE);
