@@ -372,20 +372,9 @@ export default {
         },
         error => {
           this.showErrorDialog(this.$_.get(error, 'response.data.message', 'An unknown error occurred.'))
-          const selectedCourseNumbers = this.$_.uniq(this.evaluations
-                      .filter(e => this.selectedEvaluationIds.includes(e.id))
-                      .map(e => e.courseNumber))
-          const refresh = () => {
-            return selectedCourseNumbers.length === 1
-              ? this.refreshSection({sectionId: selectedCourseNumbers[0], termId: this.selectedTermId})
-              : this.refreshAll()
-          }
-          refresh.finally(() => {
-            this.setDisableControls(false)
-            this.applyingAction = null
-            this.isApplying = false
-            this.isLoading = false
-          })
+          this.setDisableControls(false)
+          this.isApplying = false
+          this.isLoading = false
         }
       )
     },
