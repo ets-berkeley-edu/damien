@@ -26,6 +26,8 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import time
 
 from flask import current_app as app
+from mrsbaylock.pages.damien_pages import DamienPages
+from mrsbaylock.pages.login_page import LoginPage
 from mrsbaylock.pages.page import Page
 from mrsbaylock.test_utils import utils
 import pytest
@@ -60,7 +62,10 @@ class CalNetPage(Page):
         while tries <= max_tries:
             tries += 1
             try:
-                assert self.is_present(self.TRUST_BROWSER_BUTTON) or self.is_present(self.BAD_CREDS)
+                assert self.is_present(self.TRUST_BROWSER_BUTTON) \
+                       or self.is_present(self.BAD_CREDS) \
+                       or self.is_present(DamienPages.MENU_BUTTON) \
+                       or self.is_present(LoginPage.NOT_AUTH_MSG)
                 break
             except AssertionError:
                 if tries == max_tries:

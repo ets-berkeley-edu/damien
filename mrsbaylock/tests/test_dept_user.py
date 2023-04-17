@@ -40,15 +40,11 @@ from selenium.webdriver.support.wait import WebDriverWait as Wait
 @pytest.mark.usefixtures('page_objects')
 class TestDeptUser:
     term = utils.get_current_term()
+    utils.reset_test_data(term)
     depts = utils.get_participating_depts()
-    for d in depts:
-        single_role_users = [u for u in d.users if len(u.dept_roles) == 1]
-        if (len(single_role_users) > 0) and (20 <= d.row_count <= 60):
-            dept = d
-            break
-    utils.reset_test_data(term, dept)
+    dept = evaluation_utils.get_dept_with_listings_or_shares(term, depts)
     evaluations = evaluation_utils.get_evaluations(term, dept)
-    contact = next(filter(lambda u: (len(u.dept_roles) == 1), dept.users))
+    contact = dept.users[0]
 
     def test_log_in(self):
         self.login_page.load_page()
@@ -112,8 +108,8 @@ class TestDeptUser:
         self.homepage.wait_for_title('404 | Course Evaluations')
 
     def test_foreign_dept_page(self):
-        all_depts = utils.get_participating_depts()
-        foreign_dept = next(filter(lambda d: d.dept_id != self.dept.dept_id, all_depts))
+        contact_dept_ids = [role.dept_id for role in self.contact.dept_roles]
+        foreign_dept = [d for d in self.depts if d.dept_id not in contact_dept_ids][0]
         app.logger.info(f'Hitting dept page for dept id {foreign_dept.dept_id}')
         self.driver.get(f'{app.config["BASE_URL"]}/department/{foreign_dept.dept_id}')
         self.homepage.wait_for_title('404 | Course Evaluations')
@@ -132,6 +128,7 @@ class TestDeptUser:
 
     def test_no_notifications(self):
         self.homepage.load_page()
+        self.dept_details_dept_page.click_contact_dept_link(self.dept)
         self.dept_details_dept_page.wait_for_eval_rows()
         assert not self.dept_details_dept_page.is_present(DeptDetailsAdminPage.NOTIF_FORM_BUTTON)
 
@@ -181,7 +178,8 @@ class TestDeptUser:
         change_date.eval_end_date = new_end
 
     def test_sort_default(self):
-        self.homepage.load_page()
+        self.dept_details_dept_page.click_contact_dept_link(self.dept)
+        self.dept_details_dept_page.wait_for_eval_rows()
         evals = self.dept_details_dept_page.sort_by_course(self.dept, self.evaluations)
         self.dept_details_dept_page.wait_for_eval_rows()
         self.dept_details_dept_page.select_ignored_filter()

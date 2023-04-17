@@ -269,7 +269,7 @@ class CourseDashboards(DamienPages):
         )
 
     @staticmethod
-    def split_listings(dept, evaluations):
+    def split_listings(dept, evaluations, exempt_status=False):
         dept_subj = utils.get_dept_subject_areas(dept)
         domestic_listings = list(filter(lambda e: e.subject in dept_subj, evaluations))
         foreign_listings = [e for e in evaluations if e not in domestic_listings]
@@ -280,6 +280,15 @@ class CourseDashboards(DamienPages):
             for match in matches:
                 foreign_listings.append(match)
                 domestic_listings.remove(match)
+
+        if exempt_status:
+            for listing in domestic_listings:
+                ccns = listing.x_listing_ccns
+                matches = [ev for ev in foreign_listings if ev.ccn in ccns and ev.ccn != listing.ccn]
+                for match in matches:
+                    if listing.status != match.status:
+                        foreign_listings.remove(match)
+                        domestic_listings.append(match)
 
         foreign_listings.sort(
             key=lambda e: (
@@ -347,7 +356,7 @@ class CourseDashboards(DamienPages):
         return self.insert_x_listings_and_shares(domestic_listings, foreign_listings, reverse)
 
     def sort_by_status(self, dept, evaluations, reverse=False):
-        domestic_listings, foreign_listings = self.split_listings(dept, evaluations)
+        domestic_listings, foreign_listings = self.split_listings(dept, evaluations, exempt_status=True)
         for listings in [domestic_listings, foreign_listings]:
             self.sort_default(listings, reverse=False)
         domestic_listings.sort(key=lambda e: (e.status.value['ui'] if e.status else ''), reverse=reverse)
