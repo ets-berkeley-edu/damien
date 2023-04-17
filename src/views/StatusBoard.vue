@@ -211,9 +211,10 @@ export default {
     this.departments = []
     getDepartmentsEnrolled(true, false, true, this.selectedTermId).then(data => {
       this.departments = data
-      this.loadBlockers()
-      this.$ready(`Evaluation Status Dashboard for ${this.selectedTermName}`)
-      this.$putFocusNextTick('page-title')
+      this.loadBlockers().then(() => {
+        this.$ready(`Evaluation Status Dashboard for ${this.selectedTermName}`)
+        this.$putFocusNextTick('page-title')
+      })
     })
   },
   methods: {
@@ -232,11 +233,14 @@ export default {
       return this.$_.includes(this.selectedDepartmentIds, department.id)
     },
     loadBlockers() {
-      this.blockers = {}
-      this.$_.each(this.departments, d => {
-        if (d.totalBlockers) {
-          this.blockers[d.deptName] = d.totalBlockers
-        }
+      return new Promise(resolve => {
+        this.blockers = {}
+        this.$_.each(this.departments, d => {
+          if (d.totalBlockers) {
+            this.blockers[d.deptName] = d.totalBlockers
+          }
+        })
+        resolve()
       })
     },
     sort(sortBy, sortDesc) {
