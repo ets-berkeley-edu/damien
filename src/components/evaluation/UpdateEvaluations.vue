@@ -80,8 +80,8 @@
               <c-date-picker
                 v-model="selectedStartDate"
                 class="bulk-action-form-input"
-                :min-date="$moment($_.get(validDates, 'begin')).toDate()"
-                :max-date="$moment($_.get(validDates, 'end')).subtract(13, 'days').toDate()"
+                :min-date="$_.get(validStartDates, 'min')"
+                :max-date="$_.get(validStartDates, 'max')"
                 :popover="{positionFixed: true}"
                 title-position="left"
               >
@@ -100,7 +100,7 @@
             </v-col>
           </v-row>
         </v-container>
-        <div v-if="$_.size(previewEvaluations)" class="bulk-action-preview pt-2">
+        <div v-if="$_.size(selectedEvaluations)" class="bulk-action-preview pt-2">
           <v-simple-table dense class="bulk-action-preview-table">
             <caption class="bulk-action-preview-caption text-left"><div class="px-6 pb-3">Preview Your Changes</div></caption>
             <thead>
@@ -116,7 +116,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(evaluation, index) in previewEvaluations" :key="index">
+              <tr v-for="(evaluation, index) in selectedEvaluations" :key="index">
                 <td class="bulk-action-status-col pl-3">
                   <div v-if="evaluation.status" :class="{'text-decoration-line-through accent--text': selectedEvaluationStatus && selectedEvaluationStatus !== evaluation.status}">
                     {{ getStatusText(evaluation.status) }}
@@ -273,10 +273,9 @@ export default {
     isInstructorRequired: false,
     midtermFormEnabled: false,
     model: undefined,
-    previewEvaluations: [],
     previewHeaders: ['Status', 'Course Number', 'Course Name', 'Instructor', 'Department Form', 'Evaluation Type', 'Start Date'],
     selectedDepartmentForm: undefined,
-    selectedEvaluations: undefined,
+    selectedEvaluations: [],
     selectedEvaluationStatus: undefined,
     selectedEvaluationType: undefined,
     selectedInstructor: undefined,
@@ -317,9 +316,12 @@ export default {
     selectedStartDay() {
       return this.$moment.utc(this.selectedStartDate).dayOfYear()
     },
-    validDates() {
-      const selectedTerm = this.$_.find(this.$config.availableTerms, {'id': this.selectedTermId})
-      return selectedTerm.validDates
+    validStartDates() {
+      // The intersection of the selected rows' allowed evaluation start dates
+      return {
+        'max': this.$moment.min(this.$_.map(this.selectedEvaluations, e => this.$moment(e.maxStartDate))).toDate(),
+        'min': this.$moment.max(this.$_.map(this.selectedEvaluations, e => this.$moment(e.meetingDates.start))).toDate()
+      }
     }
   },
   methods: {
@@ -347,7 +349,7 @@ export default {
       this.cancelAction()
     },
     reset() {
-      this.previewEvaluations = this.$_.reduce(this.evaluations, (evaluations, e) => {
+      this.selectedEvaluations = this.$_.reduce(this.evaluations, (evaluations, e) => {
         if (e.isSelected) {
           evaluations.push(e)
         }

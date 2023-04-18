@@ -394,7 +394,7 @@
                     <c-date-picker
                       v-model="selectedStartDate"
                       :min-date="minStartDate(evaluation)"
-                      :max-date="maxStartDate(evaluation)"
+                      :max-date="evaluation.maxStartDate"
                       :popover="{positionFixed: true}"
                       title-position="left"
                     >
@@ -604,7 +604,7 @@ export default {
     },
     rowValid() {
       const evaluation = this.$_.find(this.evaluations, ['id', this.editRowId])
-      return this.selectedStartDate >= this.minStartDate(evaluation) && this.selectedStartDate <= this.maxStartDate(evaluation)
+      return this.selectedStartDate >= this.minStartDate(evaluation) && this.selectedStartDate <= evaluation.maxStartDate
     },
     selectedFilterTypes: {
       get: function() {
@@ -708,23 +708,6 @@ export default {
       return !this.isEditing(evaluation)
         && evaluation.status
         && evaluation.id !== this.focusedEditButtonEvaluationId
-    },
-    maxStartDate(evaluation) {
-      const courseEndDate = this.$moment(this.$_.get(evaluation, 'meetingDates.end'))
-      const selectedTerm = this.$_.find(this.$config.availableTerms, {'id': this.selectedTermId})
-      const defaultEndDate = this.$moment(this.$_.get(selectedTerm, 'defaultDates.end'))
-
-      let lastEndDate = courseEndDate > defaultEndDate ? courseEndDate : defaultEndDate
-      if (lastEndDate === defaultEndDate && !this.selectedTermName.includes('Summer')) {
-        lastEndDate = lastEndDate.add(2, 'day')
-      }
-
-      const courseLength = courseEndDate.diff(this.$_.get(evaluation, 'meetingDates.start'), 'days')
-      if (courseLength < 90) {
-        return lastEndDate.subtract(13, 'day').toDate()
-      } else {
-        return lastEndDate.subtract(20, 'day').toDate()
-      }
     },
     minStartDate(evaluation) {
       return new Date(this.$_.get(evaluation, 'meetingDates.start'))

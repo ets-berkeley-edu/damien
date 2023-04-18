@@ -13,7 +13,6 @@ import Vue from 'vue'
 
 const $_decorateEvaluation = (e, allEvaluations) => {
   e.isSelected = false
-
   e.searchableCourseName = [
     e.subjectArea,
     e.catalogId,
@@ -54,7 +53,6 @@ const $_decorateEvaluation = (e, allEvaluations) => {
       ].join(' ')
     }
   }
-
   if (e.instructor) {
     e.searchableInstructor = `${e.instructor.firstName} ${e.instructor.lastName} ${e.instructor.uid} ${e.instructor.emailAddress}`
     e.sortableInstructor = `${e.instructor.lastName} ${e.instructor.firstName} ${e.instructor.uid} ${e.instructor.emailAddress}`
@@ -62,11 +60,21 @@ const $_decorateEvaluation = (e, allEvaluations) => {
     e.searchableInstructor = ''
     e.sortableInstructor = ''
   }
-
   e.startDate = Vue.prototype.$moment(e.startDate).toDate()
   e.endDate = Vue.prototype.$moment(e.endDate).toDate()
+  e.lastUpdated = Vue.prototype.$moment(e.lastUpdated).toDate()
   e.meetingDates.start = Vue.prototype.$moment(e.meetingDates.start).toDate()
-  e.meetingDates.end = Vue.prototype.$moment(e.meetingDates.end).toDate()
+  const courseEndDate = Vue.prototype.$moment(e.meetingDates.end)
+  e.meetingDates.end = courseEndDate.toDate()
+
+  const selectedTerm = _.find(Vue.prototype.$config.availableTerms, {'id': e.termId})
+  const defaultEndDate = Vue.prototype.$moment(_.get(selectedTerm, 'defaultDates.end'))
+  const courseLength = courseEndDate.diff(e.meetingDates.start, 'days')
+  let lastEndDate = courseEndDate > defaultEndDate ? courseEndDate : defaultEndDate
+  if (lastEndDate === defaultEndDate && !selectedTerm.name.includes('Summer')) {
+    lastEndDate = lastEndDate.add(2, 'day')
+  }
+  e.maxStartDate = courseLength < 90 ? lastEndDate.subtract(13, 'day').toDate() : lastEndDate.subtract(20, 'day').toDate()
 }
 
 const $_refresh = (commit, departmentId) => {
