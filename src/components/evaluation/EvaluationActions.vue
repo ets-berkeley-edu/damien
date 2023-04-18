@@ -276,12 +276,16 @@ export default {
       this.validateAndUpdate('duplicate')
     },
     onConfirmEdit(options) {
+      const selected = this.$_.filter(this.evaluations, e => this.$_.includes(this.selectedEvaluationIds, e.id))
       this.bulkUpdateOptions = options
-      this.validateAndUpdate('edit')
+      this.markAsDoneWarning = this.validateMarkAsDone(selected)
+      if (!this.markAsDoneWarning) {
+        this.validateAndUpdate('edit')
+      }
     },
     onProceedMarkAsDone() {
       this.markAsDoneWarning = null
-      this.validateAndUpdate('confirm')
+      this.validateAndUpdate(this.isEditing ? 'edit' : 'confirm')
     },
     getEvaluationFieldsForUpdate(key) {
       let fields = null
@@ -330,6 +334,7 @@ export default {
       this.applyingAction = null
       this.isApplying = false
       this.isLoading = false
+      this.markAsDoneWarning = null
       this.midtermFormAvailable = false
     },
     selectInstructor(suggestion) {
