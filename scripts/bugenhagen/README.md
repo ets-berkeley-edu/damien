@@ -5,8 +5,7 @@ Real-world data, from production, in a test environment promotes effective testi
 ## Pull data from production
 
 ```
-./scripts/bugenhagen/pull_prod_data.sh \
-  -d db_connection
+./scripts/bugenhagen/pull_prod_data.sh -d db_connection
 ```
 
 ### Available options
@@ -15,12 +14,12 @@ Real-world data, from production, in a test environment promotes effective testi
 ```
 ### Fun facts about _pull-data.sh_
 
-* CSV files are written to the _scripts/bugenhagen/csv_files_ directory.
+* CSV files are written to the _scripts/bugenhagen/csv_files directory.
 
 ## Push data to test environment
 
 ```
-./scripts/bugenhagen/push_prod_data.sh -d db_connection [-a] [-i]
+./scripts/bugenhagen/push_prod_data.sh -d db_connection
 ```
 
 ### Available options
