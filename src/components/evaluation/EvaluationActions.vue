@@ -278,7 +278,9 @@ export default {
     onConfirmEdit(options) {
       const selected = this.$_.filter(this.evaluations, e => this.$_.includes(this.selectedEvaluationIds, e.id))
       this.bulkUpdateOptions = options
-      this.markAsDoneWarning = this.validateMarkAsDone(selected)
+      if ('confirmed' === this.bulkUpdateOptions.evaluationStatus) {
+        this.markAsDoneWarning = this.validateMarkAsDone(selected)
+      }
       if (!this.markAsDoneWarning) {
         this.validateAndUpdate('edit')
       }
