@@ -142,8 +142,9 @@ class Department(Base):
                 subconditions.append(f"s.catalog_id SIMILAR TO '{catalog_ids[0]}'")
             else:
                 subconditions.append(f"s.catalog_id SIMILAR TO '({'|'.join(catalog_ids)})'")
-            conditions.append(f"({' AND '.join(subconditions)})")
-        if not conditions:
+            if len(subconditions):
+                conditions.append(f"({' AND '.join(subconditions)})")
+        if not len(conditions):
             return []
         sections = get_loch_sections(term_id, conditions)
         self.merge_cross_listings(sections, term_id)
