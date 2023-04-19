@@ -358,6 +358,7 @@ INSERT INTO listings (dept_name, subject_area, catalog_id, default_form, start_t
   ('Spanish and Portuguese', 'PORTUG', NULL, 'SPANISH', NULL, NULL),
   ('Spanish and Portuguese', 'SPANISH', NULL, 'SPANISH', NULL, NULL),
   ('Statistics', 'STAT', NULL, 'STAT', NULL, NULL),
+  ('Summer Sessions Online', '', NULL, NULL, '2235', NULL),
   ('Theater, Dance and Performance Studies', 'THEATER', NULL, 'THEATER', NULL, NULL),
   ('Undergraduate and Interdisciplinary Studies', 'BIC', NULL, 'BIC', NULL, NULL),
   ('Undergraduate and Interdisciplinary Studies', 'LS', NULL, 'L & S', NULL, NULL),
@@ -365,7 +366,10 @@ INSERT INTO listings (dept_name, subject_area, catalog_id, default_form, start_t
   ('Undergraduate and Interdisciplinary Studies', 'UGIS', NULL, 'UGIS', NULL, NULL),
   ('Computational Precision Health', 'CPH', NULL, 'CPH', NULL, NULL);
 
-INSERT INTO department_forms (name) SELECT DISTINCT default_form FROM listings;
+INSERT INTO department_forms (name)
+  SELECT DISTINCT default_form
+  FROM listings
+  WHERE default_form IS NOT NULL;
 
 INSERT INTO department_forms (name, deleted_at) VALUES ('ANCIENT_HISTORY', now());
 
@@ -381,7 +385,7 @@ SELECT
   end_term_id
 FROM listings
   JOIN departments ON departments.dept_name = listings.dept_name
-  JOIN department_forms ON department_forms.name = listings.default_form;
+  LEFT JOIN department_forms ON department_forms.name = listings.default_form;
 
 INSERT INTO evaluation_types (name)
 VALUES
