@@ -160,7 +160,8 @@ class Section:
                     foreign_dept_evals_by_uid[key] = []
                 foreign_dept_evals_by_uid[key].extend(eval_rows)
 
-        for instructor_uid, evaluations_for_instructor_uid in groupby(self.evaluations, key=lambda e: e.instructor_uid):
+        sorted_evaluations = sorted(self.evaluations, key=lambda e: (e.instructor_uid or ''))
+        for instructor_uid, evaluations_for_instructor_uid in groupby(sorted_evaluations, key=lambda e: e.instructor_uid):
             evaluations_for_instructor_uid = list(evaluations_for_instructor_uid)
             has_midterm_evals = False
             has_final_evals = False

@@ -563,7 +563,7 @@ class Evaluation(Base):
         return self.id or self.transient_id()
 
     def is_midterm(self):
-        return True if self.department_form and self.department_form.name.endswith('MID') else False
+        return True if self.department_form and self.department_form.name.endswith('_MID') else False
 
     def is_transient(self):
         return self.id is None
