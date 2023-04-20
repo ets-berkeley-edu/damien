@@ -70,41 +70,41 @@
             rounded
           >
             <v-btn
-              v-for="type in $_.keys(filterTypes)"
-              :id="`evaluations-filter-${type}`"
-              :key="type"
-              :aria-selected="filterTypes[type].enabled"
+              v-for="status in $_.keys(filterTypes)"
+              :id="`evaluations-filter-${status}`"
+              :key="status"
+              :aria-selected="filterTypes[status].enabled"
               class="mr-1 pl-3 rounded-pill"
               :class="{
-                'secondary': filterTypes[type].enabled,
-                'inactive': !filterTypes[type].enabled
+                'secondary': filterTypes[status].enabled,
+                'inactive': !filterTypes[status].enabled
               }"
               small
               text
-              :value="type"
+              :value="status"
             >
               <div class="align-center d-flex justify-space-between">
                 <div>
                   <v-icon
-                    v-if="filterTypes[type].enabled"
-                    :color="filterTypes[type].enabled ? 'green' : 'inactive-contrast'"
+                    v-if="filterTypes[status].enabled"
+                    :color="filterTypes[status].enabled ? 'green' : 'inactive-contrast'"
                     left
                     small
                   >
-                    {{ filterTypes[type].enabled ? 'mdi-check-circle' : 'mdi-plus-circle' }}
+                    {{ filterTypes[status].enabled ? 'mdi-check-circle' : 'mdi-plus-circle' }}
                   </v-icon>
                 </div>
-                <div :class="filterTypes[type].enabled ? 'white--text' : 'grey--text darken-2'">
-                  <span class="sr-only">{{ filterTypes[type].enabled ? 'Hide' : 'Show' }} evaluations of marked with</span>
-                  {{ filterTypes[type].label }}
+                <div :class="filterTypes[status].enabled ? 'white--text' : 'grey--text darken-2'">
+                  <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations of marked with</span>
+                  {{ filterTypes[status].label }}
                 </div>
-                <div :class="filterTypes[type].enabled ? 'white--text' : 'grey--text darken-2'">
+                <div :class="filterTypes[status].enabled ? 'white--text' : 'grey--text darken-2'">
                   <v-chip
                     class="ml-2 px-1"
-                    :class="{'font-weight-bold': filterTypes[type].enabled}"
+                    :class="{'font-weight-bold': filterTypes[status].enabled}"
                     x-small
                   >
-                    {{ filterTypeCounts(type) }}<span class="sr-only"> evaluations</span>
+                    {{ filterTypeCounts(status) }}<span class="sr-only"> evaluations</span>
                   </v-chip>
                 </div>
               </div>

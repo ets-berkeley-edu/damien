@@ -10,7 +10,7 @@
     @keydown.esc="onClickCancel"
   >
     <v-card>
-      <v-card-title id="update-evaluations-dialog-title" tabindex="-1">{{ title }}</v-card-title>
+      <v-card-title id="update-evaluations-dialog-title" tabindex="-1">{{ action }} {{ selectedEvaluationsDescription }}</v-card-title>
       <v-card-text class="px-0 pb-0">
         <v-container class="px-8 pb-4">
           <slot name="status" :status="selectedEvaluationStatus" :on="{change: e => selectedEvaluationStatus = e.target.value}"></slot>
@@ -106,65 +106,103 @@
             <thead>
               <tr>
                 <th
-                  v-for="(colName, index) in previewHeaders"
-                  :key="index"
-                  class="pl-1"
-                  :class="{'pl-3': index === 0}"
+                  v-for="(clazz, colName) in previewHeaders"
+                  :key="clazz"
+                  class="px-1"
+                  :class="clazz"
                 >
                   {{ colName }}
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(evaluation, index) in selectedEvaluations" :key="index">
-                <td class="bulk-action-status-col pl-3">
-                  <div v-if="evaluation.status" :class="{'text-decoration-line-through accent--text': selectedEvaluationStatus && selectedEvaluationStatus !== evaluation.status}">
-                    {{ getStatusText(evaluation.status) }}
-                  </div>
-                  <div v-if="selectedEvaluationStatus && selectedEvaluationStatus !== evaluation.status">
-                    {{ getStatusText(selectedEvaluationStatus) }}
-                  </div>
-                </td>
-                <td class="bulk-action-number-col pl-1">{{ evaluation.courseNumber }}</td>
-                <td class="bulk-action-name-col pl-1">
-                  <div>{{ evaluation.subjectArea }} {{ evaluation.catalogId }}</div>
-                  <div>{{ evaluation.instructionFormat }} {{ evaluation.sectionNumber }}</div>
-                </td>
-                <td class="bulk-action-instructor-col pl-1">
-                  <div v-if="$_.get(evaluation, 'instructor.uid')" :class="{'text-decoration-line-through accent--text': $_.get(selectedInstructor, 'uid') && selectedInstructor.uid !== evaluation.instructor.uid}">
-                    <div>{{ evaluation.instructor.firstName }} {{ evaluation.instructor.lastName }}</div>
-                    <div>({{ evaluation.instructor.uid }})</div>
-                  </div>
-                  <div v-if="$_.get(selectedInstructor, 'uid') && selectedInstructor.uid !== $_.get(evaluation, 'instructor.uid')">
-                    <div>{{ selectedInstructor.firstName }} {{ selectedInstructor.lastName }}</div>
-                    <div>({{ selectedInstructor.uid }})</div>
-                  </div>
-                </td>
-                <td class="bulk-action-form-col pl-1">
-                  <div v-if="evaluation.departmentForm" :class="{'text-decoration-line-through accent--text': selectedDepartmentForm && selectedDepartmentForm !== evaluation.departmentForm.id}">
-                    {{ evaluation.departmentForm.name }}
-                  </div>
-                  <div v-if="selectedDepartmentForm && selectedDepartmentForm !== $_.get(evaluation, 'departmentForm.id')">
-                    {{ selectedDepartmentFormName }}
-                  </div>
-                </td>
-                <td class="bulk-action-type-col pl-1">
-                  <div v-if="evaluation.evaluationType" :class="{'text-decoration-line-through accent--text accent--text': selectedEvaluationType && selectedEvaluationType !== evaluation.evaluationType.id}">
-                    {{ evaluation.evaluationType.name }}
-                  </div>
-                  <div v-if="selectedEvaluationType && selectedEvaluationType !== $_.get(evaluation, 'evaluationType.id')">
-                    {{ selectedEvaluationTypeName }}
-                  </div>
-                </td>
-                <td class="bulk-action-date-col pl-1">
-                  <div v-if="evaluation.startDate" :class="{'text-decoration-line-through accent--text': selectedStartDate && selectedStartDay !== $moment.utc(evaluation.startDate).dayOfYear()}">
-                    {{ evaluation.startDate | moment('MM/DD/YY') }}
-                  </div>
-                  <div v-if="selectedStartDate && selectedStartDay !== $moment.utc(evaluation.startDate).dayOfYear()">
-                    {{ selectedStartDate | moment('MM/DD/YY') }}
-                  </div>
-                </td>
-              </tr>
+              <template v-for="(evaluation, index) in selectedEvaluations">
+                <tr :key="index">
+                  <td :id="`preview-${index}-status`" class="bulk-action-status-col pr-1">
+                    <div v-if="evaluation.status" :class="{'text-decoration-line-through accent--text': action === 'Edit' && showSelectedStatus(evaluation)}">
+                      {{ getStatusText(evaluation.status) }}
+                    </div>
+                    <div v-if="action === 'Edit' && showSelectedStatus(evaluation)">
+                      {{ getStatusText(selectedEvaluationStatus) }}
+                    </div>
+                  </td>
+                  <td :id="`preview-${index}-courseNumber`" class="bulk-action-courseNumber-col px-1">{{ evaluation.courseNumber }}</td>
+                  <td :id="`preview-${index}-courseName`" class="bulk-action-courseName-col px-1">
+                    <div>{{ evaluation.subjectArea }} {{ evaluation.catalogId }}</div>
+                    <div>{{ evaluation.instructionFormat }} {{ evaluation.sectionNumber }}</div>
+                  </td>
+                  <td :id="`preview-${index}-instructor`" class="bulk-action-instructor-col px-1">
+                    <div v-if="$_.get(evaluation, 'instructor.uid')" :class="{'text-decoration-line-through accent--text': action === 'Edit' && showSelectedInstructor(evaluation)}">
+                      <div>{{ evaluation.instructor.firstName }} {{ evaluation.instructor.lastName }}</div>
+                      <div>({{ evaluation.instructor.uid }})</div>
+                    </div>
+                    <div v-if="action === 'Edit' && showSelectedInstructor(evaluation)">
+                      <div>{{ selectedInstructor.firstName }} {{ selectedInstructor.lastName }}</div>
+                      <div>({{ selectedInstructor.uid }})</div>
+                    </div>
+                  </td>
+                  <td :id="`preview-${index}-departmentForm`" class="bulk-action-departmentForm-col px-1">
+                    <div v-if="evaluation.departmentForm" :class="{'text-decoration-line-through accent--text': action === 'Edit' && showSelectedDepartmentForm(evaluation)}">
+                      {{ evaluation.departmentForm.name }}
+                    </div>
+                    <div v-if="action === 'Edit' && showSelectedDepartmentForm(evaluation)">
+                      {{ selectedDepartmentFormName }}
+                    </div>
+                  </td>
+                  <td :id="`preview-${index}-evaluationType`" class="bulk-action-evaluationType-col px-1">
+                    <div v-if="evaluation.evaluationType" :class="{'text-decoration-line-through accent--text accent--text': action === 'Edit' && showSelectedEvaluationType(evaluation)}">
+                      {{ evaluation.evaluationType.name }}
+                    </div>
+                    <div v-if="action === 'Edit' && showSelectedEvaluationType(evaluation)">
+                      {{ selectedEvaluationTypeName }}
+                    </div>
+                  </td>
+                  <td :id="`preview-${index}-startDate`" class="bulk-action-startDate-col px-1">
+                    <div v-if="evaluation.startDate" :class="{'text-decoration-line-through accent--text': action === 'Edit' && showSelectedStartDate(evaluation)}">
+                      {{ evaluation.startDate | moment('MM/DD/YY') }}
+                    </div>
+                    <div v-if="action === 'Edit' && showSelectedStartDate(evaluation)">
+                      {{ selectedStartDate | moment('MM/DD/YY') }}
+                    </div>
+                  </td>
+                </tr>
+                <tr v-if="action === 'Duplicate'" :key="`${index}-dupe`">
+                  <td :id="`preview-${index}-dupe-status`" class="bulk-action-status-col pr-1"></td>
+                  <td :id="`preview-${index}-dupe-courseNumber`" class="bulk-action-courseNumber-col px-1">{{ evaluation.courseNumber }}</td>
+                  <td :id="`preview-${index}-dupe-courseName`" class="bulk-action-courseName-col px-1">
+                    <div>{{ evaluation.subjectArea }} {{ evaluation.catalogId }}</div>
+                    <div>{{ evaluation.instructionFormat }} {{ evaluation.sectionNumber }}</div>
+                  </td>
+                  <td :id="`preview-${index}-dupe-instructor`" class="bulk-action-instructor-col px-1">
+                    <div v-if="showSelectedInstructor(evaluation)">
+                      <div>{{ selectedInstructor.firstName }} {{ selectedInstructor.lastName }}</div>
+                      <div>({{ selectedInstructor.uid }})</div>
+                    </div>
+                    <div v-if="showSelectedInstructor(evaluation) && evaluation.instructor">
+                      <div>{{ evaluation.instructor.firstName }} {{ evaluation.instructor.lastName }}</div>
+                      <div>({{ evaluation.instructor.uid }})</div>
+                    </div>
+                  </td>
+                  <td :id="`preview-${index}-dupe-departmentForm`" class="bulk-action-departmentForm-col px-1">
+                    <template v-if="midtermFormEnabled && $_.get(evaluation, 'departmentForm.name')">
+                      {{ $_.endsWith(evaluation.departmentForm.name, '_MID') ? evaluation.departmentForm.name : `${evaluation.departmentForm.name}_MID` }}
+                    </template>
+                    <template v-else>
+                      {{ $_.get(evaluation, 'departmentForm.name') }}
+                    </template>
+                  </td>
+                  <td :id="`preview-${index}-dupe-evaluationType`" class="bulk-action-evaluationType-col px-1">
+                    <div>
+                      {{ showSelectedEvaluationType(evaluation) ? selectedEvaluationTypeName : $_.get(evaluation, 'evaluationType.name') }}
+                    </div>
+                  </td>
+                  <td :id="`preview-${index}-dupe-startDate`" class="bulk-action-startDate-col px-1">
+                    <div>
+                      {{ (selectedStartDate || evaluation.startDate) | moment('MM/DD/YY') }}
+                    </div>
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </v-simple-table>
         </div>
@@ -218,6 +256,10 @@ export default {
   },
   mixins: [Context, DepartmentEditSession, Util],
   props: {
+    action: {
+      required: true,
+      type: String
+    },
     applyAction: {
       required: true,
       type: Function
@@ -262,10 +304,6 @@ export default {
       default: undefined,
       required: false,
       type: Date
-    },
-    title: {
-      required: true,
-      type: String
     }
   },
   data: () => ({
@@ -273,7 +311,15 @@ export default {
     isInstructorRequired: false,
     midtermFormEnabled: false,
     model: undefined,
-    previewHeaders: ['Status', 'Course Number', 'Course Name', 'Instructor', 'Department Form', 'Evaluation Type', 'Start Date'],
+    previewHeaders: {
+      'Status': 'bulk-action-status-col',
+      'Course Number': 'bulk-action-courseNumber-col',
+      'Course Name': 'bulk-action-courseName-col',
+      'Instructor': 'bulk-action-instructor-col',
+      'Department Form': 'bulk-action-departmentForm-col',
+      'Evaluation Type': 'bulk-action-evaluationType-col',
+      'Start Date': 'bulk-action-startDate-col'
+    },
     selectedDepartmentForm: undefined,
     selectedEvaluations: [],
     selectedEvaluationStatus: undefined,
@@ -310,11 +356,17 @@ export default {
     selectedDepartmentFormName() {
       return this.$_.get(this.$_.find(this.$config.departmentForms, df => df.id === this.selectedDepartmentForm), 'name')
     },
+    selectedEvaluationsDescription() {
+      if (this.$_.isEmpty(this.selectedEvaluationIds)) {
+        return ''
+      }
+      return `${this.selectedEvaluationIds.length} ${this.selectedEvaluationIds.length === 1 ? 'row' : 'rows'}`
+    },
     selectedEvaluationTypeName() {
       return this.$_.get(this.$_.find(this.$config.evaluationTypes, et => et.id === this.selectedEvaluationType), 'name')
     },
     selectedStartDay() {
-      return this.$moment.utc(this.selectedStartDate).dayOfYear()
+      return this.selectedStartDate ? this.$moment.utc(this.selectedStartDate).dayOfYear() : null
     },
     validStartDates() {
       // The intersection of the selected rows' allowed evaluation start dates
@@ -348,6 +400,21 @@ export default {
       this.selectedStartDate = null
       this.cancelAction()
     },
+    showSelectedDepartmentForm(evaluation) {
+      return this.selectedDepartmentForm && this.selectedDepartmentForm !== this.$_.get(evaluation, 'departmentForm.id')
+    },
+    showSelectedEvaluationType(evaluation) {
+      return this.selectedEvaluationType && this.selectedEvaluationType !== this.$_.get(evaluation, 'evaluationType.id')
+    },
+    showSelectedInstructor(evaluation) {
+      return this.$_.get(this.selectedInstructor, 'uid') && this.selectedInstructor.uid !== this.$_.get(evaluation, 'instructor.uid')
+    },
+    showSelectedStartDate(evaluation) {
+      return this.selectedStartDate && this.selectedStartDay !== this.$moment.utc(evaluation.startDate).dayOfYear()
+    },
+    showSelectedStatus(evaluation) {
+      return this.selectedEvaluationStatus && this.selectedEvaluationStatus !== evaluation.status
+    },
     reset() {
       this.selectedEvaluations = this.$_.reduce(this.evaluations, (evaluations, e) => {
         if (e.isSelected) {
@@ -374,24 +441,31 @@ export default {
 .bulk-action-form-input {
   width: 250px
 }
+.bulk-action-preview-table > div {
+  margin-right: -15px !important;
+}
 </style>
 
 <style scoped>
-.bulk-action-date-col {
-    margin-right: 15px;
-    width: 65px;
-  }
-.bulk-action-form-col {
-  width: 80px;
+.bulk-action-courseName-col {
+  max-width: 5.5rem;
+  width: 5.5rem;
+}
+.bulk-action-courseNumber-col {
+  max-width: 3rem;
+  width: 3rem;
+}
+.bulk-action-departmentForm-col {
+  max-width: 6rem;
+  width: 6rem;
+}
+.bulk-action-evaluationType-col {
+  max-width: 4rem;
+  width: 4rem;
 }
 .bulk-action-instructor-col {
-  width: 100px;
-}
-.bulk-action-name-col {
-  width: 80px;
-}
-.bulk-action-number-col {
-  width: 60px;
+  max-width: 5rem;
+  width: 5rem;
 }
 .bulk-action-preview {
   overflow-x: hidden;
@@ -405,13 +479,14 @@ export default {
 .bulk-action-preview-table {
   max-height: 200px;
 }
-.bulk-action-preview-table > div {
-  margin-right: -15px !important;
+.bulk-action-startDate-col {
+  max-width: 65px;
+  padding-right: 18px !important;
+  width: 65px;
 }
 .bulk-action-status-col {
-  width: 70px;
-}
-.bulk-action-type-col {
-  width: 80px;
+  max-width: 3rem;
+  padding-left: 12px !important;
+  width: 3rem;
 }
 </style>

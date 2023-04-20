@@ -213,7 +213,7 @@ export default {
 
 <style>
 .autocomplete-menu {
-  z-index: 203 !important;
+  z-index: 210 !important;
 }
 .person-lookup {
   overflow-x: clip;

@@ -29,20 +29,20 @@
       </div>
     </div>
     <UpdateEvaluations
+      action="Duplicate"
       :apply-action="onConfirmDuplicate"
       :cancel-action="onCancelDuplicate"
       :is-applying="isApplying"
       :is-updating="isDuplicating"
       :midterm-form-available="midtermFormAvailable"
-      :title="`Duplicate ${selectedEvaluationsDescription}`"
       v-bind="bulkUpdateOptions"
     />
     <UpdateEvaluations
+      action="Edit"
       :apply-action="onConfirmEdit"
       :cancel-action="onCancelEdit"
       :is-applying="isApplying"
       :is-updating="isEditing"
-      :title="`Edit ${selectedEvaluationsDescription}`"
       v-bind="bulkUpdateOptions"
     >
       <template #status="{status, on}">
@@ -199,12 +199,6 @@ export default {
     },
     selectedEvaluations() {
       return this.$_.filter(this.evaluations, e => this.selectedEvaluationIds.includes(e.id))
-    },
-    selectedEvaluationsDescription() {
-      if (this.$_.isEmpty(this.selectedEvaluationIds)) {
-        return ''
-      }
-      return `${this.selectedEvaluationIds.length} ${this.selectedEvaluationIds.length === 1 ? 'row' : 'rows'}`
     }
   },
   methods: {
@@ -358,6 +352,14 @@ export default {
     update(fields, key) {
       this.setDisableControls(true)
       this.isLoading = true
+      const selectedCourseNumbers = this.$_.uniq(this.evaluations
+        .filter(e => this.selectedEvaluationIds.includes(e.id))
+        .map(e => e.courseNumber))
+      const refresh = () => {
+        return selectedCourseNumbers.length === 1
+          ? this.refreshSection({sectionId: selectedCourseNumbers[0], termId: this.selectedTermId})
+          : this.refreshAll()
+      }
       updateEvaluations(
         this.department.id,
         key,
@@ -366,7 +368,7 @@ export default {
         fields
       ).then(
         response => {
-          this.refreshAll().then(() => {
+          refresh().then(() => {
             const selectedRowCount = this.applyingAction.key === 'duplicate' ? ((response.length || 0) / 2) : (response.length || 0)
             const target = `${selectedRowCount} ${selectedRowCount === 1 ? 'row' : 'rows'}`
             this.alertScreenReader(`${this.applyingAction.completedText} ${target}`)
