@@ -584,8 +584,10 @@ class Evaluation(Base):
         return self.status != 'deleted'
 
     def mark_conflict(self, other_evaluation, key, saved_evaluation, self_value, other_value):
-        self.conflicts[key].append({'department': other_evaluation.department.dept_name, 'value': other_value})
-        other_evaluation.conflicts[key].append({'department': saved_evaluation.department.dept_name, 'value': self_value})
+        if other_evaluation.status != 'ignore':
+            self.conflicts[key].append({'department': other_evaluation.department.dept_name, 'value': other_value})
+        if self.status != 'ignore':
+            other_evaluation.conflicts[key].append({'department': saved_evaluation.department.dept_name, 'value': self_value})
         clear_department_cache(other_evaluation.department_id, self.term_id)
         clear_section_cache(self.term_id, self.course_number)
 
