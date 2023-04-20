@@ -184,8 +184,13 @@ const actions = {
   refreshSection: ({commit, state}, {sectionId, termId}) => {
     return new Promise((resolve: Function) => {
       getSectionEvaluations(state.department.id, sectionId, termId).then((data: any) => {
+        let sectionIndex = _.findIndex(state.evaluations, ['courseNumber', sectionId])
+        if (sectionIndex === -1) {
+          sectionIndex = state.evaluations.length
+        }
         const updatedEvaluations = _.each(data, e => $_decorateEvaluation(e, state.evaluations))
-        commit('setEvaluationUpdate', {sectionIndex: 0, sectionCount: 0, updatedEvaluations})
+        const sectionCount = updatedEvaluations.length
+        commit('setEvaluationUpdate', {sectionIndex, sectionCount, updatedEvaluations})
         resolve()
       })
     })
