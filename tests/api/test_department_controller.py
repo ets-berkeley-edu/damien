@@ -423,6 +423,10 @@ class TestUpdateEvaluationStatus:
             'action': 'edit',
         }, expected_status_code=400)
 
+        # Mark the first row Ignore, then confirm the second row
+        _api_update_evaluation(client, dept_id=dept.id, params={'evaluationIds': [evaluation_ids[0]], 'action': 'ignore'})
+        _api_update_evaluation(client, dept_id=dept.id, params={'evaluationIds': [evaluation_ids[1]], 'action': 'confirm'})
+
         # Resolve all conflicts and confirm succeeds
         _api_update_evaluation(client, dept_id=dept.id, params={
             'evaluationIds': [evaluation_ids[1]],
