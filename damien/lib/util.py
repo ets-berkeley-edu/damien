@@ -67,9 +67,8 @@ def parse_search_snippet(snippet, uid_col='ldap_uid'):
     else:
         query_filter = ' WHERE TRUE'
         for i, word in enumerate(words):
-            word = ''.join(re.split('\W', word))
             query_filter += f' AND (first_name ILIKE :name_phrase_{i} OR last_name ILIKE :name_phrase_{i})'
-            params.update({f'name_phrase_{i}': f'{word}%'})
+            params.update({f'name_phrase_{i}': f'%{word}%'})
     return query_filter, params
 
 

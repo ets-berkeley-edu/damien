@@ -186,6 +186,24 @@ class TestSearchInstructors:
         assert results[0]['lastName'] == 'Wondwzckm'
         assert results[0]['email'] == 'wdjmytek@berkeley.edu'
 
+    def test_search_by_name_containing_space(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        results = _api_search_instructors(client, snippet='Herman P.')
+        assert len(results) == 1
+        assert results[0]['uid'] == '486858'
+
+    def test_search_by_name_containing_hyphen(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        results = _api_search_instructors(client, snippet='kiser-go')
+        assert len(results) == 1
+        assert results[0]['uid'] == '87828'
+
+    def test_search_by_name_containing_apostrophe(self, client, fake_auth):
+        fake_auth.login(non_admin_uid)
+        results = _api_search_instructors(client, snippet="O'BLIVION")
+        assert len(results) == 1
+        assert results[0]['uid'] == '351096'
+
     def test_search_manually_added_instructor(self, client, fake_auth):
         fake_auth.login(admin_uid)
         _api_add_instructor(client)
