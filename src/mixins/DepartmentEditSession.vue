@@ -96,6 +96,7 @@ export default {
       'selectAllEvaluations',
       'setDisableControls',
       'setEvaluations',
+      'setSelectedEvaluations',
       'setShowTheOmenPoster',
       'showErrorDialog',
       'toggleSelectEvaluation',
