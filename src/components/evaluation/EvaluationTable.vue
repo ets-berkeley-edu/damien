@@ -136,6 +136,8 @@
       :sort-by.sync="sortBy"
       :sort-desc.sync="sortDesc"
       @current-items="onChangeSearchFilter"
+      @update:sort-by="onSort"
+      @update:sort-desc="onSort"
     >
       <template #header="{props: {headers}}">
         <SortableTableHeader :headers="headers" :on-sort="sort" />
@@ -737,12 +739,6 @@ export default {
       const evaluation = this.$_.find(this.evaluations, ['id', this.pendingEditRowId])
       this.onEditEvaluation(evaluation)
     },
-    onProceedMarkAsDone() {
-      const evaluation = this.markAsDoneWarning.evaluation
-      const fields = this.markAsDoneWarning.fields
-      this.markAsDoneWarning = undefined
-      this.updateEvaluation(evaluation, fields)
-    },
     onEditEvaluation(evaluation) {
       if (this.editRowId) {
         const editingEvaluation = this.$_.find(this.evaluations, ['id', this.editRowId])
@@ -752,21 +748,33 @@ export default {
           || this.selectedEvaluationStatus !== this.$_.get(editingEvaluation, 'status')
           || this.selectedEvaluationType !== this.$_.get(editingEvaluation, 'evaluationType.id')
           || this.selectedStartDate !== editingEvaluation.startDate
-        )
-      }
-      if (this.isConfirmingCancelEdit) {
-        this.pendingEditRowId = evaluation.id
-      } else {
-        this.editRowId = evaluation.id
-        this.pendingInstructor = evaluation.instructor
-        this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
-        this.selectedEvaluationStatus = this.$_.get(evaluation, 'status')
-        this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
-        this.selectedStartDate = evaluation.startDate
-        this.$putFocusNextTick(`${this.readonly ? '' : 'select-evaluation-status'}`)
-      }
-    },
-    validateAndSave(evaluation) {
+          )
+        }
+        if (this.isConfirmingCancelEdit) {
+          this.pendingEditRowId = evaluation.id
+        } else {
+          this.editRowId = evaluation.id
+          this.pendingInstructor = evaluation.instructor
+          this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
+          this.selectedEvaluationStatus = this.$_.get(evaluation, 'status')
+          this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
+          this.selectedStartDate = evaluation.startDate
+          this.$putFocusNextTick(`${this.readonly ? '' : 'select-evaluation-status'}`)
+        }
+      },
+      onProceedMarkAsDone() {
+        const evaluation = this.markAsDoneWarning.evaluation
+        const fields = this.markAsDoneWarning.fields
+        this.markAsDoneWarning = undefined
+        this.updateEvaluation(evaluation, fields)
+      },
+      onSort() {
+        const selectedEvaluationIds = this.$_.cloneDeep(this.selectedEvaluationIds)
+        this.$nextTick(() => {
+          this.setSelectedEvaluations(selectedEvaluationIds)
+        })
+      },
+      validateAndSave(evaluation) {
       this.markAsDoneWarning = undefined
       const departmentFormId = this.selectedDepartmentForm || this.$_.get(evaluation, 'defaultDepartmentForm.id') || null
       const status = this.selectedEvaluationStatus === 'none' ? null : this.selectedEvaluationStatus
@@ -868,7 +876,7 @@ export default {
     if (this.readonly) {
       this.evaluationHeaders = [{class: 'text-start text-nowrap pl-3', text: 'Department', value: 'department.id'}].concat(this.evaluationHeaders)
     } else if (this.allowEdits) {
-      this.evaluationHeaders = [{class: 'text-start text-nowrap pl-1', text: 'Select', value: 'select', width: '30px'}].concat(this.evaluationHeaders)
+      this.evaluationHeaders = [{class: 'text-start text-nowrap pl-1', text: 'Select', value: 'isSelected', width: '30px'}].concat(this.evaluationHeaders)
     }
 
     this.departmentForms = [{id: null, name: 'Revert'}].concat(this.activeDepartmentForms)

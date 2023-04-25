@@ -202,6 +202,9 @@ const actions = {
     commit('setEvaluations', evaluations)
   },
   setDisableControls: ({commit}, disable: boolean) => commit('setDisableControls', disable),
+  setSelectedEvaluations: ({commit}, selectedEvaluationIds: boolean) => {
+    commit('setSelectedEvaluationIds', selectedEvaluationIds)
+  },
   setShowTheOmenPoster: ({commit}, show: boolean) => commit('setShowTheOmenPoster', show),
   showErrorDialog: ({commit}, text: string) => {
     commit('setErrorDialog', true)
@@ -301,6 +304,14 @@ const mutations = {
         state.selectedEvaluationIds.splice(index, 1)
       }
     }
+  },
+  setSelectedEvaluationIds: (state: any, selectedEvaluationIds: any) => {
+    state.selectedEvaluationIds = selectedEvaluationIds
+    _.each(state.evaluations, e => {
+      if (_.includes(selectedEvaluationIds, e.id)) {
+        e.isSelected = true
+      }
+    })
   },
   setShowTheOmenPoster: (state: any, show: boolean) => {
     // This easter-egg flag can only be enabled once.
