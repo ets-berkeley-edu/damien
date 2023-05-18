@@ -12,8 +12,8 @@
             <div>
               <span>
                 {{ department.deptName }}&MediumSpace;
-                <span v-if="$_.size(catalogListings)">
-                  ({{ catalogListings.join(', ') }})&MediumSpace;
+                <span v-if="$_.size(getCatalogListings(department))">
+                  ({{ getCatalogListings(department).join(', ') }})&MediumSpace;
                 </span>
               </span>
               <span v-if="selectedTermName" class="mr-2">&mdash;&nbsp;</span>
@@ -177,9 +177,6 @@ export default {
     isCreatingNotification: false
   }),
   computed: {
-    catalogListings() {
-      return this.$_.filter(this.$_.keys(this.department.catalogListings), this.$_.trim)
-    },
     notificationRecipients() {
       return {
         deptName: this.department.deptName,
