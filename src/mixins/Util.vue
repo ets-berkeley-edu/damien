@@ -11,6 +11,9 @@
       }
     },
     methods: {
+      getCatalogListings(department) {
+        return _.filter(this.$_.keys(department.catalogListings), _.trim)
+      },
       oxfordJoin: arr => {
         switch(arr.length) {
         case 1: return _.head(arr)

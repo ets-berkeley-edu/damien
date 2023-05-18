@@ -41,7 +41,8 @@
                   scope="row"
                 >
                   <router-link :to="`/department/${department.id}`">
-                    {{ department.deptName }} ({{ $_.keys(department.catalogListings).join(', ') }})
+                    {{ department.deptName }}
+                    <span v-if="$_.size(getCatalogListings(department))">({{ getCatalogListings(department).join(', ') }})</span>
                   </router-link>
                 </th>
                 <td
@@ -70,7 +71,8 @@
                   scope="row"
                 >
                   <router-link :to="`/department/${department.id}`">
-                    {{ department.deptName }} ({{ $_.keys(department.catalogListings).join(', ') }})
+                    {{ department.deptName }}
+                    <span v-if="$_.size(getCatalogListings(department))">({{ getCatalogListings(department).join(', ') }})</span>
                   </router-link>
                 </th>
                 <td

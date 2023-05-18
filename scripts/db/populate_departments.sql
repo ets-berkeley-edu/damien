@@ -358,7 +358,7 @@ INSERT INTO listings (dept_name, subject_area, catalog_id, default_form, start_t
   ('Spanish and Portuguese', 'PORTUG', NULL, 'SPANISH', NULL, NULL),
   ('Spanish and Portuguese', 'SPANISH', NULL, 'SPANISH', NULL, NULL),
   ('Statistics', 'STAT', NULL, 'STAT', NULL, NULL),
-  ('Summer Sessions Online', '', NULL, NULL, '2235', NULL),
+  ('Summer Sessions Online', '', '[^[A-Z0-9]*]', NULL, '2235', NULL),
   ('Theater, Dance and Performance Studies', 'THEATER', NULL, 'THEATER', NULL, NULL),
   ('Undergraduate and Interdisciplinary Studies', 'BIC', NULL, 'BIC', NULL, NULL),
   ('Undergraduate and Interdisciplinary Studies', 'LS', NULL, 'L & S', NULL, NULL),
