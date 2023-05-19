@@ -135,7 +135,7 @@ def update_evaluations(department_id):  # noqa C901
         raise BadRequestError('No evaluation ids supplied.')
     term_id = get_term_id(request)
     updated_ids = []
-    uses_midterm_forms = department.uses_midterm_forms(term_id)
+    uses_midterm_forms = department.fetch_summary_feed(term_id).get('usesMidtermForms')
     if action == 'confirm':
         evaluations_feed = department.evaluations_feed(term_id=term_id)
         _validate_confirmable(evaluation_ids, term_id, evaluations_feed)
