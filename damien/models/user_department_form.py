@@ -90,9 +90,7 @@ class UserDepartmentForm(Base):
             df = DepartmentForm.find_by_id(department_form_id, include_deleted=True)
             user.department_forms.remove(df)
             db.session.flush()
-        print(department_form_ids_to_add)
         for department_form_id in department_form_ids_to_add:
             df = DepartmentForm.find_by_id(department_form_id, include_deleted=True)
-            print(df)
             user.department_forms.add(df)
         std_commit()

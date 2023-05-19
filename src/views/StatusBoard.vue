@@ -84,7 +84,7 @@
                   <div class="d-flex align-top">
                     <router-link :id="`link-to-dept-${$_.kebabCase(department.deptName)}`" :to="`/department/${department.id}`">
                       {{ department.deptName }}
-                      <span v-if="$_.size(catalogListings(department))">({{ catalogListings(department).join(', ') }})</span>
+                      <span v-if="$_.size(getCatalogListings(department))">({{ getCatalogListings(department).join(', ') }})</span>
                     </router-link>
                   </div>
                 </td>
@@ -228,9 +228,6 @@ export default {
       this.isCreatingNotification = false
       this.alertScreenReader('Notification canceled.')
       this.$putFocusNextTick('open-notification-form-btn')
-    },
-    catalogListings(department) {
-      return this.$_.filter(this.$_.keys(department.catalogListings), this.$_.trim)
     },
     isSelected(department) {
       return this.$_.includes(this.selectedDepartmentIds, department.id)

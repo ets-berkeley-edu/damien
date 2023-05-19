@@ -29,7 +29,7 @@ INSERT INTO departments (dept_name, is_enrolled, created_at, updated_at) VALUES
     ('Summer Sessions Online', TRUE, now(), now());
 
 INSERT INTO department_catalog_listings (department_id, subject_area, catalog_id, default_form_id, custom_evaluation_types, start_term_id, created_at, updated_at) (
-    SELECT d.id, '', NULL, NULL, FALSE, '2235', now(), now()
+    SELECT d.id, '', '[^[A-Z0-9]*]', NULL, FALSE, '2235', now(), now()
     FROM departments d
     WHERE d.dept_name = 'Summer Sessions Online'
 );

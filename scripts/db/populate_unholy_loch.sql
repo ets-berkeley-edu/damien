@@ -222,7 +222,8 @@ VALUES
 ('2222','32998','MELC','601','IND','014','Individual Studies for Master''s Students',TRUE,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','33016','MELC','602','IND','014','Individual Study for Doctoral Students',TRUE,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'2022-01-19 17:01:10.324583-08',NULL),
 ('2222','30481','LGBT','20AC','LEC','001','Alternative Sexual Identities and Communities in Contemporary American Society',TRUE,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,83,'2022-01-19 17:01:10.324583-08',NULL),
-('2222','40000','LDARCH','254','LEC','001','Topics in Landscape Architecture and Environmental Design',TRUE,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,5,'2022-01-19 17:01:10.324583-08',NULL);
+('2222','40000','LDARCH','254','LEC','001','Topics in Landscape Architecture and Environmental Design',TRUE,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,5,'2022-01-19 17:01:10.324583-08',NULL),
+('2235','40001','CUNEIF','101B','LEC','001','Selected Readings in Akkadian',TRUE,'606481','PI','Social Sciences Building 282','W','09:00','11:59','2023-05-18','2023-08-06',4,'2022-01-19 17:01:10.324583-08',NULL);
 
 INSERT INTO unholy_loch.co_schedulings (term_id, course_number, room_share_number)
 VALUES
