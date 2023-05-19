@@ -178,7 +178,7 @@
                       {{ selectedInstructor.firstName }} {{ selectedInstructor.lastName }}
                       ({{ selectedInstructor.uid }})
                     </div>
-                    <div v-if="showSelectedInstructor(evaluation) && evaluation.instructor">
+                    <div v-if="!showSelectedInstructor(evaluation) && evaluation.instructor">
                       {{ evaluation.instructor.firstName }} {{ evaluation.instructor.lastName }}
                       ({{ evaluation.instructor.uid }})
                     </div>
