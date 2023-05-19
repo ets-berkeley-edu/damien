@@ -28,6 +28,7 @@ import json
 from damien import std_commit
 from damien.models.department import Department
 from damien.models.evaluation import Evaluation
+from tests.util import override_config
 
 
 non_admin_uid = '100'
@@ -294,15 +295,18 @@ class TestGetDepartment:
         fake_auth.login(non_admin_uid)
         dept = Department.find_by_name('Real Estate Development and Design')
         response = client.get(f'/api/department/{dept.id}')
+        assert response.status_code == 200
         ldarch_254 = next(e for e in response.json['evaluations'] if e['subjectArea'] == 'LDARCH' and e['catalogId'] == '254')
         assert (ldarch_254['departmentForm']['name'] == 'RDEV')
         assert (ldarch_254['defaultDepartmentForm']['name'] == 'RDEV')
 
-    def test_no_default_dept_form(self, client, fake_auth):
-        fake_auth.login(non_admin_uid)
-        dept = Department.find_by_name('Summer Sessions Online')
-        response = client.get(f'/api/department/{dept.id}').json
-        assert len(response['evaluations']) == 0
+    def test_no_default_dept_form(self, client, fake_auth, app):
+        with override_config(app, 'CURRENT_TERM_ID', '2235'):
+            fake_auth.login(non_admin_uid)
+            dept = Department.find_by_name('Summer Sessions Online')
+            response = client.get(f'/api/department/{dept.id}?term_id=2235')
+            assert response.status_code == 200
+            assert len(response.json['evaluations']) == 0
 
 
 def _api_update_evaluation(client, dept_id=None, params=None, term_id='2222', expected_status_code=200):
