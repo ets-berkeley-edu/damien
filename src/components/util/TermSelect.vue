@@ -87,7 +87,7 @@ export default {
   }),
   created() {
     const termId = this.$_.get(this.$route.query, 'term')
-    if (termId) {
+    if (termId && this.$_.find(this.$config.availableTerms, {id: termId})) {
       this.setTerm(termId)
     } else {
       this.$router.push({
@@ -102,14 +102,17 @@ export default {
         this.$router.push({
           query: {...this.$route.query, term: termId}
         })
+        this.selectTerm(termId)
         this.$putFocusNextTick('select-term')
       }
     },
     setTerm(termId) {
       this.selectTerm(termId).then(() => {
-        getEvaluationTerm(this.selectedTermId).then(data => {
-          this.setIsSelectedTermLocked(data.isLocked === true)
-        })
+        if (this.selectedTermId) {
+          getEvaluationTerm(this.selectedTermId).then(data => {
+            this.setIsSelectedTermLocked(data.isLocked === true)
+          })
+        }
         this.afterSelect()
       })
     },

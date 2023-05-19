@@ -95,7 +95,7 @@
                 </template>
               </v-expansion-panel>
             </v-expansion-panels>
-            <div v-if="$currentUser.isAdmin">
+            <div v-if="$currentUser.isAdmin" class="pl-4">
               <v-btn
                 v-if="!isAddingContact"
                 id="add-dept-contact-btn"
@@ -192,6 +192,7 @@ export default {
   methods: {
     afterSaveContact() {
       this.isAddingContact = false
+      this.contactsPanel = 0
       this.alertScreenReader('Contact saved.')
       this.$putFocusNextTick('add-dept-contact-btn')
     },
