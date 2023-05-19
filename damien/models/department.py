@@ -225,13 +225,13 @@ class Department(Base):
             'sections': {},
         }
         vs = self.get_visible_sections(term_id, include_empty_sections=True)
-        dept_uses_midterm_forms = self.uses_midterm_forms(term_id)
+        cached_department = self.fetch_summary_feed(term_id)
 
         for s in vs['sections']:
             section_evaluation_exports = s.get_evaluation_exports(
                 department_id=self.id,
                 evaluation_ids=evaluation_ids,
-                uses_midterm_forms=dept_uses_midterm_forms,
+                uses_midterm_forms=cached_department.get('usesMidtermForms'),
             )
             exports['evaluations'].update(section_evaluation_exports)
             exports['sections'][s.course_number] = s
@@ -246,8 +246,7 @@ class Department(Base):
     def evaluations_feed(self, term_id=None, section_id=None, evaluation_ids=None):
         term_id = term_id or get_current_term_id()
         sections_cache = fetch_all_sections(self.id, term_id)
-        dept_uses_midterm_forms = self.uses_midterm_forms(term_id)
-
+        cached_department = self.fetch_summary_feed(term_id)
         app.logger.debug(
             f'Generating evaluations feed (dept_id={self.id}, term_id={term_id}, section_id={section_id}, evaluation_ids={evaluation_ids}')
         feed = []
@@ -256,7 +255,7 @@ class Department(Base):
             feed.extend(
                 s.get_evaluation_feed(
                     department_id=self.id,
-                    uses_midterm_forms=dept_uses_midterm_forms,
+                    uses_midterm_forms=cached_department.get('usesMidtermForms'),
                     sections_cache=sections_cache,
                     evaluation_ids=evaluation_ids,
                 ),
@@ -266,20 +265,27 @@ class Department(Base):
             self.row_count = len(feed)
             db.session.add(self)
             std_commit()
-            self.cache_summary_feed(term_id)
+            self.cache_summary_feed(term_id, cached_department.get('usesMidtermForms'))
 
         return feed
 
-    def cache_summary_feed(self, term_id):
+    def cache_summary_feed(self, term_id, uses_midterm_forms):
         feed = {
             'lastUpdated': isoformat(Evaluation.get_last_update(self.id, term_id)),
             'totalBlockers': Evaluation.count_department_blockers(self.id, term_id),
             'totalConfirmed': Evaluation.count_department_confirmed(self.id, term_id),
             'totalInError': Evaluation.count_department_errors(self.id, term_id),
             'totalEvaluations': self.row_count,
+            'usesMidtermForms': uses_midterm_forms,
         }
         set_department_cache(self.id, term_id, feed)
         return feed
+
+    def fetch_summary_feed(self, term_id):
+        summary_feed = fetch_department_cache(self.id, term_id)
+        if not summary_feed:
+            summary_feed = self.cache_summary_feed(term_id, self.uses_midterm_forms(term_id))
+        return summary_feed
 
     def to_api_json(
         self,
@@ -291,6 +297,10 @@ class Department(Base):
         departments_cache=None,
         notes_cache=None,
     ):
+        cached_department = departments_cache.get(self.id) if departments_cache else None
+        if not cached_department:
+            cached_department = self.fetch_summary_feed(term_id)
+
         feed = {
             'id': self.id,
             'deptName': self.dept_name,
@@ -299,7 +309,7 @@ class Department(Base):
             'createdAt': isoformat(self.created_at),
             'enrolledTerms': self.enrolled_terms(),
             'updatedAt': isoformat(self.updated_at),
-            'usesMidtermForms': self.uses_midterm_forms(term_id=term_id),
+            'usesMidtermForms': cached_department.get('usesMidtermForms'),
         }
 
         note = None
@@ -318,14 +328,7 @@ class Department(Base):
             feed['evaluations'] = evaluations
 
         if include_status:
-            status = None
-            if departments_cache:
-                status = departments_cache.get(self.id)
-            if status is None:
-                status = fetch_department_cache(self.id, term_id)
-            if status is None:
-                status = self.cache_summary_feed(term_id)
-            feed.update(status)
+            feed.update(cached_department)
 
         if include_sections:
             if self.row_count is None:
@@ -350,7 +353,7 @@ class Department(Base):
             """,
         )
         result = db.session.execute(query, params).fetchone()
-        app.logger.info(f'Department uses_midterm_forms query returned {result}: {query}\n{params}')
+        app.logger.info(f'Department uses_midterm_forms query returned {len(result or [])} rows: {query}\n{params}')
         return result is not None
 
 
