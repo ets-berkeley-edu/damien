@@ -3,7 +3,7 @@
     v-model="model"
     aria-labelledby="update-evaluations-dialog-title"
     class="overflow-y-visible"
-    width="600"
+    width="800"
     v-bind="$attrs"
     v-on="$listeners"
     @click:outside="onClickCancel"
@@ -133,12 +133,12 @@
                   </td>
                   <td :id="`preview-${index}-instructor`" class="bulk-action-instructor-col px-1">
                     <div v-if="$_.get(evaluation, 'instructor.uid')" :class="{'text-decoration-line-through accent--text': action === 'Edit' && showSelectedInstructor(evaluation)}">
-                      <div>{{ evaluation.instructor.firstName }} {{ evaluation.instructor.lastName }}</div>
-                      <div>({{ evaluation.instructor.uid }})</div>
+                      {{ evaluation.instructor.firstName }} {{ evaluation.instructor.lastName }}
+                      ({{ evaluation.instructor.uid }})
                     </div>
                     <div v-if="action === 'Edit' && showSelectedInstructor(evaluation)">
-                      <div>{{ selectedInstructor.firstName }} {{ selectedInstructor.lastName }}</div>
-                      <div>({{ selectedInstructor.uid }})</div>
+                      {{ selectedInstructor.firstName }} {{ selectedInstructor.lastName }}
+                      ({{ selectedInstructor.uid }})
                     </div>
                   </td>
                   <td :id="`preview-${index}-departmentForm`" class="bulk-action-departmentForm-col px-1">
@@ -175,12 +175,12 @@
                   </td>
                   <td :id="`preview-${index}-dupe-instructor`" class="bulk-action-instructor-col px-1">
                     <div v-if="showSelectedInstructor(evaluation)">
-                      <div>{{ selectedInstructor.firstName }} {{ selectedInstructor.lastName }}</div>
-                      <div>({{ selectedInstructor.uid }})</div>
+                      {{ selectedInstructor.firstName }} {{ selectedInstructor.lastName }}
+                      ({{ selectedInstructor.uid }})
                     </div>
                     <div v-if="showSelectedInstructor(evaluation) && evaluation.instructor">
-                      <div>{{ evaluation.instructor.firstName }} {{ evaluation.instructor.lastName }}</div>
-                      <div>({{ evaluation.instructor.uid }})</div>
+                      {{ evaluation.instructor.firstName }} {{ evaluation.instructor.lastName }}
+                      ({{ evaluation.instructor.uid }})
                     </div>
                   </td>
                   <td :id="`preview-${index}-dupe-departmentForm`" class="bulk-action-departmentForm-col px-1">
@@ -448,12 +448,12 @@ export default {
 
 <style scoped>
 .bulk-action-courseName-col {
-  max-width: 5.5rem;
-  width: 5.5rem;
+  max-width: 6rem;
+  width: 6rem;
 }
 .bulk-action-courseNumber-col {
-  max-width: 3rem;
-  width: 3rem;
+  max-width: 2.5rem;
+  width: 2.5rem;
 }
 .bulk-action-departmentForm-col {
   max-width: 6rem;
@@ -464,8 +464,8 @@ export default {
   width: 4rem;
 }
 .bulk-action-instructor-col {
-  max-width: 5rem;
-  width: 5rem;
+  max-width: 7.5rem;
+  width: 7.5rem;
 }
 .bulk-action-preview {
   overflow-x: hidden;
@@ -486,7 +486,7 @@ export default {
 }
 .bulk-action-status-col {
   max-width: 3rem;
-  padding-left: 12px !important;
+  padding-left: 16px !important;
   width: 3rem;
 }
 </style>
