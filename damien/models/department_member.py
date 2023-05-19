@@ -103,11 +103,12 @@ class DepartmentMember(Base):
     @classmethod
     def delete(cls, department_id, user_id):
         dc = cls.query.filter_by(department_id=department_id, user_id=user_id).first()
-        db.session.delete(dc)
-        # Add a deleted_at timestamp to orphaned user objects.
-        if not dc.user.is_admin and len(dc.user.department_memberships) == 1:
-            dc.user.deleted_at = utc_now()
-        std_commit()
+        if dc:
+            db.session.delete(dc)
+            # Add a deleted_at timestamp to orphaned user objects.
+            if not dc.user.is_admin and len(dc.user.department_memberships) == 1:
+                dc.user.deleted_at = utc_now()
+            std_commit()
 
     def to_api_json(self):
         return {
