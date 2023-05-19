@@ -24,7 +24,7 @@
         hide-default-footer
         hide-default-header
         :items="departments"
-        :loading="loading"
+        :loading="loading || !selectedTermId"
         :sort-by.sync="sortBy"
         :sort-desc.sync="sortDesc"
       >
