@@ -123,7 +123,7 @@ class TestDeptMgmt:
     def test_add_contact_name_lookup(self):
         self.dept_details_admin_page.click_cancel_contact()
         self.dept_details_admin_page.click_add_contact()
-        self.dept_details_admin_page.look_up_contact_name(dept_1_user.first_name.split()[0])
+        self.dept_details_admin_page.look_up_contact_name(dept_1_user.first_name)
         self.dept_details_admin_page.click_look_up_result(dept_1_user)
         assert self.dept_details_admin_page.value(DeptDetailsAdminPage.ADD_CONTACT_EMAIL) == dept_1_user.email
 

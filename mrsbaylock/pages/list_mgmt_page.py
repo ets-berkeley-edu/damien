@@ -58,13 +58,13 @@ class ListMgmtPage(DamienPages):
         self.wait_for_element_and_click(ListMgmtPage.ADD_DEPT_FORM_BUTTON)
         self.wait_for_element_and_type(ListMgmtPage.ADD_DEPT_FORM_INPUT, dept_form)
         self.wait_for_element_and_click(ListMgmtPage.ADD_DEPT_FORM_SAVE_BUTTON)
-        time.sleep(1)
+        self.wait_for_element(ListMgmtPage.dept_form_delete_button(dept_form), utils.get_short_timeout())
 
     def delete_dept_form(self, dept_form):
         app.logger.info(f'Deleting department form {dept_form}')
         self.wait_for_page_and_click_js(ListMgmtPage.dept_form_delete_button(dept_form))
         self.wait_for_element_and_click(ListMgmtPage.DELETE_CONFIRM_BUTTON)
-        time.sleep(1)
+        self.when_not_present(ListMgmtPage.dept_form_delete_button(dept_form), utils.get_short_timeout())
 
     ADD_EVAL_TYPE_BUTTON = (By.ID, 'add-eval-type-btn')
     ADD_EVAL_TYPE_INPUT = (By.ID, 'input-eval-type-name')
@@ -88,13 +88,13 @@ class ListMgmtPage(DamienPages):
         self.wait_for_element_and_click(ListMgmtPage.ADD_EVAL_TYPE_BUTTON)
         self.wait_for_element_and_type(ListMgmtPage.ADD_EVAL_TYPE_INPUT, eval_type)
         self.wait_for_element_and_click(ListMgmtPage.ADD_EVAL_TYPE_SAVE_BUTTON)
-        time.sleep(1)
+        self.wait_for_element(ListMgmtPage.eval_type_delete_button(eval_type), utils.get_short_timeout())
 
     def delete_eval_type(self, eval_type):
         app.logger.info(f'Deleting evaluation type {eval_type}')
         self.wait_for_page_and_click_js(ListMgmtPage.eval_type_delete_button(eval_type))
         self.wait_for_element_and_click(ListMgmtPage.DELETE_CONFIRM_BUTTON)
-        time.sleep(1)
+        self.when_not_present(ListMgmtPage.eval_type_delete_button(eval_type), utils.get_short_timeout())
 
     ADD_INSTR_BUTTON = (By.ID, 'add-instructor-btn')
     ADD_INSTR_UID_INPUT = (By.ID, 'input-instructor-uid')

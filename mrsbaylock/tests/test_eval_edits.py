@@ -26,6 +26,7 @@ import datetime
 from datetime import timedelta
 import time
 
+from flask import current_app as app
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
 from mrsbaylock.test_utils import evaluation_utils
@@ -156,6 +157,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.change_eval_start_date(e, e.eval_start_date)
         self.dept_details_admin_page.click_save_eval_changes(e)
         self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.wait_for_eval_row(e)
         expected = f"{e.eval_start_date.strftime('%m/%d/%y')} - {e.eval_end_date.strftime('%m/%d/%y')}"
         assert expected in self.dept_details_admin_page.eval_period_dates(e)
 
@@ -228,7 +230,7 @@ class TestEvaluationManagement:
 
     def test_add_existing_supp_section(self):
         e = self.dept_1.evaluations[0]
-        self.dept_details_admin_page.reload_page()
+        self.dept_details_admin_page.load_dept_page(self.dept_1)
         self.dept_details_admin_page.click_add_section()
         self.dept_details_admin_page.enter_section(e.ccn)
         self.dept_details_admin_page.wait_for_validation_error('already present on page')
@@ -307,10 +309,18 @@ class TestEvaluationManagement:
         self.dept_details_dept_page.click_bulk_edit()
         assert self.dept_details_dept_page.bulk_edit_eval_count() == len(self.bulk_dept.evaluations)
 
+    def test_bulk_edit_preview(self):
+        expected = [CourseDashboardEditsPage.expected_preview_data(ev) for ev in self.bulk_dept.evaluations]
+        expected.sort(key=lambda d: (d['ccn'], d['uid']))
+        visible = self.dept_details_dept_page.visible_preview_data()
+        visible.sort(key=lambda d: (d['ccn'], d['uid']))
+        assert visible == expected
+
     def test_bulk_edit_status_validation(self):
         self.dept_details_dept_page.select_bulk_status(EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.click_bulk_edit_save()
         self.dept_details_dept_page.await_error_and_accept()
+        assert self.dept_details_dept_page.edit_button_is_enabled()
 
     def test_bulk_edit_status(self):
         new_status = EvaluationStatus.FOR_REVIEW
@@ -320,6 +330,8 @@ class TestEvaluationManagement:
         self.dept_details_dept_page.click_bulk_edit_save()
         self.dept_details_dept_page.wait_for_bulk_update()
         assert list(set(self.dept_details_dept_page.visible_evaluation_statuses())) == [new_status.value['ui']]
+        for ev in self.bulk_dept.evaluations:
+            ev.status = new_status
 
     def test_bulk_edit_dept_form(self):
         new_form = 'HISTORY'
@@ -329,6 +341,8 @@ class TestEvaluationManagement:
         self.dept_details_dept_page.click_bulk_edit_save()
         self.dept_details_dept_page.wait_for_bulk_update()
         assert list(set(self.dept_details_dept_page.visible_evaluation_dept_forms())) == [new_form]
+        for ev in self.bulk_dept.evaluations:
+            ev.dept_form = new_form
 
     def test_bulk_edit_eval_type(self):
         new_type = 'G'
@@ -338,35 +352,65 @@ class TestEvaluationManagement:
         self.dept_details_dept_page.click_bulk_edit_save()
         self.dept_details_dept_page.wait_for_bulk_update()
         assert list(set(self.dept_details_dept_page.visible_evaluation_types())) == [new_type]
+        for ev in self.bulk_dept.evaluations:
+            ev.eval_type = new_type
 
     def test_bulk_edit_start_date(self):
         new_date = self.bulk_dept.evaluations[0].eval_start_date - timedelta(days=1)
+        evaluations = list(filter(lambda e: e.eval_start_date == self.bulk_dept.evaluations[0].eval_start_date, self.bulk_dept.evaluations))
+        app.logger.info(f'There are {len(evaluations)} evaluations with eval start date of {self.bulk_dept.evaluations[0].eval_start_date}')
+        self.dept_details_dept_page.filter_rows(f"{self.bulk_dept.evaluations[0].eval_start_date.strftime('%m/%d')}")
         self.dept_details_dept_page.click_select_all_evals()
         self.dept_details_dept_page.click_bulk_edit()
         self.dept_details_dept_page.enter_bulk_start_date(new_date)
         self.dept_details_dept_page.click_bulk_edit_save()
         self.dept_details_dept_page.wait_for_bulk_update()
         new_date_str = datetime.datetime.strftime(new_date, '%m/%d/%y')
+        self.dept_details_dept_page.filter_rows(new_date_str)
+        assert len(self.dept_details_dept_page.visible_evaluation_rows()) == len(evaluations)
         assert list(set(self.dept_details_dept_page.visible_evaluation_starts())) == [new_date_str]
+        for ev in evaluations:
+            ev.eval_start_date = new_date
 
     def test_bulk_edit_all_fields(self):
         new_status = EvaluationStatus.IGNORED
         new_form = 'ENGLISH'
         new_type = 'F'
-        new_date = self.bulk_dept.evaluations[0].eval_start_date
+        new_date = self.bulk_dept.evaluations[0].eval_start_date + timedelta(days=1)
+        evaluations = list(filter(lambda e: e.eval_start_date == self.bulk_dept.evaluations[0].eval_start_date, self.bulk_dept.evaluations))
+        app.logger.info(f'There are {len(evaluations)} evaluations with eval start date of {self.bulk_dept.evaluations[0].eval_start_date}')
+        self.dept_details_dept_page.load_dept_page(self.bulk_dept)
+        self.dept_details_dept_page.filter_rows(f"{self.bulk_dept.evaluations[0].eval_start_date.strftime('%m/%d')}")
+
         self.dept_details_dept_page.select_ignored_filter()
-        self.dept_details_dept_page.click_select_all_evals()
+        for ev in evaluations:
+            self.dept_details_dept_page.click_eval_checkbox(ev)
         self.dept_details_dept_page.click_bulk_edit()
         self.dept_details_dept_page.select_bulk_status(new_status)
         self.dept_details_dept_page.select_bulk_dept_form(new_form)
         self.dept_details_dept_page.select_bulk_eval_type(new_type)
         self.dept_details_dept_page.enter_bulk_start_date(new_date)
+
+        expected = [CourseDashboardEditsPage.expected_preview_data(ev) for ev in evaluations]
+        expected.sort(key=lambda d: (d['ccn'], d['uid']))
+        for ev in expected:
+            ev['status'] += f" {new_status.value['option']}"
+            ev['form'] += f' {new_form}'
+            ev['type'] += f' {new_type}'
+            ev['date'] += f" {new_date.strftime('%m/%d/%y')}"
+        visible = self.dept_details_dept_page.visible_preview_data()
+        visible.sort(key=lambda d: (d['ccn'], d['uid']))
+        assert visible == expected
+
         self.dept_details_dept_page.click_bulk_edit_save()
         self.dept_details_dept_page.wait_for_bulk_update()
+
+        new_date_str = datetime.datetime.strftime(new_date, '%m/%d/%y')
+        self.dept_details_dept_page.filter_rows(new_date_str)
+        assert len(self.dept_details_dept_page.visible_evaluation_rows()) == len(evaluations)
         assert list(set(self.dept_details_dept_page.visible_evaluation_statuses())) == [new_status.value['ui']]
         assert list(set(self.dept_details_dept_page.visible_evaluation_dept_forms())) == [new_form]
         assert list(set(self.dept_details_dept_page.visible_evaluation_types())) == [new_type]
-        new_date_str = datetime.datetime.strftime(new_date, '%m/%d/%y')
         assert list(set(self.dept_details_dept_page.visible_evaluation_starts())) == [new_date_str]
 
     def test_bulk_edit_instructor(self):
@@ -374,6 +418,10 @@ class TestEvaluationManagement:
         no_teach = list(filter(lambda ev: (ev.instructor.uid is None), evals))
         new_teach = utils.get_test_user()
         if no_teach:
+            self.dept_details_dept_page.filter_rows('')
+            self.dept_details_dept_page.click_select_all_evals()
+            self.dept_details_dept_page.click_bulk_unmark_button()
+            time.sleep(2)
             for row in no_teach:
                 self.dept_details_dept_page.click_eval_checkbox(row)
             self.dept_details_dept_page.click_bulk_edit()

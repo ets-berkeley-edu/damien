@@ -588,26 +588,28 @@ class TestEvalErrors:
         self.dept_details_dept_page.click_save_eval_changes(self.manual_eval)
         self.dept_details_dept_page.wait_for_validation_error('Could not confirm evaluations with conflicting information')
 
-    def test_manual_section_dept_2_resolve_conflict(self):
+    def test_manual_section_dept_2_ignore_conflict(self):
         self.dept_details_dept_page.hit_escape()
-        self.dept_details_dept_page.change_dept_form(self.manual_eval, self.dept_form_2)
-        self.dept_details_dept_page.change_eval_type(self.manual_eval, self.eval_type_2)
+        self.dept_details_dept_page.select_eval_status(self.manual_eval, EvaluationStatus.IGNORED)
         self.dept_details_dept_page.save_eval_changes(self.manual_eval)
         self.manual_eval.dept_form = self.dept_form_2
         self.manual_eval.eval_type = self.eval_type_2
 
-    def test_manual_section_dept_2_no_form_conflict(self):
+    def test_manual_section_dept_1_no_form_conflict(self):
+        self.dept_details_dept_page.log_out()
+        self.login_page.dev_auth(self.manual_contact_1, self.manual_dept_1)
         self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.wait_for_eval_row(self.manual_eval)
         conflict_form = f'Conflicts with value {self.dept_form_2} from {self.manual_dept_1.name} department'
         assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
         assert conflict_form not in self.dept_details_dept_page.eval_dept_form(self.manual_eval)
 
-    def test_manual_section_dept_2_no_type_conflict(self):
+    def test_manual_section_dept_1_no_type_conflict(self):
         conflict_type = f'Conflicts with value {self.eval_type_2} from {self.manual_dept_1.name} department'
         assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.manual_eval)
         assert conflict_type not in self.dept_details_dept_page.eval_type(self.manual_eval)
 
-    def test_manual_section_dept_2_confirms(self):
+    def test_manual_section_dept_1_confirms(self):
         self.dept_details_dept_page.click_edit_evaluation(self.manual_eval)
         self.dept_details_dept_page.select_eval_status(self.manual_eval, EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.save_eval_changes(self.manual_eval)
@@ -617,6 +619,6 @@ class TestEvalErrors:
         self.login_page.dev_auth()
         self.status_board_admin_page.wait_for_depts()
         assert self.status_board_admin_page.dept_errors_count(self.manual_dept_1) == 0
-        assert self.status_board_admin_page.dept_errors_count(self.manual_dept_2) == 0
+        assert self.status_board_admin_page.dept_errors_count(self.manual_dept_2) == 1
         self.status_board_admin_page.click_publish_link()
         self.publish_page.wait_for_no_sections()

@@ -399,6 +399,15 @@ def get_dept_subject_areas(dept):
     return subjects
 
 
+def is_dept_midterm_friendly(dept):
+    forms = evaluation_utils.get_all_dept_forms()
+    for subj in get_dept_subject_areas(dept):
+        for form in forms:
+            if form == f'{subj}_MID':
+                return True
+    return False
+
+
 # TEST DATA
 
 
