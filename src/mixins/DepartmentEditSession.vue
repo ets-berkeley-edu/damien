@@ -4,9 +4,9 @@ import {mapActions, mapGetters} from 'vuex'
 
 const $_isInvalid = (e, evaluationIds, fields) => {
   return _.includes(evaluationIds, e.id) && !(
-    (e.departmentForm || fields.departmentFormId) &&
-    (e.evaluationType || fields.evaluationTypeId) &&
-    (e.instructor || fields.instructorUid)
+    (e.departmentForm || _.get(fields, 'departmentFormId')) &&
+    (e.evaluationType || _.get(fields, 'evaluationTypeId')) &&
+    (e.instructor || _.get(fields, 'instructorUid'))
   )
 }
 
