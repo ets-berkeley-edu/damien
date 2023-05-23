@@ -748,33 +748,33 @@ export default {
           || this.selectedEvaluationStatus !== this.$_.get(editingEvaluation, 'status')
           || this.selectedEvaluationType !== this.$_.get(editingEvaluation, 'evaluationType.id')
           || this.selectedStartDate !== editingEvaluation.startDate
-          )
-        }
-        if (this.isConfirmingCancelEdit) {
-          this.pendingEditRowId = evaluation.id
-        } else {
-          this.editRowId = evaluation.id
-          this.pendingInstructor = evaluation.instructor
-          this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
-          this.selectedEvaluationStatus = this.$_.get(evaluation, 'status')
-          this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
-          this.selectedStartDate = evaluation.startDate
-          this.$putFocusNextTick(`${this.readonly ? '' : 'select-evaluation-status'}`)
-        }
-      },
-      onProceedMarkAsDone() {
-        const evaluation = this.markAsDoneWarning.evaluation
-        const fields = this.markAsDoneWarning.fields
-        this.markAsDoneWarning = undefined
-        this.updateEvaluation(evaluation, fields)
-      },
-      onSort() {
-        const selectedEvaluationIds = this.$_.cloneDeep(this.selectedEvaluationIds)
-        this.$nextTick(() => {
-          this.setSelectedEvaluations(selectedEvaluationIds)
-        })
-      },
-      validateAndSave(evaluation) {
+        )
+      }
+      if (this.isConfirmingCancelEdit) {
+        this.pendingEditRowId = evaluation.id
+      } else {
+        this.editRowId = evaluation.id
+        this.pendingInstructor = evaluation.instructor
+        this.selectedDepartmentForm = this.$_.get(evaluation, 'departmentForm.id')
+        this.selectedEvaluationStatus = this.$_.get(evaluation, 'status')
+        this.selectedEvaluationType = this.$_.get(evaluation, 'evaluationType.id')
+        this.selectedStartDate = evaluation.startDate
+        this.$putFocusNextTick(`${this.readonly ? '' : 'select-evaluation-status'}`)
+      }
+    },
+    onProceedMarkAsDone() {
+      const evaluation = this.markAsDoneWarning.evaluation
+      const fields = this.markAsDoneWarning.fields
+      this.markAsDoneWarning = undefined
+      this.updateEvaluation(evaluation, fields)
+    },
+    onSort() {
+      const selectedEvaluationIds = this.$_.cloneDeep(this.selectedEvaluationIds)
+      this.$nextTick(() => {
+        this.setSelectedEvaluations(selectedEvaluationIds)
+      })
+    },
+    validateAndSave(evaluation) {
       this.markAsDoneWarning = undefined
       const departmentFormId = this.selectedDepartmentForm || this.$_.get(evaluation, 'defaultDepartmentForm.id') || null
       const status = this.selectedEvaluationStatus === 'none' ? null : this.selectedEvaluationStatus
