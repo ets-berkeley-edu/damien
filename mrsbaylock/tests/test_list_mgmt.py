@@ -158,12 +158,14 @@ class TestListManagement:
         assert self.eval_type not in self.list_mgmt_page.visible_eval_type_names()
 
     def test_unmarked_form_and_type_deleted(self):
+        self.eval_unmarked.dept_form = None
         self.dept_details_admin_page.load_dept_page(self.dept)
-        assert self.dept_details_admin_page.eval_dept_form(self.eval_unmarked) == self.form
+        assert self.form not in self.dept_details_admin_page.eval_dept_form(self.eval_unmarked)
         assert self.dept_details_admin_page.eval_type(self.eval_unmarked) == self.eval_type
 
     def test_for_review_form_and_type_deleted(self):
-        assert self.dept_details_admin_page.eval_dept_form(self.eval_to_review) == self.form
+        self.eval_to_review.dept_form = None
+        assert self.form not in self.dept_details_admin_page.eval_dept_form(self.eval_to_review)
         assert self.dept_details_admin_page.eval_type(self.eval_to_review) == self.eval_type
 
     def test_confirmed_form_and_type_deleted(self):

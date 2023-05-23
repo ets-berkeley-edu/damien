@@ -761,13 +761,14 @@ def get_dept_eval_with_foreign_x_listings(term, depts, max_row_count=None):
     dept_ids = [d.dept_id for d in depts]
     test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
     for dept in test_depts:
-        if (max_row_count and dept.row_count <= max_row_count) or not max_row_count:
-            dept.evaluations = get_evaluations(term, dept)
-            rows_with_instr = list(filter(lambda e: e.instructor.uid, dept.evaluations))
-            if len(rows_with_instr) > 0:
-                for ev in dept.evaluations:
-                    if ev.x_listing_ccns and not ev.room_share_ccns:
-                        listing = ev.x_listing_ccns[-1]
-                        listing_dept = get_section_dept(term, listing)
-                        if listing_dept.dept_id in dept_ids and listing_dept.users and listing_dept.dept_id != dept.dept_id:
-                            return dept, ev
+        if utils.is_dept_midterm_friendly(dept):
+            if (max_row_count and dept.row_count <= max_row_count) or not max_row_count:
+                dept.evaluations = get_evaluations(term, dept)
+                rows_with_instr = list(filter(lambda e: e.instructor.uid, dept.evaluations))
+                if len(rows_with_instr) > 0:
+                    for ev in dept.evaluations:
+                        if ev.x_listing_ccns and not ev.room_share_ccns:
+                            listing = ev.x_listing_ccns[-1]
+                            listing_dept = get_section_dept(term, listing)
+                            if listing_dept.dept_id in dept_ids and listing_dept.users and listing_dept.dept_id != dept.dept_id:
+                                return dept, ev

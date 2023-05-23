@@ -106,6 +106,10 @@ class CourseDashboardEditsPage(CourseDashboards):
     USE_START_DATE_INPUT = (By.ID, 'update-evaluations-start-date')
     ACTION_APPLY_BUTTON = (By.XPATH, '//button[contains(., "Apply")]')
 
+    def edit_button_is_enabled(self):
+        time.sleep(1)
+        return self.element(self.EDIT_BUTTON).is_enabled()
+
     def click_select_all_evals(self):
         self.wait_for_page_and_click_js(CourseDashboardEditsPage.SELECT_ALL_EVALS_CBX)
 
@@ -248,6 +252,50 @@ class CourseDashboardEditsPage(CourseDashboards):
     def click_bulk_edit_cancel(self):
         self.wait_for_element_and_click(CourseDashboardEditsPage.DUPE_CXL_BUTTON)
         time.sleep(1)
+
+    # PREVIEW CHANGES
+
+    PREVIEW_STATUS = (By.XPATH, '//td[contains(@id, "-status") and contains(@id, "preview-")]')
+
+    def visible_preview_data(self):
+        time.sleep(1)
+        data = []
+        for el in self.elements(CourseDashboardEditsPage.PREVIEW_STATUS):
+            idx = el.get_attribute('id').split('-')[1]
+            uid_loc = (By.XPATH, f'//td[@id="preview-{idx}-instructor"]/div')
+            uid = ''
+            name = ''
+            if self.is_present(uid_loc):
+                parts = self.element(uid_loc).text.strip().split()
+                uid = parts[-1].replace('(', '').replace(')', '')
+                name = ' '.join(parts[0:-1])
+
+            data.append(
+                {
+                    'status': self.element((By.ID, f'preview-{idx}-status')).text.strip().replace('\n', ' '),
+                    'ccn': self.element((By.ID, f'preview-{idx}-courseNumber')).text.strip(),
+                    'course': self.element((By.ID, f'preview-{idx}-courseName')).text.strip().replace('\n', ' '),
+                    'uid': uid,
+                    'name': name.replace('\n', ' '),
+                    'form': self.element((By.ID, f'preview-{idx}-departmentForm')).text.strip().replace('\n', ' '),
+                    'type': self.element((By.ID, f'preview-{idx}-evaluationType')).text.strip().replace('\n', ' '),
+                    'date': self.element((By.ID, f'preview-{idx}-startDate')).text.strip().replace('\n', ' '),
+                },
+            )
+        return data
+
+    @staticmethod
+    def expected_preview_data(ev):
+        return {
+            'status': ('' if ev.status.value['option'] == 'None' else ev.status.value['option']),
+            'ccn': ev.ccn,
+            'course': f'{ev.subject} {ev.catalog_id} {ev.instruction_format} {ev.section_num}',
+            'uid': (ev.instructor.uid or ''),
+            'name': (f'{ev.instructor.first_name} {ev.instructor.last_name}' if ev.instructor.uid else ''),
+            'form': (ev.dept_form or ''),
+            'type': (ev.eval_type or ''),
+            'date': (ev.eval_start_date.strftime('%m/%d/%y')),
+        }
 
     # FILTERS
 
@@ -434,12 +482,13 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def save_eval_changes_button_disabled(self):
         time.sleep(2)
-        app.logger.info(f"Save changes button disabled attribute is {self.element(self.EVAL_CHANGE_SAVE_BUTTON).get_attribute('disabled')}")
+        app.logger.info(
+            f"Save changes button disabled attribute is {self.element(self.EVAL_CHANGE_SAVE_BUTTON).get_attribute('disabled')}")
         return self.element(self.EVAL_CHANGE_SAVE_BUTTON).get_attribute('disabled') == 'disabled'
 
     def click_save_eval_changes(self, evaluation):
         app.logger.info(f'Saving changes for CCN {evaluation.ccn}')
-        self.wait_for_page_and_click_js(self.EVAL_CHANGE_SAVE_BUTTON)
+        self.wait_for_page_and_click(self.EVAL_CHANGE_SAVE_BUTTON)
 
     def save_eval_changes(self, evaluation):
         self.click_save_eval_changes(evaluation)
@@ -448,7 +497,7 @@ class CourseDashboardEditsPage(CourseDashboards):
     def click_cancel_eval_changes(self):
         app.logger.info('Canceling changes')
         if self.is_present(self.EVAL_CHANGE_CANCEL_BUTTON):
-            self.wait_for_page_and_click_js(self.EVAL_CHANGE_CANCEL_BUTTON)
+            self.wait_for_page_and_click(self.EVAL_CHANGE_CANCEL_BUTTON)
             time.sleep(1)
 
     def wait_for_validation_error(self, msg):
