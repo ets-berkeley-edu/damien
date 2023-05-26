@@ -28,7 +28,7 @@ from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from damien import db, std_commit
-from damien.lib.berkeley import get_refreshable_term_ids
+from damien.lib.berkeley import cache_thread, get_refreshable_term_ids
 from damien.lib.queries import refresh_additional_instructors
 from damien.lib.util import resolve_sql_template
 from damien.models.department import Department
@@ -88,6 +88,8 @@ def _bg_refresh_unholy_loch(app):
 
             try:
                 template_sql = 'refresh_unholy_loch.template.sql'
+                if hasattr(cache_thread, 'current_term_id'):
+                    delattr(cache_thread, 'current_term_id')
                 term_ids = get_refreshable_term_ids()
                 for term_id in term_ids:
                     resolved_ddl = resolve_sql_template(template_sql, term_id=term_id)
