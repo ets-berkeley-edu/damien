@@ -477,6 +477,7 @@ def get_edited_sections(term, dept):
             ON unholy_loch.co_schedulings.course_number = evaluations.course_number
            AND unholy_loch.co_schedulings.term_id = evaluations.term_id
          WHERE evaluations.term_id = '{term.term_id}'
+           AND evaluations.department_id = '{dept.dept_id}'
            AND unholy_loch.sis_sections.term_id = '{term.term_id}'
       GROUP BY evaluations.course_number,
                evaluations.id,
