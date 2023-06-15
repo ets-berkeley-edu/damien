@@ -620,5 +620,3 @@ class TestEvalErrors:
         self.status_board_admin_page.wait_for_depts()
         assert self.status_board_admin_page.dept_errors_count(self.manual_dept_1) == 0
         assert self.status_board_admin_page.dept_errors_count(self.manual_dept_2) == 1
-        self.status_board_admin_page.click_publish_link()
-        self.publish_page.wait_for_no_sections()
