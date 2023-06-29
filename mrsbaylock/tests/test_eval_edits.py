@@ -261,10 +261,15 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.select_review_filter()
         self.dept_details_admin_page.select_confirmed_filter()
         self.dept_details_admin_page.select_ignored_filter()
+        completed = []
         for row in evals:
             if row.instructor.uid and row.dept_form and row.eval_type:
                 self.dept_details_admin_page.click_eval_checkbox(row)
+                completed.append(row)
         self.dept_details_admin_page.click_bulk_done_button()
+        started = list(filter(lambda ev: ev.eval_start_date <= datetime.date.today(), completed))
+        if started:
+            self.dept_details_admin_page.proceed_eval_changes()
         time.sleep(utils.get_short_timeout())
 
     def test_publish(self):
@@ -319,6 +324,9 @@ class TestEvaluationManagement:
     def test_bulk_edit_status_validation(self):
         self.dept_details_dept_page.select_bulk_status(EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.click_bulk_edit_save()
+        started = list(filter(lambda ev: ev.eval_start_date <= datetime.date.today(), self.bulk_dept.evaluations))
+        if started:
+            self.dept_details_admin_page.proceed_eval_changes()
         self.dept_details_dept_page.await_error_and_accept()
         assert self.dept_details_dept_page.edit_button_is_enabled()
 

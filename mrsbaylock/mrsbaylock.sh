@@ -49,8 +49,7 @@ select opt in "${headless_options[@]}"; do
 done
 
 echo
-echo "Enter snippet (e.g., 'eval_edits' or 'authentication') to match the test file names you want to run."
-echo "Blank will run all tests."; echo
+echo "Enter name of test file you want to run (e.g., 'user_authentication' will run 'test_user_authentication.py')"
 echo -n "    > "
 
 read test_suite
@@ -72,7 +71,6 @@ read -s password
 echo
 echo "Running tests matching ${test_suite}"
 
-test_suite="*${test_suite}*"
 USERNAME="${username}" PASSWORD="${password}" pytest tests/test_${test_suite}.py --browser ${browser} --headless ${headless}
 
 exit 0

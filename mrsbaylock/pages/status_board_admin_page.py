@@ -113,6 +113,7 @@ class StatusBoardAdminPage(DamienPages):
             return 0
 
     def dept_confirmed_all(self, dept):
+        time.sleep(2)
         xpath = f'{StatusBoardAdminPage.dept_row_xpath(dept)}/td[@class="department-confirmed"]/i[@aria-label="all confirmed"]'
         return self.is_present((By.XPATH, xpath))
 

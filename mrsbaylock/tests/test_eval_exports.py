@@ -99,6 +99,9 @@ class TestEvalExports:
                 self.dept_details_admin_page.click_eval_checkbox(row)
                 self.confirmed.append(row)
         self.dept_details_admin_page.click_bulk_done_button()
+        started = list(filter(lambda ev: ev.eval_start_date <= datetime.date.today(), self.confirmed))
+        if started:
+            self.dept_details_admin_page.proceed_eval_changes()
 
     def test_confirm_confirmed_count(self):
         time.sleep(utils.get_short_timeout())
