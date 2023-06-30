@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from datetime import date
 from datetime import timedelta
 
 from flask import current_app as app
@@ -586,6 +587,8 @@ class TestEvalErrors:
         self.dept_details_dept_page.click_edit_evaluation(self.manual_eval)
         self.dept_details_dept_page.select_eval_status(self.manual_eval, EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.click_save_eval_changes(self.manual_eval)
+        if self.manual_eval.eval_start_date <= date.today():
+            self.dept_details_dept_page.proceed_eval_changes()
         self.dept_details_dept_page.wait_for_validation_error('Could not confirm evaluations with conflicting information')
 
     def test_manual_section_dept_2_ignore_conflict(self):
@@ -612,7 +615,9 @@ class TestEvalErrors:
     def test_manual_section_dept_1_confirms(self):
         self.dept_details_dept_page.click_edit_evaluation(self.manual_eval)
         self.dept_details_dept_page.select_eval_status(self.manual_eval, EvaluationStatus.CONFIRMED)
-        self.dept_details_dept_page.save_eval_changes(self.manual_eval)
+        self.dept_details_dept_page.click_save_eval_changes(self.manual_eval)
+        if self.manual_eval.eval_start_date <= date.today():
+            self.dept_details_dept_page.proceed_eval_changes()
 
     def test_manual_no_errors(self):
         self.dept_details_dept_page.log_out()

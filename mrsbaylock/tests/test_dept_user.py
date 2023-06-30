@@ -23,6 +23,7 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from datetime import date
 from datetime import timedelta
 
 from flask import current_app as app
@@ -145,10 +146,12 @@ class TestDeptUser:
             filter(lambda e: (e.instructor.uid and not e.x_listing_ccns and not e.room_share_ccns), self.evaluations))
         self.dept_details_dept_page.click_edit_evaluation(done)
         self.dept_details_dept_page.select_eval_status(done, EvaluationStatus.CONFIRMED)
-        self.dept_details_dept_page.change_dept_form(done, 'HISTORY')
+        self.dept_details_dept_page.change_dept_form(done, 'AEROSPC')
         self.dept_details_dept_page.change_eval_type(done, 'F')
         self.dept_details_dept_page.click_save_eval_changes(done)
-        done.dept_form = 'HISTORY'
+        if done.eval_start_date <= date.today():
+            self.dept_details_dept_page.proceed_eval_changes()
+        done.dept_form = 'AEROSPC'
         done.eval_type = 'F'
         done.status = EvaluationStatus.CONFIRMED
 
@@ -423,6 +426,8 @@ class TestDeptUser:
         e.dept_form = 'HISTORY'
         e.eval_type = 'F'
         self.dept_details_dept_page.bulk_mark_as_confirmed([e])
+        if e.eval_start_date <= date.today():
+            self.dept_details_dept_page.proceed_eval_changes()
         self.dept_details_dept_page.wait_for_eval_rows()
         self.dept_details_dept_page.reload_page()
         self.dept_details_dept_page.wait_for_eval_rows()
@@ -443,6 +448,8 @@ class TestDeptUser:
         self.dept_details_dept_page.click_edit_evaluation(e)
         self.dept_details_dept_page.select_eval_status(e, EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.click_save_eval_changes(e)
+        if e.eval_start_date <= date.today():
+            self.dept_details_dept_page.proceed_eval_changes()
         self.dept_details_dept_page.wait_for_eval_rows()
         self.dept_details_dept_page.reload_page()
         self.dept_details_dept_page.wait_for_eval_rows()

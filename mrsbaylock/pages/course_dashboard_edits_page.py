@@ -397,6 +397,7 @@ class CourseDashboardEditsPage(CourseDashboards):
     EVAL_CHANGE_START_REQ_MSG = (By.XPATH, '//span[contains(text(), "Required")]')
     EVAL_CHANGE_SAVE_BUTTON = (By.ID, 'save-evaluation-edit-btn')
     EVAL_CHANGE_CANCEL_BUTTON = (By.ID, 'cancel-evaluation-edit-btn')
+    EVAL_CHANGE_PROCEED_BUTTON = (By.ID, 'confirm-dialog-btn')
 
     def click_eval_checkbox(self, evaluation):
         xpath = f'{self.eval_row_xpath(evaluation)}//input[contains(@id, "checkbox")]'
@@ -493,6 +494,11 @@ class CourseDashboardEditsPage(CourseDashboards):
     def save_eval_changes(self, evaluation):
         self.click_save_eval_changes(evaluation)
         self.when_not_present(self.EVAL_CHANGE_SAVE_BUTTON, utils.get_short_timeout())
+
+    def proceed_eval_changes(self):
+        self.wait_for_element_and_click(self.EVAL_CHANGE_PROCEED_BUTTON)
+        self.when_not_present(self.EVAL_CHANGE_PROCEED_BUTTON, utils.get_short_timeout())
+        time.sleep(1)
 
     def click_cancel_eval_changes(self):
         app.logger.info('Canceling changes')
