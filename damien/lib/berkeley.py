@@ -24,13 +24,10 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from datetime import date, timedelta
-import threading
 
+from damien import cache
 from damien.models.util import select_column
 from flask import current_app as app
-
-
-cache_thread = threading.local()
 
 
 def available_term_ids():
@@ -39,7 +36,7 @@ def available_term_ids():
 
 def get_current_term_id():
     if app.config['CURRENT_TERM_ID'] == 'auto':
-        current_term_id = getattr(cache_thread, 'current_term_id', None)
+        current_term_id = cache.get('current_term_id')
         if not current_term_id:
             # Auto-configured terms roll over in advance of the term start date.
             term_start_cutoff = date.today() + timedelta(days=app.config['TERM_TRANSITION_ADVANCE_DAYS'])
@@ -48,7 +45,7 @@ def get_current_term_id():
                 WHERE term_begins <= '{term_start_cutoff.strftime('%Y-%m-%d')}'
                 ORDER BY term_id DESC
                 LIMIT 1""")[0]
-            cache_thread.current_term_id = current_term_id
+            cache.set('current_term_id', current_term_id)
         return current_term_id
     else:
         return app.config['CURRENT_TERM_ID']
