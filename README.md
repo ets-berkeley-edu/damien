@@ -5,7 +5,7 @@ OEC, reimagined.
 
 ## Installation
 
-* Install Python 3.9
+* Install Python 3
 * Create your virtual environment (venv)
 * Install dependencies
 
@@ -16,7 +16,6 @@ pip3 install -r requirements.txt [--upgrade]
 ### Front-end dependencies
 
 ```
-nvm use
 npm install
 ```
 
