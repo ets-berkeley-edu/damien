@@ -16,6 +16,7 @@ pip3 install -r requirements.txt [--upgrade]
 ### Front-end dependencies
 
 ```
+nvm use
 npm install
 ```
 
