@@ -10,7 +10,7 @@ addons:
     - postgresql-client-12
 
 before_install:
-  - nvm install 16
+  - nvm install 14
 
 env:
   global:
