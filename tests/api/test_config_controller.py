@@ -165,8 +165,8 @@ class TestTermAutomation:
 
     @staticmethod
     def _get_automated_term_id(app, client):
-        from damien.lib import berkeley
-        berkeley.cache_thread.current_term_id = None
+        from damien import cache
+        cache.delete('current_term_id')
         with override_config(app, 'CURRENT_TERM_ID', 'auto'):
             response = client.get('/api/config')
             assert response.status_code == 200
@@ -174,8 +174,9 @@ class TestTermAutomation:
 
     @staticmethod
     def _get_refreshable_term_ids(app):
+        from damien import cache
         from damien.lib import berkeley
-        berkeley.cache_thread.current_term_id = None
+        cache.delete('current_term_id')
         with override_config(app, 'CURRENT_TERM_ID', 'auto'):
             return berkeley.get_refreshable_term_ids()
 
