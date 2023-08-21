@@ -35,10 +35,10 @@ DELETE FROM public.json_cache WHERE term_id = '{term_id}';
 TRUNCATE unholy_loch.sis_terms;
 
 INSERT INTO unholy_loch.sis_terms(term_id, term_name, term_begins, term_ends)
-(SELECT * FROM 
+(SELECT * FROM
   dblink('{dblink_nessie_rds}',$NESSIE$
     SELECT term_id, term_name, term_begins, term_ends
-    FROM sis_terms.term_definitions
+    FROM terms.term_definitions
   $NESSIE$)
   AS nessie_sis_terms (
     term_id VARCHAR(4),
