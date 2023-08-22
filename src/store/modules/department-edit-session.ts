@@ -211,10 +211,10 @@ const actions = {
     commit('setErrorDialogText', text)
   },
   toggleSelectEvaluation: ({commit}, evaluation: any) => {
-    const course = `${evaluation.subjectArea} ${evaluation.catalogId}`
-    const message = `${course} evaluation ${state.selectedEvaluationIds.includes(evaluation.id) ? 'un' : ''}selected`
-    store.dispatch('context/alertScreenReader', message).then(_.noop)
     commit('setIsSelected', evaluation.id)
+    const course = `${evaluation.subjectArea} ${evaluation.catalogId} ${evaluation.instructionFormat} ${evaluation.sectionNumber} (${evaluation.courseNumber})`
+    const message = `${state.selectedEvaluationIds.includes(evaluation.id) ? '' : 'un'}selected ${course} evaluation`
+    store.dispatch('context/alertScreenReader', message).then(_.noop)
   },
   updateContact: ({commit, state}, contact: any) => {
     commit('setDisableControls', true)
@@ -248,15 +248,16 @@ const mutations = {
     const selectedSearchFilterResultIds = _.intersectionWith(state.selectedEvaluationIds, searchFilterResults, (id: number|string, e: any) => {
       return _.toString(e.id) === _.toString(id)
     })
-    state.selectedEvaluationIds = []
+    const selectedEvaluationIds: any[] = []
     _.each(state.evaluations, e => {
       if (_.includes(enabledStatuses, e.status || 'unmarked') && _.includes(selectedSearchFilterResultIds, e.id)) {
         e.isSelected = true
-        state.selectedEvaluationIds.push(e.id)
+        selectedEvaluationIds.push(e.id)
       } else {
         e.isSelected = false
       }
     })
+    state.selectedEvaluationIds = selectedEvaluationIds
   },
   reset: (state, department) => {
     if (department) {
@@ -270,13 +271,14 @@ const mutations = {
     state.disableControls = false
   },
   selectAllEvaluations: (state: any, {searchFilterResults, enabledStatuses}) => {
-    state.selectedEvaluationIds = []
+    const selectedEvaluationIds: any[] = []
     _.each(state.evaluations, e => {
       if (_.includes(enabledStatuses, e.status || 'unmarked') && _.some(searchFilterResults, {'id': e.id})) {
         e.isSelected = true
-        state.selectedEvaluationIds.push(e.id)
+        selectedEvaluationIds.push(e.id)
       }
     })
+    state.selectedEvaluationIds = selectedEvaluationIds
   },
   setActiveDepartmentForms: (state: any, departmentForms: any[]) => state.activeDepartmentForms = departmentForms,
   setAllDepartmentForms: (state: any, departmentForms: any[]) => state.allDepartmentForms = departmentForms,
