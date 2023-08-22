@@ -727,7 +727,10 @@ export default {
     onChangeSearchFilter(searchFilterResults) {
       this.searchFilterResults = searchFilterResults
       if (this.$_.size(this.selectedEvaluationIds)) {
-        this.filterSelectedEvaluations(searchFilterResults, this.selectedFilterTypes)
+        this.filterSelectedEvaluations({
+          searchFilterResults: this.searchFilterResults,
+          enabledStatuses: this.selectedFilterTypes
+        })
       }
       if (!this.$_.some(this.searchFilterResults, {'id': this.editRowId})) {
         this.editRowId = null
