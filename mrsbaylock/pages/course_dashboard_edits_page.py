@@ -48,6 +48,7 @@ class CourseDashboardEditsPage(CourseDashboards):
     def expand_dept_contact_list(self):
         app.logger.info('Expanding the list of contacts')
         self.wait_for_page_and_click(CourseDashboardEditsPage.EXPAND_CONTACTS_BUTTON)
+        time.sleep(1)
 
     @staticmethod
     def dept_contact_xpath(user):
@@ -68,6 +69,7 @@ class CourseDashboardEditsPage(CourseDashboards):
         if not self.is_present(el) or not self.element(el).is_displayed():
             xpath = f'//button[contains(., "{user.first_name}") and contains(., "{user.last_name}")]'
             self.wait_for_page_and_click_js((By.XPATH, xpath))
+            time.sleep(1)
 
     def dept_contact_email_loc(self, user):
         return By.XPATH, f'{self.dept_contact_xpath(user)}//div[contains(@id, "email")]'

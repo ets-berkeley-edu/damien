@@ -72,12 +72,15 @@ def get_evaluations(term, dept):
 
 
 def merge_dupe_rows(evaluations):
-    sort = sorted(evaluations, key=lambda e: [e.ccn, e.instructor.uid, e.eval_start_date])
+    sort = sorted(evaluations, key=lambda e: [e.ccn, e.instructor.uid, e.eval_end_date])
     grouped = [list(result) for key, result in itertools.groupby(sort, key=lambda e: [e.ccn, e.instructor.uid])]
     for group in grouped:
+        group.sort(key=lambda e: e.course_end_date)
         if len(group) > 1:
-            dupe = next(filter(lambda e: e == group[0], evaluations))
-            evaluations.remove(dupe)
+            group.pop()
+            group.reverse()
+            for i in group:
+                evaluations.remove(i)
 
 
 def row_data(row, field):
@@ -674,11 +677,14 @@ def get_section_dept(term, ccn, all_users=None):
 
 
 def get_eval_types(evals):
+    subjects = get_dept_catalog_subjects()
     for e in evals:
         if e.eval_type or e.eval_type_custom:
             app.logger.info('Skipping eval type')
         else:
-            if e.instructor.uid and e.instructor.affiliations:
+            if e.foreign_listing and e.subject not in subjects:
+                e.eval_type = None
+            elif e.instructor.uid and e.instructor.affiliations:
                 affils = e.instructor.affiliations
                 if 'EMPLOYEE-TYPE-ACADEMIC' in affils:
                     if 'STUDENT-TYPE' in affils:
@@ -691,6 +697,14 @@ def get_eval_types(evals):
                     e.eval_type = None
             else:
                 e.eval_type = None
+
+
+def get_dept_catalog_subjects():
+    sql = 'SELECT DISTINCT subject_area FROM department_catalog_listings'
+    app.logger.info(sql)
+    result = db.session.execute(text(sql))
+    std_commit(allow_test_environment=True)
+    return [r['subject_area'] for r in result]
 
 
 def set_section_deleted(evaluation):

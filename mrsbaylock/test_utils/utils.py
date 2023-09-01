@@ -705,22 +705,22 @@ def get_evaluation_supervisors(evaluations, ev, dept_uids_and_forms, foreign_ccn
                             'LDAP_UID': uid['uid'],
                         }
                         supervisors.append(data)
-        if ev.room_share_ccns_all and not ev.foreign_listing:
-            for uid in dept_uids_and_forms:
-                if ev.dept_form in uid['forms']:
-                    data = {
-                        'COURSE_ID': ev.course_id,
-                        'LDAP_UID': uid['uid'],
-                    }
-                    supervisors.append(data)
-                    for share_ccn in ev.room_share_ccns_all:
-                        if share_ccn in foreign_ccns:
-                            share = next(filter(lambda l: l.ccn == share_ccn, evaluations))
-                            data = {
-                                'COURSE_ID': share.course_id,
-                                'LDAP_UID': uid['uid'],
-                            }
-                            supervisors.append(data)
+    if ev.room_share_ccns_all and not ev.foreign_listing:
+        for uid in dept_uids_and_forms:
+            if ev.dept_form in uid['forms']:
+                data = {
+                    'COURSE_ID': ev.course_id,
+                    'LDAP_UID': uid['uid'],
+                }
+                supervisors.append(data)
+                for share_ccn in ev.room_share_ccns_all:
+                    if share_ccn in foreign_ccns:
+                        share = next(filter(lambda l: l.ccn == share_ccn, evaluations))
+                        data = {
+                            'COURSE_ID': share.course_id,
+                            'LDAP_UID': uid['uid'],
+                        }
+                        supervisors.append(data)
 
 
 def get_domestic_supervisors(evaluations, foreign_ccns, all_contacts):
