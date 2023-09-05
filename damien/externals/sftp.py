@@ -31,7 +31,7 @@ import paramiko
 
 @contextmanager
 def get_sftp_client():
-    if app.config['DAMIEN_ENV'] == 'test':
+    if app.config['DAMIEN_ENV'] == 'test' or app.config['SKIP_SFTP']:
         yield None
     else:
         with paramiko.SSHClient() as ssh:

@@ -88,6 +88,7 @@ SECRET_KEY = 'secret'
 SFTP_HOST = 'hostname'
 SFTP_PORT = 22
 SFTP_USER = 'username'
+SKIP_SFTP = False
 
 # Save DB changes at the end of a request.
 SQLALCHEMY_COMMIT_ON_TEARDOWN = True
