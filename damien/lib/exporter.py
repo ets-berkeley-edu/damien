@@ -120,14 +120,22 @@ def upload(sftp, term_id, timestamp, filename, headers, rows):
 
     filesize = os.stat(tmpfile.name).st_size
     with open(tmpfile.name, mode='rb') as f:
-        if sftp:
-            sftp.putfo(f, f'{filename}.csv', file_size=filesize)
+        try:
+            if sftp:
+                sftp.putfo(f, f'{filename}.csv', file_size=filesize)
+        except Exception as e:
+            app.logger.exception(e)
+            if app.config['ALLOW_S3_UPLOAD_ON_PUBLISH_FAILURE']:
+                app.logger.error(f'SFTP upload failed ({filename}.csv, {filesize} bytes); proceeding to S3 upload.')
+            else:
+                app.logger.error(f'SFTP upload failed ({filename}.csv, {filesize} bytes); aborting further uploads.')
+                raise RuntimeError(f'Could not upload {filename}.csv')
         f.seek(0)
         if put_binary_data_to_s3(get_s3_path(term_id, timestamp, filename), f, 'text/csv'):
             success = True
 
     if not success:
-        raise RuntimeError(f'Could not upload {filename}')
+        raise RuntimeError(f'Could not upload {filename}.csv')
 
 
 def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms_to_uids, all_catalog_listings):
