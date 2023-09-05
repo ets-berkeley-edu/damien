@@ -26,6 +26,8 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import logging
 import os
 
+ALLOW_S3_UPLOAD_ON_PUBLISH_FAILURE = False
+
 AWS_PROFILE = None
 AWS_S3_BUCKET = 'some-bucket'
 AWS_S3_REGION = 'us-west-2'
