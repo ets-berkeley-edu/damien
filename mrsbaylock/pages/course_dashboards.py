@@ -28,6 +28,7 @@ import re
 import time
 
 from flask import current_app as app
+from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
@@ -52,10 +53,20 @@ class CourseDashboards(DamienPages):
         if evaluation.instructor.uid:
             uid = f'[contains(.,"{evaluation.instructor.uid}")]'
         else:
-            uid = '[not(div)]'
+            if evaluation.status in [EvaluationStatus.IGNORED, EvaluationStatus.UNMARKED]:
+                uid = '[not(div)]'
+            else:
+                uid = '[contains(.,"required")]'
+
         instr = f'following-sibling::td[contains(@id, "instructor")]{uid}'
 
-        form_name = f'[contains(., " {evaluation.dept_form} ")]' if evaluation.dept_form else '[not(text())]'
+        if evaluation.dept_form:
+            form_name = f'[contains(., " {evaluation.dept_form} ")]'
+        else:
+            if evaluation.status in [EvaluationStatus.IGNORED, EvaluationStatus.UNMARKED]:
+                form_name = '[not(text())]'
+            else:
+                form_name = '[contains(.,"required")]'
         dept_form = f'following-sibling::td[contains(@id, "departmentForm")]{form_name}'
         return f'//{dept}{ccn}/{instr}/{dept_form}/ancestor::tr'
 

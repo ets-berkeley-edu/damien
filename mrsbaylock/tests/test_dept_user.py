@@ -43,6 +43,7 @@ class TestDeptUser:
     term = utils.get_current_term()
     utils.reset_test_data(term)
     depts = utils.get_participating_depts()
+    dept_forms = evaluation_utils.get_all_dept_forms()
     dept = evaluation_utils.get_dept_with_listings_or_shares(term, depts)
     evaluations = evaluation_utils.get_evaluations(term, dept)
     contact = dept.users[0]
@@ -548,3 +549,18 @@ class TestDeptUser:
         unmarked.sort()
         visible.sort()
         assert visible == unmarked
+
+    def test_bulk_edit_filtered_and_edited(self):
+        self.dept_details_dept_page.select_unmarked_filter()
+        self.dept_details_dept_page.select_review_filter()
+        self.dept_details_dept_page.select_confirmed_filter()
+        self.dept_details_dept_page.select_ignored_filter()
+        ev = next(filter(lambda e: (e.status == EvaluationStatus.CONFIRMED), self.evaluations))
+        form = next(filter(lambda f: (f != ev.dept_form and '_MID' not in f), self.dept_forms))
+        self.dept_details_dept_page.filter_rows(ev.ccn)
+        self.dept_details_dept_page.click_edit_evaluation(ev)
+        self.dept_details_dept_page.change_dept_form(ev, form)
+        self.dept_details_dept_page.click_save_eval_changes(ev)
+        ev.dept_form = form
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.bulk_mark_for_review([ev])
