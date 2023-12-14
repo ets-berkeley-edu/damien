@@ -8,20 +8,22 @@
     "serve-vue": "vue-cli-service serve --open"
   },
   "dependencies": {
+    "@babel/core": "^7.23.6",
+    "@babel/runtime": "^7.23.6",
     "@mdi/font": "7.2.96",
     "axios": "1.4.0",
     "core-js": "3.32.0",
     "lodash": "4.17.21",
     "moment-timezone": "0.5.43",
     "v-calendar": "2.4.1",
-    "vue": "2.7.14",
+    "vue": "npm:@neverendingsupport/vue2@2.7.17",
     "vue-class-component": "7.2.6",
     "vue-linkify": "1.0.1",
     "vue-moment": "4.1.0",
     "vue-property-decorator": "9.1.2",
-    "vue-router": "3.6.5",
+    "vue-router": "npm:@neverendingsupport/vue-router@3.6.6",
     "vue-scrollto": "2.20.0",
-    "vuetify": "2.7.1",
+    "vuetify": "npm:@neverendingsupport/vuetify2@2.7.1",
     "vuex": "3.6.2"
   },
   "devDependencies": {
@@ -44,10 +46,18 @@
     "vue-cli-plugin-vuetify": "~2.5.8",
     "vue-eslint-parser": "^9.1.1",
     "vue-svg-loader": "^0.16.0",
-    "vue-template-compiler": "^2.7.14",
+    "vue-template-compiler": "npm:@neverendingsupport/vue2@2.7.17-template-compiler",
     "vuetify-loader": "^1.9.2"
   },
   "license": "SEE LICENSE IN LICENSE",
+  "overrides": {
+    "vue": { ".": "npm:@neverendingsupport/vue2@2.7.17" },
+    "@vue/compiler-sfc": { ".": "npm:@neverendingsupport/vue2@2.7.17-compiler-sfc" },
+    "vue-router": { ".": "npm:@neverendingsupport/vue-router@3.6.6" },
+    "vue-server-renderer": { ".": "npm:@neverendingsupport/vue2@2.7.17-server-renderer" },
+    "vue-template-compiler": { ".": "npm:@neverendingsupport/vue2@2.7.17-template-compiler" },
+    "vuetify": { ".": "npm:@neverendingsupport/vuetify2@2.7.1" }
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/ets-berkeley-edu/damien.git"
