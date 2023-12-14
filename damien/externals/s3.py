@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import boto3
-from botocore.exceptions import ClientError, ConnectionError
+from botocore.exceptions import ClientError as BotoClientError, ConnectionError as BotoConnectionError
 from flask import current_app as app
 import smart_open
 import zipstream
@@ -40,7 +40,7 @@ def get_object_text(key):
             app.logger.error(f'Failed to get S3 object contents: bucket={bucket}, key={key})')
             return None
         return contents.read().decode('utf-8')
-    except (ClientError, ConnectionError, ValueError) as e:
+    except (BotoClientError, BotoConnectionError, ValueError) as e:
         app.logger.error(f'Error retrieving S3 object text: bucket={bucket}, key={key}, error={e}')
         return None
 
