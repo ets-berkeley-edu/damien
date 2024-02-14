@@ -40,7 +40,7 @@ class TestListManagement:
     utils.reset_test_data(term)
     all_contacts = utils.get_all_users()
     dept = utils.get_test_dept_1()
-    dept.evaluations = evaluation_utils.get_evaluations(term, dept)
+    dept.evaluations = evaluation_utils.get_evaluations(term, dept, log=True)
     evaluations = list(filter(lambda e: e.instructor.uid, dept.evaluations))
     eval_unmarked = evaluations[0]
     eval_to_review = evaluations[1]

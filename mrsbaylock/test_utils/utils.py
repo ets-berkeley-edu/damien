@@ -43,6 +43,10 @@ def get_browser():
     return app.config['BROWSER']
 
 
+def get_browser_chrome_binary_path():
+    return app.config['BROWSER_BINARY_PATH']
+
+
 def browser_is_headless():
     return app.config['BROWSER_HEADLESS']
 
@@ -133,7 +137,7 @@ def get_all_users():
                     department_members.department_id,
                     department_members.can_receive_communications
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     results = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     users_data = []
@@ -188,7 +192,7 @@ def get_user(uid):
 
 def get_user_id(user):
     sql = f"SELECT id FROM users WHERE users.uid = '{user.uid}'"
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql)).first()
     std_commit(allow_test_environment=True)
     return result['id']
@@ -237,28 +241,28 @@ def create_admin_user(user):
             '{user.csid}', '{user.uid}', '{user.first_name}', '{user.last_name}', '{user.email}', TRUE, NULL,
             NOW(), NOW(), NULL
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
 
 def hard_delete_user(user):
     sql = f"DELETE FROM users WHERE uid = '{user.uid}'"
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
 
 def soft_delete_user(user):
     sql = f"UPDATE users SET deleted_at = NOW() WHERE uid = '{user.uid}'"
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
 
 def restore_user(user):
     sql = f"UPDATE users SET deleted_at = NULL WHERE uid = '{user.uid}'"
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
@@ -268,7 +272,7 @@ def restore_user(user):
 
 def get_participating_depts():
     sql = 'SELECT id, dept_name, row_count FROM departments WHERE is_enrolled IS TRUE'
-    app.logger.info(sql)
+    app.logger.debug(sql)
     depts = []
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
@@ -297,10 +301,9 @@ def get_dept(name, all_users=None):
             ON departments.id = department_notes.department_id
          WHERE departments.dept_name = '{name.replace("'", "''")}';
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
-    app.logger.info(result)
     dept_terms_data = []
     for row in result:
         term_data = {
@@ -324,9 +327,9 @@ def get_dept(name, all_users=None):
             note = DepartmentNote(term_id=i['term_id'], note=i['note'])
             notes.append(note)
     dept = Department(dept_data, notes)
-    app.logger.info(f'Department object: {vars(dept)}')
+    app.logger.info(f'Department: {vars(dept)}')
     for n in dept.notes:
-        app.logger.info(f'Department note: {vars(n)}')
+        app.logger.debug(f'Department note: {vars(n)}')
     dept.users = get_dept_users(dept, all_users)
     return dept
 
@@ -355,7 +358,7 @@ def get_dept_sans_contacts():
                                  FROM department_members)
               LIMIT 1
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     return get_dept(result['name'])
@@ -367,7 +370,7 @@ def create_dept_note(term, dept, note):
         INSERT INTO department_notes (department_id, term_id, note, created_at, updated_at)
              VALUES ('{dept.dept_id}', '{term.term_id}', '{note}', now(), now())
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
@@ -378,7 +381,7 @@ def delete_dept_note(term, dept):
               WHERE department_id = {dept.dept_id}
                 AND term_id = '{term.term_id}'
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     dept.note = None
@@ -390,7 +393,7 @@ def get_dept_subject_areas(dept):
           FROM department_catalog_listings
          WHERE department_id = {dept.dept_id};
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     results = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     subjects = []
@@ -415,27 +418,27 @@ def reset_test_data(term, dept=None):
     dept_clause = f'AND department_id = {dept.dept_id}' if dept else ''
 
     sql = f"DELETE FROM evaluations WHERE term_id = '{term.term_id}'{dept_clause}"
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
     sql = f"DELETE FROM supplemental_sections WHERE term_id = '{term.term_id}'{dept_clause}"
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
     sql = 'DELETE FROM supplemental_instructors'
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
     sql = "DELETE FROM department_forms WHERE name LIKE 'Form%'"
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
     sql = "DELETE FROM evaluation_types WHERE name LIKE 'Type%'"
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
@@ -551,7 +554,7 @@ def expected_course_students(evaluations, calc_course_ids=False):
          WHERE unholy_loch.sis_enrollments.term_id = '{term.term_id}'
            AND unholy_loch.sis_enrollments.course_number IN('{ccns}')
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     enrollments = []
@@ -619,7 +622,7 @@ def expected_supervisors():
                department_members.can_receive_communications
       ORDER BY users.uid
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     supervisors = []
@@ -761,7 +764,7 @@ def get_foreign_supervisors(term, evaluations, foreign_ccns_str):
                                                                 WHERE department_catalog_listings.subject_area = unholy_loch.sis_sections.subject_area
                                                                   AND department_catalog_listings.department_id != departments.id);
         """
-        app.logger.info(sql)
+        app.logger.debug(sql)
         result = db.session.execute(text(sql))
         std_commit(allow_test_environment=True)
         for row in result:
@@ -816,7 +819,7 @@ def expected_report_viewers():
                         AND users.deleted_at IS NULL
                    ORDER BY uid, form
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     viewers = []

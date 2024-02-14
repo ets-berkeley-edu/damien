@@ -45,7 +45,7 @@ class TestDeptUser:
     depts = utils.get_participating_depts()
     dept_forms = evaluation_utils.get_all_dept_forms()
     dept = evaluation_utils.get_dept_with_listings_or_shares(term, depts)
-    evaluations = evaluation_utils.get_evaluations(term, dept)
+    evaluations = evaluation_utils.get_evaluations(term, dept, log=True)
     contact = dept.users[0]
 
     def test_log_in(self):

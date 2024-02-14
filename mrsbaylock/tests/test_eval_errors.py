@@ -101,8 +101,8 @@ class TestEvalErrors:
     manual_contact_1 = manual_dept_1.users[0]
     manual_dept_2 = utils.get_test_dept_2(all_contacts)
     manual_contact_2 = list(set(manual_dept_2.users) - set(manual_dept_1.users))[0]
-    manual_dept_1_evals = evaluation_utils.get_evaluations(term, manual_dept_1)
-    manual_dept_2_evals = evaluation_utils.get_evaluations(term, manual_dept_2)
+    manual_dept_1_evals = evaluation_utils.get_evaluations(term, manual_dept_1, log=True)
+    manual_dept_2_evals = evaluation_utils.get_evaluations(term, manual_dept_2, log=True)
 
     no_listings_no_shares = list(filter(lambda c: (c.instructor.uid and not c.x_listing_ccns and not c.room_share_ccns), manual_dept_2_evals))
     manual_eval = no_listings_no_shares[0]
@@ -133,22 +133,22 @@ class TestEvalErrors:
 
     def test_x_list_unmarked_dept_1_verify_edits(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
-        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.x_list_eval)
+        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_1)
+        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_1)
         expected = f"{self.x_list_start_1.strftime('%m/%d/%y')} - {self.x_list_end_1.strftime('%m/%d/%y')}"
-        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_1)
 
     def test_x_list_unmarked_dept_2_verify_edits(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.x_list_contact_2, self.x_list_dept_2)
         self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
-        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.x_list_eval)
+        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_1)
+        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_1)
         expected = f"{self.x_list_start_1.strftime('%m/%d/%y')} - {self.x_list_end_1.strftime('%m/%d/%y')}"
-        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
-        assert 'Conflicts with' not in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
-        assert 'Conflicts with' not in self.dept_details_dept_page.eval_type(self.x_list_eval)
-        assert 'Conflicts with' not in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_1)
+        assert 'Conflicts with' not in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_1)
+        assert 'Conflicts with' not in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_1)
+        assert 'Conflicts with' not in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_1)
 
     def test_x_list_unmarked_sl_verify_no_dept_1_errors(self):
         self.dept_details_dept_page.log_out()
@@ -170,55 +170,55 @@ class TestEvalErrors:
 
     def test_x_list_unmarked_dept_2_re_verify_edits(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
-        assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.x_list_eval)
+        assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_2)
+        assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_2)
         expected = f"{self.x_list_start_2.strftime('%m/%d/%y')} - {self.x_list_end_2.strftime('%m/%d/%y')}"
-        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_2)
 
     def test_x_list_unmarked_dept_2_verify_form_conflict(self):
         conflict_form = f'Conflicts with value {self.dept_form_1} from {self.x_list_dept_1.name} department'
-        assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
-        assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
+        assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_2)
+        assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_2)
 
     def test_x_list_unmarked_dept_2_verify_type_conflict(self):
         conflict_type = f'Conflicts with value {self.eval_type_1} from {self.x_list_dept_1.name} department'
-        assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.x_list_eval)
-        assert conflict_type in self.dept_details_dept_page.eval_type(self.x_list_eval)
+        assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_2)
+        assert conflict_type in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_2)
 
     def test_x_list_unmarked_dept_2_verify_date_conflict(self):
         pd_1 = self.x_list_start_1.strftime('%m/%d/%y')
         pd_2 = self.x_list_start_2.strftime('%m/%d/%y')
         conflict_date = f'Conflicts with period starting {pd_1} from {self.x_list_dept_1.name} department'
         expected = f"{pd_2} - {self.x_list_end_2.strftime('%m/%d/%y')}"
-        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
-        assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_2)
+        assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_2)
 
     def test_x_list_unmarked_dept_1_view_log_in(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.x_list_contact_1, self.x_list_dept_1)
         self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
-        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.x_list_eval)
+        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_1)
+        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_1)
         expected = f"{self.x_list_start_1.strftime('%m/%d/%y')} - {self.x_list_end_1.strftime('%m/%d/%y')}"
-        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_1)
 
     def test_x_list_unmarked_dept_1_verify_form_conflict(self):
         conflict_form = f'Conflicts with value {self.dept_form_2} from {self.x_list_dept_2.name} department'
-        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
-        assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
+        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_1)
+        assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_1)
 
     def test_x_list_unmarked_dept_1_verify_type_conflict(self):
         conflict_type = f'Conflicts with value {self.eval_type_2} from {self.x_list_dept_2.name} department'
-        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.x_list_eval)
-        assert conflict_type in self.dept_details_dept_page.eval_type(self.x_list_eval)
+        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_1)
+        assert conflict_type in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_1)
 
     def test_x_list_unmarked_dept_1_verify_date_conflict(self):
         pd_1 = self.x_list_start_1.strftime('%m/%d/%y')
         pd_2 = self.x_list_start_2.strftime('%m/%d/%y')
         conflict_date = f'Conflicts with period starting {pd_2} from {self.x_list_dept_2.name} department'
         expected = f"{pd_1} - {self.x_list_end_1.strftime('%m/%d/%y')}"
-        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
-        assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_1)
+        assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_1)
 
     def test_x_list_unmarked_sl_verify_no_errors(self):
         self.dept_details_dept_page.log_out()
@@ -238,42 +238,42 @@ class TestEvalErrors:
     def test_x_list_review_dept_1_verify_form_conflict(self):
         self.dept_details_dept_page.wait_for_eval_rows()
         conflict_form = f'Conflicts with value {self.dept_form_2} from {self.x_list_dept_2.name} department'
-        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
-        assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
+        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_1)
+        assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_1)
 
     def test_x_list_review_dept_1_verify_type_conflict(self):
         conflict_type = f'Conflicts with value {self.eval_type_2} from {self.x_list_dept_2.name} department'
-        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.x_list_eval)
-        assert conflict_type in self.dept_details_dept_page.eval_type(self.x_list_eval)
+        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_1)
+        assert conflict_type in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_1)
 
     def test_x_list_review_dept_1_verify_date_conflict(self):
         pd_1 = self.x_list_start_1.strftime('%m/%d/%y')
         pd_2 = self.x_list_start_2.strftime('%m/%d/%y')
         conflict_date = f'Conflicts with period starting {pd_2} from {self.x_list_dept_2.name} department'
         expected = f"{pd_1} - {self.x_list_end_1.strftime('%m/%d/%y')}"
-        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
-        assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_1)
+        assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_1)
 
     def test_x_list_review_dept_2_verify_form_conflict(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.x_list_contact_2, self.x_list_dept_2)
         self.dept_details_dept_page.wait_for_eval_rows()
         conflict_form = f'Conflicts with value {self.dept_form_1} from {self.x_list_dept_1.name} department'
-        assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
-        assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.x_list_eval)
+        assert self.dept_form_2 in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_2)
+        assert conflict_form in self.dept_details_dept_page.eval_dept_form(self.x_list_eval, form=self.dept_form_2)
 
     def test_x_list_review_dept_2_verify_type_conflict(self):
         conflict_type = f'Conflicts with value {self.eval_type_1} from {self.x_list_dept_1.name} department'
-        assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.x_list_eval)
-        assert conflict_type in self.dept_details_dept_page.eval_type(self.x_list_eval)
+        assert self.eval_type_2 in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_2)
+        assert conflict_type in self.dept_details_dept_page.eval_type(self.x_list_eval, form=self.dept_form_2)
 
     def test_x_list_review_dept_2_verify_date_conflict(self):
         pd_1 = self.x_list_start_1.strftime('%m/%d/%y')
         pd_2 = self.x_list_start_2.strftime('%m/%d/%y')
         conflict_date = f'Conflicts with period starting {pd_1} from {self.x_list_dept_1.name} department'
         expected = f"{pd_2} - {self.x_list_end_2.strftime('%m/%d/%y')}"
-        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
-        assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval)
+        assert expected in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_2)
+        assert conflict_date in self.dept_details_dept_page.eval_period_dates(self.x_list_eval, form=self.dept_form_2)
 
     def test_x_list_review_sl_verify_errors(self):
         self.dept_details_dept_page.log_out()
@@ -286,7 +286,7 @@ class TestEvalErrors:
 
     def test_x_list_sl_no_confirming(self):
         self.dept_details_admin_page.load_dept_page(self.x_list_dept_1)
-        self.dept_details_admin_page.click_edit_evaluation(self.x_list_eval)
+        self.dept_details_admin_page.click_edit_evaluation(self.x_list_eval, form=self.dept_form_1)
         self.dept_details_admin_page.select_eval_status(self.x_list_eval, EvaluationStatus.CONFIRMED)
         self.dept_details_admin_page.click_save_eval_changes(self.x_list_eval)
         self.dept_details_admin_page.wait_for_validation_error('Could not confirm evaluations with conflicting information')
@@ -295,7 +295,7 @@ class TestEvalErrors:
         self.dept_details_admin_page.hit_escape()
         self.dept_details_admin_page.log_out()
         self.login_page.dev_auth(self.x_list_contact_2, self.x_list_dept_2)
-        self.dept_details_dept_page.click_edit_evaluation(self.x_list_eval)
+        self.dept_details_dept_page.click_edit_evaluation(self.x_list_eval, form=self.dept_form_2)
         self.dept_details_dept_page.select_eval_status(self.x_list_eval, EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.click_save_eval_changes(self.x_list_eval)
         self.dept_details_dept_page.wait_for_validation_error('Could not confirm evaluations with conflicting information')
@@ -304,7 +304,7 @@ class TestEvalErrors:
         self.dept_details_dept_page.hit_escape()
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.x_list_contact_1, self.x_list_dept_1)
-        self.dept_details_dept_page.click_eval_checkbox(self.x_list_eval)
+        self.dept_details_dept_page.click_eval_checkbox(self.x_list_eval, form=self.dept_form_1)
         self.dept_details_dept_page.click_bulk_done_button()
         self.dept_details_dept_page.wait_for_validation_error('Could not confirm evaluations with errors.')
 
@@ -313,7 +313,7 @@ class TestEvalErrors:
         self.login_page.dev_auth()
         self.status_board_admin_page.click_publish_link()
         self.status_board_admin_page.click_dept_link(self.x_list_dept_1)
-        self.dept_details_admin_page.click_edit_evaluation(self.x_list_eval)
+        self.dept_details_admin_page.click_edit_evaluation(self.x_list_eval, form=self.dept_form_1)
         self.dept_details_admin_page.change_dept_form(self.x_list_eval, self.dept_form_2)
         self.dept_details_admin_page.change_eval_type(self.x_list_eval, self.eval_type_2)
         self.dept_details_admin_page.change_eval_start_date(self.x_list_eval, self.x_list_start_2)
@@ -322,13 +322,13 @@ class TestEvalErrors:
 
     def test_x_list_sl_no_conflicts(self):
         self.dept_details_admin_page.wait_for_eval_rows()
-        assert self.dept_form_2 in self.dept_details_admin_page.eval_dept_form(self.x_list_eval)
-        assert self.eval_type_2 in self.dept_details_admin_page.eval_type(self.x_list_eval)
+        assert self.dept_form_2 in self.dept_details_admin_page.eval_dept_form(self.x_list_eval, form=self.dept_form_2)
+        assert self.eval_type_2 in self.dept_details_admin_page.eval_type(self.x_list_eval, form=self.dept_form_2)
         expected = f"{self.x_list_start_2.strftime('%m/%d/%y')} - {self.x_list_end_2.strftime('%m/%d/%y')}"
-        assert expected in self.dept_details_admin_page.eval_period_dates(self.x_list_eval)
-        assert 'Conflicts with' not in self.dept_details_admin_page.eval_dept_form(self.x_list_eval)
-        assert 'Conflicts with' not in self.dept_details_admin_page.eval_type(self.x_list_eval)
-        assert 'Conflicts with' not in self.dept_details_admin_page.eval_period_dates(self.x_list_eval)
+        assert expected in self.dept_details_admin_page.eval_period_dates(self.x_list_eval, form=self.dept_form_2)
+        assert 'Conflicts with' not in self.dept_details_admin_page.eval_dept_form(self.x_list_eval, form=self.dept_form_2)
+        assert 'Conflicts with' not in self.dept_details_admin_page.eval_type(self.x_list_eval, form=self.dept_form_2)
+        assert 'Conflicts with' not in self.dept_details_admin_page.eval_period_dates(self.x_list_eval, form=self.dept_form_2)
 
     def test_x_list_no_errors(self):
         self.dept_details_admin_page.click_status_board()
@@ -394,18 +394,18 @@ class TestEvalErrors:
     @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_2_verify_edits(self):
         self.dept_details_dept_page.wait_for_eval_rows()
-        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.share_eval)
-        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.share_eval)
+        assert self.dept_form_1 in self.dept_details_dept_page.eval_dept_form(self.share_eval, form=self.dept_form_1)
+        assert self.eval_type_1 in self.dept_details_dept_page.eval_type(self.share_eval, form=self.dept_form_1)
         expected = f"{self.share_start_1.strftime('%m/%d/%y')} - {self.share_end_1.strftime('%m/%d/%y')}"
-        assert expected in self.dept_details_dept_page.eval_period_dates(self.share_eval)
-        assert 'Conflicts with' not in self.dept_details_dept_page.eval_dept_form(self.share_eval)
-        assert 'Conflicts with' not in self.dept_details_dept_page.eval_type(self.share_eval)
-        assert 'Conflicts with' not in self.dept_details_dept_page.eval_period_dates(self.share_eval)
+        assert expected in self.dept_details_dept_page.eval_period_dates(self.share_eval, form=self.dept_form_1)
+        assert 'Conflicts with' not in self.dept_details_dept_page.eval_dept_form(self.share_eval, form=self.dept_form_1)
+        assert 'Conflicts with' not in self.dept_details_dept_page.eval_type(self.share_eval, form=self.dept_form_1)
+        assert 'Conflicts with' not in self.dept_details_dept_page.eval_period_dates(self.share_eval, form=self.dept_form_1)
 
     @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_2_attempt_edits(self):
         self.share_eval.dept_form = self.dept_form_1
-        self.dept_details_dept_page.click_edit_evaluation(self.share_eval)
+        self.dept_details_dept_page.click_edit_evaluation(self.share_eval, form=self.dept_form_1)
         self.dept_details_dept_page.change_dept_form(self.share_eval, self.dept_form_2)
         self.dept_details_dept_page.change_eval_type(self.share_eval, self.eval_type_2)
         self.dept_details_dept_page.change_eval_start_date(self.share_eval, self.share_start_2)

@@ -43,9 +43,9 @@ class TestEvaluationManagement:
     depts = list(filter(lambda d: d.row_count >= 10, depts))
 
     dept_1 = evaluation_utils.get_dept_eval_with_foreign_x_listings(term, depts)[0]
-    dept_1.evaluations = evaluation_utils.get_evaluations(term, dept_1)
+    dept_1.evaluations = evaluation_utils.get_evaluations(term, dept_1, log=True)
     dept_2 = utils.get_test_dept_2(all_contacts)
-    dept_2.evaluations = evaluation_utils.get_evaluations(term, dept_2)
+    dept_2.evaluations = evaluation_utils.get_evaluations(term, dept_2, log=True)
 
     instructor = utils.get_test_user()
     dept_forms = evaluation_utils.get_all_dept_forms()
@@ -255,7 +255,7 @@ class TestEvaluationManagement:
     # CONFIRM, PUBLISH, AND VERIFY CSV EXPORTS
 
     def test_confirm_complete_evals(self):
-        evals = evaluation_utils.get_evaluations(self.term, self.dept_1)
+        evals = evaluation_utils.get_evaluations(self.term, self.dept_1, log=True)
         self.dept_details_admin_page.load_dept_page(self.dept_1)
         self.dept_details_admin_page.select_unmarked_filter()
         self.dept_details_admin_page.select_review_filter()
@@ -422,7 +422,7 @@ class TestEvaluationManagement:
         assert list(set(self.dept_details_dept_page.visible_evaluation_starts())) == [new_date_str]
 
     def test_bulk_edit_instructor(self):
-        evals = evaluation_utils.get_evaluations(self.term, self.bulk_dept)
+        evals = evaluation_utils.get_evaluations(self.term, self.bulk_dept, log=True)
         no_teach = list(filter(lambda ev: (ev.instructor.uid is None), evals))
         new_teach = utils.get_test_user()
         if no_teach:
