@@ -401,24 +401,24 @@ class CourseDashboardEditsPage(CourseDashboards):
     EVAL_CHANGE_CANCEL_BUTTON = (By.ID, 'cancel-evaluation-edit-btn')
     EVAL_CHANGE_PROCEED_BUTTON = (By.ID, 'confirm-dialog-btn')
 
-    def click_eval_checkbox(self, evaluation):
-        xpath = f'{self.eval_row_xpath(evaluation)}//input[contains(@id, "checkbox")]'
+    def click_eval_checkbox(self, evaluation, form=None):
+        xpath = f'{self.eval_row_xpath(evaluation, form=form)}//input[contains(@id, "checkbox")]'
         app.logger.info(f'Selecting {evaluation.ccn}')
         self.wait_for_element((By.XPATH, xpath), utils.get_short_timeout())
         self.driver.execute_script('arguments[0].click();', self.element((By.XPATH, xpath)))
 
-    def click_edit_evaluation(self, evaluation):
+    def click_edit_evaluation(self, evaluation, form=None):
         self.scroll_to_top()
-        app.logger.info(f'Waiting for element locator {self.eval_row_xpath(evaluation)}//button')
+        app.logger.info(f'Waiting for element locator {self.eval_row_xpath(evaluation, form=form)}//button')
         Wait(self.driver, utils.get_medium_timeout()).until(
             ec.presence_of_element_located(
-                (By.XPATH, f'{self.eval_row_xpath(evaluation)}//button')),
+                (By.XPATH, f'{self.eval_row_xpath(evaluation, form=form)}//button')),
         )
         self.hide_damien_footer()
-        self.scroll_to_element(self.eval_row_el(evaluation))
-        self.mouseover(self.eval_row_el(evaluation))
+        self.scroll_to_element(self.eval_row_el(evaluation, form=form))
+        self.mouseover(self.eval_row_el(evaluation, form=form))
         time.sleep(1)
-        self.wait_for_page_and_click_js((By.XPATH, f'{self.eval_row_xpath(evaluation)}//button'))
+        self.wait_for_page_and_click_js((By.XPATH, f'{self.eval_row_xpath(evaluation, form=form)}//button'))
 
     def select_eval_status(self, evaluation, status):
         app.logger.info(f"Setting CCN {evaluation.ccn} to {status.value['option']}")

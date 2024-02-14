@@ -27,7 +27,6 @@ from flask import current_app as app
 from mrsbaylock.test_utils import utils
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as Coptions
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.firefox.options import Options as Foptions
 
@@ -51,9 +50,8 @@ class WebDriverManager(object):
             options.headless = _headless
             driver = webdriver.Firefox(options=options)
         else:
-            d = DesiredCapabilities.CHROME
-            d['loggingPrefs'] = {'browser': 'ALL'}
             options = Coptions()
+            options.binary_location = utils.get_browser_chrome_binary_path()
             if _headless:
                 options.add_argument('--headless=new')
             prefs = {
@@ -62,7 +60,7 @@ class WebDriverManager(object):
                 'directory_upgrade': True,
             }
             options.add_experimental_option('prefs', prefs)
-            driver = webdriver.Chrome(desired_capabilities=d, options=options)
+            driver = webdriver.Chrome(options=options)
         driver.set_window_size(1600, 900) if app.config['BROWSER_HEADLESS'] else driver.maximize_window()
         return driver
 
@@ -73,8 +71,9 @@ class WebDriverManager(object):
 
     @classmethod
     def get_browser_logs(cls, driver):
-        log = driver.get_log('browser')
-        messages = list(map(lambda mess: mess['message'], log))
-        for message in messages:
-            app.logger.info(f'Possible JS error {message}')
-        return messages
+        if driver.name == 'chrome':
+            log = driver.get_log('browser')
+            messages = list(map(lambda mess: mess['message'], log))
+            for message in messages:
+                app.logger.info(f'Possible JS error {message}')
+            return messages

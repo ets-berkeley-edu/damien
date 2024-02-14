@@ -27,4 +27,4 @@ pytest-flask==1.2.0
 tox==4.8.0
 
 # For Mrs Baylock
-selenium==4.3.0
+selenium==4.16.0

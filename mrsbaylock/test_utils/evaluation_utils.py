@@ -46,7 +46,7 @@ def list_to_str(list_o_strings):
     return string[:-2]
 
 
-def get_evaluations(term, dept):
+def get_evaluations(term, dept, log=False):
     evals_total = []
     get_sis_sections_to_evaluate(evals_total, term, dept)
     get_x_listings_and_shares(evals_total, term, dept)
@@ -65,9 +65,10 @@ def get_evaluations(term, dept):
         key=lambda x: (
             x.ccn, (float('-inf') if x.instructor and x.instructor.uid is None or 'None' or '' else float(x.uid))),
     )
-    for e in sorted_evals:
-        app.logger.info(f'Evaluation: {vars(e)}')
-        app.logger.info(f'Instructor: {vars(e.instructor)}')
+    if log:
+        for e in sorted_evals:
+            app.logger.info(f'Evaluation: {vars(e)}')
+            app.logger.info(f'Instructor: {vars(e.instructor)}')
     return sorted_evals
 
 
@@ -206,7 +207,7 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
                 FROM unholy_loch.sis_sections
                WHERE unholy_loch.sis_sections.term_id = '{term.term_id}'
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     all_subjects = [row['subject_area'] for row in result]
@@ -219,7 +220,7 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
          WHERE department_id = '{dept.dept_id}'
            AND {date_cond}
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     dept_subjects = [row['subject_area'] for row in result]
@@ -278,7 +279,7 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
                department_forms.name,
                department_catalog_listings.custom_evaluation_types;
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     evaluations = []
@@ -294,7 +295,7 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
                AND {date_cond}
         """
         catalog_ids_to_include = get_subj_catalog_ids(sql)
-        app.logger.info(f'Catalog IDs to include {catalog_ids_to_include}')
+        app.logger.debug(f'Catalog IDs to include {catalog_ids_to_include}')
         get_matching_evals(subject, catalog_ids_to_include, evaluations, evals_to_include, evals_total)
         evals_total += evals_to_include
 
@@ -315,7 +316,7 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
                AND {date_cond}
         """
         catalog_ids_to_exclude += get_subj_catalog_ids(sql)
-        app.logger.info(f'Catalog IDs to exclude {catalog_ids_to_exclude}')
+        app.logger.debug(f'Catalog IDs to exclude {catalog_ids_to_exclude}')
         get_matching_evals(subject, catalog_ids_to_exclude, evaluations, evals_to_exclude, evals_total)
 
         for i in evals_to_exclude:
@@ -325,7 +326,7 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
 
 
 def get_subj_catalog_ids(sql):
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     catalog_ids = []
@@ -407,7 +408,7 @@ def get_x_listings_and_shares(evals, term, dept):
                    unholy_loch.sis_sections.meeting_end_date,
                    department_catalog_listings.custom_evaluation_types;
         """
-        app.logger.info(sql)
+        app.logger.debug(sql)
         result = db.session.execute(text(sql))
         std_commit(allow_test_environment=True)
         result_to_evals(result, evals, term, dept, foreign_listings=True)
@@ -440,7 +441,7 @@ def get_manual_sections(evals, term, dept):
            AND supplemental_sections.term_id = '{term.term_id}'
            AND unholy_loch.sis_sections.term_id = '{term.term_id}'
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     result_to_evals(result, evals, term, dept)
@@ -501,7 +502,7 @@ def get_edited_sections(term, dept):
                evaluation_types.name
       ORDER BY evaluations.id ASC
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     results = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     evals = []
@@ -556,7 +557,7 @@ def merge_edited_evals(evaluations, edited_evals):
 def get_all_dept_forms(include_deleted=False):
     deleted = ' WHERE deleted_at IS NULL' if not include_deleted else ''
     sql = f'SELECT name FROM department_forms{deleted}'
-    app.logger.info(sql)
+    app.logger.debug(sql)
     results = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     forms = []
@@ -567,7 +568,7 @@ def get_all_dept_forms(include_deleted=False):
 
 def get_all_eval_types():
     sql = 'SELECT name FROM evaluation_types WHERE deleted_at IS NULL'
-    app.logger.info(sql)
+    app.logger.debug(sql)
     results = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     types = []
@@ -594,7 +595,7 @@ def get_instructors(evals):
               FROM supplemental_instructors
              WHERE ldap_uid IN({uids_string})
         """
-        app.logger.info(sql)
+        app.logger.debug(sql)
         results = db.session.execute(text(sql))
         std_commit(allow_test_environment=True)
         for row in results:
@@ -622,7 +623,7 @@ def get_instructors(evals):
               FROM unholy_loch.sis_instructors
              WHERE ldap_uid IN({uids_string})
         """
-        app.logger.info(sql)
+        app.logger.debug(sql)
         results = db.session.execute(text(sql))
         std_commit(allow_test_environment=True)
         for row in results:
@@ -653,6 +654,7 @@ def get_instructors(evals):
 
 
 def get_section_dept(term, ccn, all_users=None):
+    dept_data = []
     sql = f"""
         SELECT dept_name
           FROM departments
@@ -663,12 +665,20 @@ def get_section_dept(term, ccn, all_users=None):
          WHERE unholy_loch.sis_sections.course_number = '{ccn}'
            AND unholy_loch.sis_sections.term_id = '{term.term_id}'
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     for row in result:
-        dept = utils.get_dept(row['dept_name'], all_users)
-        evals = get_evaluations(term, dept)
+        dept = None
+        for d in dept_data:
+            if d.name == row['dept_name']:
+                dept = d
+                evals = dept.evaluations
+        if not dept:
+            dept = utils.get_dept(row['dept_name'], all_users)
+            evals = get_evaluations(term, dept)
+            dept.evaluations = evals
+            dept_data.append(dept)
         try:
             next(filter(lambda e: e.ccn == ccn, evals))
             return dept
@@ -701,7 +711,7 @@ def get_eval_types(evals):
 
 def get_dept_catalog_subjects():
     sql = 'SELECT DISTINCT subject_area FROM department_catalog_listings'
-    app.logger.info(sql)
+    app.logger.debug(sql)
     result = db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
     return [r['subject_area'] for r in result]
@@ -714,7 +724,7 @@ def set_section_deleted(evaluation):
          WHERE course_number = '{evaluation.ccn}'
            AND term_id = '{evaluation.term.term_id}'
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
@@ -726,7 +736,7 @@ def set_enrollment_count_zero(evaluation):
          WHERE course_number = '{evaluation.ccn}'
            AND term_id = '{evaluation.term.term_id}'
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
@@ -739,7 +749,7 @@ def set_section_instructor(evaluation):
          WHERE course_number = '{evaluation.ccn}'
            AND term_id = '{evaluation.term.term_id}'
     """
-    app.logger.info(sql)
+    app.logger.debug(sql)
     db.session.execute(text(sql))
     std_commit(allow_test_environment=True)
 
@@ -761,6 +771,7 @@ def get_dept_eval_with_foreign_room_shares(term, depts):
     # Exclude depts with many room shares that appear on no other dept pages
     dept_ids = [d.dept_id for d in depts]
     test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
+    app.logger.info('Looking for foreign room shares')
     for dept in test_depts:
         dept.evaluations = get_evaluations(term, dept)
         for ev in dept.evaluations:
@@ -768,6 +779,7 @@ def get_dept_eval_with_foreign_room_shares(term, depts):
                 share = ev.room_share_ccns[-1]
                 share_dept = get_section_dept(term, share)
                 if share_dept.dept_id in dept_ids and share_dept.users and share_dept.dept_id != dept.dept_id:
+                    app.logger.info(f'{dept.name} is a winner!')
                     return dept, ev
 
 
@@ -775,6 +787,7 @@ def get_dept_eval_with_foreign_x_listings(term, depts, max_row_count=None):
     # Exclude depts with many x-listings that appear on no other dept pages
     dept_ids = [d.dept_id for d in depts]
     test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
+    app.logger.info('Looking for foreign x-listings')
     for dept in test_depts:
         if utils.is_dept_midterm_friendly(dept):
             if (max_row_count and dept.row_count <= max_row_count) or not max_row_count:
@@ -786,4 +799,5 @@ def get_dept_eval_with_foreign_x_listings(term, depts, max_row_count=None):
                             listing = ev.x_listing_ccns[-1]
                             listing_dept = get_section_dept(term, listing)
                             if listing_dept.dept_id in dept_ids and listing_dept.users and listing_dept.dept_id != dept.dept_id:
+                                app.logger.info(f'{dept.name} is a winner!')
                                 return dept, ev

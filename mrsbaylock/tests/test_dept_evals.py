@@ -32,6 +32,7 @@ import pytest
 
 term = utils.get_current_term()
 depts = utils.get_test_eval_depts()
+utils.reset_test_data(term)
 
 
 @pytest.mark.usefixtures('page_objects')
@@ -45,12 +46,13 @@ class TestDeptEvaluations:
             self.login_page.load_page()
             self.login_page.dev_auth()
             self.status_board_admin_page.click_list_mgmt()
+            self.api_page.refresh_unholy_loch()
         time.sleep(1)
         self.status_board_admin_page.load_page()
         self.status_board_admin_page.click_dept_link(dept)
 
     def test_evals(self, dept):
-        dept.evaluations = evaluation_utils.get_evaluations(term, dept)
+        dept.evaluations = evaluation_utils.get_evaluations(term, dept, log=True)
         expected = self.dept_details_admin_page.expected_eval_data(dept.evaluations)
 
         if expected:

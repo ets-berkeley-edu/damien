@@ -109,8 +109,8 @@ class Page(object):
         Wait(self.driver, timeout).until(ec.invisibility_of_element_located(locator))
 
     def wait_for_element(self, locator, timeout):
-        app.logger.info(f'Waiting for element at {locator}')
-        if utils.get_browser() == 'chrome':
+        app.logger.debug(f'Waiting for element at {locator}')
+        if self.driver.name == 'chrome':
             for entry in self.driver.get_log('browser'):
                 if app.config['BASE_URL'] in entry:
                     app.logger.warning(f'Console error: {entry}')
@@ -140,13 +140,19 @@ class Page(object):
         sleep_default = app.config['CLICK_SLEEP']
         time.sleep(addl_pause or sleep_default)
         self.hide_damien_footer()
-        Wait(driver=self.driver, timeout=utils.get_short_timeout()).until(
-            method=ec.element_to_be_clickable(locator),
-            message=f'Failed to click_element: {str(locator)}',
-        )
+        if not (self.headless or (self.driver.name == 'firefox')):
+            Wait(driver=self.driver, timeout=utils.get_short_timeout()).until(
+                method=ec.element_to_be_clickable(locator),
+                message=f'Failed waiting for element to be clickable: {str(locator)}',
+            )
         time.sleep(addl_pause or sleep_default)
-        self.element(locator).click()
-        WebDriverManager.get_browser_logs(self.driver)
+        try:
+            self.element(locator).click()
+        except (exceptions.ElementClickInterceptedException, exceptions.ElementNotInteractableException) as error:
+            app.logger.error(f'Failed to click #{locator}, using JS instead - {error}')
+            self.click_element_js(locator, addl_pause)
+        finally:
+            WebDriverManager.get_browser_logs(self.driver)
 
     def click_element_js(self, locator, addl_pause=None):
         sleep_default = app.config['CLICK_SLEEP']
@@ -196,7 +202,10 @@ class Page(object):
     def wait_for_select_and_click_option(self, select_el_loc, option_str):
         self.wait_for_page_and_click_js(select_el_loc)
         select_el = Select(self.element(select_el_loc))
-        select_el.select_by_visible_text(option_str)
+        if self.driver.name == 'firefox':
+            self.click_element((By.XPATH, f'//option[normalize-space()="{option_str}"]'))
+        else:
+            select_el.select_by_visible_text(option_str)
 
     # PAGE TITLE AND HEADING
 

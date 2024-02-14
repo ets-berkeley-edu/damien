@@ -86,8 +86,7 @@ class PublishPage(CourseDashboards):
 
         self.publish_to_blue()
         time.sleep(2)
-        el = self.elements(PublishPage.TERM_EXPORT_LINK)[0]
-        el.click()
+        self.click_element(PublishPage.TERM_EXPORT_LINK)
         tries = 0
         max_tries = 15
         while tries <= max_tries:
