@@ -388,13 +388,11 @@ class TestExportEvaluations:
 
             supervisors = _read_csv(exported_objects, '/supervisors.csv')
             assert len(supervisors) == 4
-            assert supervisors[0] == ('LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS,SUPERVISOR_GROUP,PRIMARY_ADMIN,SECONDARY_ADMIN,'
-                                      'DEPT_NAME_1,DEPT_NAME_2,DEPT_NAME_3,DEPT_NAME_4,DEPT_NAME_5,DEPT_NAME_6,DEPT_NAME_7,DEPT_NAME_8,'
-                                      'DEPT_NAME_9,DEPT_NAME_10')
-            assert supervisors[1] == '5013530,931203945,Jazz,Gunn,jazz.gunn@berkeley.edu,DEPT_ADMIN,Y,,ANCIENT_HISTORY,HISTORY,,,,,,,,'
+            assert supervisors[0] == ('LDAP_UID,SIS_ID,FIRST_NAME,LAST_NAME,EMAIL_ADDRESS,SUPERVISOR_GROUP,PRIMARY_ADMIN,SECONDARY_ADMIN')
+            assert supervisors[1] == '5013530,931203945,Jazz,Gunn,jazz.gunn@berkeley.edu,DEPT_ADMIN,Y,'
             assert (supervisors[2]
-                    == '6982398,263809005,Alistair,Mctaggert,alistair.mctaggert@berkeley.edu,DEPT_ADMIN,,,ANCIENT_HISTORY,HISTORY,,,,,,,,')
-            assert supervisors[3] == '8971283,294078726,Finn,Wolfhard,finn.wolfhard@berkeley.edu,DEPT_ADMIN,,,,,,,,,,,,'
+                    == '6982398,263809005,Alistair,Mctaggert,alistair.mctaggert@berkeley.edu,DEPT_ADMIN,,')
+            assert supervisors[3] == '8971283,294078726,Finn,Wolfhard,finn.wolfhard@berkeley.edu,DEPT_ADMIN,,'
 
             xlisted_course_supervisors = _read_csv(exported_objects, '/xlisted_course_supervisors.csv')
             assert len(xlisted_course_supervisors) == 4
