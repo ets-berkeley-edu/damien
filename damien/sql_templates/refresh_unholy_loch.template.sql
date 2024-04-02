@@ -218,6 +218,24 @@ WHERE s.term_id = ec.term_id AND s.course_number = ec.course_number;
 
 --
 
+-- In the special case of a confirmed evaluation for a zero-enrollment course, ensure the section is present
+-- in the supplemental_sections table so that it will appear in the Damien UI.
+
+INSERT INTO supplemental_sections (term_id, course_number, department_id)
+SELECT eval.term_id, eval.course_number, eval.department_id
+  FROM evaluations eval
+  LEFT JOIN unholy_loch.sis_enrollments enr
+    ON enr.term_id = eval.term_id
+    AND enr.course_number = eval.course_number
+  WHERE
+    eval.term_id = '{term_id}'
+    AND eval.status = 'confirmed'
+    AND enr.course_number IS NULL
+    AND eval.course_number NOT IN (
+      SELECT course_number FROM supplemental_sections WHERE term_id = '{term_id}' AND deleted_at IS NULL);
+
+--
+
 DELETE FROM unholy_loch.co_schedulings WHERE term_id = '{term_id}';
 
 WITH schedules AS (
