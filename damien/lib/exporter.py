@@ -365,16 +365,6 @@ supervisor_headers = [
     'SUPERVISOR_GROUP',
     'PRIMARY_ADMIN',
     'SECONDARY_ADMIN',
-    'DEPT_NAME_1',
-    'DEPT_NAME_2',
-    'DEPT_NAME_3',
-    'DEPT_NAME_4',
-    'DEPT_NAME_5',
-    'DEPT_NAME_6',
-    'DEPT_NAME_7',
-    'DEPT_NAME_8',
-    'DEPT_NAME_9',
-    'DEPT_NAME_10',
 ]
 
 
@@ -462,7 +452,7 @@ def _export_student_row(student):
 
 
 def _export_supervisor_row(user):
-    row = {
+    return {
         'LDAP_UID': user.uid,
         'SIS_ID': user.csid or f'UID:{user.uid}',
         'FIRST_NAME': user.first_name,
@@ -472,12 +462,3 @@ def _export_supervisor_row(user):
         'PRIMARY_ADMIN': 'Y' if user.can_view_response_rates() else '',
         'SECONDARY_ADMIN': '',
     }
-    dept_index = 1
-    department_form_names = sorted(df.name for df in user.department_forms)
-    for name in department_form_names:
-        row[f'DEPT_NAME_{dept_index}'] = name
-        dept_index += 1
-    while dept_index <= 10:
-        row[f'DEPT_NAME_{dept_index}'] = ''
-        dept_index += 1
-    return row
