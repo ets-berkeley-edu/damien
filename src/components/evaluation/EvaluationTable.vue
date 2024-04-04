@@ -479,6 +479,14 @@
       :text="'You have unsaved changes that will be lost.'"
       :title="'Cancel edit?'"
     />
+    <ConfirmDialog
+      v-if="isConfirmingNonSisInstructor"
+      :disabled="disableControls"
+      :on-click-cancel="onCancelNonSisInstructor"
+      :on-click-confirm="onConfirmNonSisInstructor"
+      :text="instructorConfirmationText(pendingInstructor)"
+      title="Add new instructor?"
+    />
     <v-dialog
       id="error-dialog"
       v-model="errorDialog"
@@ -532,6 +540,7 @@
 </template>
 
 <script>
+import {addInstructor} from '@/api/instructor'
 import AddCourseSection from '@/components/evaluation/AddCourseSection'
 import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context'
@@ -581,6 +590,7 @@ export default {
       {class: 'text-start text-nowrap', text: 'Evaluation Period', value: 'startDate', width: '10%'}
     ],
     isConfirmingCancelEdit: false,
+    isConfirmingNonSisInstructor: false,
     markAsDoneWarning: undefined,
     pendingEditRowId: null,
     pendingInstructor: null,
@@ -625,6 +635,9 @@ export default {
   },
   methods: {
     afterEditEvaluation(evaluation) {
+      if (this.pendingInstructor && this.pendingInstructor.isSisInstructor === false) {
+        addInstructor(this.pendingInstructor)
+      }
       this.editRowId = null
       this.pendingEditRowId = null
       this.pendingInstructor = null
@@ -703,6 +716,11 @@ export default {
         'sr-only': hover && this.allowEdits && !this.readonly
       }
     },
+    instructorConfirmationText(instructor) {
+      return `
+        ${instructor.firstName} ${instructor.lastName} (${instructor.uid})
+        is not currently listed in SIS data as an instructor for any courses.`
+    },
     isEditing(evaluation) {
       return this.editRowId === evaluation.id
     },
@@ -724,6 +742,10 @@ export default {
       this.alertScreenReader('Edit canceled.')
       this.afterEditEvaluation(evaluation)
     },
+    onCancelNonSisInstructor() {
+      this.isConfirmingNonSisInstructor = false
+      this.pendingInstructor = null
+    },
     onChangeSearchFilter(searchFilterResults) {
       this.searchFilterResults = searchFilterResults
       if (this.$_.size(this.selectedEvaluationIds)) {
@@ -741,6 +763,9 @@ export default {
       this.editRowId = null
       const evaluation = this.$_.find(this.evaluations, ['id', this.pendingEditRowId])
       this.onEditEvaluation(evaluation)
+    },
+    onConfirmNonSisInstructor() {
+      this.isConfirmingNonSisInstructor = false
     },
     onEditEvaluation(evaluation) {
       if (this.editRowId) {
@@ -804,6 +829,9 @@ export default {
     selectInstructor(instructor) {
       if (instructor) {
         instructor.emailAddress = instructor.email
+        if (!instructor.isSisInstructor) {
+          this.isConfirmingNonSisInstructor = true
+        }
       }
       this.pendingInstructor = instructor
     },

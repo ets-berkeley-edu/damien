@@ -93,10 +93,11 @@ def search_instructors():
     exclude_uids = [i.ldap_uid for i in instructors]
     if len(instructors) < 20:
         loch_instructors = get_loch_instructors_for_snippet(snippet, limit=(20 - len(instructors)), exclude_uids=exclude_uids)
-        instructors.extend(loch_instructors)
+        instructors.extend([{**i, 'isSisInstructor': True} for i in loch_instructors])
         exclude_uids.extend([str(i['uid']) for i in loch_instructors])
     if len(instructors) < 20:
-        instructors.extend(get_loch_basic_attributes_by_uid_or_name(snippet, limit=(20 - len(instructors)), exclude_uids=exclude_uids))
+        non_sis_instructors = get_loch_basic_attributes_by_uid_or_name(snippet, limit=(20 - len(instructors)), exclude_uids=exclude_uids)
+        instructors.extend([{**i, 'isSisInstructor': False} for i in non_sis_instructors])
     results = [_to_api_json(i) for i in instructors]
     results.sort(key=lambda x: x['firstName'])
     return tolerant_jsonify(results)
@@ -104,7 +105,7 @@ def search_instructors():
 
 def _to_api_json(instructor):
     if isinstance(instructor, SupplementalInstructor):
-        return instructor.to_api_json()
+        return {**instructor.to_api_json(), 'isSisInstructor': True}
     else:
         return {
             'csid': instructor['csid'],
@@ -112,4 +113,5 @@ def _to_api_json(instructor):
             'firstName': instructor['first_name'],
             'lastName': instructor['last_name'],
             'uid': instructor['uid'],
+            'isSisInstructor': instructor['isSisInstructor'],
         }
