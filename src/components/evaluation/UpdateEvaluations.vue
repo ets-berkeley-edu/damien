@@ -240,10 +240,20 @@
         </div>
       </v-card-actions>
     </v-card>
+    <ConfirmDialog
+      v-if="isConfirmingNonSisInstructor"
+      :disabled="disableControls"
+      :on-click-cancel="onCancelNonSisInstructor"
+      :on-click-confirm="onConfirmNonSisInstructor"
+      :text="instructorConfirmationText(selectedInstructor)"
+      title="Add new instructor?"
+    />
   </v-dialog>
 </template>
 
 <script>
+import {addInstructor} from '@/api/instructor'
+import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context'
 import DepartmentEditSession from '@/mixins/DepartmentEditSession'
 import PersonLookup from '@/components/admin/PersonLookup'
@@ -252,6 +262,7 @@ import Util from '@/mixins/Util'
 export default {
   name: 'UpdateEvaluations',
   components: {
+    ConfirmDialog,
     PersonLookup
   },
   mixins: [Context, DepartmentEditSession, Util],
@@ -308,6 +319,7 @@ export default {
   },
   data: () => ({
     evaluationTypes: [],
+    isConfirmingNonSisInstructor: false,
     isInstructorRequired: false,
     midtermFormEnabled: false,
     model: undefined,
@@ -380,6 +392,15 @@ export default {
     getStatusText(status) {
       return status === 'none' ? null : this.$_.get(this.$_.find(this.evaluationStatuses, es => es.value === status), 'text')
     },
+    instructorConfirmationText(instructor) {
+      return `
+        ${instructor.firstName} ${instructor.lastName} (${instructor.uid})
+        is not currently listed in SIS data as an instructor for any courses.`
+    },
+    onCancelNonSisInstructor() {
+      this.isConfirmingNonSisInstructor = false
+      this.selectedInstructor = null
+    },
     onClickApply() {
       this.applyAction({
         departmentForm: this.selectedDepartmentForm,
@@ -389,6 +410,9 @@ export default {
         midtermFormEnabled: this.midtermFormEnabled,
         startDate: this.selectedStartDate
       })
+      if (this.selectedInstructor && this.selectedInstructor.isSisInstructor === false) {
+        addInstructor(this.selectedInstructor)
+      }
     },
     onClickCancel() {
       this.isInstructorRequired = false
@@ -399,6 +423,9 @@ export default {
       this.selectedInstructor = null
       this.selectedStartDate = null
       this.cancelAction()
+    },
+    onConfirmNonSisInstructor() {
+      this.isConfirmingNonSisInstructor = false
     },
     showSelectedDepartmentForm(evaluation) {
       return this.selectedDepartmentForm && this.selectedDepartmentForm !== this.$_.get(evaluation, 'departmentForm.id')
@@ -432,6 +459,12 @@ export default {
     },
     selectInstructor(suggestion) {
       this.selectedInstructor = suggestion
+      if (this.selectedInstructor) {
+        this.selectedInstructor.emailAddress = this.selectedInstructor.email
+        if (this.selectedInstructor.isSisInstructor === false) {
+          this.isConfirmingNonSisInstructor = true
+        }
+      }
     }
   }
 }
