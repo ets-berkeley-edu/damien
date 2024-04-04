@@ -48,7 +48,6 @@ class Department(Base):
     id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
     dept_name = db.Column(db.String(255), nullable=False)
     is_enrolled = db.Column(db.Boolean, nullable=False, default=False)
-    row_count = db.Column(db.Integer)
 
     members = db.relationship(
         'DepartmentMember',
@@ -246,7 +245,7 @@ class Department(Base):
     def evaluations_feed(self, term_id=None, section_id=None, evaluation_ids=None):
         term_id = term_id or get_current_term_id()
         sections_cache = fetch_all_sections(self.id, term_id)
-        cached_department = self.fetch_summary_feed(term_id)
+        uses_midterm_forms = self.uses_midterm_forms(term_id)
         app.logger.debug(
             f'Generating evaluations feed (dept_id={self.id}, term_id={term_id}, section_id={section_id}, evaluation_ids={evaluation_ids}')
         feed = []
@@ -255,27 +254,24 @@ class Department(Base):
             feed.extend(
                 s.get_evaluation_feed(
                     department_id=self.id,
-                    uses_midterm_forms=cached_department.get('usesMidtermForms'),
+                    uses_midterm_forms=uses_midterm_forms,
                     sections_cache=sections_cache,
                     evaluation_ids=evaluation_ids,
                 ),
             )
 
         if not section_id and not evaluation_ids:
-            self.row_count = len(feed)
-            db.session.add(self)
-            std_commit()
-            self.cache_summary_feed(term_id, cached_department.get('usesMidtermForms'))
+            self.cache_summary_feed(term_id, uses_midterm_forms, total_evaluation_row_count=len(feed))
 
         return feed
 
-    def cache_summary_feed(self, term_id, uses_midterm_forms):
+    def cache_summary_feed(self, term_id, uses_midterm_forms, total_evaluation_row_count):
         feed = {
             'lastUpdated': isoformat(Evaluation.get_last_update(self.id, term_id)),
             'totalBlockers': Evaluation.count_department_blockers(self.id, term_id),
             'totalConfirmed': Evaluation.count_department_confirmed(self.id, term_id),
             'totalInError': Evaluation.count_department_errors(self.id, term_id),
-            'totalEvaluations': self.row_count,
+            'totalEvaluations': total_evaluation_row_count,
             'usesMidtermForms': uses_midterm_forms,
         }
         set_department_cache(self.id, term_id, feed)
@@ -283,8 +279,10 @@ class Department(Base):
 
     def fetch_summary_feed(self, term_id):
         summary_feed = fetch_department_cache(self.id, term_id)
+        # A missing summary requires the underlying evaluations feed to be regenerated.
         if not summary_feed:
-            summary_feed = self.cache_summary_feed(term_id, self.uses_midterm_forms(term_id))
+            self.evaluations_feed(term_id)
+            summary_feed = fetch_department_cache(self.id, term_id)
         return summary_feed
 
     def to_api_json(
@@ -331,9 +329,7 @@ class Department(Base):
             feed.update(cached_department)
 
         if include_sections:
-            if self.row_count is None:
-                self.evaluations_feed(term_id)
-            feed['totalSections'] = self.row_count
+            feed['totalSections'] = cached_department.get('totalEvaluations')
         return feed
 
     def uses_midterm_forms(self, term_id):
