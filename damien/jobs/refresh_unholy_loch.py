@@ -23,15 +23,20 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from datetime import datetime
 import os
 from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from damien import cache, db, std_commit
-from damien.lib.berkeley import get_refreshable_term_ids
+from damien.externals.s3 import get_s3_path
+from damien.lib.berkeley import get_current_term_id, get_refreshable_term_ids
+from damien.lib.exporter import generate_exports
 from damien.lib.queries import refresh_additional_instructors
 from damien.lib.util import resolve_sql_template
 from damien.models.department import Department
+from damien.models.export import Export
+from damien.models.tool_setting import ToolSetting
 from damien.models.util import advisory_lock, get_granted_lock_ids
 from sqlalchemy.sql import text
 
@@ -51,7 +56,7 @@ def initialize_refresh_schedule(app):
             timezone=app.config['TIMEZONE'],
         )
         def scheduled_refresh():
-            _refresh_unholy_loch(app)
+            _refresh_unholy_loch(app, publish_before_refresh=True)
 
         scheduler.start()
 
@@ -64,26 +69,41 @@ def is_refreshing():
 def refresh_from_api():
     from flask import current_app as app
     app_arg = app._get_current_object()
-    return _refresh_unholy_loch(app_arg)
+    return _refresh_unholy_loch(app_arg, publish_before_refresh=False)
 
 
-def _refresh_unholy_loch(app):
+def _refresh_unholy_loch(app, publish_before_refresh=False):
     with app.app_context():
         if os.environ.get('DAMIEN_ENV') in ['test', 'testext']:
             app.logger.info('Test run in progress; will not muddy the waters by actually kicking off a background thread.')
             return True
         else:
             app.logger.info('About to start background thread.')
-            thread = Thread(target=_bg_refresh_unholy_loch, name='refresh_unholy_loch', args=[app], daemon=True)
+            thread = Thread(target=_bg_refresh_unholy_loch, name='refresh_unholy_loch', args=[app, publish_before_refresh], daemon=True)
             thread.start()
             return True
 
 
-def _bg_refresh_unholy_loch(app):
+def _bg_refresh_unholy_loch(app, publish_before_refresh=False):
     with app.app_context():
         with advisory_lock(LOCH_REFRESH_LOCK_ID) as has_lock:
             if not has_lock:
                 return
+
+            if publish_before_refresh and ToolSetting.get_tool_setting_boolean('AUTO_PUBLISH_ENABLED'):
+                app.logger.info('Starting automatic publication...')
+
+                term_id = get_current_term_id()
+                timestamp = datetime.now()
+
+                try:
+                    generate_exports(term_id, timestamp)
+                    app.logger.info('Automatic publication complete.')
+                except Exception as e:
+                    app.logger.error('Automatic publication failed.')
+                    app.logger.exception(e)
+                    Export.update_status(get_s3_path(term_id, timestamp), 'error')
+
             app.logger.info('Starting unholy loch refresh...')
 
             try:

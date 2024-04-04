@@ -119,8 +119,48 @@ class TestConfigController:
         assert next(e for e in eval_types if e['name'] == '3A')
 
 
+class TestAutoPublishStatus:
+    """Tool Settings Auto Publish Status API."""
+
+    @staticmethod
+    def _api_auto_publish(client, expected_status_code=200):
+        response = client.get('/api/auto_publish')
+        assert response.status_code == expected_status_code
+        return response.json
+
+    @staticmethod
+    def _api_auto_publish_update(client, enabled, expected_status_code=200):
+        response = client.post(
+            '/api/auto_publish/update',
+            content_type='application/json',
+            data=json.dumps({'enabled': enabled}),
+        )
+        assert response.status_code == expected_status_code
+        return response.json
+
+    def test_not_authenticated(self, client):
+        """Rejects anonymous user."""
+        self._api_auto_publish(client, expected_status_code=401)
+        self._api_auto_publish_update(client, True, expected_status_code=401)
+
+    def test_not_admin(self, client, fake_auth):
+        """Rejects non-admin user."""
+        fake_auth.login(non_admin_uid)
+        self._api_auto_publish(client, expected_status_code=401)
+        self._api_auto_publish_update(client, True, expected_status_code=401)
+
+    def test_admin(self, client, fake_auth):
+        """Allows enabling and disabling of auto publish as admin."""
+        fake_auth.login(admin_uid)
+        assert self._api_auto_publish(client) == {'enabled': False}
+        self._api_auto_publish_update(client, True)
+        assert self._api_auto_publish(client) == {'enabled': True}
+        self._api_auto_publish_update(client, False)
+        assert self._api_auto_publish(client) == {'enabled': False}
+
+
 class TestServiceAnnouncement:
-    """Tool Settings API."""
+    """Tool Settings Service Announcement API."""
 
     @staticmethod
     def _api_service_announcement(client, expected_status_code=200):
