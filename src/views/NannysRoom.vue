@@ -379,6 +379,30 @@
             <v-card-title>Service Announcement</v-card-title>
             <EditServiceAnnouncement />
           </v-card>
+          <v-card elevation="2" class="mr-4 mt-4">
+            <v-card-title>Automatically Publish</v-card-title>
+            <v-card-text>
+              <span v-if="$config.scheduleLochRefresh">
+                When enabled, publication will run nightly at
+                {{ `${$config.scheduleLochRefresh.hour}:${String($config.scheduleLochRefresh.minute).padStart(2, '0')}` }}
+                local time, immediately before loch refresh.
+              </span>
+              <span v-if="!$config.scheduleLochRefresh">
+                Nightly loch refresh must be scheduled in app configs to enable auto-publish.
+              </span>
+              <v-switch
+                id="auto-publish-enabled"
+                v-model="autoPublishEnabled"
+                :aria-label="`Auto-publish is ${autoPublishEnabled ? 'enabled' : 'disabled'}`"
+                color="success"
+                density="compact"
+                :disabled="!$config.scheduleLochRefresh"
+                hide-details
+                :label="autoPublishEnabled ? 'Enabled' : 'Disabled'"
+                @change="toggleAutoPublishEnabled(autoPublishEnabled)"
+              />
+            </v-card-text>
+          </v-card>
         </v-col>
       </v-row>
     </v-container>
@@ -394,6 +418,7 @@
 </template>
 
 <script>
+import { getAutoPublishStatus, setAutoPublishStatus } from '@/api/config'
 import ConfirmDialog from '@/components/util/ConfirmDialog'
 import Context from '@/mixins/Context.vue'
 import EditServiceAnnouncement from '@/components/admin/EditServiceAnnouncement'
@@ -406,6 +431,7 @@ export default {
   components: {ConfirmDialog, EditServiceAnnouncement, SortableTableHeader},
   mixins: [Context, ListManagementSession, Util],
   data: () => ({
+    autoPublishEnabled: undefined,
     instructorValid: true,
     rules: {
       email: [
@@ -440,6 +466,9 @@ export default {
     this.init().then(() => {
       this.$ready('List Management')
       this.$putFocusNextTick('page-title')
+    })
+    getAutoPublishStatus().then(data => {
+      this.autoPublishEnabled = data.enabled
     })
   },
   methods: {
@@ -528,6 +557,12 @@ export default {
     sortInstructors(sortBy, sortDesc) {
       this.sortBy.instructors = sortBy
       this.sortDesc.instructors = sortDesc
+    },
+    toggleAutoPublishEnabled(enabled) {
+      setAutoPublishStatus(enabled).then(data => {
+        this.autoPublishEnabled = data.enabled
+        this.alertScreenReader(`Auto-publish ${this.autoPublishEnabled ? 'enabled' : 'disabled'}`)
+      })
     }
   }
 }

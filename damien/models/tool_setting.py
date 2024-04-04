@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from damien import db, std_commit
-from damien.lib.util import camelize
+from damien.lib.util import camelize, to_bool_or_none
 from damien.models.base import Base
 
 
@@ -46,6 +46,11 @@ class ToolSetting(Base):
     def get_tool_setting(cls, key):
         setting = cls.query.filter(cls.key == key).first()
         return setting and setting.value
+
+    @classmethod
+    def get_tool_setting_boolean(cls, key):
+        setting = cls.get_tool_setting(key)
+        return False if setting is None else to_bool_or_none(setting)
 
     @classmethod
     def upsert(cls, key, value):

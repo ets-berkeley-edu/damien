@@ -85,8 +85,27 @@ def app_config():
         'emailSupport': app.config['EMAIL_COURSE_EVALUATION_ADMIN'],
         'emailTestMode': app.config['EMAIL_TEST_MODE'],
         'evaluationTypes': [e.to_api_json() for e in evaluation_types],
+        'scheduleLochRefresh': app.config['SCHEDULE_LOCH_REFRESH'],
         'timezone': app.config['TIMEZONE'],
     })
+
+
+@app.route('/api/auto_publish')
+@admin_required
+def get_auto_publish_enabled():
+    enabled = ToolSetting.get_tool_setting_boolean('AUTO_PUBLISH_ENABLED')
+    return tolerant_jsonify({'enabled': enabled})
+
+
+@app.route('/api/auto_publish/update', methods=['POST'])
+@admin_required
+def set_auto_publish_enabled():
+    params = request.get_json()
+    enabled = to_bool_or_none(params.get('enabled'))
+    if enabled is None:
+        raise BadRequestError('API requires \'enabled\'')
+    ToolSetting.upsert('AUTO_PUBLISH_ENABLED', enabled)
+    return tolerant_jsonify({'enabled': enabled})
 
 
 @app.route('/api/service_announcement')
@@ -109,8 +128,7 @@ def update_service_announcement():
 
 
 def _get_service_announcement():
-    is_live = ToolSetting.get_tool_setting('SERVICE_ANNOUNCEMENT_IS_LIVE')
-    is_live = False if is_live is None else to_bool_or_none(is_live)
+    is_live = ToolSetting.get_tool_setting_boolean('SERVICE_ANNOUNCEMENT_IS_LIVE')
     return {
         'text': ToolSetting.get_tool_setting('SERVICE_ANNOUNCEMENT_TEXT'),
         'isLive': is_live,
