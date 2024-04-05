@@ -27,7 +27,7 @@ from itertools import groupby
 
 from damien import db, std_commit
 from damien.lib.berkeley import get_current_term_id
-from damien.lib.cache import fetch_all_sections, fetch_department_cache, set_department_cache
+from damien.lib.cache import clear_department_cache, fetch_all_sections, fetch_department_cache, set_department_cache
 from damien.lib.queries import get_cross_listings, get_loch_instructors, get_loch_sections, get_loch_sections_by_ids, get_room_shares
 from damien.lib.util import extract_int, isoformat
 from damien.merged.section import Section
@@ -261,19 +261,20 @@ class Department(Base):
             )
 
         if not section_id and not evaluation_ids:
-            self.cache_summary_feed(term_id, uses_midterm_forms, total_evaluation_row_count=len(feed))
+            self.cache_summary_feed(term_id, uses_midterm_forms, feed)
 
         return feed
 
-    def cache_summary_feed(self, term_id, uses_midterm_forms, total_evaluation_row_count):
+    def cache_summary_feed(self, term_id, uses_midterm_forms, feed):
         feed = {
             'lastUpdated': isoformat(Evaluation.get_last_update(self.id, term_id)),
-            'totalBlockers': Evaluation.count_department_blockers(self.id, term_id),
-            'totalConfirmed': Evaluation.count_department_confirmed(self.id, term_id),
-            'totalInError': Evaluation.count_department_errors(self.id, term_id),
-            'totalEvaluations': total_evaluation_row_count,
+            'totalBlockers': len([e for e in feed if e['status'] == 'confirmed' and not e['valid']]),
+            'totalConfirmed': len([e for e in feed if e['status'] == 'confirmed' and e['valid']]),
+            'totalInError': len([e for e in feed if not e['valid']]),
+            'totalEvaluations': len(feed),
             'usesMidtermForms': uses_midterm_forms,
         }
+        clear_department_cache(self.id, term_id)
         set_department_cache(self.id, term_id, feed)
         return feed
 

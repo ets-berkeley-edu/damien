@@ -160,44 +160,6 @@ class Evaluation(Base):
         clear_section_cache(term_id, course_number)
 
     @classmethod
-    def count_department_blockers(cls, department_id, term_id):
-        # A 'blocker' is an evaluation which is both confirmed and invalid, and therefore blocks publication to Blue.
-        filters = [
-            cls.department_id == department_id,
-            cls.status == 'confirmed',
-            cls.term_id == term_id,
-            cls.valid.is_(False),
-        ]
-        return cls.query.where(and_(*filters)).count()
-
-    @classmethod
-    def count_department_confirmed(cls, department_id, term_id):
-        filters = [
-            cls.department_id == department_id,
-            cls.status == 'confirmed',
-            cls.term_id == term_id,
-            cls.valid.is_(True),
-        ]
-        return cls.query.where(and_(*filters)).count()
-
-    @classmethod
-    def count_department_errors(cls, department_id, term_id):
-        filters = [
-            cls.department_id == department_id,
-            cls.term_id == term_id,
-            cls.valid.is_(False),
-        ]
-        return cls.query.where(and_(*filters)).count()
-
-    @classmethod
-    def count_department_total(cls, department_id, term_id):
-        filters = [
-            cls.department_id == department_id,
-            cls.term_id == term_id,
-        ]
-        return cls.query.where(and_(*filters)).count()
-
-    @classmethod
     def create(
             cls,
             term_id,
