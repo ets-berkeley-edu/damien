@@ -383,8 +383,8 @@
             <v-card-title>Automatically Publish</v-card-title>
             <v-card-text>
               <span v-if="$config.scheduleLochRefresh">
-                When enabled, publication will run nightly at
-                {{ `${$config.scheduleLochRefresh.hour}:${String($config.scheduleLochRefresh.minute).padStart(2, '0')}` }}
+                When enabled, publication will run daily at
+                {{ `${String($config.scheduleLochRefresh.hour).padStart(2, '0')}:${String($config.scheduleLochRefresh.minute).padStart(2, '0')}` }}
                 local time, immediately before loch refresh.
               </span>
               <span v-if="!$config.scheduleLochRefresh">
