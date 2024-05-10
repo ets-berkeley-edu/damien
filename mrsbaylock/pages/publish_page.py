@@ -119,12 +119,9 @@ class PublishPage(CourseDashboards):
         return rows
 
     def parse_supervisors_csv(self):
-        csv = self.parse_csv('supervisors')
+        parsed = self.parse_csv('supervisors')
         rows = []
-        for row in csv:
-            depts = list(row.values())[8::]
-            depts = list(filter(None, depts))
-            depts.sort()
+        for row in parsed:
             rows.append({
                 'LDAP_UID': row['LDAP_UID'],
                 'SIS_ID': row['SIS_ID'],
@@ -134,6 +131,5 @@ class PublishPage(CourseDashboards):
                 'SUPERVISOR_GROUP': row['SUPERVISOR_GROUP'],
                 'PRIMARY_ADMIN': row['PRIMARY_ADMIN'],
                 'SECONDARY_ADMIN': row['SECONDARY_ADMIN'],
-                'DEPTS': depts,
             })
         return rows

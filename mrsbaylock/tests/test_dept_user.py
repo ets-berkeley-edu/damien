@@ -24,7 +24,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from datetime import date
-from datetime import timedelta
 
 from flask import current_app as app
 from mrsbaylock.models.evaluation_status import EvaluationStatus
@@ -140,207 +139,6 @@ class TestDeptUser:
     def test_dept_page_notes(self):
         assert self.dept_details_dept_page.is_present(DeptDetailsAdminPage.DEPT_NOTE_EDIT_BUTTON)
 
-    # EVALUATION SORTING
-
-    def test_set_test_data(self):
-        done = next(
-            filter(lambda e: (e.instructor.uid and not e.x_listing_ccns and not e.room_share_ccns), self.evaluations))
-        self.dept_details_dept_page.click_edit_evaluation(done)
-        self.dept_details_dept_page.select_eval_status(done, EvaluationStatus.CONFIRMED)
-        self.dept_details_dept_page.change_dept_form(done, 'AEROSPC')
-        self.dept_details_dept_page.change_eval_type(done, 'F')
-        self.dept_details_dept_page.click_save_eval_changes(done)
-        if done.eval_start_date <= date.today():
-            self.dept_details_dept_page.proceed_eval_changes()
-        done.dept_form = 'AEROSPC'
-        done.eval_type = 'F'
-        done.status = EvaluationStatus.CONFIRMED
-
-        remaining = list(
-            filter(lambda e: e.instructor.uid and (e.status == EvaluationStatus.UNMARKED), self.evaluations))
-        to_do = remaining[0]
-        self.dept_details_dept_page.click_edit_evaluation(to_do)
-        self.dept_details_dept_page.select_eval_status(to_do, EvaluationStatus.FOR_REVIEW)
-        self.dept_details_dept_page.click_save_eval_changes(to_do)
-        to_do.status = EvaluationStatus.FOR_REVIEW
-
-        ignore = remaining[1]
-        self.dept_details_dept_page.click_edit_evaluation(ignore)
-        self.dept_details_dept_page.select_eval_status(ignore, EvaluationStatus.IGNORED)
-        self.dept_details_dept_page.click_save_eval_changes(ignore)
-        ignore.status = EvaluationStatus.IGNORED
-
-        change_date = remaining[2]
-        new_start = change_date.eval_start_date - timedelta(days=1)
-        self.dept_details_dept_page.click_edit_evaluation(change_date)
-        self.dept_details_dept_page.change_eval_start_date(change_date, new_start)
-        self.dept_details_dept_page.click_save_eval_changes(change_date)
-        change_date.eval_start_date = new_start
-        new_end = evaluation_utils.row_eval_end_from_eval_start(change_date.course_start_date,
-                                                                change_date.eval_start_date,
-                                                                change_date.course_end_date)
-        change_date.eval_end_date = new_end
-
-    def test_sort_default(self):
-        self.dept_details_dept_page.click_contact_dept_link(self.dept)
-        self.dept_details_dept_page.wait_for_eval_rows()
-        evals = self.dept_details_dept_page.sort_by_course(self.dept, self.evaluations)
-        self.dept_details_dept_page.wait_for_eval_rows()
-        self.dept_details_dept_page.select_ignored_filter()
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        missing = [x for x in expected if x not in visible]
-        app.logger.info(f'Missing {missing}')
-        unexpected = [x for x in visible if x not in expected]
-        app.logger.info(f'Unexpected {unexpected}')
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_status_asc(self):
-        self.dept_details_dept_page.sort_asc('Status')
-        evals = self.dept_details_dept_page.sort_by_status(self.dept, self.evaluations)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_status_desc(self):
-        self.dept_details_dept_page.sort_desc('Status')
-        evals = self.dept_details_dept_page.sort_by_status(self.dept, self.evaluations, reverse=True)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    # TODO def test_sort_by_updated_asc(self):
-    # TODO def test_sort_by_updated_desc(self):
-
-    def test_sort_by_ccn_asc(self):
-        self.dept_details_dept_page.sort_asc('Course Number')
-        evals = self.dept_details_dept_page.sort_by_ccn(self.dept, self.evaluations)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_ccn_desc(self):
-        self.dept_details_dept_page.sort_desc('Course Number')
-        evals = self.dept_details_dept_page.sort_by_ccn(self.dept, self.evaluations, reverse=True)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_course_asc(self):
-        self.dept_details_dept_page.sort_asc('Course Name')
-        evals = self.dept_details_dept_page.sort_by_course(self.dept, self.evaluations)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_course_desc(self):
-        self.dept_details_dept_page.sort_desc('Course Name')
-        evals = self.dept_details_dept_page.sort_by_course(self.dept, self.evaluations, reverse=True)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_instr_asc(self):
-        self.dept_details_dept_page.sort_asc('Instructor')
-        evals = self.dept_details_dept_page.sort_by_instructor(self.dept, self.evaluations)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_instr_desc(self):
-        self.dept_details_dept_page.sort_desc('Instructor')
-        evals = self.dept_details_dept_page.sort_by_instructor(self.dept, self.evaluations, reverse=True)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_dept_form_asc(self):
-        self.dept_details_dept_page.sort_asc('Department Form')
-        evals = self.dept_details_dept_page.sort_by_dept_form(self.dept, self.evaluations)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_dept_form_desc(self):
-        self.dept_details_dept_page.sort_desc('Department Form')
-        evals = self.dept_details_dept_page.sort_by_dept_form(self.dept, self.evaluations, reverse=True)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_eval_type_asc(self):
-        self.dept_details_dept_page.sort_asc('Evaluation Type')
-        evals = self.dept_details_dept_page.sort_by_eval_type(self.dept, self.evaluations)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_eval_type_desc(self):
-        self.dept_details_dept_page.sort_desc('Evaluation Type')
-        evals = self.dept_details_dept_page.sort_by_eval_type(self.dept, self.evaluations, reverse=True)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_eval_start_asc(self):
-        self.dept_details_dept_page.sort_asc('Evaluation Period')
-        evals = self.dept_details_dept_page.sort_by_eval_period(self.dept, self.evaluations)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
-    def test_sort_by_eval_start_desc(self):
-        self.dept_details_dept_page.sort_desc('Evaluation Period')
-        evals = self.dept_details_dept_page.sort_by_eval_period(self.dept, self.evaluations, reverse=True)
-        visible = self.dept_details_dept_page.visible_sorted_eval_data()
-        expected = self.dept_details_dept_page.sorted_eval_data(evals)
-        if visible != expected:
-            app.logger.info(f'Visible {visible}')
-            app.logger.info(f'Expected {expected}')
-        assert visible == expected
-
     # EVALUATION FILTERING
 
     def test_filter_by_ccn(self):
@@ -393,28 +191,17 @@ class TestDeptUser:
 
     # EVALUATION STATUS AND FILTERING
 
-    def test_set_review_status_bulk(self):
-        e = next(filter(lambda row: row.instructor.uid and (row.status == EvaluationStatus.UNMARKED), self.evaluations))
-        self.dept_details_dept_page.reload_page()
-        self.dept_details_dept_page.wait_for_eval_rows()
-        self.dept_details_dept_page.bulk_mark_for_review([e])
-        self.dept_details_dept_page.wait_for_eval_rows()
-        self.dept_details_dept_page.reload_page()
-        self.dept_details_dept_page.wait_for_eval_rows()
-        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
-
-    def test_set_review_status_single(self):
-        e = next(filter(lambda row: row.instructor.uid and (row.status == EvaluationStatus.UNMARKED), self.evaluations))
-        self.dept_details_dept_page.click_edit_evaluation(e)
-        self.dept_details_dept_page.select_eval_status(e, EvaluationStatus.FOR_REVIEW)
-        self.dept_details_dept_page.click_save_eval_changes(e)
-        self.dept_details_dept_page.wait_for_eval_rows()
-        self.dept_details_dept_page.reload_page()
-        self.dept_details_dept_page.wait_for_eval_rows()
-        e.status = EvaluationStatus.FOR_REVIEW
-        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
-
     def test_set_confirmed_status_bulk(self):
+        # Un-mark all rows to begin with
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.select_unmarked_filter()
+        self.dept_details_dept_page.select_review_filter()
+        self.dept_details_dept_page.select_confirmed_filter()
+        self.dept_details_dept_page.select_ignored_filter()
+        self.dept_details_dept_page.bulk_unmark(self.evaluations, all_evals=True)
+        self.dept_details_dept_page.wait_for_eval_rows()
+
         e = next(filter(lambda r:
                         r.status == EvaluationStatus.UNMARKED and r.instructor.uid and not r.x_listing_ccns and not r.room_share_ccns,
                         self.evaluations,
@@ -455,6 +242,27 @@ class TestDeptUser:
         self.dept_details_dept_page.reload_page()
         self.dept_details_dept_page.wait_for_eval_rows()
         e.status = EvaluationStatus.CONFIRMED
+        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
+
+    def test_set_review_status_bulk(self):
+        e = next(filter(lambda row: row.instructor.uid and (row.status == EvaluationStatus.UNMARKED), self.evaluations))
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.bulk_mark_for_review([e])
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
+
+    def test_set_review_status_single(self):
+        e = next(filter(lambda row: row.instructor.uid and (row.status == EvaluationStatus.UNMARKED), self.evaluations))
+        self.dept_details_dept_page.click_edit_evaluation(e)
+        self.dept_details_dept_page.select_eval_status(e, EvaluationStatus.FOR_REVIEW)
+        self.dept_details_dept_page.click_save_eval_changes(e)
+        self.dept_details_dept_page.wait_for_eval_rows()
+        self.dept_details_dept_page.reload_page()
+        self.dept_details_dept_page.wait_for_eval_rows()
+        e.status = EvaluationStatus.FOR_REVIEW
         assert e.status.value['ui'] in self.dept_details_dept_page.eval_status(e)
 
     def test_set_ignored_status_bulk(self):

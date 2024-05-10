@@ -431,6 +431,7 @@ class TestEvaluationManagement:
             self.dept_details_dept_page.click_bulk_unmark_button()
             time.sleep(2)
             for row in no_teach:
+                row.status = EvaluationStatus.UNMARKED
                 self.dept_details_dept_page.click_eval_checkbox(row)
             self.dept_details_dept_page.click_bulk_edit()
             self.dept_details_dept_page.look_up_and_select_dupe_instr(new_teach)
