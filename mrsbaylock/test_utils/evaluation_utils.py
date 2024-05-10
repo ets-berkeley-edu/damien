@@ -758,7 +758,8 @@ def get_dept_with_listings_or_shares(term, depts):
     depts.sort(key=lambda d: d.row_count)
     test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
     for dept in test_depts:
-        if 20 < dept.row_count < 60:
+        app.logger.info(f'Checking if {dept.name} has cross-listings or room shares and can be used for tests')
+        if 50 < dept.row_count < 100:
             dept.evaluations = get_evaluations(term, dept)
             evals_with_instr = list(filter(lambda e: e.instructor.uid, dept.evaluations))
             if len(evals_with_instr) > 5:
@@ -773,6 +774,7 @@ def get_dept_eval_with_foreign_room_shares(term, depts):
     test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
     app.logger.info('Looking for foreign room shares')
     for dept in test_depts:
+        app.logger.info(f'Checking if {dept.name} has foreign room shares and can be used for tests')
         dept.evaluations = get_evaluations(term, dept)
         for ev in dept.evaluations:
             if ev.room_share_ccns and not ev.x_listing_ccns:
@@ -789,6 +791,7 @@ def get_dept_eval_with_foreign_x_listings(term, depts, max_row_count=None):
     test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
     app.logger.info('Looking for foreign x-listings')
     for dept in test_depts:
+        app.logger.info(f'Checking if {dept.name} has foreign cross-listings and can be used for tests')
         if utils.is_dept_midterm_friendly(dept):
             if (max_row_count and dept.row_count <= max_row_count) or not max_row_count:
                 dept.evaluations = get_evaluations(term, dept)

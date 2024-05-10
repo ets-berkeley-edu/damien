@@ -127,10 +127,13 @@ class CourseDashboardEditsPage(CourseDashboards):
     def click_bulk_ignore_button(self):
         self.wait_for_element_and_click(CourseDashboardEditsPage.IGNORE_BUTTON)
 
-    def bulk_set_row_status(self, evaluations, status):
-        for evaluation in evaluations:
-            app.logger.info(f'Setting CCN {evaluation.ccn} to {status}')
-            self.click_eval_checkbox(evaluation)
+    def bulk_set_row_status(self, evaluations, status, all_evals=False):
+        if all_evals:
+            self.wait_for_element_and_click(self.SELECT_ALL_EVALS_CBX)
+        else:
+            for evaluation in evaluations:
+                app.logger.info(f'Setting CCN {evaluation.ccn} to {status}')
+                self.click_eval_checkbox(evaluation)
         if status == EvaluationStatus.FOR_REVIEW:
             self.click_bulk_to_do_button()
         elif status == EvaluationStatus.CONFIRMED:
@@ -156,8 +159,8 @@ class CourseDashboardEditsPage(CourseDashboards):
         for evaluation in evaluations:
             evaluation.status = EvaluationStatus.IGNORED
 
-    def bulk_unmark(self, evaluations):
-        self.bulk_set_row_status(evaluations, EvaluationStatus.UNMARKED)
+    def bulk_unmark(self, evaluations, all_evals=False):
+        self.bulk_set_row_status(evaluations, EvaluationStatus.UNMARKED, all_evals)
         for evaluation in evaluations:
             evaluation.status = EvaluationStatus.UNMARKED
 
@@ -429,7 +432,13 @@ class CourseDashboardEditsPage(CourseDashboards):
         app.logger.info(f'Adding UID {instructor.uid} as instructor on CCN {evaluation.ccn}')
         self.look_up_uid(instructor.uid, CourseDashboardEditsPage.EVAL_CHANGE_INSTR_INPUT)
         self.click_look_up_result(instructor)
+        self.accept_manually_added_instructor()
         evaluation.instructor = instructor
+
+    def accept_manually_added_instructor(self):
+        time.sleep(1)
+        if self.is_present(self.EVAL_CHANGE_PROCEED_BUTTON):
+            self.wait_for_element_and_click(self.EVAL_CHANGE_PROCEED_BUTTON)
 
     def click_dept_form_input(self):
         self.wait_for_element_and_click(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT)

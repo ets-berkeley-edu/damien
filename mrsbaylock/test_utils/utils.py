@@ -271,7 +271,16 @@ def restore_user(user):
 
 
 def get_participating_depts():
-    sql = 'SELECT id, dept_name, row_count FROM departments WHERE is_enrolled IS TRUE'
+    sql = f"""SELECT departments.id,
+                     departments.dept_name,
+                     json_cache.json::json -> 'totalEvaluations' as row_count
+                FROM departments
+                JOIN json_cache
+                  ON json_cache.department_id = departments.id
+               WHERE departments.is_enrolled IS TRUE
+                 AND json_cache.term_id = '{get_current_term().term_id}'
+                 AND json_cache.course_number IS NULL
+            """
     app.logger.debug(sql)
     depts = []
     result = db.session.execute(text(sql))
@@ -578,7 +587,7 @@ def expected_instructors(evaluations):
                 'SIS_ID': row.instructor.csid or f'UID:{row.instructor.uid}',
                 'FIRST_NAME': row.instructor.first_name,
                 'LAST_NAME': row.instructor.last_name,
-                'EMAIL_ADDRESS': row.instructor.email,
+                'EMAIL_ADDRESS': (row.instructor.email or ''),
                 'BLUE_ROLE': '23',
             }
             instructors.append(data)
@@ -627,8 +636,6 @@ def expected_supervisors():
     std_commit(allow_test_environment=True)
     supervisors = []
     for row in result:
-        forms = row['forms'].split(',')
-        forms.sort()
         data = {
             'LDAP_UID': row['uid'],
             'SIS_ID': (row['csid'] or f"UID:{row['uid']}"),
@@ -638,7 +645,6 @@ def expected_supervisors():
             'SUPERVISOR_GROUP': 'DEPT_ADMIN',
             'PRIMARY_ADMIN': ('Y' if row['blue_permissions'] == 'response_rates' else ''),
             'SECONDARY_ADMIN': '',
-            'DEPTS': [i for i in forms if i],
         }
         supervisors.append(data)
     return supervisors
