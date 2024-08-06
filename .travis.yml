@@ -1,6 +1,7 @@
+dist: jammy
 sudo: required
 language: python
-python: "3.8"
+python: "3.11"
 
 addons:
   postgresql: "12"
@@ -10,7 +11,7 @@ addons:
     - postgresql-client-12
 
 before_install:
-  - nvm install 16
+  - nvm install 20.16.0
 
 env:
   global:
