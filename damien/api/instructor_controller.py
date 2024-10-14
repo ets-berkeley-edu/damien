@@ -99,7 +99,7 @@ def search_instructors():
         non_sis_instructors = get_loch_basic_attributes_by_uid_or_name(snippet, limit=(20 - len(instructors)), exclude_uids=exclude_uids)
         instructors.extend([{**i, 'isSisInstructor': False} for i in non_sis_instructors])
     results = [_to_api_json(i) for i in instructors]
-    results.sort(key=lambda x: x['firstName'])
+    results.sort(key=lambda x: x['firstName'] or '')
     return tolerant_jsonify(results)
 
 
