@@ -51,6 +51,12 @@
   },
   "license": "SEE LICENSE IN LICENSE",
   "overrides": {
+    "@vue/cli-shared-utils": {
+      "@achrinza/node-ipc": "^9.2.9"
+    },
+    "@vue/cli-ui": {
+      "@achrinza/node-ipc": "^9.2.9"
+    },
     "vue": {
       ".": "npm:@neverendingsupport/vue2@2.7.17"
     },
