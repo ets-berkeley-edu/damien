@@ -436,7 +436,7 @@ def _export_instructor_row(instructor):
         'SIS_ID': instructor['sisId'] or f"UID:{instructor['uid']}",
         'FIRST_NAME': instructor['firstName'],
         'LAST_NAME': instructor['lastName'],
-        'EMAIL_ADDRESS': instructor['emailAddress'],
+        'EMAIL_ADDRESS': instructor['emailAddress'] or 'NULL',
         'BLUE_ROLE': '23',
     }
 
@@ -447,7 +447,7 @@ def _export_student_row(student):
         'SIS_ID': student['csid'] or f"UID:{student['uid']}",
         'FIRST_NAME': student['first_name'],
         'LAST_NAME': student['last_name'],
-        'EMAIL_ADDRESS': student['email'],
+        'EMAIL_ADDRESS': student['email'] or 'NULL',
     }
 
 
@@ -457,7 +457,7 @@ def _export_supervisor_row(user):
         'SIS_ID': user.csid or f'UID:{user.uid}',
         'FIRST_NAME': user.first_name,
         'LAST_NAME': user.last_name,
-        'EMAIL_ADDRESS': user.email,
+        'EMAIL_ADDRESS': user.email or 'NULL',
         'SUPERVISOR_GROUP': 'DEPT_ADMIN',
         'PRIMARY_ADMIN': 'Y' if user.can_view_response_rates() else '',
         'SECONDARY_ADMIN': '',
