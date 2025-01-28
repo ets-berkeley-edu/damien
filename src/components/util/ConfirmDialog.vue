@@ -16,12 +16,13 @@
           </div>
         </div>
       </v-card-title>
-      <v-card-text class="pt-3">{{ text }}</v-card-text>
+      <v-card-text v-if="!html" class="pt-3">{{ text }}</v-card-text>
+      <v-card-text v-if="html" class="pt-3" v-html="html"></v-card-text>
       <v-divider />
       <v-card-actions>
         <v-spacer />
         <div class="d-flex pa-2">
-          <div class="mr-2">
+          <div v-if="!hideConfirm" class="mr-2">
             <v-btn
               id="confirm-dialog-btn"
               class="text-capitalize"
@@ -65,6 +66,15 @@ export default {
     disabled: {
       required: false,
       type: Boolean
+    },
+    hideConfirm: {
+      required: false,
+      type: Boolean
+    },
+    html: {
+      default: null,
+      required: false,
+      type: String
     },
     icon: {
       default: undefined,
