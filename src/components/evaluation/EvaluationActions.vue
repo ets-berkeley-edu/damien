@@ -98,11 +98,11 @@
     </UpdateEvaluations>
     <ConfirmDialog
       v-if="markAsDoneWarning"
-      confirm-button-label="Proceed"
+      hide-confirm="true"
       :disabled="disableControls"
       :on-click-cancel="() => markAsDoneWarning = undefined"
-      :on-click-confirm="onProceedMarkAsDone"
-      :text="markAsDoneWarning"
+      :on-click-confirm="$_.noop"
+      :html="markAsDoneWarning"
       icon="mdi-alert-circle"
       title="Warning"
     />
@@ -278,10 +278,6 @@ export default {
       if (!this.markAsDoneWarning) {
         this.validateAndUpdate('edit')
       }
-    },
-    onProceedMarkAsDone() {
-      this.markAsDoneWarning = null
-      this.validateAndUpdate(this.isEditing ? 'edit' : 'confirm')
     },
     getEvaluationFieldsForUpdate(key) {
       let fields = null

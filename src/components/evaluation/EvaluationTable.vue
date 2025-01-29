@@ -427,11 +427,11 @@
                 <div class="d-flex justify-end">
                   <ConfirmDialog
                     v-if="markAsDoneWarning"
-                    confirm-button-label="Proceed"
+                    hide-confirm="true"
                     :disabled="disableControls"
                     :on-click-cancel="() => markAsDoneWarning = undefined"
-                    :on-click-confirm="onProceedMarkAsDone"
-                    :text="markAsDoneWarning.message"
+                    :on-click-confirm="$_.noop"
+                    :html="markAsDoneWarning.message"
                     icon="mdi-alert-circle"
                     title="Warning"
                   />
@@ -789,12 +789,6 @@ export default {
         this.selectedStartDate = evaluation.startDate
         this.$putFocusNextTick(`${this.readonly ? '' : 'select-evaluation-status'}`)
       }
-    },
-    onProceedMarkAsDone() {
-      const evaluation = this.markAsDoneWarning.evaluation
-      const fields = this.markAsDoneWarning.fields
-      this.markAsDoneWarning = undefined
-      this.updateEvaluation(evaluation, fields)
     },
     onSort() {
       const selectedEvaluationIds = this.$_.cloneDeep(this.selectedEvaluationIds)
