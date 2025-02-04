@@ -818,7 +818,7 @@ class TestEditEvaluation:
         assert response[0]['id'] == int(response[0]['id'])
         assert response[0]['transientId'] == '_2222_30659_637739'
         assert response[0]['startDate'] == '2022-04-01'
-        assert response[0]['endDate'] == '2022-04-14'
+        assert response[0]['endDate'] == '2022-04-21'
         assert response[0]['lastUpdated'] is not None
         updated = Evaluation.find_by_id(response[0]['id'])
         assert updated.created_at is not None

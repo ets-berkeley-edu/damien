@@ -583,7 +583,7 @@ class Evaluation(Base):
                     break
 
         if self.start_date:
-            if (self.start_date - self.meeting_start_date < timedelta(days=76)):
+            if (self.start_date - self.meeting_start_date < timedelta(days=70)):
                 self.end_date = self.start_date + timedelta(days=13)
             else:
                 self.end_date = self.start_date + timedelta(days=20)
