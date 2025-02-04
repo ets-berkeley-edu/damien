@@ -810,7 +810,7 @@ export default {
       }
       let warning
       if (status === 'confirmed') {
-        // If evaluation start-date is in the past then put up a warning dialog.
+        // If evaluation end date is in the past then put up a warning dialog.
         const proposedUpdate = {...evaluation, ...fields}
         warning = this.validateMarkAsDone([proposedUpdate])
       }

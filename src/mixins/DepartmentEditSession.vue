@@ -64,7 +64,15 @@ export default {
     validateMarkAsDone(selectedEvaluations) {
       let warningMessage
       const now = this.$moment()
-      const evaluationsEnded = this.$_.filter(selectedEvaluations, e => now.isAfter(e.endDate))
+      const evaluationsEnded = []
+      this.$_.each(selectedEvaluations, e => {
+        const startDate = this.$moment(e.startDate)
+        const evalStateOffset = startDate.diff(e.meetingDates.start, 'days')
+        const endDate = (evalStateOffset < 70) ? startDate.add(13, 'day') : startDate.add(20, 'day')
+        if (now.isAfter(endDate)) {
+          evaluationsEnded.push(e)
+        }
+      })
       if (evaluationsEnded.length) {
         warningMessage = `You're requesting evaluations with an evaluation period that has already ended, which will result in
           those evaluations <strong>NOT being sent to students</strong>. Please set a new start date for the evaluations listed below:<br>`
