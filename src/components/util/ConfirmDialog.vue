@@ -2,6 +2,7 @@
   <v-dialog
     v-model="model"
     width="500"
+    content-class="overflow-scroll"
     @click:outside="cancel"
     @keydown.esc="cancel"
   >
