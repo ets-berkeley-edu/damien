@@ -98,13 +98,14 @@
     </UpdateEvaluations>
     <ConfirmDialog
       v-if="markAsDoneWarning"
-      hide-confirm="true"
+      :hide-confirm="true"
       :disabled="disableControls"
       :on-click-cancel="() => markAsDoneWarning = undefined"
       :on-click-confirm="$_.noop"
       :html="markAsDoneWarning"
       icon="mdi-alert-circle"
       title="Warning"
+      text=""
     />
   </div>
 </template>
@@ -272,9 +273,16 @@ export default {
     onConfirmEdit(options) {
       const selected = this.$_.filter(this.evaluations, e => this.$_.includes(this.selectedEvaluationIds, e.id))
       this.bulkUpdateOptions = options
-      if ('confirmed' === this.bulkUpdateOptions.evaluationStatus) {
-        this.markAsDoneWarning = this.validateMarkAsDone(selected)
-      }
+      const evaluationsToValidate = this.$_.compact(this.$_.map(selected, e => {
+        if ((this.bulkUpdateOptions.evaluationStatus || e.status) === 'confirmed') {
+          return {
+            ...e,
+            status: this.bulkUpdateOptions.evaluationStatus || e.status,
+            startDate: this.bulkUpdateOptions.startDate || e.startDate
+          }
+        }
+      }))
+      this.markAsDoneWarning = this.validateMarkAsDone(evaluationsToValidate)
       if (!this.markAsDoneWarning) {
         this.validateAndUpdate('edit')
       }
