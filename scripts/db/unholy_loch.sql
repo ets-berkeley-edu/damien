@@ -61,6 +61,9 @@ CREATE TABLE unholy_loch.sis_sections (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
+CREATE INDEX sis_sections_course_number ON unholy_loch.sis_sections (course_number);
+CREATE INDEX sis_sections_term_id ON unholy_loch.sis_sections (term_id);
+
 --
 
 CREATE TABLE unholy_loch.sis_instructors (
@@ -74,6 +77,8 @@ CREATE TABLE unholy_loch.sis_instructors (
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
+CREATE INDEX sis_instructors_ldap_uid ON unholy_loch.sis_instructors (ldap_uid);
+
 -- SIS enrollment data is loaded by a simple wipe-and-refresh and doesn't require timestamp tracking.
 
 CREATE TABLE unholy_loch.sis_enrollments (
@@ -81,6 +86,9 @@ CREATE TABLE unholy_loch.sis_enrollments (
     course_number VARCHAR(5) NOT NULL,
     ldap_uid VARCHAR(80) NOT NULL
 );
+
+CREATE INDEX sis_enrollments_course_number ON unholy_loch.sis_enrollments (course_number);
+CREATE INDEX sis_enrollments_term_id ON unholy_loch.sis_enrollments (term_id);
 
 CREATE TABLE unholy_loch.sis_terms
 (
@@ -98,8 +106,16 @@ CREATE TABLE unholy_loch.cross_listings (
     cross_listing_number VARCHAR(5) NOT NULL
 );
 
+CREATE INDEX cross_listings_course_number ON unholy_loch.cross_listings (course_number);
+CREATE INDEX cross_listings_cross_listing_number ON unholy_loch.cross_listings (cross_listing_number);
+CREATE INDEX cross_listings_term_id ON unholy_loch.cross_listings (term_id);
+
 CREATE TABLE unholy_loch.co_schedulings (
     term_id VARCHAR(4) NOT NULL,
     course_number VARCHAR(5) NOT NULL,
     room_share_number VARCHAR(5) NOT NULL
 );
+
+CREATE INDEX co_schedulings_course_number ON unholy_loch.co_schedulings (course_number);
+CREATE INDEX co_schedulings_room_share_number ON unholy_loch.co_schedulings (room_share_number);
+CREATE INDEX co_schedulings_term_id ON unholy_loch.co_schedulings (term_id);
