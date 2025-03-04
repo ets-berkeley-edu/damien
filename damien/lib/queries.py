@@ -183,16 +183,15 @@ def get_cross_listings(term_id, course_numbers):
         return []
     query = """SELECT DISTINCT
                 ss.*,
-                cl2.course_number AS cross_listed_with,
+                cl.course_number AS cross_listed_with,
                 TRUE AS foreign_department_course
             FROM unholy_loch.sis_sections ss
-            JOIN unholy_loch.cross_listings cl1
-            ON cl1.term_id = :term_id AND ss.term_id = :term_id
-            AND ss.course_number = cl1.cross_listing_number
-            AND cl1.course_number = ANY(:course_numbers)
-            JOIN unholy_loch.cross_listings cl2
-            ON cl2.term_id = :term_id AND ss.term_id = :term_id
-            AND ss.course_number = cl2.cross_listing_number
+            JOIN unholy_loch.cross_listings cl
+            ON cl.term_id = :term_id AND ss.term_id = :term_id
+            AND ss.course_number = cl.cross_listing_number
+            AND ss.course_number IN
+              (SELECT cross_listing_number FROM unholy_loch.cross_listings
+              WHERE term_id = :term_id AND course_number = ANY(:course_numbers))
             ORDER BY ss.course_number, ss.instructor_uid
         """
     params = {'term_id': term_id, 'course_numbers': course_numbers}
@@ -209,16 +208,15 @@ def get_room_shares(term_id, course_numbers):
         return []
     query = """SELECT DISTINCT
                 ss.*,
-                cs2.course_number AS room_shared_with,
+                cs.course_number AS room_shared_with,
                 TRUE AS foreign_department_course
             FROM unholy_loch.sis_sections ss
-            JOIN unholy_loch.co_schedulings cs1
-            ON cs1.term_id = :term_id AND ss.term_id = :term_id
-            AND ss.course_number = cs1.room_share_number
-            AND cs1.course_number = ANY(:course_numbers)
-            JOIN unholy_loch.co_schedulings cs2
-            ON cs2.term_id = :term_id AND ss.term_id = :term_id
-            AND ss.course_number = cs2.room_share_number
+            JOIN unholy_loch.co_schedulings cs
+            ON cs.term_id = :term_id AND ss.term_id = :term_id
+            AND ss.course_number = cs.room_share_number
+            AND ss.course_number IN
+              (SELECT room_share_number FROM unholy_loch.co_schedulings
+              WHERE term_id = :term_id AND course_number = ANY(:course_numbers))
             ORDER BY ss.course_number, ss.instructor_uid
         """
     params = {'term_id': term_id, 'course_numbers': course_numbers}
