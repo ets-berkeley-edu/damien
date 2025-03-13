@@ -1,6 +1,7 @@
 <template>
   <v-dialog
     v-model="model"
+    content-class="overflow-scroll"
     @click:outside="cancel"
     @keydown.esc="cancel"
   >
