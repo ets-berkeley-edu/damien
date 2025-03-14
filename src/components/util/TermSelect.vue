@@ -31,7 +31,7 @@
       <v-progress-circular
         v-if="isTogglingLock"
         class="spinner"
-        color="tertiary"
+        color="primary"
         :indeterminate="true"
         rotate="5"
         size="24"

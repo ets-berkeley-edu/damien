@@ -68,7 +68,7 @@
           id="input-notification-subject"
           v-model="subject"
           class="bg-surface my-1"
-          color="tertiary"
+          color="primary"
           density="compact"
           :disabled="isSending"
           hide-details="auto"
@@ -84,7 +84,7 @@
             v-model="message"
             auto-grow
             class="bg-surface mt-1"
-            color="tertiary"
+            color="primary"
             :disabled="isSending"
             hide-details="auto"
             variant="outlined"

@@ -2,7 +2,7 @@
   <v-footer
     id="footer"
     app
-    class="footer font-size-14 bg-primary px-0"
+    class="footer font-size-14 bg-secondary px-0"
     name="footer"
   >
     <div class="d-flex justify-space-between w-100">
@@ -10,7 +10,7 @@
         Problem? Question?
         <a
           id="damien-support-mailto"
-          class="text-decoration-none text-white"
+          class="text-decoration-none text-surface"
           :href="`mailto:${emailSupport}`"
           target="_blank"
         >

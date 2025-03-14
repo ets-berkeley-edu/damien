@@ -9,7 +9,7 @@
   aspect-ratio: 1;
   border: 8px solid #0000;
   border-radius: 50%;
-  border-right-color: rgb(var(--v-theme-tertiary));
+  border-right-color: rgb(var(--v-theme-primary));
   bottom: 0;
   left: 0;
   margin: auto;

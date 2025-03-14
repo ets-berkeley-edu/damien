@@ -20,8 +20,8 @@
         class="person-lookup"
         :class="inputClass"
         clearable
-        color="primary"
-        base-color="primary"
+        color="secondary"
+        base-color="secondary"
         bg-color="white"
         density="compact"
         :disabled="disabled"
@@ -31,7 +31,7 @@
         :hide-no-data="isSearching || !query"
         :items="suggestions"
         :list-props="{ariaLive: 'off'}"
-        :loading="isSearching ? 'tertiary' : false"
+        :loading="isSearching ? 'primary' : false"
         :menu-icon="null"
         :menu-props="{closeOnContentClick: true}"
         no-data-text="No results found."
@@ -50,7 +50,7 @@
           <v-progress-circular
             v-if="isActive"
             class="mr-2"
-            color="primary"
+            color="tertiary"
             indeterminate
             size="x-small"
             width="2"
@@ -62,6 +62,7 @@
             :id="`${idPrefix}-clear-btn`"
             :aria-label="`Clear ${label} input`"
             :class="{'disabled-opacity': !selected}"
+            color="secondary"
             density="compact"
             :disabled="!selected"
             exact
@@ -82,10 +83,8 @@
           <v-list-item
             :id="`${idPrefix}-option-${index}`"
             :aria-selected="index === focusedListItemIndex"
-            class="font-size-18 text-tertiary person-lookup-result"
-            :class="{
-              'bg-light-blue-lighten-5': index === focusedListItemIndex
-            }"
+            base-color="secondary"
+            class="font-size-18 person-lookup-result"
             @click="() => onSelectItem(item)"
             @focus="e => onFocusListItem(e, index)"
             @mouseenter="e => onFocusListItem(e, index)"
@@ -330,7 +329,7 @@ const validate = suggestion => {
 
 <style>
 .person-lookup-result .highlight-match {
-  background-color: rgba(var(--v-theme-tertiary), var(--v-pressed-opacity));
+  background-color: rgba(var(--v-theme-primary), var(--v-pressed-opacity));
 }
 </style>
 <style scoped>

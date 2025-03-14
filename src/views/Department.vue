@@ -19,7 +19,7 @@
             <v-btn
               id="change-department-menu"
               :append-icon="mdiChevronDown"
-              color="tertiary"
+              color="primary"
               text="Change Department"
               variant="flat"
               v-bind="defineProps"
@@ -98,8 +98,8 @@
                 <v-btn
                   v-if="!isCreatingNotification"
                   id="open-notification-form-btn"
-                  class="ml-2 secondary text-capitalize"
-                  color="primary"
+                  class="ml-2 text-capitalize"
+                  color="tertiary"
                   :disabled="disableControls || isEmpty(contacts)"
                   text="Send notification"
                   @click="() => isCreatingNotification = true"
@@ -116,8 +116,8 @@
                 <v-btn
                   v-if="!isAddingContact"
                   id="add-dept-contact-btn"
-                  class="ml-2"
-                  color="tertiary"
+                  class="font-weight-bold ml-2"
+                  color="primary"
                   :disabled="disableControls"
                   :prepend-icon="mdiPlusThick"
                   text="Add Contact"

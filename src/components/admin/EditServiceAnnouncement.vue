@@ -4,7 +4,7 @@
       id="service-announcement-textarea"
       v-model="text"
       aria-label="Enter service announcement for users to read"
-      color="tertiary"
+      color="primary"
       :disabled="isSaving"
       rows="3"
       max-rows="5"

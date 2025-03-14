@@ -11,11 +11,10 @@
     <v-app-bar
       app
       clipped-left
-      color="primary"
-      dark
+      color="topbar"
     >
-      <router-link class="routerLink" :to="`/`">
-        <div class="text-h4 ml-3 text-no-wrap cursor-pointer">
+      <router-link class="home-link ml-2 px-1 on-topbar" :to="`/`">
+        <div class="text-h4 text-no-wrap cursor-pointer">
           Course Evaluations
         </div>
       </router-link>
@@ -27,8 +26,7 @@
           <template #activator="{props: menuProps}">
             <v-btn
               id="btn-main-menu"
-              color="secondary"
-              variant="flat"
+              variant="outlined"
               v-bind="menuProps"
             >
               <span class="sr-only">User profile for </span>{{ currentUser.firstName }}
@@ -60,7 +58,7 @@
       v-if="currentUser.isAdmin"
       aria-labelledby="nav-header"
       class="font-size-14"
-      color="secondary"
+      color="tertiary"
       permanent
       :rail="isSidebarCollapsed"
       rail-width="56"
@@ -76,8 +74,8 @@
         <div class="d-flex justify-end pa-2">
           <v-btn
             id="sidebar-toggle-btn"
-            class="font-size-16 px-0"
-            color="primary-contrast"
+            class="font-size-16 nav-item px-0"
+            color="on-tertiary"
             variant="tonal"
             min-width="40"
             @click="toggleSidebarCollapsed"
@@ -90,28 +88,30 @@
         v-for="(item, index) in navItems"
         :id="`sidebar-link-${item.id}`"
         :key="index"
+        :active="startsWith(route.path, item.path)"
+        active-class="active"
         :aria-current="startsWith(route.path, item.path) ? 'page' : null"
-        class="font-size-16"
+        class="font-size-16 nav-item"
         :class="{
           'py-4 px-3': isSidebarCollapsed,
-          'pa-4': !isSidebarCollapsed,
-          'bg-selected-nav-item': startsWith(route.path, item.path)
+          'pa-4': !isSidebarCollapsed
         }"
-        :elevation="startsWith(route.path, item.path) ? 2 : 0"
+        base-color="tertiary"
         link
         role="link"
+        variant="flat"
         @click="toRoute(item.path)"
       >
         <div class="align-center d-flex">
           <v-icon
-            :class="startsWith(route.path, item.path) ? 'text-white' : 'text-primary-contrast'"
+            :class="startsWith(route.path, item.path) ? 'text-white' : 'text-on-tertiary'"
             :icon="item.icon"
             size="x-large"
             :title="isSidebarCollapsed ? item.title : undefined"
           />
           <div
             class="ml-4 nav-drawer-letter-spacing text-no-wrap"
-            :class="startsWith(route.path, item.path) ? 'font-weight-bold text-white' : 'font-weight-medium text-primary-contrast'"
+            :class="startsWith(route.path, item.path) ? 'font-weight-bold text-white' : 'font-weight-medium text-on-tertiary'"
           >
             {{ item.title }}
           </div>
@@ -214,14 +214,35 @@ const toRoute = path => router.push({path})
 </script>
 
 <style scoped>
-.bg-selected-nav-item {
-  background-color: #5886b1;
+.home-link {
+  border: 2px solid transparent;
+}
+.home-link:focus, .home-link:focus-visible {
+  background-color: rgba(var(--v-theme-on-topbar), var(--v-focus-opacity));
+  border-color: rgba(var(--v-theme-on-topbar), var(--v-focus-opacity));
+  border-radius: 4px;
+  border-style: solid;
+  border-width: 2px;
+  outline: none;
+}
+.home-link:hover {
+  opacity: var(--v-high-emphasis-opacity);
+  text-decoration: none;
 }
 .nav-drawer-letter-spacing {
   letter-spacing: 0.1em;
 }
-.routerLink{
-  text-decoration: none;
-  color: white;
- }
+</style>
+
+<style>
+.nav-item.v-list-item.active,
+.nav-item.v-list-item:focus,
+.nav-item.v-list-item:focus-visible {
+  color: white !important;
+}
+.nav-item.v-list-item.active > .v-list-item__overlay,
+.nav-item.v-list-item:focus > .v-list-item__overlay,
+.nav-item.v-list-item:focus-visible > .v-list-item__overlay {
+  opacity: calc(var(--v-focus-opacity)) !important;
+}
 </style>
