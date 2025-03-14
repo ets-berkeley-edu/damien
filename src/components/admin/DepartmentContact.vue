@@ -46,8 +46,8 @@
               <div v-for="(form, formIndex) in departmentForms" :key="form.id" class="pb-1 pr-1">
                 <v-chip
                   :id="`dept-contact-${contact.id}-form-${formIndex}`"
-                  class="border-sm"
-                  color="green"
+                  class="font-weight-bold border-sm"
+                  color="success"
                   :text="form.name"
                 />
               </div>
@@ -68,8 +68,8 @@
             >
               <v-btn
                 :id="`edit-dept-contact-${contact.id}-btn`"
-                class="text-capitalize pa-0"
-                color="tertiary"
+                class="font-weight-bold text-capitalize pa-0"
+                color="primary"
                 density="compact"
                 :disabled="disableControls"
                 text="Edit"
@@ -84,8 +84,8 @@
               />
               <v-btn
                 :id="`delete-dept-contact-${contact.id}-btn`"
-                class="text-capitalize pa-0"
-                color="tertiary"
+                class="font-weight-bold text-capitalize pa-0"
+                color="primary"
                 density="compact"
                 :disabled="disableControls"
                 text="Delete"

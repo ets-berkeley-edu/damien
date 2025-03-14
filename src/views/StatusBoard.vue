@@ -26,7 +26,7 @@
               id="checkbox-select-dept-all"
               aria-controls="open-notification-form-btn"
               aria-describedby="checkbox-select-dept-all-desc"
-              color="tertiary"
+              color="primary"
               :disabled="contextStore.loading"
               hide-details
               :indeterminate="someDepartmentsSelected"
@@ -67,7 +67,7 @@
                   :id="`checkbox-select-dept-${department.id}`"
                   aria-controls="open-notification-form-btn"
                   class="align-center mt-0 pt-0"
-                  color="tertiary"
+                  color="primary"
                   :disabled="contextStore.loading"
                   hide-details
                   :model-value="isSelected(department)"

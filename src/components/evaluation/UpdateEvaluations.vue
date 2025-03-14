@@ -35,7 +35,7 @@
               <v-checkbox
                 :id="`${idPrefix}-midterm-checkbox`"
                 v-model="midtermFormEnabled"
-                color="tertiary"
+                color="primary"
                 density="comfortable"
                 :disabled="disableControls"
                 hide-details

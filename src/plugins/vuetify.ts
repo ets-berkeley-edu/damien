@@ -115,6 +115,7 @@ export default createVuetify({
           background: '#FFF',
           disabled: '#BBCAD4',
           error: '#B71C1C',
+          'evaluation-active': '#DAF0FD',
           'evaluation-done': '#EBF8FF',
           'evaluation-done-label': '#176190',
           'evaluation-ignore': '#EBEBEB',
@@ -125,23 +126,25 @@ export default createVuetify({
           hovered: '#EEE',
           muted: '#606060',
           'on-surface-variant': '#000',
-          primary: '#125074',
-          'primary-contrast': '#DAF0FD',
-          secondary: '#307AAB',
-          success: '#00C853',
+          primary: '#154D70',
+          'on-tertiary': '#E2E8E9',
+          secondary: '#005C8A',
+          success: '#009C41',
           'surface-variant': '#F8F8F8',
-          tertiary: '#307AAB',
-          title: '#125074'
+          tertiary: '#2B6C97',
+          title: '#125074',
+          topbar: '#125074'
         }
       },
       dark: {
         colors: {
-          accent: '#F04A00',
+          accent: '#F54E00',
           alert: '#BB8009',
           anchor: '#F54E00',
           background: '#0D202C',
           disabled: '#BBCAD4',
           error: '#FF1414',
+          'evaluation-active': '#B5E2FD',
           'evaluation-done': '#001C2C',
           'evaluation-done-label': '#004A75',
           'evaluation-ignore': '#2D2D2D',
@@ -151,15 +154,18 @@ export default createVuetify({
           'evaluation-xlisting': '#2B2600',
           hovered: '#616161',
           muted: '#BDBDBD',
+          'on-primary': '#07324A',
+          'on-secondary': '#072636',
           'on-surface-variant': '#FFF',
-          primary: '#0C354D',
-          'primary-contrast': '#94A8B3',
-          secondary: '#1C4F72',
-          success: '#00953E',
+          'on-tertiary': '#E2E8E9',
+          primary: '#86C8F3',
+          secondary: '#4298D1',
+          success: '#00BA4D',
           'surface-bright': '#B0B0B0',
           'surface-variant': '#171717',
-          tertiary: '#80BAE0',
-          title: '#1E71A4'
+          tertiary: '#195F8A',
+          title: '#1E71A4',
+          topbar: '#0C354D'
         }
       }
     }

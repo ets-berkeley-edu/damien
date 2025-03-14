@@ -6,7 +6,8 @@
           <v-btn
             :id="`apply-course-action-btn-${key}`"
             :key="key"
-            class="text-capitalize text-no-wrap mx-0 px-2"
+            class="font-weight-bold text-capitalize text-no-wrap mx-0 px-2"
+            color="primary"
             :disabled="disableControls || !allowEdits || !selectedEvaluationIds.length || isLoading || isInvalidAction(action)"
             variant="text"
             @click.stop="action.apply(key)"
@@ -15,7 +16,7 @@
             <v-progress-circular
               v-if="isLoading && key !== 'duplicate' && applyingAction.key === key"
               :indeterminate="true"
-              color="tertiary"
+              color="primary"
               rotate="5"
               size="20"
               width="3"

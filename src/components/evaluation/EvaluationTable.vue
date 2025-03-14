@@ -11,7 +11,7 @@
           aria-label="Filter evaluations table by search terms."
           class="bg-surface mr-3"
           clearable
-          color="tertiary"
+          color="primary"
           density="comfortable"
           hide-details
           label="Filter courses"
@@ -21,7 +21,6 @@
         <AddCourseSection
           v-if="!readonly"
           id="add-course-section"
-          :evaluations="evaluations"
           :allow-edits="allowEdits"
         />
       </div>
@@ -30,7 +29,7 @@
           <v-checkbox
             id="select-all-evals-checkbox"
             class="select-all-evals my-auto mr-3"
-            color="tertiary"
+            color="primary"
             density="compact"
             :disabled="!searchFilterResults.length || disableControls"
             :false-value="!someEvaluationsSelected && !allEvaluationsSelected"
@@ -58,7 +57,7 @@
             aria-controls="evaluation-table"
             borderless
             class="status-filter d-flex flex-wrap"
-            color="primary"
+            color="tertiary"
             density="compact"
             flat
             multiple
@@ -71,7 +70,7 @@
               :active="filterTypes[status].enabled"
               :aria-selected="filterTypes[status].enabled"
               :disabled="disableControls"
-              color="primary"
+              color="tertiary"
               class="mb-1 mr-1 rounded-pill text-uppercase"
               height="30"
               size="small"
@@ -93,7 +92,7 @@
                   <v-chip
                     class="ml-2 px-1"
                     :class="{'font-weight-bold': filterTypes[status].enabled}"
-                    size="x-small"
+                    size="small"
                   >
                     {{ filterTypeCounts(status) }}<span class="sr-only"> evaluations</span>
                   </v-chip>
@@ -146,12 +145,13 @@
               :id="rowId(evaluation, rowIndex)"
               class="evaluation-row"
               :class="{
-                'bg-evaluation-done': evaluation.id !== editRowId && evaluation.status === 'confirmed',
-                'bg-evaluation-ignore text-muted': hoverId !== evaluation.id && evaluation.id !== editRowId && evaluation.status === 'ignore',
-                'bg-secondary text-white border-bottom-none': evaluation.id === editRowId,
-                'bg-evaluation-to-do': evaluation.id !== editRowId && evaluation.status === 'review',
-                'bg-evaluation-xlisting': evaluation.id !== editRowId && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith),
-                'bg-primary-contrast text-primary': isRowActive(evaluation) && !isEditing(evaluation)
+                'bg-evaluation-active text-tertiary': isRowActive(evaluation) && !isEditing(evaluation),
+                'bg-evaluation-done': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'confirmed',
+                'bg-evaluation-ignore text-muted': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'ignore',
+                'bg-tertiary text-white border-bottom-none': evaluation.id === editRowId,
+                'bg-evaluation-to-do': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'review',
+                'bg-evaluation-xlisting': !isRowActive(evaluation) && !isEditing(evaluation) && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith),
+                'text-primary': isRowSelected(evaluation) && !isRowActive(evaluation) && !isEditing(evaluation)
               }"
               @mouseenter="onMouseenterRow(evaluation)"
               @mouseleave="onMouseleaveRow(evaluation)"
@@ -169,9 +169,9 @@
                 <v-checkbox
                   v-if="!isEditing(evaluation)"
                   :id="`evaluation-${rowIndex}-checkbox`"
-                  :aria-label="`${evaluation.subjectArea} ${evaluation.catalogId} ${selectedEvaluationIds.includes(evaluation.id) ? '' : 'not '}selected`"
+                  :aria-label="`${evaluation.subjectArea} ${evaluation.catalogId} ${isRowSelected(evaluation) ? '' : 'not '}selected`"
                   class="d-flex justify-center"
-                  :color="`${isRowActive(evaluation) ? 'primary' : 'tertiary'}`"
+                  :color="`${isRowActive(evaluation) ? 'tertiary' : 'primary'}`"
                   :disabled="editRowId === evaluation.id || disableControls"
                   hide-details
                   :model-value="evaluation.isSelected"
@@ -219,7 +219,7 @@
                           'sr-only': !isRowActive(evaluation),
                           'focus-btn': evaluation.id === focusedEditButtonEvaluationId
                         }"
-                        color="primary"
+                        color="tertiary"
                         :disabled="!allowEdits || disableControls"
                         max-width="150"
                         min-width="54"
@@ -233,13 +233,12 @@
                     </template>
                     <v-list
                       :id="`evaluation-menu-list-${evaluation.id}`"
-                      bg-color="surface-bright"
                       class="border-sm py-0"
                       rounded="sm"
                     >
                       <v-list-item
                         :id="`option-edit-evaluation-${evaluation.id}`"
-                        base-color="primary"
+                        base-color="secondary"
                         density="compact"
                         @click="() => onEditEvaluation(evaluation)"
                       >
@@ -247,7 +246,7 @@
                       </v-list-item>
                       <v-list-item
                         :id="`option-duplicate-evaluation-${evaluation.id}`"
-                        base-color="primary"
+                        base-color="secondary"
                         density="compact"
                         @click="() => duplicatingEvaluationId = evaluation.id"
                       >
@@ -509,7 +508,7 @@
                 </div>
               </td>
             </tr>
-            <tr v-if="isEditing(evaluation)" :key="`${evaluation.id}-edit`" class="bg-secondary text-white border-top-none">
+            <tr v-if="isEditing(evaluation)" :key="`${evaluation.id}-edit`" class="bg-tertiary text-white border-top-none">
               <td></td>
               <td :colspan="size(evaluationHeaders) - 1" class="pb-1 px-3">
                 <div class="d-flex justify-end">
@@ -527,6 +526,7 @@
                     id="save-evaluation-edit-btn"
                     :action="() => validateAndSave(evaluation)"
                     class="ma-2 evaluation-form-btn"
+                    color="primary"
                     :disabled="!rowValid || isSaving"
                     :in-progress="isSaving"
                     :text="isSaving ? 'Saving...' : 'Save'"
@@ -586,7 +586,7 @@
             <v-btn
               id="error-dialog-ok-btn"
               class="mr-2"
-              color="primary"
+              color="tertiary"
               text="OK"
               variant="flat"
               @click="departmentStore.dismissErrorDialog"
@@ -609,7 +609,6 @@
       <v-col align-self="center">
         <AddCourseSection
           id="add-course-section"
-          :evaluations="evaluations"
           :allow-edits="allowEdits"
           class="d-flex align-baseline justify-center ml-0"
         />
@@ -820,12 +819,16 @@ const instructorConfirmationText = instructor => {
     is not currently listed in SIS data as an instructor for any courses.`
 }
 
+const isEditing = evaluation => {
+  return editRowId.value === evaluation.id
+}
+
 const isRowActive = evaluation => {
   return [focusedEditButtonEvaluationId.value, hoverId.value, ...openMenuEvaluationIds.value].includes(evaluation.id)
 }
 
-const isEditing = evaluation => {
-  return editRowId.value === evaluation.id
+const isRowSelected = evaluation => {
+  return selectedEvaluationIds.value.includes(evaluation.id)
 }
 
 const isStatusFilterEnabled = evaluation => {
@@ -834,9 +837,7 @@ const isStatusFilterEnabled = evaluation => {
 }
 
 const isStatusVisible = evaluation => {
-  return !isEditing(evaluation)
-    && evaluation.status
-    && evaluation.id !== focusedEditButtonEvaluationId.value
+  return evaluation.status && !isEditing(evaluation) && !isRowActive(evaluation)
 }
 
 const minStartDate = evaluation => {
@@ -1056,7 +1057,7 @@ tr.border-top-none td {
   position: relative;
   top: 2px;
 }
-.bg-primary-contrast a {
+.bg-evaluation-active a {
   color: rgb(var(--v-theme-anchor-darken-2));
 }
 .evaluation-form-btn {

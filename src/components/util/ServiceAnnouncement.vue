@@ -35,7 +35,7 @@ onMounted(() => {
 
 <style>
 .service-announcement a {
-  color: rgb(var(--v-theme-tertiary)) !important;
+  color: rgb(var(--v-theme-primary)) !important;
 }
 </style>
 

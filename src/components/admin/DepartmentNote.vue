@@ -14,7 +14,7 @@
         id="dept-note-textarea"
         v-model="note"
         auto-grow
-        color="tertiary"
+        color="primary"
         :disabled="!isEditable"
         hide-details="auto"
         rows="3"
@@ -25,9 +25,9 @@
     <div v-if="!isEditing && isEditable" id="dept-note-actions" class="align-center d-flex dept-note-actions mt-2">
       <v-btn
         id="edit-dept-note-btn"
-        class="pr-0"
+        class="font-weight-bold pr-0"
         :class="{'ml-3': !note}"
-        color="tertiary"
+        color="primary"
         :disabled="disableControls"
         slim
         variant="text"
@@ -39,7 +39,8 @@
       <v-btn
         v-if="note"
         id="delete-dept-note-btn"
-        color="tertiary"
+        class="font-weight-bold"
+        color="primary"
         :disabled="disableControls"
         slim
         variant="text"

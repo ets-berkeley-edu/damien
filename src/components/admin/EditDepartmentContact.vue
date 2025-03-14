@@ -49,7 +49,7 @@
             v-model="canReceiveCommunications"
             aria-label="Receive notifications"
             class="checkbox-override rounded-sm"
-            color="tertiary"
+            color="primary"
             density="compact"
             :disabled="isSaving"
             hide-details
@@ -67,7 +67,7 @@
         </label>
         <v-radio-group
           v-model="permissions"
-          color="tertiary"
+          color="primary"
           column
           density="comfortable"
           hide-details
@@ -106,8 +106,9 @@
           aria-label="Department Forms"
           auto-select-first
           autocomplete="off"
+          base-color="secondary"
           class="mt-1"
-          color="primary"
+          color="secondary"
           :custom-filter="filterDepartmentForms"
           density="compact"
           :disabled="isSaving"
@@ -130,6 +131,7 @@
               :aria-posinset="index"
               :aria-selected="itemProps.active === true"
               :aria-setsize="departmentFormsCount - size(contactDepartmentForms)"
+              base-color="secondary"
               role="option"
               :title="item.title"
               v-bind="itemProps"
@@ -145,10 +147,10 @@
             v-for="item in contactDepartmentForms"
             :id="`selected-deptForm-${item.id}-${contactId}`"
             :key="item.id"
-            class="ma-1"
+            class="font-weight-bold ma-1"
             closable
             :close-label="`Remove ${item.name} from ${fullName}'s department forms`"
-            color="tertiary"
+            color="secondary"
             density="compact"
             :disabled="isSaving"
             :text="item.name"
