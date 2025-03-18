@@ -199,7 +199,7 @@ def get_cross_listings(term_id, course_numbers):
         text(query),
         params,
     ).all()
-    app.logger.info(f'Unholy loch cross-listing query returned {len(results)} results: {query} {params}')
+    app.logger.info(f'Unholy loch cross-listing query returned {len(results)} results')
     return results
 
 
@@ -224,7 +224,7 @@ def get_room_shares(term_id, course_numbers):
         text(query),
         params,
     ).all()
-    app.logger.info(f'Unholy loch room share query returned {len(results)} results: {query} {params}')
+    app.logger.info(f'Unholy loch room share query returned {len(results)} results')
     return results
 
 
@@ -276,7 +276,7 @@ def get_loch_sections(term_id, conditions):
         text(query),
         {'term_id': term_id},
     ).all()
-    app.logger.info(f'Unholy loch course query returned {len(results)} results: {query}')
+    app.logger.info(f'Unholy loch course query returned {len(results)} results')
     return results
 
 
@@ -302,7 +302,7 @@ def get_loch_sections_by_ids(term_id, course_numbers):
         text(query),
         params,
     ).all()
-    app.logger.info(f'Unholy loch course by id query returned {len(results)} results: {query} {params}')
+    app.logger.info(f'Unholy loch course by id query returned {len(results)} results')
     return results
 
 
