@@ -1,11 +1,10 @@
 <template>
   <v-dialog
     v-model="model"
-    content-class="overflow-scroll"
     @click:outside="cancel"
     @keydown.esc="cancel"
   >
-    <v-card class="modal-content" width="500">
+    <v-card class="modal-content" elevation="0" width="500">
       <v-card-title id="confirm-dialog-title">
         <div class="align-center d-flex pt-3 px-2">
           <div v-if="icon" class="pb-1 pr-2">

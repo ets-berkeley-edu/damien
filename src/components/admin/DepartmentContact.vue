@@ -1,9 +1,14 @@
 <template>
   <v-expansion-panel :id="`department-contact-${contact.id}`" class="panel-width">
     <v-expansion-panel-title :id="`department-contact-${contact.id}-btn`" class="pa-2 rounded-b-0 height-unset">
+      <span v-if="isEditing" class="sr-only">Edit</span>
       <div :id="`dept-contact-${contact.id}-name`" class="font-weight-bold">{{ fullName }}</div>
     </v-expansion-panel-title>
-    <v-expansion-panel-text class="edit-contact-container">
+    <v-expansion-panel-text
+      :aria-labelledby="`department-contact-${contact.id}-btn`"
+      class="edit-contact-container"
+      role="region"
+    >
       <v-container
         v-if="!isEditing"
         :id="`dept-contact-${contact.id}-details`"
@@ -68,6 +73,7 @@
             >
               <v-btn
                 :id="`edit-dept-contact-${contact.id}-btn`"
+                :aria-label="`Edit ${fullName}`"
                 class="font-weight-bold text-capitalize pa-0"
                 color="primary"
                 density="compact"
@@ -84,6 +90,7 @@
               />
               <v-btn
                 :id="`delete-dept-contact-${contact.id}-btn`"
+                :aria-label="`Delete ${fullName}`"
                 class="font-weight-bold text-capitalize pa-0"
                 color="primary"
                 density="compact"
@@ -97,7 +104,7 @@
                 :is-saving="isDeleting"
                 :on-click-cancel="onCancelDelete"
                 :on-click-confirm="onDelete"
-                :text="`Are you sure you want to remove ${fullName}?`"
+                :text="`Are you sure you want to remove ${fullName} as a department contact?`"
                 :title="'Delete contact?'"
               />
             </v-toolbar>
@@ -170,9 +177,9 @@ watch(() => props.isExpanded, () => {
   }
 })
 
-const afterSave = () => {
+const afterSave = contactName => {
   isEditing.value = false
-  alertScreenReader(`Updated contact ${fullName.value}.`)
+  alertScreenReader(`Updated contact ${contactName}.`)
   putFocusNextTick(`edit-dept-contact-${props.contact.id}-btn`)
 }
 
@@ -189,6 +196,7 @@ const onCancelEdit = () => {
 }
 
 const onDelete = () => {
+  alertScreenReader('Deleting contact')
   isDeleting.value = true
   const nameOfDeleted = fullName.value
   departmentStore.deleteContact(props.contact.userId).then(() => {
