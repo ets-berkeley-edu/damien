@@ -233,7 +233,7 @@ import {EVALUATION_STATUSES, useDepartmentStore} from '@/stores/department/depar
 import {addInstructor} from '@/api/instructor'
 import {computed, inject, onMounted, ref, watch} from 'vue'
 import {endsWith, filter, find, get, isEmpty, isObject, map, max, min, size, toInteger} from 'lodash'
-import {putFocusNextTick, toFormatFromISO} from '@/lib/utils'
+import {putFocusNextTick, toFormatFromJsDate} from '@/lib/utils'
 import {storeToRefs} from 'pinia'
 import {useContextStore} from '@/stores/context'
 import {DateTime} from 'luxon'
@@ -339,7 +339,7 @@ const selectedEvaluationTypeName = computed(() => {
   return get(find(useContextStore().config.evaluationTypes, et => et.id === selectedEvaluationType.value), 'name')
 })
 const selectedStartDay = computed(() => {
-  return selectedStartDate.value ? toFormatFromISO(selectedStartDate.value, 'o') : null
+  return selectedStartDate.value ? toFormatFromJsDate(selectedStartDate.value, 'o') : null
 })
 const validStartDates = computed(() => {
   // The intersection of the selected rows' allowed evaluation start dates
@@ -432,7 +432,7 @@ const showSelectedInstructor = evaluation => {
 }
 
 const showSelectedStartDate = evaluation => {
-  return selectedStartDate.value && selectedStartDay.value !== toFormatFromISO(evaluation.startDate, 'o')
+  return selectedStartDate.value && selectedStartDay.value !== toFormatFromJsDate(evaluation.startDate, 'o')
 }
 
 const showSelectedStatus = evaluation => {

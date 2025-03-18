@@ -378,6 +378,7 @@ const onUpdateFocus = (hasFocus, inputEvents) => {
 .custom-text-field input::placeholder {
   color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
 }
+/* eslint-disable-next-line vue-scoped-css/no-unused-selector */
 .custom-text-field.error--text {
   border-color: rgb(var(--v-theme-error));
 }

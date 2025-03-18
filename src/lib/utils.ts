@@ -82,11 +82,6 @@ export function toFormatFromJsDate(jsDate: Date, format: string): string {
   return DateTime.fromJSDate(jsDate).toFormat(format)
 }
 
-export function toFormatFromISO(isoString: string, format: string): string {
-  // See https://moment.github.io/luxon/#/formatting?id=table-of-tokens
-  return DateTime.fromISO(isoString).toFormat(format)
-}
-
 export function toLocaleFromISO(isoString: string, luxonPreset?: any): string {
   // See https://moment.github.io/luxon/#/formatting?id=presets
   return DateTime.fromISO(isoString).toLocaleString(luxonPreset || DateTime.DATE_MED)

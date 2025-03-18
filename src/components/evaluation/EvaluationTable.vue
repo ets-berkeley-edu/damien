@@ -1060,6 +1060,7 @@ tr.border-top-none td {
   position: relative;
   top: 2px;
 }
+/* eslint-disable-next-line vue-scoped-css/no-unused-selector */
 .bg-evaluation-active a {
   color: rgb(var(--v-theme-anchor-darken-2));
 }
