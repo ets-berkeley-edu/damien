@@ -70,6 +70,7 @@
                             Collapse All
                             <v-icon class="rotate-180 ml-1" :icon="mdiMinusBoxMultipleOutline" />
                           </span>
+                          <span class="sr-only">department contacts</span>
                         </template>
                       </v-expansion-panel-title>
                     </div>
@@ -98,7 +99,7 @@
                 <v-btn
                   v-if="!isCreatingNotification"
                   id="open-notification-form-btn"
-                  class="ml-2 text-capitalize"
+                  class="department-contacts-btn ml-2 text-capitalize"
                   color="tertiary"
                   :disabled="disableControls || isEmpty(contacts)"
                   text="Send notification"
@@ -116,7 +117,7 @@
                 <v-btn
                   v-if="!isAddingContact"
                   id="add-dept-contact-btn"
-                  class="font-weight-bold ml-2"
+                  class="department-contacts-btn font-weight-bold ml-2"
                   color="primary"
                   :disabled="disableControls"
                   :prepend-icon="mdiPlusThick"
@@ -127,7 +128,7 @@
                 <EditDepartmentContact
                   v-if="isAddingContact"
                   :id="`add-department-contact`"
-                  :after-save="afterSaveContact"
+                  :after-save="afterAddContact"
                   :on-cancel="onCancelAddContact"
                 />
               </div>
@@ -217,10 +218,10 @@ onMounted(() => {
   refresh()
 })
 
-const afterSaveContact = () => {
+const afterAddContact = contactName => {
   isAddingContact.value = false
   contactsPanel.value = 0
-  alertScreenReader('Contact saved.')
+  alertScreenReader(`Added contact ${contactName}.`)
   putFocusNextTick('add-dept-contact-btn')
 }
 
@@ -269,6 +270,9 @@ const toggleCollapseAllContacts = isCollapsed => {
 </script>
 
 <style scoped>
+.department-contacts-btn {
+  width: 10.125rem;
+}
 .omen-poster-img {
   height: calc(100vh - 100px);
 }

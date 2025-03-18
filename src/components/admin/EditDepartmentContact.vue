@@ -186,7 +186,7 @@ import PersonLookup from '@/components/admin/PersonLookup'
 import ProgressButton from '@/components/util/ProgressButton'
 import {alertScreenReader, oxfordJoin, putFocusNextTick} from '@/lib/utils'
 import {cloneDeep, differenceBy, find, get, isEmpty, isNil, last, map, remove, size, some, sortBy, upperCase} from 'lodash'
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {getUserDepartmentForms} from '@/api/user'
 import {storeToRefs} from 'pinia'
 import {useDepartmentStore} from '@/stores/department/department-edit-session'
@@ -237,24 +237,9 @@ const fullName = computed(() => {
   return firstName.value && lastName.value ? `${firstName.value} ${lastName.value}`.trim() : ''
 })
 
-watch(canReceiveCommunications, value => {
-  srAlert('receive notifications', value)
-})
-
-watch(permissions, value => {
-  if (isNil(value)) {
-    srAlert('have access to Blue', false)
-  } else if (value === 'reports_only') {
-    srAlert('be able to view reports', true)
-  } else if (value === 'response_rates') {
-    srAlert('be able to view reports and response rates', true)
-  }
-})
-
 onMounted(() => {
   departmentFormsCount.value = size(departmentStore.allDepartmentForms)
   populateForm(props.contact)
-  putFocusNextTick('add-contact-sub-header')
 })
 
 onUnmounted(() => {
@@ -293,14 +278,13 @@ const onSave = () => {
     uid: uid.value,
     userId: userId.value
   }).then(() => {
-    props.afterSave()
+    props.afterSave(fullName.value)
     isSaving.value = false
   })
 }
 
 const onSelectSearchResult = user => {
   populateForm(user)
-  alertScreenReader(`${user.firstName} ${user.lastName} selected`)
   putFocusNextTick(`input-email-${contactId.value}`)
 }
 
@@ -318,7 +302,7 @@ const populateForm = contact => {
       canReceiveCommunications.value = contact.canReceiveCommunications
     }
     permissions.value = contact.canViewReports ? (contact.canViewResponseRates ? 'response_rates' : 'reports_only') : null
-    putFocusNextTick('person-lookup-input')
+    putFocusNextTick(`input-email-${contact.uid}`)
   } else {
     csid.value = null
     canReceiveCommunications.value = true
@@ -329,6 +313,7 @@ const populateForm = contact => {
     permissions.value = null
     uid.value = null
     userId.value = null
+    putFocusNextTick('person-lookup-input')
   }
 }
 
@@ -337,12 +322,6 @@ const removeDepartmentForm = formId => {
   contactDepartmentForms.value = remove(contactDepartmentForms.value, f => f.id !== formId)
   alertScreenReader(`Removed ${form.name} from ${fullName.value} department forms.`)
   putFocusNextTick(`select-department-forms-${contactId.value}`)
-}
-
-const srAlert = (label, isSelected) => {
-  if (firstName.value || lastName.value) {
-    alertScreenReader(`${firstName.value} ${lastName.value} will ${isSelected ? '' : 'not '} ${label}.`)
-  }
 }
 </script>
 
