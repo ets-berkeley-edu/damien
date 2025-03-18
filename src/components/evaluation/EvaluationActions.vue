@@ -219,13 +219,13 @@ const onCancelDuplicate = () => {
   const nextFocusId = duplicatingEvaluationId.value ? `evaluation-menu-btn-${duplicatingEvaluationId.value}` : 'apply-course-action-btn-duplicate'
   reset()
   alertScreenReader('Canceled duplication.')
-  putFocusNextTick(nextFocusId)
+  putFocusNextTick(nextFocusId, {scroll: false})
 }
 
 const onCancelEdit = () => {
   reset()
   alertScreenReader('Canceled edit.')
-  putFocusNextTick('apply-course-action-btn-edit')
+  putFocusNextTick('apply-course-action-btn-edit', {scroll: false})
 }
 
 const onClickDuplicate = () => {
@@ -399,7 +399,7 @@ const update = (fields, key) => {
         const selectedRowCount = applyingAction.value.key === 'duplicate' ? ((response.length || 0) / 2) : (response.length || 0)
         const target = `${selectedRowCount} ${selectedRowCount === 1 ? 'row' : 'rows'}`
         alertScreenReader(`${applyingAction.value.completedText} ${target}`)
-        putFocusNextTick(duplicatingEvaluationId.value ? `evaluation-menu-btn-${duplicatingEvaluationId.value}` : `apply-course-action-btn-${key}`)
+        putFocusNextTick(duplicatingEvaluationId.value ? `evaluation-menu-btn-${duplicatingEvaluationId.value}` : `apply-course-action-btn-${key}`, {scroll: false})
         reset()
       }).finally(() => {
         isApplying.value = false

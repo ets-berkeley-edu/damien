@@ -139,7 +139,7 @@
         />
       </template>
       <template #body="{items}">
-        <TransitionGroup v-if="size(items)">
+        <transition-group v-if="size(items)" name="evaluation-row">
           <template v-for="(evaluation, rowIndex) in items" :key="evaluation.id">
             <tr
               :id="rowId(evaluation, rowIndex)"
@@ -169,6 +169,7 @@
                 <v-checkbox
                   v-if="!isEditing(evaluation)"
                   :id="`evaluation-${rowIndex}-checkbox`"
+                  :key="`checkbox-${rowIndex}`"
                   :aria-label="`${evaluation.subjectArea} ${evaluation.catalogId} ${isRowSelected(evaluation) ? '' : 'not '}selected`"
                   class="d-flex justify-center"
                   :color="`${isRowActive(evaluation) ? 'tertiary' : 'primary'}`"
@@ -190,7 +191,7 @@
               >
                 <v-chip
                   v-if="isStatusVisible(evaluation)"
-                  :key="rowIndex"
+                  :key="`status-${rowIndex}`"
                   class="mx-auto px-1 status-label text-caption"
                   :class="{
                     'bg-evaluation-done-label': evaluation.status === 'confirmed',
@@ -206,6 +207,7 @@
                   class="pill-invisible mx-auto"
                 >
                   <v-menu
+                    :key="`menu-${rowIndex}`"
                     scroll-strategy="none"
                     z-index="0"
                     @update:model-value="isOpen => onToggleEditMenu(isOpen, evaluation)"
@@ -543,7 +545,7 @@
               </td>
             </tr>
           </template>
-        </TransitionGroup>
+        </transition-group>
         <tr v-if="isEmpty(items)">
           <td :colspan="size(evaluationHeaders)">
             <div id="no-courses-found" class="font-size-16 pa-5 text-center text-muted">
@@ -752,7 +754,7 @@ const afterEditEvaluation = evaluation => {
   selectedStartDate.value = null
   focusedEditButtonEvaluationId.value = evaluation.id
   departmentStore.setDisableControls(false)
-  putFocusNextTick(`evaluation-menu-btn-${focusedEditButtonEvaluationId.value}`)
+  putFocusNextTick(`evaluation-menu-btn-${focusedEditButtonEvaluationId.value}`, {scroll: false})
 }
 
 const customFilter = (value, search, item) => {
@@ -848,7 +850,7 @@ const onCancelConfirm = () => {
   isConfirmingCancelEdit.value = false
   focusedEditButtonEvaluationId.value = clone(pendingEditRowId.value)
   pendingEditRowId.value = null
-  putFocusNextTick(`evaluation-menu-btn-${focusedEditButtonEvaluationId.value}`)
+  putFocusNextTick(`evaluation-menu-btn-${focusedEditButtonEvaluationId.value}`, {scroll: false})
 }
 
 const onCancelEdit = evaluation => {
@@ -886,6 +888,7 @@ const onConfirmNonSisInstructor = () => {
 
 const onEditEvaluation = evaluation => {
   departmentStore.setDisableControls(true)
+  pull(openMenuEvaluationIds.value, evaluation.id)
   if (editRowId.value) {
     const editingEvaluation = find(evaluations.value, ['id', editRowId.value])
     isConfirmingCancelEdit.value = editingEvaluation && (
@@ -905,7 +908,7 @@ const onEditEvaluation = evaluation => {
     selectedEvaluationStatus.value = get(evaluation, 'status')
     selectedEvaluationType.value = get(evaluation, 'evaluationType.id')
     selectedStartDate.value = evaluation.startDate
-    putFocusNextTick(`${props.readonly ? '' : 'select-evaluation-status'}`)
+    putFocusNextTick(`${props.readonly ? '' : 'select-evaluation-status'}`, {scroll: false})
   }
 }
 
@@ -1069,14 +1072,22 @@ tr.border-top-none td {
 .evaluation-row {
   vertical-align: top;
 }
-.evaluation-row.evaluation-row-enter-to {
-  animation: 4s fadeOut;
+.evaluation-row.evaluation-row-enter-to,
+.evaluation-row.evaluation-row-leave-from {
+  animation: 4s highlightRow;
+  animation-delay: 250ms;
   animation-timing-function: cubic-bezier(.05, -.12, .02, .32);
 }
 .evaluation-row.evaluation-row-enter-from,
 .evaluation-row.evaluation-row-leave-to {
   opacity: 0;
-  transform: translateX(50%);
+  transform: translateX(20%);
+}
+@media (prefers-reduced-motion) {
+  .evaluation-row.evaluation-row-enter-from,
+  .evaluation-row.evaluation-row-leave-to {
+    transform: none;
+  }
 }
 .evaluation-row.evaluation-row-move,
 .evaluation-row.evaluation-row-enter-active,

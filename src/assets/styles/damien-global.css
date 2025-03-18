@@ -1,6 +1,6 @@
-@keyframes fadeOut {
+@keyframes highlightRow {
   from {
-    box-shadow: inset 1px 1px 8px 8px #daf0fd70;
+    box-shadow: inset 1px 1px 8px 8px rgba(255, 255, 255, 0.5);
   }
   to {
     box-shadow: inset 0px 0px transparent;
