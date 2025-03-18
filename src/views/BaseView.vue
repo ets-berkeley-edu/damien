@@ -56,6 +56,7 @@
     </v-app-bar>
     <v-navigation-drawer
       v-if="currentUser.isAdmin"
+      id="nav-drawer"
       aria-labelledby="nav-header"
       class="font-size-14"
       color="tertiary"
@@ -74,6 +75,9 @@
         <div class="d-flex justify-end pa-2">
           <v-btn
             id="sidebar-toggle-btn"
+            aria-controls="nav-drawer"
+            :aria-expanded="!isSidebarCollapsed"
+            :aria-label="`${isSidebarCollapsed ? 'expand' : 'collapse'} navigation`"
             class="font-size-16 nav-item px-0"
             color="on-tertiary"
             variant="tonal"
