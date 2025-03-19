@@ -141,10 +141,10 @@
           </template>
           <template #selection></template>
         </v-combobox>
-        <span :id="`selected-department-forms-desc-${contactId}`" class="sr-only">
-          {{ isEmpty(contactDepartmentForms) ? 'No department forms selected' : `${oxfordJoin(map(contactDepartmentForms, 'name'))} selected` }}
-        </span>
         <div :id="`selected-department-forms-desc-${contactId}`" class="py-1">
+          <span class="sr-only">
+            {{ isEmpty(contactDepartmentForms) ? 'No department forms selected' : `${oxfordJoin(map(contactDepartmentForms, 'name'))} selected` }}
+          </span>
           <v-chip
             v-for="item in contactDepartmentForms"
             :id="`selected-deptForm-${item.id}-${contactId}`"
