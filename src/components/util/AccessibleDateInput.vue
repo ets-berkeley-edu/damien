@@ -7,7 +7,7 @@
       :input-debounce="500"
       :max-date="maxDate"
       :min-date="minDate"
-      :popover="{placement: placement, visibility: 'focus'}"
+      :popover="{autoHide: false, placement: placement, visibility: 'focus'}"
       :step="1"
       @did-move="makeCalendarAccessible"
       @dayclick="() => putFocusNextTick(`${idPrefix}-clear-btn`)"
@@ -150,10 +150,15 @@ onBeforeUnmount(() => {
 })
 
 onMounted(() => {
+  const container = document.getElementById(props.containerId)
+  const popoverWrapper = container?.querySelector('.vc-popover-content-wrapper')
+  if (popoverWrapper) {
+    popoverWrapper.id = `${props.idPrefix}-popover`
+  }
   // Setting this as a prop on the VTextField component breaks the "clear" button.
   document.getElementById(inputId)?.setAttribute('role', 'combobox')
   // Workaround for https://github.com/nathanreyes/v-calendar/issues/1459
-  document.getElementById(props.containerId)?.addEventListener('keydown', onKeydownPreventClick)
+  container?.addEventListener('keydown', onKeydownPreventClick)
   dateInputEvents.value = datePicker.value.inputEvents
 })
 
@@ -269,11 +274,10 @@ const onKeydownPreventClick = e => {
 const onPopoverShown = popoverContent => {
   // Fill accessibility gaps in v-calendar date picker popover
   const helpContainer = popoverContent.querySelector('[data-helptext]')
+  const liveRegion = document.createElement('span')
   popoverContent.ariaLabel = `choose ${props.ariaLabel}`
   popoverContent.ariaModal = false
-  popoverContent.id = `${props.idPrefix}-popover`
   popoverContent.role = 'dialog'
-
   if (helpContainer) {
     const helpText = helpContainer.getAttribute('data-helptext')
     const helpEl = document.createElement('span')
@@ -285,8 +289,6 @@ const onPopoverShown = popoverContent => {
       helpEl.innerText = helpText
     }, 200)
   }
-
-  const liveRegion = document.createElement('span')
   liveRegion.className = 'sr-only'
   liveRegion.ariaLive = 'assertive'
   liveRegion.id = `${props.idPrefix}-popover-sr-alert`

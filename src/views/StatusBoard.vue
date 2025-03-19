@@ -66,6 +66,7 @@
                 <v-checkbox
                   :id="`checkbox-select-dept-${department.id}`"
                   aria-controls="open-notification-form-btn"
+                  :aria-describedby="undefined"
                   class="align-center mt-0 pt-0"
                   color="primary"
                   :disabled="contextStore.loading"

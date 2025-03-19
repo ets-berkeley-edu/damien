@@ -21,7 +21,7 @@ import {useContextStore} from '@/stores/context'
 const contextStore = useContextStore()
 
 onMounted(() => {
-  useContextStore().loadingComplete('Page not found')
+  contextStore.loadingComplete('Page not found')
 })
 </script>
 

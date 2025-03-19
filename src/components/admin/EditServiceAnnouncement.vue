@@ -15,6 +15,7 @@
     <v-checkbox
       id="service-announcement-published"
       v-model="isPublished"
+      :aria-describedby="undefined"
       :disabled="isSaving"
       hide-details
       label="Publish"

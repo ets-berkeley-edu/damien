@@ -6,7 +6,7 @@
     name="footer"
   >
     <div class="d-flex justify-space-between w-100">
-      <div aria-label="Feedback" class="px-3">
+      <div class="px-3">
         Problem? Question?
         <a
           id="damien-support-mailto"

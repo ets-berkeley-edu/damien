@@ -4,6 +4,7 @@
       <v-text-field
         id="dev-auth-uid"
         v-model="uid"
+        :aria-describedby="undefined"
         autocomplete="off"
         bg-color="surface"
         density="comfortable"
@@ -20,6 +21,7 @@
       <v-text-field
         id="dev-auth-password"
         v-model="password"
+        :aria-describedby="undefined"
         autocomplete="off"
         bg-color="surface"
         density="comfortable"

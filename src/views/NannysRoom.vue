@@ -428,6 +428,7 @@
               <v-switch
                 id="auto-publish-enabled"
                 v-model="autoPublishEnabled"
+                :aria-describedby="undefined"
                 :aria-label="`Auto-publish is ${autoPublishEnabled ? 'enabled' : 'disabled'}`"
                 class="mt-3 mx-3"
                 color="success"

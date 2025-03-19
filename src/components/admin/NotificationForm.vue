@@ -67,11 +67,11 @@
         <v-text-field
           id="input-notification-subject"
           v-model="subject"
+          :aria-describeby="undefined"
           class="bg-surface my-1"
           color="primary"
           density="compact"
           :disabled="isSending"
-          hide-details="auto"
           variant="outlined"
           @keydown.esc="onCancel"
         />
@@ -82,11 +82,11 @@
           <v-textarea
             id="input-notification-message"
             v-model="message"
+            :aria-describeby="undefined"
             auto-grow
             class="bg-surface mt-1"
             color="primary"
             :disabled="isSending"
-            hide-details="auto"
             variant="outlined"
           />
         </div>

@@ -18,6 +18,7 @@
             id="lookup-course-number-input"
             ref="lookupCourseNumberInput"
             v-model="courseNumber"
+            :aria-describedby="errorMessage ? 'lookup-course-number-input-messages' : undefined"
             color="primary"
             density="compact"
             :disabled="disableControls"
