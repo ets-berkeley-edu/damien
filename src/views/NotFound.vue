@@ -15,9 +15,14 @@
 
 <script setup>
 import {get} from 'lodash'
+import {onMounted} from 'vue'
 import {useContextStore} from '@/stores/context'
 
 const contextStore = useContextStore()
+
+onMounted(() => {
+  useContextStore().loadingComplete('Page not found')
+})
 </script>
 
 <style scoped>

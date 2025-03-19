@@ -148,8 +148,7 @@ const publish = () => {
 }
 
 const refresh = () => {
-  contextStore.loadingStart()
-  alertScreenReader(`Loading ${contextStore.selectedTermName}`)
+  contextStore.loadingStart(`Loading ${contextStore.selectedTermName}`)
   Promise.all([
     getValidation(contextStore.selectedTermId),
     getConfirmed(contextStore.selectedTermId),
