@@ -180,11 +180,11 @@ import TermSelect from '@/components/util/TermSelect'
 import {NUMBER_OF_THE_BEAST, useDepartmentStore} from '@/stores/department/department-edit-session'
 import {alertScreenReader, getCatalogListings, putFocusNextTick} from '@/lib/utils'
 import {computed, onMounted, ref, watch} from 'vue'
-import {filter as _filter, get, includes, isEmpty, isUndefined, size, sortBy} from 'lodash'
+import {filter as _filter, find, get, includes, isEmpty, isUndefined, size, sortBy, toInteger} from 'lodash'
 import {mdiChevronDown, mdiClose, mdiMinusBoxMultipleOutline, mdiPlusBoxMultipleOutline, mdiPlusThick} from '@mdi/js'
 import {storeToRefs} from 'pinia'
 import {useContextStore} from '@/stores/context'
-import {useRoute} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 
 const contextStore = useContextStore()
 const contactDetailsPanel = ref([])
@@ -195,6 +195,7 @@ const departmentStore = useDepartmentStore()
 const isAddingContact = ref(false)
 const isCreatingNotification = ref(false)
 const route = useRoute()
+const router = useRouter()
 const {contacts, department, disableControls, showTheOmenPoster} = storeToRefs(departmentStore)
 
 const notificationRecipients = computed(() => {
@@ -244,8 +245,11 @@ const onCancelAddContact = () => {
 }
 
 const onChangeDepartment = id => {
-  departmentId.value = id
-  refresh()
+  router.push({
+    path: `/department/${id}`,
+    query: route.query,
+    replace: true
+  })
 }
 
 const onClickAddContact = () => {
@@ -254,8 +258,8 @@ const onClickAddContact = () => {
 }
 
 const refresh = () => {
-  contextStore.loadingStart()
-  alertScreenReader(`Loading ${contextStore.selectedTermName}`)
+  const departmentName = get(find(currentUser.departments, {id: toInteger(departmentId.value)}), 'name', '')
+  contextStore.loadingStart(`Loading ${departmentName} ${contextStore.selectedTermName}`)
   departmentStore.init(departmentId.value).then(department => {
     departmentStore.setShowTheOmenPoster(route.query.n === NUMBER_OF_THE_BEAST)
     contextStore.loadingComplete(`${department.deptName} ${contextStore.selectedTermName}`)

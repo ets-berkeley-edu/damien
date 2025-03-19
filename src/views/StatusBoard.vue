@@ -206,8 +206,7 @@ const someDepartmentsSelected = computed(() => {
 })
 
 onMounted(() => {
-  contextStore.loadingStart()
-  alertScreenReader(`Loading ${contextStore.selectedTermName} Status Dashboard.`)
+  contextStore.loadingStart(`Loading ${contextStore.selectedTermName} Status Dashboard`)
   departments.value = []
   getDepartmentsEnrolled(true, false, true, contextStore.selectedTermId).then(data => {
     departments.value = data
