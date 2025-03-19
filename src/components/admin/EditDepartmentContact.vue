@@ -23,7 +23,7 @@
       <h3 id="contact-sub-header">
         <span class="sr-only">Contact: </span>{{ fullName }} ({{ uid }})
       </h3>
-      <div class="mt-2">
+      <div class="pt-2">
         <label :for="`input-email-${contactId}`" class="form-label">
           Email Address
         </label>
@@ -33,13 +33,12 @@
           class="mt-1"
           density="compact"
           :disabled="isSaving"
-          hide-details="auto"
           variant="outlined"
           required
           :rules="emailRules"
         />
       </div>
-      <div class="mt-3">
+      <div class="pt-2">
         <label :for="`checkbox-communications-${contactId}`" class="form-label">
           Communications
         </label>
@@ -47,6 +46,7 @@
           <v-checkbox
             :id="`checkbox-communications-${contactId}`"
             v-model="canReceiveCommunications"
+            :aria-describedby="undefined"
             aria-label="Receive notifications"
             class="checkbox-override rounded-sm"
             color="primary"
@@ -61,12 +61,13 @@
           </label>
         </div>
       </div>
-      <div class="pt-2">
+      <div class="pt-3">
         <label :for="`checkbox-communications-${contactId}`" class="form-label">
           Blue Access
         </label>
         <v-radio-group
           v-model="permissions"
+          :aria-describedby="undefined"
           color="primary"
           column
           density="comfortable"
@@ -96,12 +97,13 @@
           />
         </v-radio-group>
       </div>
-      <div class="mt-3">
+      <div class="pt-3">
         <label :for="`select-department-forms-${contactId}`" class="form-label">
           Department Forms
         </label>
         <v-combobox
           :id="`select-department-forms-${contactId}`"
+          ref="departmentFormsComponent"
           :aria-describedby="`selected-department-forms-desc-${contactId}`"
           aria-label="Department Forms"
           auto-select-first
@@ -186,7 +188,7 @@ import PersonLookup from '@/components/admin/PersonLookup'
 import ProgressButton from '@/components/util/ProgressButton'
 import {alertScreenReader, oxfordJoin, putFocusNextTick} from '@/lib/utils'
 import {cloneDeep, differenceBy, find, get, isEmpty, isNil, last, map, remove, size, some, sortBy, upperCase} from 'lodash'
-import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {computed, nextTick, onMounted, onUnmounted, onUpdated, ref} from 'vue'
 import {getUserDepartmentForms} from '@/api/user'
 import {storeToRefs} from 'pinia'
 import {useDepartmentStore} from '@/stores/department/department-edit-session'
@@ -213,6 +215,7 @@ const {contacts} = storeToRefs(departmentStore)
 const canReceiveCommunications = ref(true)
 const csid = ref(undefined)
 const contactDepartmentForms = ref([])
+const departmentFormsComponent = ref()
 const departmentFormsCount = ref(0)
 const email = ref(undefined)
 const emailRules = [
@@ -240,6 +243,19 @@ const fullName = computed(() => {
 onMounted(() => {
   departmentFormsCount.value = size(departmentStore.allDepartmentForms)
   populateForm(props.contact)
+})
+
+onUpdated(() => {
+  nextTick(() => {
+    const combobox = departmentFormsComponent.value.$el.querySelector('[role="combobox"]')
+    if (combobox) {
+      const menuId = combobox.getAttribute('aria-owns')
+      if (menuId) {
+        combobox.setAttribute('aria-controls', menuId)
+        combobox.removeAttribute('aria-owns')
+      }
+    }
+  })
 })
 
 onUnmounted(() => {

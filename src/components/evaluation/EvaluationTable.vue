@@ -8,6 +8,7 @@
         <v-text-field
           id="evaluation-search-input"
           v-model="searchFilter"
+          :aria-describedby="undefined"
           aria-label="Filter evaluations table by search terms."
           class="bg-surface mr-3"
           clearable
@@ -28,6 +29,7 @@
         <div v-if="!readonly && allowEdits" class="d-flex pt-2">
           <v-checkbox
             id="select-all-evals-checkbox"
+            :aria-describedby="undefined"
             class="select-all-evals my-auto mr-3"
             color="primary"
             density="compact"
@@ -68,7 +70,7 @@
               :id="`evaluations-filter-${status}`"
               :key="status"
               :active="filterTypes[status].enabled"
-              :aria-selected="filterTypes[status].enabled"
+              :aria-pressed="filterTypes[status].enabled"
               :disabled="disableControls"
               color="tertiary"
               class="mb-1 mr-1 rounded-pill text-uppercase"
@@ -114,7 +116,6 @@
     <v-data-table
       id="evaluation-table"
       v-model:sort-by="sortBy"
-      aria-label="Evaluations"
       class="v-table-hidden-row-override pt-3"
       :custom-filter="customFilter"
       density="compact"
@@ -170,6 +171,7 @@
                   v-if="!isEditing(evaluation)"
                   :id="`evaluation-${rowIndex}-checkbox`"
                   :key="`checkbox-${rowIndex}`"
+                  :aria-describedby="undefined"
                   :aria-label="`${evaluation.subjectArea} ${evaluation.catalogId} ${isRowSelected(evaluation) ? '' : 'not '}selected`"
                   class="d-flex justify-center"
                   :color="`${isRowActive(evaluation) ? 'tertiary' : 'primary'}`"

@@ -14,6 +14,7 @@
         :id="`${idPrefix}-input`"
         ref="container"
         v-model="selected"
+        :aria-describedby="`${idPrefix}-error`"
         :aria-disabled="disabled"
         :aria-labelledby="`${idPrefix}-label`"
         autocomplete="off"
@@ -25,15 +26,16 @@
         bg-color="white"
         density="compact"
         :disabled="disabled"
+        eager
         :error="required && !suppressValidation && !!size(errors)"
         :error-messages="required && !suppressValidation ? errors : []"
-        hide-details="auto"
+        hide-details
         :hide-no-data="isSearching || !query"
         :items="suggestions"
         :list-props="{ariaLive: 'off'}"
         :loading="isSearching ? 'primary' : false"
         :menu-icon="null"
-        :menu-props="{closeOnContentClick: true}"
+        :menu-props="{closeOnContentClick: true, id: `${idPrefix}-menu`}"
         no-data-text="No results found."
         no-filter
         persistent-clear
@@ -99,10 +101,14 @@
         </template>
       </v-autocomplete>
     </div>
-    <div aria-live="assertive" :class="{'v-col v-col-2 pl-0': inline}" role="alert">
+    <div
+      :id="`${idPrefix}-error`"
+      aria-live="assertive"
+      :class="{'v-col v-col-2 pl-0': inline}"
+      role="alert"
+    >
       <div
         v-if="required && !suppressValidation && errors && errors[0]"
-        :id="`${idPrefix}-error`"
         class="v-messages text-error px-3 mt-1"
         :class="theme.global.current.value.dark ? 'text-error-lighten-2' : ''"
       >
@@ -116,7 +122,7 @@
 import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {debounce, delay, each, get, replace, size, split, trim} from 'lodash'
 import {mdiCloseCircle} from '@mdi/js'
-import {nextTick, onMounted, ref} from 'vue'
+import {nextTick, onMounted, onUpdated, ref} from 'vue'
 import {pluralize} from '@/lib/utils'
 import {searchInstructors} from '@/api/instructor'
 import {searchUsers} from '@/api/user'
@@ -219,6 +225,13 @@ onMounted(() => {
   debouncedSearch.value = debounce(executeSearch, 300)
 })
 
+onUpdated(() => {
+  const combobox = getComboboxElement()
+  if (combobox) {
+    combobox.removeAttribute('aria-expanded')
+  }
+})
+
 const executeSearch = () => {
   const apiSearch = props.instructorLookup ? searchInstructors : searchUsers
   apiSearch(query.value, props.excludeUids).then(users => {
@@ -236,7 +249,7 @@ const executeSearch = () => {
 
 const getComboboxElement = () => {
   const container = document.getElementById(`${props.idPrefix}-container`)
-  return container ? container.querySelector('[role=\'combobox\']') : null
+  return container ? container.querySelector('.v-field') : null
 }
 
 const getInputElement = () => {
