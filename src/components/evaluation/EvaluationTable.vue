@@ -1,5 +1,10 @@
 <template>
-  <v-container v-if="evaluations.length" class="pa-0" max-width="100%">
+  <v-container
+    v-if="evaluations.length"
+    v-resize="setStickySearchPosition"
+    class="pa-0"
+    max-width="100%"
+  >
     <div
       class="bg-surface-variant elevation-2 py-2 sticky"
       role="search"
@@ -716,6 +721,11 @@ watch(selectedFilterTypes, types => {
   })
 })
 
+const stickySearchPosition = ref('0px')
+const setStickySearchPosition = () => {
+  stickySearchPosition.value = 64 + document.getElementById('service-announcement').clientHeight + 'px'
+}
+
 onMounted(() => {
   evaluationHeaders.value = [
     {key: 'status', class: 'text-no-wrap', headerProps: {justifyItems: 'center', minWidth: '5rem', width: '7%'}, sortable: true, title: 'Status', value: 'status'},
@@ -740,6 +750,8 @@ onMounted(() => {
   rules.instructorUid = () => {
     return get(pendingInstructor.value, 'uid') ? true : 'Instructor is required.'
   }
+
+  setStickySearchPosition()
 })
 
 const afterEditEvaluation = evaluation => {
@@ -1149,7 +1161,7 @@ tr.border-top-none td {
 }
 .sticky {
   position: sticky;
-  top: 60px;
+  top: v-bind(stickySearchPosition);
   z-index: 11;
 }
 .td-courseNumber {
