@@ -1,5 +1,5 @@
 <template>
-  <div aria-live="polite" class="service-announcement">
+  <div id="service-announcement" aria-live="polite" class="service-announcement">
     <v-banner
       v-if="contextStore.serviceAnnouncement && contextStore.serviceAnnouncement.isLive && route.path !== '/404'"
       class="service-announcement-content"
