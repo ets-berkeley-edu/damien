@@ -177,7 +177,8 @@
                   :id="`evaluation-${rowIndex}-checkbox`"
                   :key="`checkbox-${rowIndex}`"
                   :aria-describedby="undefined"
-                  :aria-label="`${evaluation.subjectArea} ${evaluation.catalogId} ${isRowSelected(evaluation) ? '' : 'not '}selected`"
+                  :aria-description="`${describeRow(evaluation)}`"
+                  :aria-label="`Evaluation ${rowIndex + 1} of ${size(items)}`"
                   class="d-flex justify-center"
                   :color="`${isRowActive(evaluation) ? 'tertiary' : 'primary'}`"
                   :disabled="editRowId === evaluation.id || disableControls"
@@ -523,9 +524,9 @@
                 <div class="d-flex justify-end">
                   <ConfirmDialog
                     :hide-confirm="true"
-                    :html="markAsDoneWarning.message"
+                    :html="get(markAsDoneWarning, 'message')"
                     :icon="mdiAlertCircle"
-                    :is-open="markAsDoneWarning"
+                    :is-open="!!markAsDoneWarning"
                     :on-click-cancel="() => markAsDoneWarning = undefined"
                     :on-click-confirm="noop"
                     text=""
@@ -803,6 +804,14 @@ const customFilter = (value, search, item) => {
     value += ' ' + itemObject.department.name
   }
   return value.toString().toLocaleLowerCase().indexOf(search.toLocaleLowerCase()) !== -1
+}
+
+const describeRow = e => {
+  const courseName = `${e.subjectArea} ${e.catalogId} ${e.instructionFormat} ${e.sectionNumber}`
+  const instructor = `instructor ${get(e, 'instructor.firstName', 'blank')} ${get(e, 'instructor.lastName', '')}`
+  const departmentForm = `department form ${get(e, 'departmentForm.name') || get(e, 'defaultDepartmentForm.name', 'blank')}`
+  const evaluationType = `evaluation type ${get(e, 'evaluationType.name', 'blank')}`
+  return `${e.status || ''} evaluation for section ${e.courseNumber}, ${courseName}, ${instructor}, ${departmentForm}, ${evaluationType}`
 }
 
 const displayStatus = evaluation => {

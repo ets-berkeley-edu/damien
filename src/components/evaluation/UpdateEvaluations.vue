@@ -354,7 +354,6 @@ onMounted(() => {
   midtermFormSelected.value = props.midtermFormEnabled
 })
 
-watch(midtermFormSelected)
 watch(() => props.isUpdating, v => {
   model.value = v
 })
