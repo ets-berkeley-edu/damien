@@ -104,14 +104,11 @@
   border-color: rgba(0, 0, 0, 0.86) !important;
 }
 .modal-content {
-  margin: auto auto 24px auto !important;
-  padding: 16px 6px 18px !important;
+  margin: 24px auto 16px auto !important;
+  padding: 16px 6px 6px !important;
 }
 .modal-content .v-card-title {
   font-size: 24px;
-}
-.modal-footer {
-  padding: 0 24px !important;
 }
 .page-margins {
   margin: 12px;

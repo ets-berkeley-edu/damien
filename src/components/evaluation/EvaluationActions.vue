@@ -92,13 +92,12 @@
       </template>
     </UpdateEvaluations>
     <ConfirmDialog
-      v-if="markAsDoneWarning"
       :hide-confirm="true"
       :html="markAsDoneWarning"
       :icon="mdiAlertCircle"
+      :is-open="!!markAsDoneWarning"
       :on-click-cancel="() => markAsDoneWarning = undefined"
       :on-click-confirm="noop"
-      text=""
       title="Warning"
     />
   </div>

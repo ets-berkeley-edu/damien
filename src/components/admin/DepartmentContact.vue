@@ -100,7 +100,7 @@
                 @click.stop="() => isConfirming = true"
               />
               <ConfirmDialog
-                v-if="isConfirming"
+                :is-open="isConfirming"
                 :is-saving="isDeleting"
                 :on-click-cancel="onCancelDelete"
                 :on-click-confirm="onDelete"
