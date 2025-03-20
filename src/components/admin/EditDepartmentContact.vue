@@ -101,47 +101,25 @@
         <label :for="`select-department-forms-${contactId}`" class="form-label">
           Department Forms
         </label>
-        <v-combobox
-          :id="`select-department-forms-${contactId}`"
-          ref="departmentFormsComponent"
-          :aria-describedby="`selected-department-forms-desc-${contactId}`"
-          aria-label="Department Forms"
-          auto-select-first
-          autocomplete="off"
-          base-color="secondary"
-          class="mt-1"
-          color="secondary"
-          :custom-filter="filterDepartmentForms"
-          density="compact"
+        <AccessibleCombobox
+          :id-prefix="`select-department-forms-${contactId}`"
+          :aria-live="undefined"
+          clazz="mt-1"
           :disabled="isSaving"
-          eager
-          hide-details
-          hide-selected
+          :filter-results="filterDepartmentForms"
+          :get-value="() => contactDepartmentForms"
+          :item-count="departmentFormsCount - size(contactDepartmentForms)"
+          :item-label="item => item.title"
           item-title="name"
           item-value="id"
           :items="availableDepartmentForms"
-          :list-props="{ariaLive: undefined}"
-          :menu-props="{closeOnContentClick: true}"
-          :model-value="contactDepartmentForms"
-          multiple
-          return-object
-          variant="outlined"
-          @update:model-value="onChangeContactDepartmentForms"
+          label="Department Forms"
+          list-label="Choose department forms"
+          :set-value="addDepartmentForm"
         >
-          <template #item="{item, index, props: itemProps}">
-            <v-list-item
-              :aria-posinset="index"
-              :aria-selected="itemProps.active === true"
-              :aria-setsize="departmentFormsCount - size(contactDepartmentForms)"
-              base-color="secondary"
-              role="option"
-              :title="item.title"
-              v-bind="itemProps"
-            />
-          </template>
           <template #selection></template>
-        </v-combobox>
-        <div :id="`selected-department-forms-desc-${contactId}`" class="py-1">
+        </AccessibleCombobox>
+        <div :id="`select-department-forms-${contactId}-desc`" class="py-1">
           <span class="sr-only">
             {{ isEmpty(contactDepartmentForms) ? 'No department forms selected' : `${oxfordJoin(map(contactDepartmentForms, 'name'))} selected` }}
           </span>
@@ -184,11 +162,12 @@
 </template>
 
 <script setup>
+import AccessibleCombobox from '@/components/util/AccessibleCombobox'
 import PersonLookup from '@/components/admin/PersonLookup'
 import ProgressButton from '@/components/util/ProgressButton'
 import {alertScreenReader, oxfordJoin, putFocusNextTick} from '@/lib/utils'
-import {cloneDeep, differenceBy, find, get, isEmpty, isNil, last, map, remove, size, some, sortBy, upperCase} from 'lodash'
-import {computed, nextTick, onMounted, onUnmounted, onUpdated, ref} from 'vue'
+import {cloneDeep, differenceBy, find, get, isEmpty, isNil, map, remove, size, some, sortBy, upperCase} from 'lodash'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {getUserDepartmentForms} from '@/api/user'
 import {storeToRefs} from 'pinia'
 import {useDepartmentStore} from '@/stores/department/department-edit-session'
@@ -215,7 +194,6 @@ const {contacts} = storeToRefs(departmentStore)
 const canReceiveCommunications = ref(true)
 const csid = ref(undefined)
 const contactDepartmentForms = ref([])
-const departmentFormsComponent = ref()
 const departmentFormsCount = ref(0)
 const email = ref(undefined)
 const emailRules = [
@@ -245,19 +223,6 @@ onMounted(() => {
   populateForm(props.contact)
 })
 
-onUpdated(() => {
-  nextTick(() => {
-    const combobox = departmentFormsComponent.value.$el.querySelector('[role="combobox"]')
-    if (combobox) {
-      const menuId = combobox.getAttribute('aria-owns')
-      if (menuId) {
-        combobox.setAttribute('aria-controls', menuId)
-        combobox.removeAttribute('aria-owns')
-      }
-    }
-  })
-})
-
 onUnmounted(() => {
   departmentStore.setDisableControls(false)
 })
@@ -272,10 +237,9 @@ const filterDepartmentForms = (value, queryText) => {
   return upperCase(value).includes(upperCase(queryText))
 }
 
-const onChangeContactDepartmentForms = selectedValues => {
-  const newAddition = last(selectedValues)
-  if (get(newAddition, 'id') && some(availableDepartmentForms.value, {id: newAddition.id})) {
-    contactDepartmentForms.value = selectedValues
+const addDepartmentForm = departmentForm => {
+  if (get(departmentForm, 'id') && some(availableDepartmentForms.value, {id: departmentForm.id})) {
+    contactDepartmentForms.value.push(departmentForm)
   }
 }
 

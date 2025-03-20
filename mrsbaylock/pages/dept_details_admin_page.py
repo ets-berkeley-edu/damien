@@ -66,7 +66,7 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
     @staticmethod
     def dept_contact_form_input(user=None):
         user_id = user.uid if user else 'add-contact'
-        return By.ID, f'select-department-forms-{user_id}'
+        return By.ID, f'select-department-forms-{user_id}-input'
 
     @staticmethod
     def dept_contact_form_option(form):
