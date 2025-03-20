@@ -32,6 +32,7 @@ export const useContextStore = defineStore('context', {
       isAdmin: false,
       isAuthenticated: false
     } as CurrentUser,
+    isModalOpen: false,
     isSelectedTermLocked: false,
     loading: false,
     screenReaderAlert: {
@@ -90,6 +91,9 @@ export const useContextStore = defineStore('context', {
     },
     setEvaluationTypes(evaluationTypes: any) {
       this.config.evaluationTypes = evaluationTypes
+    },
+    setIsModalOpen(isOpen: boolean) {
+      this.isModalOpen = isOpen
     },
     setIsSelectedTermLocked(isLocked: boolean) {
       this.isSelectedTermLocked = isLocked

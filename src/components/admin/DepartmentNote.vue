@@ -49,10 +49,10 @@
         Delete <span class="sr-only">Note</span>
       </v-btn>
       <ConfirmDialog
-        v-if="isConfirming"
         button-context="Delete Note"
         :confirm-button-label="isDeleting ? 'Deleting...' : 'Confirm'"
         :disabled="isDeleting"
+        :is-open="isConfirming"
         :on-click-cancel="onCancelDelete"
         :on-click-confirm="onDelete"
         :text="`Are you sure you want to delete the ${contextStore.selectedTermName || ''} note?`"

@@ -444,9 +444,9 @@
       </v-row>
     </v-container>
     <ConfirmDialog
-      v-if="isConfirming"
       :confirm-button-label="isDeleting ? 'Deleting' : 'Delete'"
       :disabled="disableControls"
+      :is-open="isConfirming"
       :is-saving="isDeleting"
       :on-click-cancel="cancelDelete"
       :on-click-confirm="confirmDelete"

@@ -522,10 +522,10 @@
               <td :colspan="size(evaluationHeaders) - 1" class="pb-1 px-3">
                 <div class="d-flex justify-end">
                   <ConfirmDialog
-                    v-if="markAsDoneWarning"
                     :hide-confirm="true"
                     :html="markAsDoneWarning.message"
                     :icon="mdiAlertCircle"
+                    :is-open="markAsDoneWarning"
                     :on-click-cancel="() => markAsDoneWarning = undefined"
                     :on-click-confirm="noop"
                     text=""
@@ -563,47 +563,39 @@
       </template>
     </v-data-table>
     <ConfirmDialog
-      v-if="isConfirmingCancelEdit"
-      :disabled="disableControls"
+      :is-open="isConfirmingCancelEdit"
       :on-click-cancel="onCancelConfirm"
       :on-click-confirm="onConfirm"
       :text="'You have unsaved changes that will be lost.'"
       :title="'Cancel edit?'"
     />
     <ConfirmDialog
-      v-if="isConfirmingNonSisInstructor"
-      :disabled="disableControls"
+      :is-open="isConfirmingNonSisInstructor"
       :on-click-cancel="onCancelNonSisInstructor"
       :on-click-confirm="onConfirmNonSisInstructor"
       :text="instructorConfirmationText(pendingInstructor)"
       title="Add new instructor?"
     />
-    <v-dialog
-      id="error-dialog"
-      v-model="errorDialog"
-      role="alertdialog"
-      aria-labelledby="error-dialog-title"
-      aria-describedby="error-dialog-text"
+    <ModalDialog
+      id-prefix="error"
+      :is-open="errorDialog"
+      persistent
+      width="400"
     >
-      <v-card class="modal-content" width="400">
-        <v-card-title id="error-dialog-title">Error</v-card-title>
-        <v-card-text id="error-dialog-text" class="pt-3">{{ errorDialogText }}</v-card-text>
-        <v-divider />
-        <v-card-actions>
-          <v-spacer />
-          <div class="pa-2">
-            <v-btn
-              id="error-dialog-ok-btn"
-              class="mr-2"
-              color="tertiary"
-              text="OK"
-              variant="flat"
-              @click="departmentStore.dismissErrorDialog"
-            />
-          </div>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      <template #title><span class="px-2">Error</span></template>
+      <template #text>{{ errorDialogText }}</template>
+      <template #actions>
+        <div class="align-center d-flex">
+          <v-btn
+            id="error-dialog-ok-btn"
+            color="tertiary"
+            text="OK"
+            variant="flat"
+            @click="departmentStore.dismissErrorDialog"
+          />
+        </div>
+      </template>
+    </ModalDialog>
   </v-container>
   <v-container v-if="!evaluations.length" class="no-eligible-sections mt-3">
     <v-row>
@@ -632,6 +624,7 @@ import AddCourseSection from '@/components/evaluation/AddCourseSection'
 import ConfirmDialog from '@/components/util/ConfirmDialog'
 import EvaluationActions from '@/components/evaluation/EvaluationActions'
 import EvaluationError from '@/components/evaluation/EvaluationError'
+import ModalDialog from '@/components/util/ModalDialog'
 import PersonLookup from '@/components/admin/PersonLookup'
 import ProgressButton from '@/components/util/ProgressButton.vue'
 import SortableTableHeader from '@/components/util/SortableTableHeader'
@@ -830,9 +823,12 @@ const filterTypeCounts = type => {
 }
 
 const instructorConfirmationText = instructor => {
-  return `
-    ${instructor.firstName} ${instructor.lastName} (${instructor.uid})
-    is not currently listed in SIS data as an instructor for any courses.`
+  if (instructor) {
+    return `
+      ${instructor.firstName} ${instructor.lastName} (${instructor.uid})
+      is not currently listed in SIS data as an instructor for any courses.`
+  }
+  return ''
 }
 
 const isEditing = evaluation => {

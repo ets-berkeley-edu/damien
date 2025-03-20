@@ -1,13 +1,14 @@
 <template>
   <a
     id="skip-to-content-link"
+    :aria-hidden="contextStore.isModalOpen"
     href="#content"
     class="sr-only"
     tabindex="0"
   >
     Skip to main content
   </a>
-  <v-layout ref="layout">
+  <v-layout ref="layout" :aria-hidden="contextStore.isModalOpen">
     <v-app-bar
       app
       clipped-left

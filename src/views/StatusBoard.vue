@@ -36,12 +36,11 @@
             />
             <div id="checkbox-select-dept-all-desc">Send notification</div>
             <v-btn
-              v-if="!isCreatingNotification"
               id="open-notification-form-btn"
               class="mx-2 text-capitalize"
               color="secondary"
               density="comfortable"
-              :disabled="isEmpty(selectedDepartmentIds) || contextStore.loading"
+              :disabled="isCreatingNotification || isEmpty(selectedDepartmentIds) || contextStore.loading"
               text="Apply"
               @click="() => isCreatingNotification = true"
             />
@@ -135,26 +134,27 @@
         </template>
       </v-data-table>
     </v-card>
-    <v-dialog
-      v-model="isCreatingNotification"
-      aria-labelledby="send-notification-header"
-      width="800"
+    <ModalDialog
+      id-prefix="send-notification"
+      :is-open="isCreatingNotification"
+      max-width="1200"
+      min-width="800"
       persistent
+      role="dialog"
+      width="90%"
     >
       <NotificationForm
-        v-if="isCreatingNotification"
         :after-send="afterSendNotification"
-        class="w-75"
-        :class="{'w-100': display.smAndDown.value}"
-        min-width="400px"
+        min-width="800"
         :on-cancel="cancelSendNotification"
         :recipients="notificationRecipients"
       />
-    </v-dialog>
+    </ModalDialog>
   </div>
 </template>
 
 <script setup>
+import ModalDialog from '@/components/util/ModalDialog'
 import NotificationForm from '@/components/admin/NotificationForm'
 import PageHeader from '@/components/util/PageHeader'
 import SortableTableHeader from '@/components/util/SortableTableHeader'
@@ -165,7 +165,6 @@ import {each, filter as _filter, find, get, includes, indexOf, isEmpty, kebabCas
 import {getDepartmentsEnrolled} from '@/api/departments'
 import {mdiCheckCircle} from '@mdi/js'
 import {useContextStore} from '@/stores/context'
-import {useDisplay} from 'vuetify'
 
 const contextStore = useContextStore()
 const blockers = ref({})
@@ -178,7 +177,6 @@ const departmentHeaders = [
   {key: 'totalConfirmed', class: 'px-2', headerProps: {width: '10%'}, sortable: true, title: 'Confirmed', value: 'totalConfirmed'},
   {key: 'note', class: 'px-2', headerProps: {width: '30%'}, sortable: true, title: 'Notes', value: 'note.note'}
 ]
-const display = useDisplay()
 const isCreatingNotification = ref(false)
 const selectedDepartmentIds = ref([])
 const sortBy = ref([{key: 'deptName', order: 'asc'}])

@@ -1,15 +1,15 @@
 <template>
   <v-card
-    class="mb-0 modal-content"
+    class="modal-content"
     flat
     :min-width="minWidth"
   >
-    <v-card-title class="px-4" :class="{'text-muted': isSending}">
+    <v-card-title id="send-notification-title" class="px-6 pb-4">
       <h3 id="send-notification-header">
         Send Notification
       </h3>
     </v-card-title>
-    <v-card-subtitle v-if="selectedRecipients" class="px-4">
+    <v-card-subtitle v-if="selectedRecipients" class="px-6">
       <h4 id="notification-recipients-header" class="font-size-16 mb-2">Message will be sent to:</h4>
       <v-expansion-panels
         id="notification-recipients-container"
@@ -55,9 +55,8 @@
         </v-expansion-panel>
       </v-expansion-panels>
     </v-card-subtitle>
-    <v-card-text class="notification-container px-4 py-0">
+    <v-card-text id="send-notification-text" class="px-6">
       <v-form
-        class="py-4"
         :class="isSending ? 'text-muted' : ''"
         :disabled="isSending"
       >
@@ -68,14 +67,15 @@
           id="input-notification-subject"
           v-model="subject"
           :aria-describeby="undefined"
-          class="bg-surface my-1"
+          class="bg-surface mt-1"
           color="primary"
           density="compact"
           :disabled="isSending"
+          hide-details
           variant="outlined"
           @keydown.esc="onCancel"
         />
-        <div class="mt-2">
+        <div class="pt-3">
           <label for="input-notification-message" class="form-label">
             Message
           </label>
@@ -87,29 +87,29 @@
             class="bg-surface mt-1"
             color="primary"
             :disabled="isSending"
+            hide-details
             variant="outlined"
           />
         </div>
       </v-form>
     </v-card-text>
-    <v-card-actions class="modal-footer px-4">
-      <div class="text-right w-100">
-        <ProgressButton
-          id="send-notification-btn"
-          :action="sendNotification"
-          class="mr-2"
-          :disabled="disabled"
-          :in-progress="isSending"
-          text="Send"
-        />
-        <v-btn
-          id="cancel-send-notification-btn"
-          :disabled="isSending"
-          text="Cancel"
-          variant="outlined"
-          @click="onCancel"
-        />
-      </div>
+    <v-divider />
+    <v-card-actions class="d-flex justify-end px-6 py-4">
+      <ProgressButton
+        id="send-notification-btn"
+        :action="sendNotification"
+        class="mr-2"
+        :disabled="disabled"
+        :in-progress="isSending"
+        text="Send"
+      />
+      <v-btn
+        id="cancel-send-notification-btn"
+        :disabled="isSending"
+        text="Cancel"
+        variant="outlined"
+        @click="onCancel"
+      />
     </v-card-actions>
   </v-card>
 </template>
@@ -129,7 +129,7 @@ const props = defineProps({
     type: Function
   },
   minWidth: {
-    default: undefined,
+    default: 0,
     required: false,
     type: [String, Number]
   },
@@ -188,9 +188,6 @@ const sendNotification = () => {
 </script>
 
 <style scoped>
-.notification-container {
-  min-height: 290px;
-}
 .pill-height {
   min-height: 40px;
 }
