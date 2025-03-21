@@ -350,7 +350,6 @@ class Department(Base):
             """,
         )
         result = db.session.execute(query, params).fetchone()
-        app.logger.info(f'Department uses_midterm_forms query returned {len(result or [])} rows: {query}\n{params}')
         return result is not None
 
 
