@@ -209,7 +209,7 @@ const userId = ref(undefined)
 const valid = ref(true)
 
 const availableDepartmentForms = computed(() => {
-  return differenceBy(departmentStore.activeDepartmentForms, contactDepartmentForms.value, item => item.name)
+  return differenceBy(departmentStore.allDepartmentForms, contactDepartmentForms.value, item => item.name)
 })
 const contactId = computed(() => {
   return get(props.contact, 'uid', 'add-contact')
@@ -219,7 +219,7 @@ const fullName = computed(() => {
 })
 
 onMounted(() => {
-  departmentFormsCount.value = size(departmentStore.activeDepartmentForms)
+  departmentFormsCount.value = size(departmentStore.allDepartmentForms)
   populateForm(props.contact)
 })
 
