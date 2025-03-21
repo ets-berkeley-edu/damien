@@ -121,7 +121,7 @@
     <v-data-table
       id="evaluation-table"
       v-model:sort-by="sortBy"
-      class="v-table-hidden-row-override pt-3"
+      class="v-table-hidden-row-override v-table-overflow-override pt-3"
       :custom-filter="customFilter"
       density="compact"
       :headers="evaluationHeaders"
