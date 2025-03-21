@@ -321,7 +321,7 @@ const allowEdits = computed(() => {
 const disableApply = computed(() => {
   return disableControls.value ||
     !allowEdits.value ||
-    (!midtermFormSelected.value && !get(selectedInstructor.value, 'uid'))
+    (props.midtermFormAvailable && !midtermFormSelected.value && !get(selectedInstructor.value, 'uid'))
 })
 const selectedDepartmentFormName = computed(() => {
   return get(find(useContextStore().config.departmentForms, df => df.id === selectedDepartmentForm.value), 'name')
