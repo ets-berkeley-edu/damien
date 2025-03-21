@@ -83,7 +83,7 @@ class Page(object):
             return self.driver.find_elements(By.XPATH, target)
 
     def value(self, locator):
-        return self.element(locator).get_attribute('value')
+        return self.element(locator).get_dom_attribute('value')
 
     def is_present(self, locator):
         try:
@@ -91,6 +91,12 @@ class Page(object):
             return True
         except (AttributeError, exceptions.NoSuchElementException, exceptions.StaleElementReferenceException):
             return False
+
+    def when_present(self, locator, timeout):
+        Wait(self.driver, timeout).until(ec.presence_of_element_located(locator))
+
+    def when_visible(self, locator, timeout):
+        Wait(self.driver, timeout).until(ec.visibility_of_element_located(locator))
 
     def when_not_present(self, locator, timeout):
         tries = 0

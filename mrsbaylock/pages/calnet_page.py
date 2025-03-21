@@ -32,8 +32,6 @@ from mrsbaylock.pages.page import Page
 from mrsbaylock.test_utils import utils
 import pytest
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class CalNetPage(Page):
@@ -45,7 +43,7 @@ class CalNetPage(Page):
     BAD_CREDS = (By.XPATH, '//span[contains(text(), "Invalid credentials.")]')
 
     def log_in(self, username=None, password=None):
-        Wait(self.driver, utils.get_medium_timeout()).until(ec.title_contains('CalNet Authentication Service'))
+        self.wait_for_title_containing('CalNet Authentication Service')
         if username and password:
             app.logger.info(f'{username} is logging in')
             self.wait_for_element_and_type(self.USERNAME_INPUT, username)

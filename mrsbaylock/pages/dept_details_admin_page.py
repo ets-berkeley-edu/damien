@@ -29,8 +29,6 @@ from mrsbaylock.models.blue_perm import BluePerm
 from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class DeptDetailsAdminPage(CourseDashboardEditsPage):
@@ -66,11 +64,11 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
     @staticmethod
     def dept_contact_form_input(user=None):
         user_id = user.uid if user else 'add-contact'
-        return By.ID, f'select-department-forms-{user_id}'
+        return By.ID, f'select-department-forms-{user_id}-input'
 
     @staticmethod
     def dept_contact_form_option(form):
-        return By.XPATH, f'//div[@class="v-list-item-title"][text()="{form}"]'
+        return By.XPATH, f'//div[@class="v-list-item-title"]/span[text()="{form}"]'
 
     @staticmethod
     def dept_contact_form_remove_button(form):
@@ -90,19 +88,15 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
     def clear_dept_form_input(self, user=None):
         if user:
             self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_edit_input(user))
-        Wait(self.driver, utils.get_short_timeout()).until(
-            ec.presence_of_element_located(DeptDetailsAdminPage.dept_contact_form_input(user)),
-        )
+        self.when_present(self.dept_contact_form_input(user), utils.get_short_timeout())
         self.wait_for_page_and_click(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_SELECT)
         self.remove_chars(DeptDetailsAdminPage.dept_contact_form_input(user))
 
     def enter_and_select_dept_form(self, form, user=None):
         self.wait_for_element_and_click(DeptDetailsAdminPage.ADD_CONTACT_DEPT_FORM_SELECT)
-        self.enter_chars(DeptDetailsAdminPage.dept_contact_form_input(user), form)
+        self.remove_and_type_chars(DeptDetailsAdminPage.dept_contact_form_input(user), form)
         self.wait_for_element_and_click(DeptDetailsAdminPage.dept_contact_form_option(form))
-        Wait(self.driver, utils.get_short_timeout()).until(
-            ec.presence_of_element_located(DeptDetailsAdminPage.dept_contact_form_remove_button(form)),
-        )
+        self.when_present(self.dept_contact_form_remove_button(form), utils.get_short_timeout())
 
     def select_dept_forms(self, dept_forms, user=None):
         for el in self.elements(DeptDetailsAdminPage.EDIT_CONTACT_REMOVE_FORM_BTN):
@@ -227,9 +221,7 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
         self.when_not_present(DeptDetailsAdminPage.DEPT_NOTE_TEXTAREA, utils.get_short_timeout())
 
     def wait_for_note(self):
-        Wait(self.driver, utils.get_short_timeout()).until(
-            ec.presence_of_element_located(DeptDetailsAdminPage.DEPT_NOTE),
-        )
+        self.when_present(self.DEPT_NOTE, utils.get_short_timeout())
 
     def verify_dept_note(self, note=None):
         if note:

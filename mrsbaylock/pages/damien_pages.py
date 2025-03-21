@@ -29,8 +29,6 @@ from flask import current_app as app
 from mrsbaylock.pages.page import Page
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class DamienPages(Page):
@@ -61,7 +59,7 @@ class DamienPages(Page):
         return self.element(DamienPages.menu_option_locator(option_text)).get_attribute('aria-disabled') == 'true'
 
     def wait_for_admin_login(self):
-        Wait(self.driver, utils.get_medium_timeout()).until(ec.presence_of_element_located(DamienPages.STATUS_LINK))
+        self.when_present(self.STATUS_LINK, utils.get_medium_timeout())
 
     def click_menu_button(self):
         self.wait_for_element_and_click(DamienPages.MENU_BUTTON)
@@ -201,7 +199,7 @@ class DamienPages(Page):
     DELETE_CANCEL_BUTTON = (By.ID, 'cancel-dialog-btn')
     ERROR_DIALOG_OK_BUTTON = (By.ID, 'error-dialog-ok-btn')
 
-    def await_error_and_accept(self):
+    def accept_error(self):
         self.wait_for_element_and_click(DamienPages.ERROR_DIALOG_OK_BUTTON)
 
     def clear_date_input_value(self):
