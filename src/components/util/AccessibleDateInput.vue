@@ -391,6 +391,7 @@ const onUpdateFocus = (hasFocus, inputEvents) => {
 .date-picker {
   max-width: 250px;
   min-width: 7.85rem;
+  z-index: 1200;
 }
 </style>
 
