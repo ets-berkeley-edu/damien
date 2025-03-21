@@ -31,8 +31,6 @@ from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class CourseDashboards(DamienPages):
@@ -91,9 +89,7 @@ class CourseDashboards(DamienPages):
 
     def wait_for_eval_rows(self):
         time.sleep(2)
-        Wait(self.driver, utils.get_medium_timeout()).until(
-            ec.presence_of_all_elements_located(CourseDashboards.EVALUATION_ROW),
-        )
+        self.when_present(self.EVALUATION_ROW, utils.get_medium_timeout())
         self.hit_tab()
         self.scroll_to_top()
         time.sleep(2)

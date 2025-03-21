@@ -29,8 +29,6 @@ from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class ListMgmtPage(DamienPages):
@@ -120,9 +118,7 @@ class ListMgmtPage(DamienPages):
         return f'//div[@id="instructors-table"]//tr[contains(., "{user.uid}")]'
 
     def wait_for_manual_instructor(self, user):
-        Wait(self.driver, utils.get_short_timeout()).until(
-            ec.visibility_of_element_located((By.XPATH, ListMgmtPage.manual_instr_row_xpath(user))),
-        )
+        self.when_visible((By.XPATH, self.manual_instr_row_xpath(user)), utils.get_short_timeout())
 
     def delete_manual_instructor(self, user):
         self.wait_for_manual_instructor(user)

@@ -179,7 +179,7 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.click_look_up_result(e.instructor)
         time.sleep(1)
         self.dept_details_admin_page.wait_for_page_and_click(CourseDashboardEditsPage.DUPE_EVAL_ACTION_APPLY_BUTTON)
-        self.dept_details_admin_page.await_error_and_accept()
+        self.dept_details_admin_page.accept_error()
 
     def test_duplicate_section_new_instructor_and_eval_type(self):
         instructor = utils.get_test_user()
@@ -234,14 +234,13 @@ class TestEvaluationManagement:
         self.dept_details_admin_page.load_dept_page(self.dept_1)
         self.dept_details_admin_page.click_add_section()
         self.dept_details_admin_page.enter_section(e.ccn)
-        self.dept_details_admin_page.wait_for_validation_error('already present on page')
+        self.dept_details_admin_page.wait_for_eval_lookup_validation_error()
 
     def test_add_invalid_supp_section(self):
         self.dept_details_admin_page.click_cancel_lookup_section()
         self.dept_details_admin_page.click_add_section()
         self.dept_details_admin_page.look_up_section('99999')
-        self.dept_details_admin_page.wait_for_validation_error('Section 99999 not found')
-        self.dept_details_admin_page.wait_for_element(CourseDashboardEditsPage.SECTION_NOT_FOUND_MSG, utils.get_short_timeout())
+        self.dept_details_admin_page.wait_for_eval_lookup_not_found_error()
 
     def test_add_supp_section(self):
         self.dept_details_admin_page.click_cancel_lookup_section()

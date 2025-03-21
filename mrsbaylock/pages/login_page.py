@@ -28,8 +28,6 @@ from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class LoginPage(DamienPages):
@@ -63,4 +61,4 @@ class LoginPage(DamienPages):
             self.click_contact_dept_link(dept)
 
     def wait_for_not_auth(self):
-        Wait(self.driver, utils.get_short_timeout()).until(ec.visibility_of_element_located(LoginPage.NOT_AUTH_MSG))
+        self.when_visible(self.NOT_AUTH_MSG, utils.get_short_timeout())

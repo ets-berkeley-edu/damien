@@ -32,9 +32,7 @@ from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.pages.course_dashboards import CourseDashboards
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.select import Select
-from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class CourseDashboardEditsPage(CourseDashboards):
@@ -57,9 +55,7 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def wait_for_contact(self, user):
         app.logger.info(f'Waiting for UID {user.uid} to appear')
-        Wait(self.driver, utils.get_medium_timeout()).until(
-            ec.presence_of_element_located((By.XPATH, self.dept_contact_xpath(user))),
-        )
+        self.when_present((By.XPATH, self.dept_contact_xpath(user)), utils.get_medium_timeout())
         time.sleep(1)
 
     def dept_contact_name(self, user):
@@ -411,6 +407,10 @@ class CourseDashboardEditsPage(CourseDashboards):
     EVAL_CHANGE_SAVE_BUTTON = (By.ID, 'save-evaluation-edit-btn')
     EVAL_CHANGE_CANCEL_BUTTON = (By.ID, 'cancel-evaluation-edit-btn')
     EVAL_CHANGE_PROCEED_BUTTON = (By.ID, 'confirm-dialog-btn')
+    EVAL_CHANGE_ERROR_MSG = (By.ID, 'error-dialog-text')
+    EVAL_PERIOD_ERROR_MSG = (By.XPATH, '//span[contains(text(), "evaluation period that has already ended")]')
+    EVAL_LOOKUP_ERROR_MSG = (By.ID, 'lookup-course-number-error')
+    EVAL_LOOKUP_NOT_FOUND_ERROR_MSG = (By.ID, 'section-not-found-error')
 
     def click_eval_checkbox(self, evaluation, form=None):
         xpath = f'{self.eval_row_xpath(evaluation, form=form)}//input[contains(@id, "checkbox")]'
@@ -425,10 +425,8 @@ class CourseDashboardEditsPage(CourseDashboards):
     def click_edit_evaluation(self, evaluation, form=None, eval_type=None):
         self.scroll_to_top()
         app.logger.info(f'Waiting for element locator {self.eval_row_xpath(evaluation, form=form, eval_type=eval_type)}//button')
-        Wait(self.driver, utils.get_medium_timeout()).until(
-            ec.presence_of_element_located(
-                (By.XPATH, f'{self.eval_row_xpath(evaluation, form=form)}//button')),
-        )
+        self.when_present((By.XPATH, f'{self.eval_row_xpath(evaluation, form=form)}//button'),
+                          utils.get_medium_timeout())
         self.hide_damien_footer()
         self.scroll_to_element(self.eval_row_el(evaluation, form=form))
         self.mouseover(self.eval_row_el(evaluation, form=form))
@@ -462,8 +460,7 @@ class CourseDashboardEditsPage(CourseDashboards):
         return list(map(lambda o: o.text.strip(), select_el.options))
 
     def wait_for_no_dept_form_option(self):
-        Wait(self.driver, utils.get_short_timeout()).until(
-            ec.presence_of_element_located(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_NO_OPTION))
+        self.when_present(self.EVAL_CHANGE_DEPT_FORM_NO_OPTION, utils.get_short_timeout())
 
     def change_dept_form(self, evaluation, dept_form=None):
         self.wait_for_element(CourseDashboardEditsPage.EVAL_CHANGE_DEPT_FORM_SELECT, utils.get_short_timeout())
@@ -535,12 +532,16 @@ class CourseDashboardEditsPage(CourseDashboards):
             self.wait_for_page_and_click(self.EVAL_CHANGE_CANCEL_BUTTON)
             time.sleep(1)
 
-    def wait_for_validation_error(self, msg):
-        app.logger.info(f'Waiting for validation error at //div[contains(text(), "{msg}")]')
-        Wait(self.driver, utils.get_short_timeout()).until(
-            ec.presence_of_element_located((By.XPATH, f'//div[contains(text(), "{msg}")]')),
-        )
+    def wait_for_eval_lookup_validation_error(self):
+        self.when_present(self.EVAL_LOOKUP_ERROR_MSG, utils.get_short_timeout())
+
+    def wait_for_eval_lookup_not_found_error(self):
+        self.when_present(self.EVAL_LOOKUP_NOT_FOUND_ERROR_MSG, utils.get_short_timeout())
+
+    def wait_for_eval_edit_validation_error(self):
+        self.when_present(self.EVAL_CHANGE_ERROR_MSG, utils.get_short_timeout())
+        self.accept_error()
 
     def wait_for_eval_period_error_and_cancel(self):
-        self.wait_for_validation_error('evaluation period that has already ended')
+        self.when_present(self.EVAL_PERIOD_ERROR_MSG, utils.get_short_timeout())
         self.wait_for_element_and_click(self.DELETE_CANCEL_BUTTON)

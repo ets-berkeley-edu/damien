@@ -317,9 +317,7 @@ class TestEvalErrors:
         self.dept_details_admin_page.click_edit_evaluation(self.x_list_eval_dept_1)
         self.dept_details_admin_page.select_eval_status(self.x_list_eval, EvaluationStatus.CONFIRMED)
         self.dept_details_admin_page.click_save_eval_changes(self.x_list_eval_dept_1)
-        self.dept_details_admin_page.wait_for_validation_error(
-            'Could not confirm evaluations with conflicting information')
-        self.dept_details_admin_page.await_error_and_accept()
+        self.dept_details_admin_page.wait_for_eval_edit_validation_error()
 
     def test_x_list_dept_2_no_confirming(self):
         self.dept_details_admin_page.log_out()
@@ -327,17 +325,14 @@ class TestEvalErrors:
         self.dept_details_dept_page.click_edit_evaluation(self.x_list_eval_dept_2)
         self.dept_details_dept_page.select_eval_status(self.x_list_eval_dept_2, EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.click_save_eval_changes(self.x_list_eval_dept_2)
-        self.dept_details_dept_page.wait_for_validation_error(
-            'Could not confirm evaluations with conflicting information')
-        self.dept_details_admin_page.await_error_and_accept()
+        self.dept_details_dept_page.wait_for_eval_edit_validation_error()
 
     def test_x_list_dept_1_no_confirming(self):
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.x_list_contact_1, self.x_list_dept_1)
         self.dept_details_dept_page.click_eval_checkbox(self.x_list_eval_dept_1)
         self.dept_details_dept_page.click_bulk_done_button()
-        self.dept_details_dept_page.wait_for_validation_error('Could not confirm evaluations with errors.')
-        self.dept_details_admin_page.await_error_and_accept()
+        self.dept_details_dept_page.wait_for_eval_edit_validation_error()
 
     def test_x_list_sl_resolve_conflict(self):
         self.dept_details_dept_page.log_out()
@@ -452,9 +447,7 @@ class TestEvalErrors:
         self.dept_details_dept_page.change_eval_type(self.share_eval_dept_2, self.eval_type_2)
         self.dept_details_dept_page.change_eval_start_date(self.share_eval_dept_2, self.share_start_2)
         self.dept_details_dept_page.click_save_eval_changes(self.share_eval_dept_2)
-        self.dept_details_dept_page.wait_for_validation_error(
-            'Could not confirm evaluations with conflicting information.')
-        self.dept_details_dept_page.await_error_and_accept()
+        self.dept_details_dept_page.wait_for_eval_edit_validation_error()
 
     @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_dept_2_set_status_to_do(self):
@@ -636,17 +629,14 @@ class TestEvalErrors:
         assert conflict_type in self.dept_details_dept_page.eval_type(self.manual_eval_dept_2)
 
     def test_manual_section_dept_2_no_confirming(self):
+        self.dept_details_dept_page.select_ignored_filter()
         self.dept_details_dept_page.click_edit_evaluation(self.manual_eval_dept_2)
         self.dept_details_dept_page.select_eval_status(self.manual_eval_dept_2, EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.click_save_eval_changes(self.manual_eval_dept_2)
-        self.dept_details_dept_page.wait_for_validation_error(
-            'Could not confirm evaluations with conflicting information')
-        self.dept_details_dept_page.await_error_and_accept()
+        self.dept_details_dept_page.wait_for_eval_edit_validation_error()
 
     def test_manual_section_dept_2_ignore_conflict(self):
         self.dept_details_dept_page.select_eval_status(self.manual_eval_dept_2, EvaluationStatus.IGNORED)
-        self.manual_eval_dept_2.dept_form = self.dept_form_2
-        self.manual_eval_dept_2.eval_type = self.eval_type_2
         self.dept_details_dept_page.save_eval_changes(self.manual_eval_dept_2)
         self.dept_details_dept_page.wait_for_eval_row(self.manual_eval_dept_2)
 
@@ -672,6 +662,7 @@ class TestEvalErrors:
             self.dept_details_admin_page.wait_for_eval_period_error_and_cancel()
 
     def test_manual_section_dept_1_confirms(self):
+        self.dept_details_dept_page.click_cancel_eval_changes()
         self.dept_details_dept_page.click_edit_evaluation(self.manual_eval_dept_1)
         self.dept_details_dept_page.select_eval_status(self.manual_eval_dept_1, EvaluationStatus.CONFIRMED)
         self.dept_details_dept_page.click_save_eval_changes(self.manual_eval_dept_1)

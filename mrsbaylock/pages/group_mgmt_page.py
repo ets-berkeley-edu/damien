@@ -26,8 +26,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class GroupMgmtPage(DamienPages):
@@ -40,9 +38,7 @@ class GroupMgmtPage(DamienPages):
         self.element((By.XPATH, f'//a[@href="/department/{dept.dept_id}"]'))
 
     def wait_for_dept_row(self, dept):
-        Wait(self.driver, utils.get_short_timeout()).until(
-            ec.visibility_of_element_located((By.XPATH, f'//a[@href="/department/{dept.dept_id}"]')),
-        )
+        self.when_visible((By.XPATH, f'//a[@href="/department/{dept.dept_id}"]'), utils.get_short_timeout())
 
     def dept_row_course_count(self, idx):
         return self.element((By.ID, f'department-{idx}-courses')).text.strip()

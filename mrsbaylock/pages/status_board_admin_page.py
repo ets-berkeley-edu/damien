@@ -30,8 +30,6 @@ from flask import current_app as app
 from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 
 class StatusBoardAdminPage(DamienPages):
@@ -44,9 +42,7 @@ class StatusBoardAdminPage(DamienPages):
         self.wait_for_depts()
 
     def wait_for_depts(self):
-        Wait(self.driver, utils.get_medium_timeout()).until(
-            ec.visibility_of_any_elements_located((By.XPATH, '//a[starts-with(@id, "link-to-dept-")]')),
-        )
+        self.when_visible((By.XPATH, '//a[starts-with(@id, "link-to-dept-")]'), utils.get_medium_timeout())
 
     LOCK_BOX = (By.ID, 'toggle-term-locked')
 
