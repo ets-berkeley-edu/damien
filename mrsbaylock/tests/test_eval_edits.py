@@ -410,14 +410,13 @@ class TestEvaluationManagement:
             ev['status'] += f" {new_status.value['option']}"
             ev['form'] += f' {new_form}'
             ev['type'] += f' {new_type}'
-            ev['date'] += f" {new_date.strftime('%m/%d/%Y')}"
+            ev['date'] += f" {new_date.strftime('%m/%d/%y')}"
         visible = self.dept_details_dept_page.visible_preview_data()
         visible.sort(key=lambda d: (d['ccn'], d['uid']))
         assert visible == expected
 
         self.dept_details_dept_page.click_bulk_edit_save()
         self.dept_details_dept_page.wait_for_bulk_update()
-        self.dept_details_dept_page.wait_for_eval_row(evaluations[0])
 
         new_date_str = datetime.datetime.strftime(new_date, '%m/%d/%Y')
         self.dept_details_dept_page.filter_rows(new_date_str)
@@ -436,12 +435,12 @@ class TestEvaluationManagement:
             self.dept_details_dept_page.filter_rows('')
             self.dept_details_dept_page.click_select_all_evals()
             self.dept_details_dept_page.click_bulk_unmark_button()
-            time.sleep(2)
+            time.sleep(utils.get_short_timeout())
             for row in no_teach:
                 row.status = EvaluationStatus.UNMARKED
                 self.dept_details_dept_page.click_eval_checkbox(row)
             self.dept_details_dept_page.click_bulk_edit()
-            self.dept_details_dept_page.look_up_and_select_dupe_instr(new_teach)
+            self.dept_details_dept_page.look_up_and_select_edit_instr(new_teach)
             self.dept_details_dept_page.click_bulk_edit_save()
             self.dept_details_dept_page.wait_for_bulk_update()
             for row in no_teach:
