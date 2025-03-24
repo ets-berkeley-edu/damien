@@ -11,7 +11,6 @@
       base-color="secondary"
       :bg-color="isAutocomplete ? 'white' : 'surface'"
       :class="clazz"
-      clearable
       color="secondary"
       density="compact"
       :debounce="500"
@@ -32,7 +31,6 @@
       :multiple="!isAutocomplete"
       no-data-text="No results found."
       :no-filter="isAutocomplete"
-      persistent-clear
       :placeholder="placeholder || label"
       return-object
       :search="query"
@@ -52,29 +50,6 @@
           size="x-small"
           width="2"
         />
-      </template>
-      <template #clear>
-        <v-btn
-          v-if="!isBusy"
-          :id="`${idPrefix}-clear-btn`"
-          :aria-label="`Clear ${label} input`"
-          :class="{'disabled-opacity': !model}"
-          color="secondary"
-          density="compact"
-          :disabled="!model"
-          exact
-          icon
-          :ripple="false"
-          variant="text"
-          @keydown.enter.stop.prevent="onClearInput"
-          @click.stop.prevent="onClearInput"
-        >
-          <v-icon
-            color="secondary"
-            :icon="mdiCloseCircle"
-            size="21"
-          ></v-icon>
-        </v-btn>
       </template>
       <template #item="{index, item}">
         <v-list-item
@@ -102,9 +77,8 @@
 </template>
 
 <script setup>
-import {alertScreenReader, pluralize, putFocusNextTick} from '@/lib/utils'
+import {pluralize} from '@/lib/utils'
 import {get, filter, includes, isEmpty, size} from 'lodash'
-import {mdiCloseCircle} from '@mdi/js'
 import {nextTick, onMounted, onUpdated, ref} from 'vue'
 
 const props = defineProps({
@@ -281,13 +255,6 @@ const onBlur = () => {
   if (isEmpty(query.value)) {
     props.onClear()
   }
-}
-
-const onClearInput = () => {
-  model.value = null
-  props.onClear()
-  alertScreenReader('Cleared.')
-  putFocusNextTick(`${props.idPrefix}-input`)
 }
 
 const onFocusInput = isFocused => {
