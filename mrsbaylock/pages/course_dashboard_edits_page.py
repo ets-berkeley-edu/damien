@@ -211,6 +211,7 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     BULK_EDIT_DIALOG_TITLE = (By.ID, 'update-evaluations-dialog-title')
     BULK_EDIT_STATUS_SELECT = (By.ID, 'update-evaluations-select-status')
+    BULK_EDIT_INSTRUCTOR_INPUT = (By.ID, 'update-evaluations-instructor-lookup-input')
     BULK_EDIT_FORM_SELECT = (By.ID, 'update-evaluations-select-form')
     BULK_EDIT_TYPE_SELECT = (By.ID, 'update-evaluations-select-type')
     BULK_EDIT_DATE_INPUT = (By.ID, 'update-evaluations-start-date-input')
@@ -229,6 +230,10 @@ class CourseDashboardEditsPage(CourseDashboards):
     def select_bulk_status(self, status):
         app.logger.info(f"Selecting bulk eval status {status.value['option']}")
         self.wait_for_select_and_click_option(CourseDashboardEditsPage.BULK_EDIT_STATUS_SELECT, status.value['option'])
+
+    def look_up_and_select_edit_instr(self, instructor):
+        self.look_up_uid(instructor.uid, CourseDashboardEditsPage.BULK_EDIT_INSTRUCTOR_INPUT)
+        self.click_look_up_result(instructor)
 
     def select_bulk_dept_form(self, dept_form):
         app.logger.info(f'Selecting bulk dept form {dept_form}')
@@ -268,7 +273,7 @@ class CourseDashboardEditsPage(CourseDashboards):
         time.sleep(1)
         data = []
         for el in self.elements(CourseDashboardEditsPage.PREVIEW_STATUS):
-            idx = el.get_attribute('id').split('-')[1]
+            idx = el.get_dom_attribute('id').split('-')[1]
             uid_loc = (By.XPATH, f'//td[@id="preview-{idx}-instructor"]/div')
             uid = ''
             name = ''
@@ -312,7 +317,7 @@ class CourseDashboardEditsPage(CourseDashboards):
     FILTER_IGNORE = (By.ID, 'evaluations-filter-ignore')
 
     def select_filter(self, filter_loc):
-        if 'active' not in self.element(filter_loc).get_attribute('class'):
+        if 'active' not in self.element(filter_loc).get_dom_attribute('class'):
             self.wait_for_page_and_click(filter_loc)
             time.sleep(2)
 
