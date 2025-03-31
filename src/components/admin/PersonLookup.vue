@@ -11,11 +11,12 @@
     </div>
     <AccessibleCombobox
       :clazz="`person-lookup ${inputClass}`"
+      :clearable="clearable"
+      :color="color"
       :container-class="{'v-col v-col-6': inline}"
       :disabled="disabled"
       :error="required && !suppressValidation && !!size(errors)"
       :error-messages="required && !suppressValidation ? errors : []"
-      :filter-results="onUpdateSearch"
       :get-value="() => selected"
       :id-prefix="idPrefix"
       is-autocomplete
@@ -26,6 +27,7 @@
       :list-label="listLabel"
       :on-clear="onClearInput"
       :on-key-down-esc="onKeyDownEsc"
+      :on-update-search="onUpdateSearch"
       :placeholder="placeholder"
       :set-value="v => selected = v"
       :when-item-selected="onSelectItem"
@@ -62,6 +64,15 @@ import {searchUsers} from '@/api/user'
 import {useTheme} from 'vuetify'
 
 const props = defineProps({
+  clearable: {
+    required: false,
+    type: Boolean
+  },
+  color: {
+    default: undefined,
+    required: false,
+    type: String
+  },
   disabled: {
     required: false,
     type: Boolean
@@ -168,9 +179,6 @@ const onClearInput = () => {
 
 const onSelectItem = () => {
   validate(selected.value)
-  if (!selected.value) {
-    query.value = null
-  }
   props.onSelectResult(selected.value)
   suggestions.value = []
 }

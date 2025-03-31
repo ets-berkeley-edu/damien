@@ -297,7 +297,7 @@
                 :id="`evaluation-${rowIndex}-lastUpdated`"
                 class="px-1"
                 :class="{
-                  'font-weight-bold pt-9': isEditing(evaluation),
+                  'font-weight-bold pt-7': isEditing(evaluation),
                   'align-middle': !isEditing(evaluation)
                 }"
               >
@@ -307,7 +307,7 @@
                 :id="`evaluation-${rowIndex}-courseNumber`"
                 class="px-1 td-courseNumber"
                 :class="{
-                  'font-weight-bold pt-9': isEditing(evaluation),
+                  'font-weight-bold pt-7': isEditing(evaluation),
                   'align-middle': !isEditing(evaluation)
                 }"
               >
@@ -324,7 +324,7 @@
               <td
                 class="px-1 td-courseName"
                 :class="{
-                  'font-weight-bold pt-2': isEditing(evaluation),
+                  'font-weight-bold pt-7': isEditing(evaluation),
                   'align-middle': !isEditing(evaluation)
                 }"
               >
@@ -342,7 +342,8 @@
                 :id="`evaluation-${rowIndex}-instructor`"
                 class="px-1 td-instructor"
                 :class="{
-                  'font-weight-bold pt-2': isEditing(evaluation),
+                  'font-weight-bold pt-7': isEditing(evaluation) && evaluation.instructor,
+                  'font-weight-bold pt-2': isEditing(evaluation) && !evaluation.instructor,
                   'align-middle': !isEditing(evaluation)
                 }"
               >
@@ -363,6 +364,8 @@
                 <div v-if="!evaluation.instructor && isEditing(evaluation) && allowEdits" class="position-relative">
                   <PersonLookup
                     class="font-weight-regular instructor-lookup"
+                    clearable
+                    color="black"
                     :disabled="isSaving"
                     input-class="text-no-wrap overflow-hidden"
                     :instructor-lookup="true"

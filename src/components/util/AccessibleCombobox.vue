@@ -6,12 +6,14 @@
       ref="container"
       v-model="model"
       :aria-describedby="`${idPrefix}-desc`"
-      :auto-select-first="!isAutocomplete"
       autocomplete="off"
-      base-color="secondary"
+      :base-color="color"
       :bg-color="isAutocomplete ? 'white' : 'surface'"
       :class="clazz"
-      color="secondary"
+      clear-on-select
+      :clearable="clearable"
+      :color="color"
+      :custom-filter="customFilter"
       density="compact"
       :debounce="500"
       :disabled="disabled"
@@ -26,16 +28,16 @@
       :items="items"
       :list-props="{ariaLive: ariaLive}"
       :loading="isBusy"
-      :menu-icon="null"
-      :menu-props="{closeOnContentClick: true, id: `${idPrefix}-menu`}"
+      :menu-icon="isAutocomplete ? null : $dropdown"
+      :menu-props="menuProps"
       :multiple="!isAutocomplete"
       no-data-text="No results found."
-      :no-filter="isAutocomplete"
+      :no-filter="isAutocomplete || !query"
+      :persistent-clear="clearable"
       :placeholder="placeholder || label"
       return-object
       :search="query"
       :variant="variant"
-      @blur.stop.prevent="onBlur"
       @keydown.esc="onKeyDownEsc"
       @update:focused="onFocusInput"
       @update:menu="onToggleMenu"
@@ -50,6 +52,29 @@
           size="x-small"
           width="2"
         />
+      </template>
+      <template #clear>
+        <v-btn
+          v-if="clearable && !isBusy"
+          :id="`${idPrefix}-clear-btn`"
+          :aria-label="`Clear ${label} input`"
+          :class="{'disabled-opacity': !model}"
+          color="secondary"
+          density="compact"
+          :disabled="!model"
+          exact
+          icon
+          :ripple="false"
+          variant="text"
+          @keydown.enter.stop.prevent="onClearInput"
+          @click.stop.prevent="onClearInput"
+        >
+          <v-icon
+            color="secondary"
+            :icon="mdiCloseCircle"
+            size="21"
+          ></v-icon>
+        </v-btn>
       </template>
       <template #item="{index, item}">
         <v-list-item
@@ -77,8 +102,9 @@
 </template>
 
 <script setup>
-import {pluralize} from '@/lib/utils'
-import {get, filter, includes, isEmpty, size} from 'lodash'
+import {alertScreenReader, pluralize, putFocusNextTick} from '@/lib/utils'
+import {get, size} from 'lodash'
+import {mdiCloseCircle} from '@mdi/js'
 import {nextTick, onMounted, onUpdated, ref} from 'vue'
 
 const props = defineProps({
@@ -92,10 +118,24 @@ const props = defineProps({
     required: false,
     type: [String, Object]
   },
+  clearable: {
+    required: false,
+    type: Boolean
+  },
+  color: {
+    default: 'secondary',
+    required: false,
+    type: String
+  },
   containerClass: {
     default: '',
     required: false,
     type: [String, Object]
+  },
+  customFilter: {
+    default: () => {},
+    required: false,
+    type: Function
   },
   disabled: {
     required: false,
@@ -109,11 +149,6 @@ const props = defineProps({
     default: () => [],
     required: false,
     type: Array
-  },
-  filterResults: {
-    default: () => {},
-    required: false,
-    type: Function
   },
   getValue: {
     required: true,
@@ -173,6 +208,11 @@ const props = defineProps({
     required: false,
     type: Function
   },
+  onUpdateSearch: {
+    default: () => {},
+    required: false,
+    type: Function
+  },
   placeholder: {
     default: undefined,
     required: false,
@@ -195,7 +235,9 @@ const props = defineProps({
 })
 
 const container = ref()
+const filteredItemsCached = ref([])
 const focusedListItemIndex = ref(undefined)
+let menuProps = {}
 const model = defineModel({
   get() {
     return props.getValue()
@@ -211,11 +253,11 @@ const resultsSummaryInterval = ref(undefined)
 
 onMounted(() => {
   const combobox = getComboboxElement()
+  const input = getInputElement()
   if (combobox) {
     combobox.removeAttribute('role')
     combobox.removeAttribute('aria-expanded')
   }
-  const input = getInputElement()
   if (input) {
     input.setAttribute('role', 'combobox')
     input.setAttribute('aria-autocomplete', 'list')
@@ -223,6 +265,12 @@ onMounted(() => {
     input.setAttribute('aria-expanded', false)
     input.setAttribute('aria-label', props.label)
   }
+  menuProps = {
+    closeOnContentClick: true,
+    id: `${props.idPrefix}-menu`,
+    openOnContentClick: !props.isAutocomplete
+  }
+  filteredItemsCached.value = container.value.filteredItems
 })
 
 onUpdated(() => {
@@ -248,25 +296,25 @@ const getInputElement = () => {
   return document.getElementById(`${props.idPrefix}-input`)
 }
 
-const onBlur = () => {
-  const input = getInputElement()
-  input.removeAttribute('aria-activedescendant')
-  focusedListItemIndex.value = null
-  if (isEmpty(query.value)) {
-    props.onClear()
-  }
+const onClearInput = () => {
+  model.value = null
+  query.value = ''
+  props.onClear()
+  alertScreenReader('Cleared.')
+  putFocusNextTick(`${props.idPrefix}-input`)
 }
 
 const onFocusInput = isFocused => {
+  const input = getInputElement()
+  input.removeAttribute('aria-activedescendant')
+  focusedListItemIndex.value = null
+  // Passing open-on-focus via menuProps (https://vuetifyjs.com/en/api/v-menu/#props-open-on-focus)
+  // doesn't seem to have an effect, thus this workaround.
   if (isFocused) {
-    const input = getInputElement()
-    input.removeAttribute('aria-activedescendant')
-    focusedListItemIndex.value = null
-    // Passing open-on-focus via menuProps (https://vuetifyjs.com/en/api/v-menu/#props-open-on-focus)
-    // doesn't seem to have an effect, thus this workaround.
     if (props.openOnFocus && !container.value.menu) {
       container.value.menu = true
     }
+    container.value.filteredItems = filteredItemsCached.value
   }
 }
 
@@ -278,9 +326,7 @@ const onFocusListItem = (event, index) => {
 
 const onSelectItem = item => {
   model.value = get(item.raw, 'value', item.raw)
-  if (!model.value) {
-    query.value = null
-  }
+  query.value = ''
   nextTick(props.whenItemSelected)
 }
 
@@ -306,9 +352,12 @@ const onToggleMenu = isOpen => {
 
 const onUpdateSearch = q => {
   query.value = q
-  props.filterResults(q)
+  props.onUpdateSearch(q)
   clearInterval(resultsSummaryInterval.value)
-  resultsSummaryInterval.value = setInterval(setResultsSummary, 1000)
+  nextTick(() => {
+    filteredItemsCached.value = container.value.filteredItems
+    resultsSummaryInterval.value = setInterval(setResultsSummary, 1000)
+  })
 }
 
 const setResultsSummary = () => {
@@ -316,8 +365,7 @@ const setResultsSummary = () => {
   const listbox = menuOverlay && menuOverlay.querySelector('[role="listbox"]')
   clearInterval(resultsSummaryInterval.value)
   if (listbox) {
-    const suggestions = filter(listbox.children, child => includes(child.classList, 'v-list-item'))
-    resultsSummary.value = pluralize('result', suggestions.length)
+    resultsSummary.value = pluralize('result', filteredItemsCached.value.length)
   } else {
     resultsSummary.value = ''
   }
