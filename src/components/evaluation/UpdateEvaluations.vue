@@ -15,6 +15,7 @@
         <slot name="status" :status="selectedEvaluationStatus" :on="{change: e => selectedEvaluationStatus = e.target.value}"></slot>
         <PersonLookup
           v-if="isObject(instructor)"
+          clearable
           :disabled="disableControls"
           :id-prefix="`${idPrefix}-instructor-lookup`"
           :inline="true"

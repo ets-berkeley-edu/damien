@@ -105,8 +105,8 @@
           :id-prefix="`select-department-forms-${contactId}`"
           :aria-live="undefined"
           clazz="mt-1"
+          :custom-filter="filterDepartmentForms"
           :disabled="isSaving"
-          :filter-results="filterDepartmentForms"
           :get-value="() => contactDepartmentForms"
           :item-count="departmentFormsCount - size(contactDepartmentForms)"
           :item-label="item => item.title"
@@ -234,7 +234,7 @@ const fetchUserDepartmentForms = uid => {
 }
 
 const filterDepartmentForms = (value, queryText) => {
-  return upperCase(value).includes(upperCase(queryText))
+  return isEmpty(queryText) || upperCase(value).includes(upperCase(queryText))
 }
 
 const addDepartmentForm = departmentForm => {

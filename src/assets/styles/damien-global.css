@@ -176,6 +176,9 @@ input.vs__search:enabled {
 .v-dialog.v-dialog--active {
   overflow-y: visible;
 }
+.v-field--variant-outlined.v-field--focused .v-field__outline {
+  --v-field-border-width: 1.875px !important;
+}
 .v-input--is-focused .v-input--selection-controls__input {
   appearance: auto !important;
   color: -webkit-focus-ring-color !important;
