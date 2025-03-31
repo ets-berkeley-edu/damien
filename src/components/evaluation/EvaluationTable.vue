@@ -92,7 +92,7 @@
                   left
                 />
                 <div class="pl-1">
-                  <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations of marked with</span>
+                  <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations marked with</span>
                   {{ filterTypes[status].label }}
                 </div>
                 <div :class="filterTypes[status].enabled ? 'text-white' : 'text-grey darken-2'">
