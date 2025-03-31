@@ -487,7 +487,7 @@ const selectInstructor = suggestion => {
   width: 25%;
 }
 .bulk-action-preview-caption {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 500;
 }
 .bulk-action-startDate-col {
