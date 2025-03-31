@@ -1127,7 +1127,7 @@ tr.border-top-none td {
   min-width: 5rem !important;
 }
 .no-eligible-sections {
-  font-size: 20px;
+  font-size: 1.25rem;
   height: fit-content;
 }
 .pill {
