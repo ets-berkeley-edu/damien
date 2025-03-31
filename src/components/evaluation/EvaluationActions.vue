@@ -456,7 +456,7 @@ const validateAndUpdate = key => {
   min-width: 4.65em
 }
 .pipe-separator {
-  font-size: 20px;
+  font-size: 1.25rem;
   padding: 2px 2px 0 2px;
 }
 </style>
