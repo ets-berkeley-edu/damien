@@ -1,11 +1,11 @@
 <template>
   <v-form
     v-model="valid"
-    class="px-3 py-4"
+    class="py-4"
     :class="{'bg-surface-variant': uid && !contact}"
     lazy-validation
   >
-    <div v-if="!contact && !uid" class="w-75">
+    <div v-if="!contact && !uid">
       <h3 id="add-contact-sub-header" class="form-title">
         Add Contact
       </h3>
@@ -19,7 +19,7 @@
         :on-select-result="onSelectSearchResult"
       />
     </div>
-    <div v-if="uid" class="department-contact-form w-75">
+    <div v-if="uid" class="department-contact-form">
       <h3 id="contact-sub-header">
         <span class="sr-only">Contact: </span>{{ fullName }} ({{ uid }})
       </h3>
@@ -50,13 +50,13 @@
             aria-label="Receive notifications"
             class="checkbox-override rounded-sm"
             color="primary"
-            density="compact"
+            density="comfortable"
             :disabled="isSaving"
             hide-details
             role="checkbox"
             tabindex="0"
           />
-          <label class="v-label ml-1" :for="`checkbox-communications-${contactId}`">
+          <label class="v-label opacity-100 ml-1 text-wrap" :for="`checkbox-communications-${contactId}`">
             Receive notifications
           </label>
         </div>
@@ -140,18 +140,18 @@
         </div>
       </div>
     </div>
-    <div class="mt-4">
+    <div class="mt-2">
       <ProgressButton
         :id="`save-dept-contact-${contactId}-btn`"
         :action="onSave"
-        class="text-capitalize mr-2"
+        class="text-capitalize mr-2 mt-2"
         :disabled="!valid || !uid || isSaving"
         :in-progress="isSaving"
         text="Save"
       />
       <v-btn
         :id="`cancel-dept-contact-${contactId}-btn`"
-        class="text-capitalize"
+        class="text-capitalize mt-2"
         :disabled="isSaving"
         text="Cancel"
         variant="outlined"
@@ -320,9 +320,7 @@ const removeDepartmentForm = formId => {
 .department-contact-form {
   z-index: 10;
 }
-.checkbox-override.v-simple-checkbox div {
-  height: 20px;
-  margin: 0px;
-  width: 20px;
+.checkbox-override {
+  min-width: 2.25rem;
 }
 </style>
