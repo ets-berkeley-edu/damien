@@ -37,7 +37,7 @@
             <div id="checkbox-select-dept-all-desc">Send notification</div>
             <v-btn
               id="open-notification-form-btn"
-              class="mx-2r text-capitalize"
+              class="r-mx-2 text-capitalize"
               color="secondary"
               density="comfortable"
               :disabled="isCreatingNotification || isEmpty(selectedDepartmentIds) || contextStore.loading"
@@ -124,7 +124,7 @@
                 </span>
               </td>
               <td class="department-note">
-                <pre class="text-condensed truncate-with-ellipsis">{{ get(department, 'note.note') }}</pre>
+                <pre class="text-condensed text-truncate">{{ get(department, 'note.note') }}</pre>
               </td>
             </tr>
           </template>

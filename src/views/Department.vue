@@ -43,7 +43,7 @@
       </div>
       <v-container class="mx-0 pb-2 pt-1 px-0" fluid>
         <v-row justify="start">
-          <v-col cols="12" md="6">
+          <v-col cols="12" lg="6">
             <div aria-labelledby="department-contacts-header" class="border-sm pa-3" role="region">
               <v-expansion-panels
                 v-model="contactsPanel"
@@ -55,7 +55,7 @@
                     <div class="d-flex align-center flex-wrap justify-space-between">
                       <h2 id="department-contacts-header" class="ml-2">Department Contacts</h2>
                       <v-expansion-panel-title
-                        class="px-2 px-sm-6 py-0 w-fit-content"
+                        class="ml-auto px-2 px-sm-6 py-0 w-fit-content"
                         hide-actions
                       >
                         <template #default="{expanded}">
@@ -74,7 +74,7 @@
                         </template>
                       </v-expansion-panel-title>
                     </div>
-                    <v-expansion-panel-text>
+                    <v-expansion-panel-text class="department-contacts">
                       <v-expansion-panels
                         v-model="contactDetailsPanel"
                         flat
@@ -137,7 +137,7 @@
               </div>
             </div>
           </v-col>
-          <v-col cols="12" md="6">
+          <v-col cols="12" lg="6">
             <div aria-labelledby="notes-title" class="border-sm px-5 py-3" role="region">
               <DepartmentNote />
             </div>
@@ -279,14 +279,17 @@ const toggleCollapseAllContacts = isCollapsed => {
 }
 </script>
 
+<style>
+.department-contacts > .v-expansion-panel-text__wrapper {
+  padding: 8px;
+}
+</style>
+
 <style scoped>
 .department-contacts-btn {
   width: 10.125rem;
 }
 .omen-poster-img {
   height: calc(100vh - 100px);
-}
-.w-fit-content {
-  width: fit-content;
 }
 </style>

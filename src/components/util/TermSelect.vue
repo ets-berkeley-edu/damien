@@ -1,11 +1,11 @@
 <template>
   <div class="align-center d-flex flex-wrap">
-    <div class="pr-3">
+    <div>
       <select
         id="select-term"
         aria-label="Term"
         autocomplete="off"
-        class="font-size-18 select-term my-2"
+        class="font-size-18 select-term my-2 r-mr-3"
         :disabled="contextStore.loading"
         :value="contextStore.selectedTermId"
         @change="onChangeTerm"
@@ -25,28 +25,18 @@
       v-if="contextStore.currentUser.isAdmin"
       id="toggle-term-locked"
       v-model="termLocked"
-      :disabled="isTogglingLock || contextStore.loading"
+      :aria-label="`Toggle lock for ${contextStore.selectedTermName}`"
+      class="r-ml-3"
       density="comfortable"
+      :disabled="isTogglingLock || contextStore.loading"
+      :false-icon="mdiLockOpen"
       hide-details
       inset
+      :loading="isTogglingLock"
       :title="`${termLocked ? 'Lock' : 'Unlocked'} ${contextStore.selectedTermName} for editing.`"
-      :aria-label="`Toggle lock for ${contextStore.selectedTermName}`"
       :true-icon="mdiLock"
-      :false-icon="mdiLockOpen"
       @update:model-value="toggleTermLocked"
-    >
-      <template #append>
-        <v-progress-circular
-          v-if="isTogglingLock"
-          class="ml-2"
-          color="primary"
-          :indeterminate="true"
-          rotate="5"
-          size="20"
-          width="3"
-        />
-      </template>
-    </v-switch>
+    />
     <v-icon
       v-if="!contextStore.currentUser.isAdmin"
       id="term-locked-indicator"
@@ -165,6 +155,6 @@ const toggleTermLocked = desiredLocked => {
 }
 
 :deep(.v-switch .v-selection-control__input .v-icon) {
-  font-size: 26px;
+  font-size: 1.5rem;
 }
 </style>
