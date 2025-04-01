@@ -48,12 +48,12 @@ defineProps({
     type: Boolean
   },
   maxWidth: {
-    default: 0,
+    default: '100%',
     required: false,
     type: [Number, String]
   },
   minWidth: {
-    default: 0,
+    default: '50%',
     required: false,
     type: [Number, String]
   },
@@ -77,7 +77,7 @@ defineProps({
     type: String
   },
   width: {
-    default: 500,
+    default: '31.25rem',
     required: false,
     type: [Number, String]
   }
