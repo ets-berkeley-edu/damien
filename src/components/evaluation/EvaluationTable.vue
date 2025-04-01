@@ -21,7 +21,7 @@
           density="comfortable"
           hide-details
           label="Filter courses"
-          max-width="600px"
+          max-width="37.5rem"
           type="search"
         />
         <AddCourseSection
@@ -80,7 +80,6 @@
               color="tertiary"
               class="mb-1 mr-1 rounded-pill text-uppercase"
               height="30"
-              size="small"
               :value="status"
               :width="filterTypes[status].width"
             >
@@ -658,10 +657,10 @@ const editRowId = ref(undefined)
 const evaluationHeaders = ref([])
 const evaluationTypes = ref([])
 const filterTypes = {
-  unmarked: {label: 'None', enabled: true, width: 112},
-  review: {label: 'To-Do', enabled: true, width: 114},
-  confirmed: {label: 'Done', enabled: true, width: 112},
-  ignore: {label: 'Ignore', enabled: false, width: 122}
+  unmarked: {label: 'None', enabled: true, width: '7rem'},
+  review: {label: 'To-Do', enabled: true, width: '7.125rem'},
+  confirmed: {label: 'Done', enabled: true, width: '7rem'},
+  ignore: {label: 'Ignore', enabled: false, width: '7rem'}
 }
 const focusedEditButtonEvaluationId = ref(undefined)
 const hoverId = ref(undefined)
@@ -1130,29 +1129,17 @@ tr.border-top-none td {
   font-size: 1.25rem;
   height: fit-content;
 }
-.pill {
-  border: 1px solid #999;
-  border-radius: 5px;
-  color: #fff;
-  font-size: 0.8em;
-  font-weight: bold;
-  margin: 0;
-  padding: 3px 10px;
-  text-align: center;
-  text-transform: uppercase;
-  width: 90px;
-}
 .pill-invisible {
   border: none;
   padding: 0;
 }
 .select-all-evals {
-  height: 36px;
+  height: 2.25em;
   margin-left: -3px;
-  width: 6.5rem;
+  width: 14.375em;
 }
 .select-evaluation-status {
-  min-width: 5.5rem;
+  min-width: 5.5em;
 }
 .status-filter {
   height: fit-content !important;
