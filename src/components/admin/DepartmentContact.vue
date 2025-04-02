@@ -19,7 +19,7 @@
           <v-col class="px-2 pt-1" cols="12">{{ contact.email }}</v-col>
         </v-row>
         <v-row :id="`dept-contact-${contact.id}-notifications`" class="mt-0">
-          <v-col class="text-right px-1 icon-col" cols="1">
+          <v-col class="text-right px-1" cols="1">
             <v-icon
               :class="contact.canReceiveCommunications ? 'text-success' : 'text-muted'"
               :icon="contact.canReceiveCommunications ? mdiCheckCircle : mdiMinusCircle"
@@ -31,7 +31,7 @@
           </v-col>
         </v-row>
         <v-row :id="`dept-contact-${contact.id}-permissions`" class="mt-0">
-          <v-col class="text-right px-1 icon-col" cols="1">
+          <v-col class="text-right px-1" cols="1">
             <v-icon
               :class="contact.canViewReports ? 'text-success' : 'text-muted'"
               :icon="contact.canViewReports ? mdiCheckCircle : mdiMinusCircle"
@@ -212,9 +212,6 @@ const onDelete = () => {
 .edit-contact-container {
   border-radius: 0 0 4px 4px;
   border: 2px solid rgba(var(--v-border-color), var(--v-border-opacity));
-}
-.icon-col {
-  min-width: fit-content;
 }
 .panel-width {
   min-width: 320px;

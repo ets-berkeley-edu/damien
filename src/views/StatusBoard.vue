@@ -37,7 +37,7 @@
             <div id="checkbox-select-dept-all-desc">Send notification</div>
             <v-btn
               id="open-notification-form-btn"
-              class="mx-2-r text-capitalize"
+              class="mx-2 text-capitalize"
               color="secondary"
               density="comfortable"
               :disabled="isCreatingNotification || isEmpty(selectedDepartmentIds) || contextStore.loading"

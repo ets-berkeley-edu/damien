@@ -21,7 +21,7 @@
           density="comfortable"
           hide-details
           label="Filter courses"
-          max-width="37.5rem"
+          max-width="600px"
           type="search"
         />
         <AddCourseSection
@@ -80,6 +80,7 @@
               color="tertiary"
               class="mb-1 mr-1 rounded-pill text-uppercase"
               height="30"
+              size="small"
               :value="status"
               :width="filterTypes[status].width"
             >
@@ -91,7 +92,7 @@
                   left
                 />
                 <div class="pl-1">
-                  <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations marked with</span>
+                  <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations of marked with</span>
                   {{ filterTypes[status].label }}
                 </div>
                 <div :class="filterTypes[status].enabled ? 'text-white' : 'text-grey darken-2'">
@@ -657,10 +658,10 @@ const editRowId = ref(undefined)
 const evaluationHeaders = ref([])
 const evaluationTypes = ref([])
 const filterTypes = {
-  unmarked: {label: 'None', enabled: true, width: '7rem'},
-  review: {label: 'To-Do', enabled: true, width: '7.125rem'},
-  confirmed: {label: 'Done', enabled: true, width: '7rem'},
-  ignore: {label: 'Ignore', enabled: false, width: '7rem'}
+  unmarked: {label: 'None', enabled: true, width: 112},
+  review: {label: 'To-Do', enabled: true, width: 114},
+  confirmed: {label: 'Done', enabled: true, width: 112},
+  ignore: {label: 'Ignore', enabled: false, width: 122}
 }
 const focusedEditButtonEvaluationId = ref(undefined)
 const hoverId = ref(undefined)
@@ -1126,20 +1127,32 @@ tr.border-top-none td {
   min-width: 5rem !important;
 }
 .no-eligible-sections {
-  font-size: 1.25rem;
+  font-size: 20px;
   height: fit-content;
+}
+.pill {
+  border: 1px solid #999;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin: 0;
+  padding: 3px 10px;
+  text-align: center;
+  text-transform: uppercase;
+  width: 90px;
 }
 .pill-invisible {
   border: none;
   padding: 0;
 }
 .select-all-evals {
-  height: 2.25em;
+  height: 36px;
   margin-left: -3px;
-  width: 14.375em;
+  width: 6.5rem;
 }
 .select-evaluation-status {
-  min-width: 5.5em;
+  min-width: 5.5rem;
 }
 .status-filter {
   height: fit-content !important;

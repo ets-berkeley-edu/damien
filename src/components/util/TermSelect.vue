@@ -117,6 +117,6 @@ const toggleTermLocked = () => {
 
 <style scoped>
 .select-term {
-  max-width: 12.5rem;
+  max-width: 200px;
 }
 </style>

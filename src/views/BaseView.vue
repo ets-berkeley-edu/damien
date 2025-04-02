@@ -63,11 +63,11 @@
       color="tertiary"
       permanent
       :rail="isSidebarCollapsed"
-      :rail-width="navDrawerRailWidth"
+      rail-width="56"
       role="navigation"
       :scrim="false"
       tag="nav"
-      width="13.75rem"
+      width="220"
     >
       <template #prepend>
         <h2 id="nav-header" class="sr-only" tabindex="-1">Main Menu</h2>
@@ -81,9 +81,8 @@
             :aria-label="`${isSidebarCollapsed ? 'expand' : 'collapse'} navigation`"
             class="font-size-16 nav-item px-0"
             color="on-tertiary"
-            min-height="2.5rem"
-            min-width="2.5rem"
             variant="tonal"
+            min-width="40"
             @click="toggleSidebarCollapsed"
           >
             <v-icon :icon="isSidebarCollapsed ? mdiArrowExpandRight : mdiArrowCollapseLeft" size="x-large" />
@@ -116,17 +115,15 @@
             :title="isSidebarCollapsed ? item.title : undefined"
           />
           <div
-            class="font-weight-medium text-on-tertiary ml-4 nav-drawer-letter-spacing text-no-wrap"
-            :class="{
-              'font-weight-bold text-white': startsWith(route.path, item.path),
-              'sr-only': isSidebarCollapsed}"
+            class="ml-4 nav-drawer-letter-spacing text-no-wrap"
+            :class="startsWith(route.path, item.path) ? 'font-weight-bold text-white' : 'font-weight-medium text-on-tertiary'"
           >
             {{ item.title }}
           </div>
         </div>
       </v-list-item>
     </v-navigation-drawer>
-    <v-main id="content" class="mb-4" :style="`--v-layout-bottom: ${footerHeight}px; --v-layout-left: ${isSidebarCollapsed ? `${navDrawerRailWidth}px` : '11.81rem'}`">
+    <v-main id="content" class="mb-4" :style="`--v-layout-bottom: ${footerHeight}px;`">
       <Snackbar />
       <Spinner v-if="contextStore.loading" />
       <ServiceAnnouncement />
@@ -160,7 +157,6 @@ import {useRoute, useRouter} from 'vue-router'
 
 const contextStore = useContextStore()
 const currentUser = contextStore.currentUser
-const fontSize = ref('16px')
 const isSidebarCollapsed = ref(false)
 const layout = ref()
 const navItems = ref([])
@@ -171,10 +167,6 @@ const theme = useTheme()
 const footerHeight = computed(() => {
   const footer = layout.value ? layout.value.getLayoutItem('footer') : null
   return get(footer, 'size', 60)
-})
-const navDrawerRailWidth = computed(() => {
-  const fontSizeNum = parseInt(fontSize.value.replace('px', ''))
-  return (56 * fontSizeNum / 16) - (fontSizeNum - 16)
 })
 
 onMounted(() => {
@@ -188,16 +180,6 @@ onMounted(() => {
       {id: 'settings', title: 'Settings', icon: mdiPlaylistEdit, path: '/lists'}
     ]
   }
-  const setFontSize = () => {
-    if (layout.value) {
-      const computedFontSize = getComputedStyle(layout.value.$el).fontSize
-      if (computedFontSize && computedFontSize !== fontSize.value) {
-        fontSize.value = computedFontSize
-      }
-    }
-    requestAnimationFrame(setFontSize)
-  }
-  requestAnimationFrame(setFontSize)
 })
 
 const logOut = () => {
