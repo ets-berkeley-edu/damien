@@ -162,16 +162,60 @@
 .v-btn-toggle > .v-btn.v-btn--active:not(.v-btn--disabled) > .v-btn__overlay {
   opacity: 0 !important;
 }
-.vs__actions button:enabled {
-  cursor: pointer;
+.v-btn.v-btn--size-default {
+  --v-btn-height: 2.25rem !important;
+  min-width: 4rem !important;
 }
-.vs__dropdown-toggle {
-  border: none !important;
-  border-image: none !important;
-  padding: 3px 8px !important;
+.v-btn.v-btn--size-large {
+  --v-btn-height: 2.75rem !important;
+  min-width: 4.875rem !important;
 }
-input.vs__search:enabled {
-  cursor: text !important;
+.v-btn.v-btn--size-x-large {
+  --v-btn-height: 3.25rem !important;
+  min-width: 5.75rem !important;
+  padding: 0 24px;
+}
+.v-btn.v-btn--density-comfortable {
+  height: calc(var(--v-btn-height) + -0.5rem) !important;
+  min-height: calc(var(--v-btn-height) + -0.5rem) !important;
+}
+.v-btn.v-btn--density-compact {
+  height: calc(var(--v-btn-height) + -0.75rem) !important;
+  min-height: calc(var(--v-btn-height) + -0.75rem) !important;
+}
+.v-btn--icon.v-btn--density-default {
+  height: calc(var(--v-btn-height) + 0.75rem) !important;
+  min-width: calc(var(--v-btn-height) + 0.75rem) !important;
+}
+.v-btn--icon.v-btn--density-comfortable {
+  height: calc(var(--v-btn-height) + 0px) !important;
+  min-width: calc(var(--v-btn-height) + 0px) !important;
+  width: calc(var(--v-btn-height) + 0px) !important;
+}
+.v-btn--icon.v-btn--density-compact {
+  height: calc(var(--v-btn-height) + -0.5rem) !important;
+  min-width: calc(var(--v-btn-height) + -0.5rem) !important;
+  width: calc(var(--v-btn-height) + -0.5rem) !important;
+}
+.v-chip.v-chip--size-x-small {
+  --v-chip-height: 1.25rem !important;
+}
+.v-chip.v-chip--size-small {
+  --v-chip-height: 1.625rem !important;
+}
+.v-chip.v-chip--size-default {
+  --v-chip-height: 2rem !important;
+}
+.v-chip.v-chip--size-large {
+  --v-chip-height: 2.375rem !important;
+}
+.v-chip.v-chip--size-x-large {
+  --v-chip-height: 2.75rem !important;
+}
+.v-chip__close {
+  font-size: 1.125rem !important;
+  max-height: 1.125rem !important;
+  max-width: 1.125rem !important;
 }
 .v-dialog.v-dialog--active {
   overflow-y: visible;
@@ -206,6 +250,14 @@ input.vs__search:enabled {
 .v-text-field--placeholder input::placeholder {
   color: #999999 !important;
 }
+.vs__actions button:enabled {
+  cursor: pointer;
+}
+.vs__dropdown-toggle {
+  border: none !important;
+  border-image: none !important;
+  padding: 3px 8px !important;
+}
 .w-75 {
   width: 75%;
 }
@@ -224,6 +276,9 @@ h1 {
 h2 {
   font-size: 1.5em;
   font-weight: 700;
+}
+input.vs__search:enabled {
+  cursor: text !important;
 }
 select {
   -moz-appearance: none;

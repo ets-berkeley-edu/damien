@@ -6,10 +6,12 @@
     @resize="setStickySearchPosition"
   >
     <div
+      id="evaluations-table-header"
       class="bg-surface-variant elevation-2 py-2 sticky"
+      :class="{'collapsed': isHeaderCollapsed}"
       role="search"
     >
-      <div class="align-center d-flex flex-wrap px-4 pt-2" :class="{'pb-2': readonly}">
+      <div class="align-center d-flex flex-wrap px-4" :class="{'pt-2': !isHeaderCollapsed, 'pb-2': readonly}">
         <v-text-field
           id="evaluation-search-input"
           v-model="searchFilter"
@@ -28,6 +30,14 @@
           v-if="!readonly"
           id="add-course-section"
           :allow-edits="allowEdits"
+          :on-click-add="onClickExpandHeader"
+        />
+        <v-btn
+          v-if="isHeaderCollapsed"
+          :icon="mdiDotsVertical"
+          size="small"
+          title="More"
+          @click.stop="onClickExpandHeader"
         />
       </div>
       <div class="align-center d-flex flex-wrap justify-space-between px-4">
@@ -76,35 +86,33 @@
               :key="status"
               :active="filterTypes[status].enabled"
               :aria-pressed="filterTypes[status].enabled"
-              :disabled="disableControls"
-              color="tertiary"
               class="mb-1 mr-1 rounded-pill text-uppercase"
-              height="30"
-              size="small"
+              color="tertiary"
+              :disabled="disableControls"
+              height="1.875rem !important"
               :value="status"
               :width="filterTypes[status].width"
             >
-              <div class="align-center d-flex justify-space-between">
+              <template #prepend>
                 <v-icon
                   v-if="filterTypes[status].enabled"
                   color="success"
                   :icon="filterTypes[status].enabled ? mdiCheckCircle : mdiPlusCircle"
-                  left
                 />
-                <div class="pl-1">
-                  <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations of marked with</span>
-                  {{ filterTypes[status].label }}
-                </div>
-                <div :class="filterTypes[status].enabled ? 'text-white' : 'text-grey darken-2'">
-                  <v-chip
-                    class="ml-2 px-1"
-                    :class="{'font-weight-bold': filterTypes[status].enabled}"
-                    size="small"
-                  >
-                    {{ filterTypeCounts(status) }}<span class="sr-only"> evaluations</span>
-                  </v-chip>
-                </div>
+              </template>
+              <div :class="{'font-weight-bold': filterTypes[status].enabled, 'text-disabled': !filterTypes[status].enabled}">
+                <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations marked with</span>
+                {{ filterTypes[status].label }}
               </div>
+              <template #append>
+                <v-chip
+                  class="evaluation-status-filter-count px-1"
+                  :class="{'font-weight-bold': filterTypes[status].enabled, 'text-disabled': !filterTypes[status].enabled}"
+                  size="small"
+                >
+                  {{ filterTypeCounts(status) }}<span class="sr-only"> evaluations</span>
+                </v-chip>
+              </template>
             </v-btn>
           </v-btn-toggle>
         </div>
@@ -121,6 +129,7 @@
     <v-data-table
       id="evaluation-table"
       v-model:sort-by="sortBy"
+      v-scroll="onScroll"
       class="v-table-hidden-row-override v-table-overflow-override pt-3"
       :custom-filter="customFilter"
       density="compact"
@@ -641,7 +650,7 @@
 <script setup>
 import {clone, each, filter, find, get, includes, isEmpty, keys, map, noop, pickBy, pull, size, some} from 'lodash'
 import {computed, nextTick, onMounted, provide, ref, watch} from 'vue'
-import {mdiAlertCircle, mdiCheckCircle, mdiChevronDown, mdiPlusCircle} from '@mdi/js'
+import {mdiAlertCircle, mdiCheckCircle, mdiChevronDown, mdiDotsVertical, mdiPlusCircle} from '@mdi/js'
 import {storeToRefs} from 'pinia'
 import AccessibleDateInput from '@/components/util/AccessibleDateInput'
 import AddCourseSection from '@/components/evaluation/AddCourseSection'
@@ -675,15 +684,17 @@ const editRowId = ref(undefined)
 const evaluationHeaders = ref([])
 const evaluationTypes = ref([])
 const filterTypes = {
-  unmarked: {label: 'None', enabled: true, width: 112},
-  review: {label: 'To-Do', enabled: true, width: 114},
-  confirmed: {label: 'Done', enabled: true, width: 112},
-  ignore: {label: 'Ignore', enabled: false, width: 122}
+  unmarked: {label: 'None', enabled: true, width: '7.75rem'},
+  review: {label: 'To-Do', enabled: true, width: '7.875rem'},
+  confirmed: {label: 'Done', enabled: true, width: '7.75rem'},
+  ignore: {label: 'Ignore', enabled: false, width: '7.75rem'}
 }
 const focusedEditButtonEvaluationId = ref(undefined)
+const forceExpandHeader = ref(false)
 const hoverId = ref(undefined)
 const isConfirmingCancelEdit = ref(false)
 const isConfirmingNonSisInstructor = ref(false)
+const isHeaderCollapsed = ref(false)
 const isSaving = ref(false)
 const markAsDoneWarning = ref(undefined)
 const openMenuEvaluationIds = ref([])
@@ -717,6 +728,9 @@ const someEvaluationsSelected = computed(() => {
   const selectedCount = size(selectedEvaluationIds.value)
   return !!selectedCount && selectedCount < size(evaluations.value)
 })
+const stickyTop = computed(() => {
+  return `${stickySearchPosition.value}px`
+})
 const visibleEvaluations = computed(() => {
   return filter(evaluations.value, isStatusFilterEnabled)
 })
@@ -736,9 +750,9 @@ watch(selectedFilterTypes, types => {
   })
 })
 
-const stickySearchPosition = ref('0px')
+const stickySearchPosition = ref(0)
 const setStickySearchPosition = () => {
-  stickySearchPosition.value = 64 + document.getElementById('service-announcement').clientHeight + 'px'
+  stickySearchPosition.value = 64 + document.getElementById('service-announcement').clientHeight
 }
 
 onMounted(() => {
@@ -915,6 +929,11 @@ const onChangeSearchFilter = filterResults => {
   }
 }
 
+const onClickExpandHeader = () => {
+  isHeaderCollapsed.value = false
+  forceExpandHeader.value = true
+}
+
 const onConfirm = () => {
   const evaluation = find(evaluations.value, ['id', pendingEditRowId.value])
   isConfirmingCancelEdit.value = false
@@ -961,6 +980,20 @@ const onMouseenterRow = evaluation => {
 const onMouseleaveRow = evaluation => {
   if (!openMenuEvaluationIds.value.includes(evaluation.id)) {
     hoverId.value = null
+  }
+}
+
+const onScroll = () => {
+  const tableHeader = document.getElementById('evaluations-table-header')
+  if (tableHeader.getBoundingClientRect().top <= stickySearchPosition.value) {
+    if (!forceExpandHeader.value && !isHeaderCollapsed.value) {
+      isHeaderCollapsed.value = true
+    }
+  } else {
+    forceExpandHeader.value = false
+    if (isHeaderCollapsed.value) {
+      isHeaderCollapsed.value = false
+    }
   }
 }
 
@@ -1087,6 +1120,10 @@ const validateAndSave = evaluation => {
 .evaluation-row-btn .v-btn__append {
   margin-left: 2px !important;
 }
+.evaluation-status-filter-count .v-chip__content {
+  justify-content: center !important;
+  width: 100% !important;
+}
 .focus-btn::before {
   opacity: 0.24;
 }
@@ -1146,6 +1183,9 @@ tr.border-top-none td {
 .evaluation-row.evaluation-row-leave-active {
   position: absolute;
 }
+.evaluation-status-filter-count {
+  min-width: 1.75rem
+}
 .instructor-lookup {
   max-width: 300px !important;
   min-width: 5rem !important;
@@ -1192,9 +1232,15 @@ tr.border-top-none td {
   width: 100%;
 }
 .sticky {
+  max-height: 12.5rem;
+  overflow-y: hidden;
   position: sticky;
-  top: v-bind(stickySearchPosition);
+  top: v-bind(stickyTop);
+  transition: max-height 0.2s;
   z-index: 11;
+  &.collapsed {
+    max-height: 4rem;
+  }
 }
 .td-courseNumber {
   word-break: break-word;
