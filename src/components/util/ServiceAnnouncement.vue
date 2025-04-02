@@ -57,7 +57,7 @@ onMounted(() => {
   padding: 8px 20px;
 }
 pre {
-  font-size: 0.938rem !important;
+  font-size: 15px !important;
   white-space: pre-line;
 }
 </style>

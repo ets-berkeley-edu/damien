@@ -48,17 +48,17 @@
   opacity: var(--v-disabled-opacity) !important;
 }
 .font-size-14 {
-  font-size: 0.875rem;
+  font-size: 14px;
 }
 .font-size-16 {
-  font-size: 1rem;
+  font-size: 16px;
 }
 .font-size-18 {
-  font-size: 1.125rem;
+  font-size: 18px;
 }
 .form-label {
   color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
-  font-size: 0.938rem;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1;
   overflow: hidden;
@@ -108,7 +108,7 @@
   padding: 16px 6px 6px !important;
 }
 .modal-content .v-card-title {
-  font-size: 1.5rem;
+  font-size: 24px;
 }
 .page-margins {
   margin: 12px;
@@ -218,11 +218,11 @@ a {
 }
 h1 {
   color: rgb(var(--v-theme-title));
-  font-size: 2rem;
+  font-size: 2em;
   font-weight: 700;
 }
 h2 {
-  font-size: 1.5rem;
+  font-size: 1.5em;
   font-weight: 700;
 }
 select {
@@ -241,7 +241,7 @@ svg {
 }
 table thead th {
   color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
-  font-size: 0.75rem;
+  font-size: 12px;
   font-weight: 700 !important;
 }
 table thead th button {

@@ -307,7 +307,7 @@ const removeDepartmentForm = formId => {
 
 <style>
 .form-title {
-  font-size: 1.125rem;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1;
   overflow: hidden;
