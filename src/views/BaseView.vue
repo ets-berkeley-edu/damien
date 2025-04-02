@@ -126,7 +126,7 @@
         </div>
       </v-list-item>
     </v-navigation-drawer>
-    <v-main id="content" class="mb-4" :style="`--v-layout-bottom: ${footerHeight}px; --v-layout-left: ${isSidebarCollapsed ? `${navDrawerRailWidth}px` : '11.81rem'}`">
+    <v-main id="content" class="mb-4" :style="`--v-layout-bottom: ${footerHeight}px; --v-layout-left: ${navDrawerRailWidth}px`">
       <Snackbar />
       <Spinner v-if="contextStore.loading" />
       <ServiceAnnouncement />
