@@ -280,4 +280,7 @@ const toggleCollapseAllContacts = isCollapsed => {
 .omen-poster-img {
   height: calc(100vh - 100px);
 }
+.w-fit-content {
+  width: fit-content;
+}
 </style>
