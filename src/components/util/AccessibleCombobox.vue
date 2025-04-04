@@ -28,7 +28,7 @@
       :items="items"
       :list-props="{ariaLive: ariaLive}"
       :loading="isBusy"
-      :menu-icon="isAutocomplete ? null : $dropdown"
+      :menu-icon="isAutocomplete ? null : mdiChevronDown"
       :menu-props="menuProps"
       :multiple="!isAutocomplete"
       no-data-text="No results found."
@@ -104,7 +104,7 @@
 <script setup>
 import {alertScreenReader, pluralize, putFocusNextTick} from '@/lib/utils'
 import {get, size} from 'lodash'
-import {mdiCloseCircle} from '@mdi/js'
+import {mdiChevronDown, mdiCloseCircle} from '@mdi/js'
 import {nextTick, onMounted, onUpdated, ref} from 'vue'
 
 const props = defineProps({
@@ -209,7 +209,7 @@ const props = defineProps({
     type: Function
   },
   onUpdateSearch: {
-    default: () => {},
+    default: () => new Promise(resolve => resolve),
     required: false,
     type: Function
   },
@@ -352,23 +352,20 @@ const onToggleMenu = isOpen => {
 
 const onUpdateSearch = q => {
   query.value = q
-  props.onUpdateSearch(q)
-  clearInterval(resultsSummaryInterval.value)
-  nextTick(() => {
-    filteredItemsCached.value = container.value.filteredItems
-    resultsSummaryInterval.value = setInterval(setResultsSummary, 1000)
+  props.onUpdateSearch(q).then(() => {
+    clearInterval(resultsSummaryInterval.value)
+    nextTick(() => {
+      filteredItemsCached.value = container.value.filteredItems
+      if (q) {
+        resultsSummaryInterval.value = setInterval(setResultsSummary, 1000)
+      }
+    })
   })
 }
 
 const setResultsSummary = () => {
-  const menuOverlay = document.getElementById(`${props.idPrefix}-menu`)
-  const listbox = menuOverlay && menuOverlay.querySelector('[role="listbox"]')
   clearInterval(resultsSummaryInterval.value)
-  if (listbox) {
-    resultsSummary.value = pluralize('result', filteredItemsCached.value.length)
-  } else {
-    resultsSummary.value = ''
-  }
+  resultsSummary.value = pluralize('result', filteredItemsCached.value.length, {0: 'No'})
 }
 </script>
 

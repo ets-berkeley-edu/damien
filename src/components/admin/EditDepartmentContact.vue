@@ -19,10 +19,12 @@
         :on-select-result="onSelectSearchResult"
       />
     </div>
-    <div v-if="uid" class="department-contact-form w-75">
-      <h3 id="contact-sub-header">
+    <div aria-live="polite">
+      <h3 v-if="uid" id="contact-sub-header">
         <span class="sr-only">Contact: </span>{{ fullName }} ({{ uid }})
       </h3>
+    </div>
+    <div v-if="uid" class="department-contact-form w-75">
       <div class="pt-2">
         <label :for="`input-email-${contactId}`" class="form-label">
           Email Address

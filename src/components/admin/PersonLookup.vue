@@ -55,10 +55,8 @@
 
 <script setup>
 import AccessibleCombobox from '@/components/util/AccessibleCombobox'
-import {alertScreenReader} from '@/lib/utils'
 import {debounce, delay, each, replace, size, split, trim} from 'lodash'
 import {onMounted, ref} from 'vue'
-import {pluralize} from '@/lib/utils'
 import {searchInstructors} from '@/api/instructor'
 import {searchUsers} from '@/api/user'
 import {useTheme} from 'vuetify'
@@ -151,10 +149,10 @@ const suppressValidation = ref(true)
 const theme = useTheme()
 
 onMounted(() => {
-  debouncedSearch.value = debounce(executeSearch, 300)
+  debouncedSearch.value = debounce(executeSearch, 300, {maxWait: 1000})
 })
 
-const executeSearch = () => {
+const executeSearch = resolve => {
   const apiSearch = props.instructorLookup ? searchInstructors : searchUsers
   apiSearch(query.value, props.excludeUids).then(users => {
     suggestions.value = []
@@ -165,8 +163,7 @@ const executeSearch = () => {
       })
     })
     isSearching.value = false
-    alertScreenReader(pluralize('result', suggestions.value.length))
-  })
+  }).finally(resolve)
 }
 
 const getUserLabel = user => `${user.firstName} ${user.lastName} (${user.uid})`
@@ -184,17 +181,20 @@ const onSelectItem = () => {
 }
 
 const onUpdateSearch = q => {
-  const trimmed = trim(q)
-  query.value = q
-  suppressValidation.value = false
-  if (trimmed) {
-    isSearching.value = true
-    debouncedSearch.value()
-  } else {
-    isSearching.value = false
-    selected.value = null
-    suggestions.value = []
-  }
+  return new Promise(resolve => {
+    const trimmed = trim(q)
+    query.value = q
+    suppressValidation.value = false
+    if (trimmed) {
+      isSearching.value = true
+      debouncedSearch.value(resolve)
+    } else {
+      isSearching.value = false
+      selected.value = null
+      suggestions.value = []
+      resolve()
+    }
+  })
 }
 
 const suggest = item => {
