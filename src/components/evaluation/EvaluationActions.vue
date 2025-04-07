@@ -383,7 +383,7 @@ const update = (fields, key) => {
     .map(e => e.courseNumber))
   const refresh = () => {
     return selectedCourseNumbers.length === 1
-      ? departmentStore.refreshSection(selectedCourseNumbers[0], useContextStore().selectedTermId)
+      ? departmentStore.refreshSection(selectedCourseNumbers[0], useContextStore().selectedTermId, evaluationIds.length)
       : departmentStore.refreshAll()
   }
   updateEvaluations(

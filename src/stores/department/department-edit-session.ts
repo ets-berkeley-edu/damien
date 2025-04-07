@@ -152,7 +152,7 @@ export const useDepartmentStore = defineStore('department', {
         .then(() => {
           getSectionEvaluations(departmentId, sectionId, termId).then((data: any) => {
             const updatedEvaluations = each(data, e => $_decorateEvaluation(e, this.evaluations))
-            useDepartmentStore().setEvaluationUpdate(0, 0, updatedEvaluations)
+            useDepartmentStore().replaceEvaluations(0, 0, updatedEvaluations)
             resolve()
           })
         })
@@ -190,7 +190,7 @@ export const useDepartmentStore = defineStore('department', {
               }
               const sectionCount = filter(this.evaluations, ['courseNumber', sectionId]).length
               const updatedEvaluations = each(data, e => $_decorateEvaluation(e, this.evaluations))
-              useDepartmentStore().setEvaluationUpdate(sectionIndex, sectionCount, updatedEvaluations)
+              useDepartmentStore().replaceEvaluations(sectionIndex, sectionCount, updatedEvaluations)
               resolve()
             })
           },
@@ -230,7 +230,7 @@ export const useDepartmentStore = defineStore('department', {
         $_refresh(get(this.department, 'id', NaN)).then(resolve)
       })
     },
-    refreshSection(sectionId: string, termId: string) {
+    refreshSection(sectionId: string, termId: string, sectionCount: number) {
       return new Promise((resolve: Function) => {
         getSectionEvaluations(get(this.department, 'id', NaN), sectionId, termId).then((data: any) => {
           let sectionIndex = findIndex(this.evaluations, ['courseNumber', sectionId])
@@ -238,11 +238,14 @@ export const useDepartmentStore = defineStore('department', {
             sectionIndex = this.evaluations.length
           }
           const updatedEvaluations = each(data, e => $_decorateEvaluation(e, this.evaluations))
-          const sectionCount = updatedEvaluations.length
-          useDepartmentStore().setEvaluationUpdate(sectionIndex, sectionCount, updatedEvaluations)
+          useDepartmentStore().replaceEvaluations(sectionIndex, sectionCount, updatedEvaluations)
           resolve()
         })
       })
+    },
+    replaceEvaluations(startIndex: number, deleteCount: number, updatedEvaluations: any[]) {
+      const evaluations = sortBy(updatedEvaluations, 'sortableCourseName')
+      this.evaluations.splice(startIndex, deleteCount, ...evaluations)
     },
     reset(department: any){
       if (department) {
@@ -271,10 +274,6 @@ export const useDepartmentStore = defineStore('department', {
     setEvaluations(evaluations: any[]) {
       each(evaluations, e => $_decorateEvaluation(e, evaluations))
       this.evaluations = evaluations
-    },
-    setEvaluationUpdate(sectionIndex: number, sectionCount: number, updatedEvaluations: any[]) {
-      const evaluations = sortBy(updatedEvaluations, 'sortableCourseName')
-      this.evaluations.splice(sectionIndex, sectionCount, ...evaluations)
     },
     setIsSelected(evaluation: any) {
       const index = indexOf(this.selectedEvaluationIds, evaluation.id)
