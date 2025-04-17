@@ -44,7 +44,7 @@
       <v-container class="mx-0 pb-2 pt-1 px-0" fluid>
         <v-row justify="start">
           <v-col cols="12" md="6">
-            <div class="border-sm pa-3">
+            <div aria-labelledby="department-contacts-header" class="border-sm pa-3" role="region">
               <v-expansion-panels
                 v-model="contactsPanel"
                 flat
@@ -53,7 +53,7 @@
                 <v-expansion-panel class="bg-transparent">
                   <template #default>
                     <div class="d-flex align-center flex-wrap justify-space-between">
-                      <h2 class="ml-2">Department Contacts</h2>
+                      <h2 id="department-contacts-header" class="ml-2">Department Contacts</h2>
                       <v-expansion-panel-title
                         class="px-2 px-sm-6 py-0 w-fit-content"
                         hide-actions
@@ -129,19 +129,23 @@
                   v-if="isAddingContact"
                   :id="`add-department-contact`"
                   :after-save="afterAddContact"
+                  :aria-label="pendingDepartmentContactName ? `Edit ${pendingDepartmentContactName}` : undefined"
                   :on-cancel="onCancelAddContact"
+                  :role="pendingDepartmentContactName ? 'region' : 'none'"
+                  @department-contact-selected="fullName => pendingDepartmentContactName = fullName.value"
                 />
               </div>
             </div>
           </v-col>
           <v-col cols="12" md="6">
-            <div class="border-sm px-5 py-3">
+            <div aria-labelledby="notes-title" class="border-sm px-5 py-3" role="region">
               <DepartmentNote />
             </div>
           </v-col>
         </v-row>
       </v-container>
-      <div class="border-sm mt-3 position-relative">
+      <div aria-labelledby="evaluations-header" class="border-sm mt-3 position-relative" role="region">
+        <h2 id="evaluations-header" class="sr-only">Evaluations</h2>
         <EvaluationTable />
       </div>
     </div>
@@ -194,6 +198,7 @@ const departmentId = ref(undefined)
 const departmentStore = useDepartmentStore()
 const isAddingContact = ref(false)
 const isCreatingNotification = ref(false)
+const pendingDepartmentContactName = ref()
 const route = useRoute()
 const router = useRouter()
 const {contacts, department, disableControls, showTheOmenPoster} = storeToRefs(departmentStore)
@@ -221,8 +226,9 @@ onMounted(() => {
 
 const afterAddContact = contactName => {
   isAddingContact.value = false
+  pendingDepartmentContactName.value = undefined
   contactsPanel.value = 0
-  alertScreenReader(`Added contact ${contactName}.`)
+  alertScreenReader(`Added ${contactName} to department contacts.`)
   putFocusNextTick('add-dept-contact-btn')
 }
 
@@ -240,6 +246,7 @@ const cancelSendNotification = () => {
 
 const onCancelAddContact = () => {
   isAddingContact.value = false
+  pendingDepartmentContactName.value = undefined
   alertScreenReader('Canceled. Nothing saved.')
   putFocusNextTick('add-dept-contact-btn')
 }

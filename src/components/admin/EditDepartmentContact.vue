@@ -10,18 +10,19 @@
         Add Contact
       </h3>
       <PersonLookup
+        aria-label="Add department contact, look up by name or UID."
         class="my-2"
         :exclude-uids="map(contacts, 'uid')"
         label="Contact"
         label-class="sr-only"
-        list-label="Suggested Contacts List"
+        list-label="Suggested Contacts"
         :on-key-down-esc="onCancel"
         :on-select-result="onSelectSearchResult"
       />
     </div>
     <div aria-live="polite">
       <h3 v-if="uid" id="contact-sub-header">
-        <span class="sr-only">Contact: </span>{{ fullName }} ({{ uid }})
+        {{ fullName }} ({{ uid }})
       </h3>
     </div>
     <div v-if="uid" class="department-contact-form w-75">
@@ -40,8 +41,8 @@
           :rules="emailRules"
         />
       </div>
-      <div class="pt-2">
-        <label :for="`checkbox-communications-${contactId}`" class="form-label">
+      <div :aria-labelledby="`label-communications-${contactId}`" class="pt-2" role="region">
+        <label :id="`label-communications-${contactId}`" class="form-label">
           Communications
         </label>
         <div class="align-center d-flex">
@@ -49,7 +50,6 @@
             :id="`checkbox-communications-${contactId}`"
             v-model="canReceiveCommunications"
             :aria-describedby="undefined"
-            aria-label="Receive notifications"
             class="checkbox-override rounded-sm"
             color="primary"
             density="compact"
@@ -58,13 +58,13 @@
             role="checkbox"
             tabindex="0"
           />
-          <label class="v-label ml-1" :for="`checkbox-communications-${contactId}`">
+          <label :for="`checkbox-communications-${contactId}`" class="v-label ml-1">
             Receive notifications
           </label>
         </div>
       </div>
-      <div class="pt-3">
-        <label :for="`checkbox-communications-${contactId}`" class="form-label">
+      <div :aria-labelledby="`label-permissions-${contactId}`" class="pt-3" role="region">
+        <label :id="`label-permissions-${contactId}`" class="form-label">
           Blue Access
         </label>
         <v-radio-group
@@ -121,8 +121,8 @@
         >
           <template #selection></template>
         </AccessibleCombobox>
-        <div :id="`select-department-forms-${contactId}-desc`" class="py-1">
-          <span class="sr-only">
+        <div class="py-1">
+          <span :id="`select-department-forms-${contactId}-desc`" class="sr-only">
             {{ isEmpty(contactDepartmentForms) ? 'No department forms selected' : `${oxfordJoin(map(contactDepartmentForms, 'name'))} selected` }}
           </span>
           <v-chip
@@ -146,6 +146,7 @@
       <ProgressButton
         :id="`save-dept-contact-${contactId}-btn`"
         :action="onSave"
+        aria-label="Save department contact"
         class="text-capitalize mr-2"
         :disabled="!valid || !uid || isSaving"
         :in-progress="isSaving"
@@ -153,6 +154,7 @@
       />
       <v-btn
         :id="`cancel-dept-contact-${contactId}-btn`"
+        aria-label="Cancel save department contact"
         class="text-capitalize"
         :disabled="isSaving"
         text="Cancel"
@@ -174,6 +176,7 @@ import {getUserDepartmentForms} from '@/api/user'
 import {storeToRefs} from 'pinia'
 import {useDepartmentStore} from '@/stores/department/department-edit-session'
 
+const emit = defineEmits(['department-contact-selected'])
 const props = defineProps({
   afterSave: {
     required: true,
@@ -265,8 +268,9 @@ const onSave = () => {
   })
 }
 
-const onSelectSearchResult = user => {
-  populateForm(user)
+const onSelectSearchResult = person => {
+  populateForm(person)
+  emit('department-contact-selected', fullName)
   putFocusNextTick(`input-email-${contactId.value}`)
 }
 
