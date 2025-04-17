@@ -10,6 +10,7 @@
       </label>
     </div>
     <AccessibleCombobox
+      :aria-label="ariaLabel"
       :clazz="`person-lookup ${inputClass}`"
       :clearable="clearable"
       :color="color"
@@ -62,6 +63,11 @@ import {searchUsers} from '@/api/user'
 import {useTheme} from 'vuetify'
 
 const props = defineProps({
+  ariaLabel: {
+    default: undefined,
+    required: false,
+    type: String
+  },
   clearable: {
     required: false,
     type: Boolean

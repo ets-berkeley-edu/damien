@@ -99,6 +99,7 @@
       </template>
     </component>
   </div>
+  <span aria-live="polite" class="sr-only">{{ resultsSummary }}</span>
 </template>
 
 <script setup>
@@ -108,6 +109,11 @@ import {mdiChevronDown, mdiCloseCircle} from '@mdi/js'
 import {nextTick, onMounted, onUpdated, ref} from 'vue'
 
 const props = defineProps({
+  ariaLabel: {
+    default: undefined,
+    required: false,
+    type: String
+  },
   ariaLive: {
     default: 'off',
     required: false,
@@ -263,7 +269,7 @@ onMounted(() => {
     input.setAttribute('aria-autocomplete', 'list')
     input.setAttribute('aria-controls', `${props.idPrefix}-menu`)
     input.setAttribute('aria-expanded', false)
-    input.setAttribute('aria-label', props.label)
+    input.setAttribute('aria-label', props.ariaLabel || props.label)
   }
   menuProps = {
     closeOnContentClick: true,
@@ -354,9 +360,10 @@ const onUpdateSearch = q => {
   query.value = q
   props.onUpdateSearch(q).then(() => {
     clearInterval(resultsSummaryInterval.value)
+    resultsSummary.value = ''
     nextTick(() => {
       filteredItemsCached.value = container.value.filteredItems
-      if (q) {
+      if (query.value) {
         resultsSummaryInterval.value = setInterval(setResultsSummary, 1000)
       }
     })

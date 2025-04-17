@@ -1,14 +1,16 @@
 <template>
-  <v-expansion-panel :id="`department-contact-${contact.id}`" class="panel-width">
+  <v-expansion-panel
+    :id="`department-contact-${contact.id}`"
+    :aria-labelledby="`department-contact-${contact.id}-btn`"
+    class="panel-width"
+    role="region"
+  >
     <v-expansion-panel-title :id="`department-contact-${contact.id}-btn`" class="pa-2 rounded-b-0 height-unset">
       <span v-if="isEditing" class="sr-only">Edit</span>
       <div :id="`dept-contact-${contact.id}-name`" class="font-weight-bold">{{ fullName }}</div>
+      <span class="sr-only">department contact</span>
     </v-expansion-panel-title>
-    <v-expansion-panel-text
-      :aria-labelledby="`department-contact-${contact.id}-btn`"
-      class="edit-contact-container"
-      role="region"
-    >
+    <v-expansion-panel-text class="edit-contact-container">
       <v-container
         v-if="!isEditing"
         :id="`dept-contact-${contact.id}-details`"
@@ -16,10 +18,11 @@
         fluid
       >
         <v-row :id="`dept-contact-${contact.id}-email`">
-          <v-col class="px-2 pt-1" cols="12">{{ contact.email }}</v-col>
+          <v-col class="px-2 pt-1" cols="12"><span class="sr-only">Email address:</span>{{ contact.email }}</v-col>
         </v-row>
         <v-row :id="`dept-contact-${contact.id}-notifications`" class="mt-0">
           <v-col class="text-right px-1" cols="1">
+            <span class="sr-only">Communications:</span>
             <v-icon
               :class="contact.canReceiveCommunications ? 'text-success' : 'text-muted'"
               :icon="contact.canReceiveCommunications ? mdiCheckCircle : mdiMinusCircle"
@@ -32,6 +35,7 @@
         </v-row>
         <v-row :id="`dept-contact-${contact.id}-permissions`" class="mt-0">
           <v-col class="text-right px-1" cols="1">
+            <span class="sr-only">Blue access:</span>
             <v-icon
               :class="contact.canViewReports ? 'text-success' : 'text-muted'"
               :icon="contact.canViewReports ? mdiCheckCircle : mdiMinusCircle"
@@ -47,6 +51,7 @@
         </v-row>
         <v-row :id="`dept-contact-${contact.id}-deptForms`" class="mt-0">
           <v-col cols="12">
+            <span class="sr-only">Department forms:</span>
             <div class="d-flex flex-wrap">
               <div v-for="(form, formIndex) in departmentForms" :key="form.id" class="pb-1 pr-1">
                 <v-chip
