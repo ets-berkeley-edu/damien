@@ -378,12 +378,13 @@ const update = (fields, key) => {
   disableControls.value = true
   isLoading.value = true
   const evaluationIds = duplicatingEvaluationId.value ? [duplicatingEvaluationId.value] : selectedEvaluationIds.value
+  const duplicatingEvaluationsCount = applyingAction.value.key === 'duplicate' ? evaluationIds.length : 0
   const selectedCourseNumbers = uniq(evaluations.value
     .filter(e => evaluationIds.includes(e.id))
     .map(e => e.courseNumber))
   const refresh = () => {
     return selectedCourseNumbers.length === 1
-      ? departmentStore.refreshSection(selectedCourseNumbers[0], useContextStore().selectedTermId, evaluationIds.length)
+      ? departmentStore.refreshSection(selectedCourseNumbers[0], useContextStore().selectedTermId, duplicatingEvaluationsCount)
       : departmentStore.refreshAll()
   }
   updateEvaluations(
@@ -397,6 +398,7 @@ const update = (fields, key) => {
       refresh().then(() => {
         const selectedRowCount = applyingAction.value.key === 'duplicate' ? ((response.length || 0) / 2) : (response.length || 0)
         const target = `${selectedRowCount} ${selectedRowCount === 1 ? 'row' : 'rows'}`
+        departmentStore.deselectAllEvaluations()
         alertScreenReader(`${applyingAction.value.completedText} ${target}`)
         putFocusNextTick(duplicatingEvaluationId.value ? `evaluation-menu-btn-${duplicatingEvaluationId.value}` : `apply-course-action-btn-${key}`, {scroll: false})
         reset()

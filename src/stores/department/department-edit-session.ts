@@ -230,7 +230,7 @@ export const useDepartmentStore = defineStore('department', {
         $_refresh(get(this.department, 'id', NaN)).then(resolve)
       })
     },
-    refreshSection(sectionId: string, termId: string, sectionCount: number) {
+    refreshSection(sectionId: string, termId: string, duplicatesCount: number) {
       return new Promise((resolve: Function) => {
         getSectionEvaluations(get(this.department, 'id', NaN), sectionId, termId).then((data: any) => {
           let sectionIndex = findIndex(this.evaluations, ['courseNumber', sectionId])
@@ -238,7 +238,8 @@ export const useDepartmentStore = defineStore('department', {
             sectionIndex = this.evaluations.length
           }
           const updatedEvaluations = each(data, e => $_decorateEvaluation(e, this.evaluations))
-          useDepartmentStore().replaceEvaluations(sectionIndex, sectionCount, updatedEvaluations)
+          const deleteCount = updatedEvaluations.length - duplicatesCount
+          useDepartmentStore().replaceEvaluations(sectionIndex, deleteCount, updatedEvaluations)
           resolve()
         })
       })
