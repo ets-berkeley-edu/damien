@@ -100,20 +100,20 @@ const $_decorateEvaluation = (e: any, allEvaluations: any[]) => {
     e.searchableInstructor = ''
     e.sortableInstructor = ''
   }
-  e.startDate = DateTime.fromISO(e.startDate).toJSDate()
-  e.endDate = DateTime.fromISO(e.endDate).toJSDate()
-  e.lastUpdated = DateTime.fromISO(e.lastUpdated).toJSDate()
-  e.meetingDates.start = DateTime.fromISO(e.meetingDates.start).toJSDate()
+  const courseStartDate = DateTime.fromISO(e.meetingDates.start)
   const courseEndDate = DateTime.fromISO(e.meetingDates.end)
-  e.meetingDates.end = courseEndDate.toJSDate()
-
   const selectedTerm = find(useContextStore().config.availableTerms, {'id': e.termId})
   const defaultEndDate = DateTime.fromISO(get(selectedTerm, 'defaultDates.end'))
+  const endDateDiff = courseEndDate.diff(courseStartDate, ['days'])
   let lastEndDate = courseEndDate > defaultEndDate ? courseEndDate : defaultEndDate
   if (lastEndDate === defaultEndDate && !selectedTerm.name.includes('Summer')) {
     lastEndDate = lastEndDate.plus({days: 2})
   }
-  const endDateDiff = courseEndDate.diff(e.meetingDates.start, ['days'])
+  e.meetingDates.start = courseStartDate.toJSDate()
+  e.meetingDates.end = courseEndDate.toJSDate()
+  e.startDate = DateTime.fromISO(e.startDate).toJSDate()
+  e.endDate = DateTime.fromISO(e.endDate).toJSDate()
+  e.lastUpdated = DateTime.fromISO(e.lastUpdated).toJSDate()
   e.maxStartDate = endDateDiff.days < 90 ? lastEndDate.minus({days: 13}).toJSDate() : lastEndDate.minus({days: 20}).toJSDate()
 }
 
