@@ -31,7 +31,7 @@ from selenium.webdriver.common.by import By
 class GroupMgmtPage(DamienPages):
 
     def dept_row_index(self, dept):
-        idx = self.element((By.XPATH, f'//a[@href="/department/{dept.dept_id}"]/..')).get_attribute('id').split('-')[1]
+        idx = self.element((By.XPATH, f'//a[@href="/department/{dept.dept_id}"]/..')).get_dom_attribute('id').split('-')[1]
         return int(idx)
 
     def dept_row_link(self, dept):
@@ -57,8 +57,8 @@ class GroupMgmtPage(DamienPages):
 
     def dept_user_comms(self, idx, user):
         xpath = f'{GroupMgmtPage.dept_user_row_xpath(idx, user)}/td[contains(@id, "comms")]//span'
-        return self.element((By.XPATH, xpath)).get_attribute('innerText')
+        return self.element((By.XPATH, xpath)).get_dom_attribute('innerText')
 
     def dept_user_blue_perm(self, idx, user):
         xpath = f'{GroupMgmtPage.dept_user_row_xpath(idx, user)}/td[contains(@id, "blue")]//span'
-        return self.element((By.XPATH, xpath)).get_attribute('innerText').strip()
+        return self.element((By.XPATH, xpath)).get_dom_attribute('innerText').strip()

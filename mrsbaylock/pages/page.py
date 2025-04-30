@@ -131,7 +131,7 @@ class Page(object):
         while tries <= retries:
             tries += 1
             try:
-                assert string in self.element(locator).get_attribute('innerText')
+                assert string in self.element(locator).text
                 break
             except AssertionError:
                 if tries == retries:
@@ -153,6 +153,7 @@ class Page(object):
             )
         time.sleep(addl_pause or sleep_default)
         try:
+            self.scroll_to_top()
             self.element(locator).click()
         except (exceptions.ElementClickInterceptedException, exceptions.ElementNotInteractableException) as error:
             app.logger.error(f'Failed to click #{locator}, using JS instead - {error}')

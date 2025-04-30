@@ -47,9 +47,7 @@ class PublishPage(CourseDashboards):
     TERM_EXPORT_LINK = (By.XPATH, '//a[contains(@id, "term-export-")]')
 
     def expand_term_exports(self):
-        self.wait_for_element(PublishPage.TERM_EXPORT_BUTTON, utils.get_medium_timeout())
-        if not self.element(PublishPage.TERM_EXPORT_BUTTON).get_attribute('aria-expanded'):
-            self.click_element_js(PublishPage.TERM_EXPORT_BUTTON)
+        self.wait_for_element_and_click(PublishPage.TERM_EXPORT_BUTTON, addl_pause=3)
 
     def publish_to_blue(self):
         self.expand_term_exports()

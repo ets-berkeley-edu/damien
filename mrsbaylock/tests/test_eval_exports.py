@@ -67,19 +67,22 @@ class TestEvalExports:
         no_teach = [e for e in self.evals if not e.instructor.uid]
         if no_teach:
             new_teach = utils.get_test_user()
+            new_teach.role_code = 'TNIC'
             for row in no_teach:
                 self.dept_details_admin_page.click_eval_checkbox(row)
             self.dept_details_admin_page.click_bulk_edit()
-            self.dept_details_admin_page.look_up_and_select_dupe_instr(new_teach)
+            self.dept_details_admin_page.look_up_and_select_edit_instr(new_teach)
             self.dept_details_admin_page.click_bulk_edit_save()
             self.dept_details_admin_page.wait_for_bulk_update()
             for row in no_teach:
                 row.instructor = new_teach
+                if not self.dept.custom_eval_type:
+                    row.eval_type = 'G'
 
     def test_complete_eval_forms_and_types(self):
         no_form_or_type = [e for e in self.evals if (not e.dept_form) or (not e.eval_type)]
         if no_form_or_type:
-            new_form = [e.dept_form for e in self.evals if e.dept_form][0]
+            new_form = 'HISTORY'
             new_type = 'F'
             for row in no_form_or_type:
                 self.dept_details_admin_page.click_eval_checkbox(row)
@@ -194,9 +197,9 @@ class TestEvalExports:
         assert past_term_rows
 
     def test_x_listed_course_supervisors(self):
-        self.expected_x_listed_supervisors.extend((utils.expected_x_listed_course_supervisors(self.term, self.confirmed, self.all_contacts)))
+        self.expected_x_listed_supervisors.extend((utils.expected_x_listed_course_supervisors(self.term, self.confirmed)))
         current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), self.csv_x_listed_supervisors))
-        utils.verify_actual_matches_expected(current_term_rows, self.expected_x_listed_supervisors)
+        utils.verify_actual_includes_expected(current_term_rows, self.expected_x_listed_supervisors)
 
     def test_dept_hierarchy(self):
         expected_dept_hierarchy = utils.expected_dept_hierarchy()

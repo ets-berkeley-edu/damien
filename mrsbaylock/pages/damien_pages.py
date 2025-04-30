@@ -56,7 +56,7 @@ class DamienPages(Page):
         self.wait_for_element_and_click(DamienPages.menu_option_locator(option_text))
 
     def is_menu_option_disabled(self, option_text):
-        return self.element(DamienPages.menu_option_locator(option_text)).get_attribute('aria-disabled') == 'true'
+        return self.element(DamienPages.menu_option_locator(option_text)).get_dom_attribute('aria-disabled') == 'true'
 
     def wait_for_admin_login(self):
         self.when_present(self.STATUS_LINK, utils.get_medium_timeout())
@@ -156,7 +156,7 @@ class DamienPages(Page):
 
     def notif_expand_dept_recipient_members(self, dept):
         app.logger.info(f'Expanding notification department {dept.name}')
-        if self.element((By.XPATH, DamienPages.notif_expand_dept_xpath(dept))).get_attribute('aria-expanded') is True:
+        if self.element((By.XPATH, DamienPages.notif_expand_dept_xpath(dept))).get_dom_attribute('aria-expanded'):
             app.logger.info('Recipient list is already expanded')
         else:
             app.logger.info('Expanding recipient list')

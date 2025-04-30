@@ -52,7 +52,7 @@ class StatusBoardAdminPage(DamienPages):
 
     def is_current_term_locked(self):
         time.sleep(1)
-        return 'Unlock' in self.element(StatusBoardAdminPage.LOCK_BOX).get_attribute('title')
+        return 'Unlock' in self.element(StatusBoardAdminPage.LOCK_BOX).get_dom_attribute('title')
 
     NOTIF_SELECT_ALL_CBX = (By.ID, 'checkbox-select-dept-all')
     NOTIF_APPLY_BUTTON = (By.ID, 'open-notification-form-btn')

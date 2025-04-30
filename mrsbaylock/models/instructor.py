@@ -35,14 +35,3 @@ class Instructor(User):
     @affiliations.setter
     def affiliations(self, value):
         self.data['affiliations'] = value
-
-    @property
-    def role_code(self):
-        try:
-            return self.data['role_code']
-        except KeyError:
-            return None
-
-    @role_code.setter
-    def role_code(self, value):
-        self.data['role_code'] = value
