@@ -281,20 +281,24 @@ def restore_user(user):
 def get_participating_depts():
     sql = f"""SELECT departments.id,
                      departments.dept_name,
+                     department_catalog_listings.custom_evaluation_types,
                      json_cache.json::json -> 'totalEvaluations' as row_count
                 FROM departments
+                JOIN department_catalog_listings
+                  ON department_catalog_listings.department_id = departments.id
                 JOIN json_cache
                   ON json_cache.department_id = departments.id
                WHERE departments.is_enrolled IS TRUE
                  AND json_cache.term_id = '{get_current_term().term_id}'
                  AND json_cache.course_number IS NULL
             """
-    app.logger.debug(sql)
+    app.logger.info(sql)
     depts = []
     result = db.session.execute(text(sql))
     for row in result:
         data = {
             'dept_id': row['id'],
+            'custom_eval_type': row['custom_evaluation_types'],
             'name': row['dept_name'],
             'row_count': row['row_count'],
             'participating': True,
@@ -310,9 +314,12 @@ def get_dept(name, all_users=None):
     sql = f"""
         SELECT departments.id AS dept_id,
                departments.is_enrolled,
+               department_catalog_listings.custom_evaluation_types,
                department_notes.term_id,
                department_notes.note
           FROM departments
+          JOIN department_catalog_listings
+            ON department_catalog_listings.department_id = departments.id
      LEFT JOIN department_notes
             ON departments.id = department_notes.department_id
          WHERE departments.dept_name = '{name.replace("'", "''")}';
@@ -323,6 +330,7 @@ def get_dept(name, all_users=None):
     for row in result:
         term_data = {
             'dept_id': row['dept_id'],
+            'custom_eval_type': row['custom_evaluation_types'],
             'participating': row['is_enrolled'],
             'term_id': row['term_id'],
             'note': row['note'],
@@ -336,6 +344,7 @@ def get_dept(name, all_users=None):
         grp = list(g)
         dept_data = {
             'dept_id': grp[0]['dept_id'],
+            'custom_eval_type': grp[0]['custom_eval_type'],
             'name': name,
             'participating': grp[0]['participating'],
         }
@@ -497,6 +506,12 @@ def verify_actual_matches_expected(actual, expected):
     [unique.append(i) for i in expected if i not in unique]
     app.logger.info(f'Expecting {len(unique)} rows, got {len(actual)}')
     assert len(actual) == len(unique)
+
+
+def verify_actual_includes_expected(actual, expected):
+    missing = [x for x in expected if x not in actual]
+    app.logger.info(f'Missing {missing}')
+    assert not missing
 
 
 def expected_courses(evaluations, calc_course_ids=False):
@@ -700,51 +715,6 @@ def get_foreign_ccns(evaluations):
     return eval_foreign_ccns, non_eval_foreign_ccns
 
 
-def get_evaluation_supervisors(evaluations, ev, dept_uids_and_forms, foreign_ccns, supervisors):
-    if ev.x_listing_ccns_all and not ev.foreign_listing:
-        for uid in dept_uids_and_forms:
-            if ev.dept_form in uid['forms']:
-                data = {
-                    'COURSE_ID': ev.course_id,
-                    'LDAP_UID': uid['uid'],
-                }
-                supervisors.append(data)
-                for listing_ccn in ev.x_listing_ccns_all:
-                    if listing_ccn in foreign_ccns:
-                        listing = next(filter(lambda l: l.ccn == listing_ccn, evaluations))
-                        data = {
-                            'COURSE_ID': listing.course_id,
-                            'LDAP_UID': uid['uid'],
-                        }
-                        supervisors.append(data)
-    if ev.room_share_ccns_all and not ev.foreign_listing:
-        for uid in dept_uids_and_forms:
-            if ev.dept_form in uid['forms']:
-                data = {
-                    'COURSE_ID': ev.course_id,
-                    'LDAP_UID': uid['uid'],
-                }
-                supervisors.append(data)
-                for share_ccn in ev.room_share_ccns_all:
-                    if share_ccn in foreign_ccns:
-                        share = next(filter(lambda l: l.ccn == share_ccn, evaluations))
-                        data = {
-                            'COURSE_ID': share.course_id,
-                            'LDAP_UID': uid['uid'],
-                        }
-                        supervisors.append(data)
-
-
-def get_domestic_supervisors(evaluations, foreign_ccns, all_contacts):
-    supervisors = []
-    dept_uids_and_forms = []
-    for contact in all_contacts:
-        dept_uids_and_forms.append({'uid': contact.uid, 'forms': contact.dept_forms})
-    for ev in evaluations:
-        get_evaluation_supervisors(evaluations, ev, dept_uids_and_forms, foreign_ccns, supervisors)
-    return supervisors
-
-
 def get_foreign_supervisors(term, evaluations, foreign_ccns_str):
     supervisors = []
     if foreign_ccns_str:
@@ -787,12 +757,10 @@ def get_foreign_supervisors(term, evaluations, foreign_ccns_str):
     return supervisors
 
 
-def expected_x_listed_course_supervisors(term, evaluations, all_contacts):
+def expected_x_listed_course_supervisors(term, evaluations):
     eval_foreign_ccns, non_eval_foreign_ccns = get_foreign_ccns(evaluations)
     foreign_ccns_str = evaluation_utils.list_to_str(eval_foreign_ccns + non_eval_foreign_ccns)
-    domestic_supervisors = get_domestic_supervisors(evaluations, eval_foreign_ccns, all_contacts)
-    foreign_supervisors = get_foreign_supervisors(term, evaluations, foreign_ccns_str)
-    return domestic_supervisors + foreign_supervisors
+    return get_foreign_supervisors(term, evaluations, foreign_ccns_str)
 
 
 def expected_dept_hierarchy():

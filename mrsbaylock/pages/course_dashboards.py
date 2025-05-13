@@ -132,7 +132,7 @@ class CourseDashboards(DamienPages):
         time.sleep(1)
         data = []
         for el in self.elements(CourseDashboards.EVALUATION_STATUS):
-            idx = el.get_attribute('id').split('-')[1]
+            idx = el.get_dom_attribute('id').split('-')[1]
             uid_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-instructor"]/div')
             uid = ''
             name = ''
@@ -218,7 +218,7 @@ class CourseDashboards(DamienPages):
 
     def sort_asc(self, header_string):
         self.wait_for_element((By.XPATH, f'//th[contains(., "{header_string}")]'), utils.get_short_timeout())
-        sort = self.element((By.XPATH, f'//th[contains(., "{header_string}")]')).get_attribute('aria-sort')
+        sort = self.element((By.XPATH, f'//th[contains(., "{header_string}")]')).get_dom_attribute('aria-sort')
         if sort == 'none' or sort == 'descending':
             el = self.element((By.XPATH, f'//th[contains(., "{header_string}")]/button'))
             el.click()
@@ -229,7 +229,7 @@ class CourseDashboards(DamienPages):
 
     def sort_desc(self, header_string):
         self.wait_for_element((By.XPATH, f'//th[contains(., "{header_string}")]'), utils.get_short_timeout())
-        sort = self.element((By.XPATH, f'//th[contains(., "{header_string}")]')).get_attribute('aria-sort')
+        sort = self.element((By.XPATH, f'//th[contains(., "{header_string}")]')).get_dom_attribute('aria-sort')
         if sort == 'none' or sort == 'ascending':
             el = self.element((By.XPATH, f'//th[contains(., "{header_string}")]/button'))
             el.click()

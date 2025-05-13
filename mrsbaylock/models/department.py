@@ -31,6 +31,10 @@ class Department(object):
         self.notes = notes
 
     @property
+    def custom_eval_type(self):
+        return self.data['custom_eval_type']
+
+    @property
     def dept_id(self):
         return self.data['dept_id']
 

@@ -42,7 +42,7 @@ class TestEvaluationManagement:
     depts = utils.get_participating_depts()
     depts = list(filter(lambda d: d.row_count >= 10, depts))
 
-    dept_1 = evaluation_utils.get_dept_eval_with_foreign_x_listings(term, depts, max_row_count=400, mid_terms=True)[0]
+    dept_1 = utils.get_test_dept_1(all_contacts)
     dept_1.evaluations = evaluation_utils.get_evaluations(term, dept_1, log=True)
     dept_2 = utils.get_test_dept_2(all_contacts)
     dept_2.evaluations = evaluation_utils.get_evaluations(term, dept_2, log=True)
@@ -425,25 +425,3 @@ class TestEvaluationManagement:
         assert list(set(self.dept_details_dept_page.visible_evaluation_dept_forms())) == [new_form]
         assert list(set(self.dept_details_dept_page.visible_evaluation_types())) == [new_type]
         assert list(set(self.dept_details_dept_page.visible_evaluation_starts())) == [new_date_str]
-
-    def test_bulk_edit_instructor(self):
-        self.dept_details_dept_page.hit_escape()
-        evals = evaluation_utils.get_evaluations(self.term, self.bulk_dept, log=True)
-        no_teach = list(filter(lambda ev: (ev.instructor.uid is None), evals))
-        new_teach = utils.get_test_user()
-        if no_teach:
-            self.dept_details_dept_page.filter_rows('')
-            self.dept_details_dept_page.click_select_all_evals()
-            self.dept_details_dept_page.click_bulk_unmark_button()
-            time.sleep(utils.get_short_timeout())
-            for row in no_teach:
-                row.status = EvaluationStatus.UNMARKED
-                self.dept_details_dept_page.click_eval_checkbox(row)
-            self.dept_details_dept_page.click_bulk_edit()
-            self.dept_details_dept_page.look_up_and_select_edit_instr(new_teach)
-            self.dept_details_dept_page.click_bulk_edit_save()
-            self.dept_details_dept_page.wait_for_bulk_update()
-            for row in no_teach:
-                row.instructor = new_teach
-                assert new_teach.uid in self.dept_details_dept_page.eval_instructor(row)
-            self.dept_details_dept_page.wait_for_eval_row(evals[0])

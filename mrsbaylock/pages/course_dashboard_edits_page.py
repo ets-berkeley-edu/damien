@@ -322,7 +322,7 @@ class CourseDashboardEditsPage(CourseDashboards):
             time.sleep(2)
 
     def deselect_filter(self, filter_loc):
-        if 'active' in self.element(filter_loc).get_attribute('class'):
+        if 'active' in self.element(filter_loc).get_dom_attribute('class'):
             self.wait_for_element_and_click(filter_loc)
             time.sleep(2)
 
@@ -402,7 +402,7 @@ class CourseDashboardEditsPage(CourseDashboards):
     EVAL_EDIT_MENU_DUPLICATE_OPTION = By.XPATH, '//div[starts-with(@id, "option-duplicate-evaluation-")]'
     EVAL_CHANGE_STATUS_SELECT = (By.ID, 'select-evaluation-status')
     EVAL_CHANGE_INSTR_BUTTON = (By.XPATH, '//button[contains(@id, "-change-instructor")]')
-    EVAL_CHANGE_INSTR_INPUT = (By.ID, 'input-instructor-lookup-autocomplete')
+    EVAL_CHANGE_INSTR_INPUT = (By.ID, 'person-lookup-input')
     EVAL_CHANGE_DEPT_FORM_SELECT = (By.ID, 'select-department-form')
     EVAL_CHANGE_DEPT_FORM_OPTION = (By.XPATH, '//div[@id="select-department-form"]//li')
     EVAL_CHANGE_DEPT_FORM_NO_OPTION = (By.XPATH, '//li[contains(text(), "Sorry, no matching options.")]')
@@ -509,9 +509,8 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def save_eval_changes_button_disabled(self):
         time.sleep(2)
-        app.logger.info(
-            f"Save changes button disabled attribute is {self.element(self.EVAL_CHANGE_SAVE_BUTTON).get_attribute('disabled')}")
-        return self.element(self.EVAL_CHANGE_SAVE_BUTTON).get_attribute('disabled') == 'disabled'
+        app.logger.info(f"Save button disabled is {self.element(self.EVAL_CHANGE_SAVE_BUTTON).get_dom_attribute('disabled')}")
+        return self.element(self.EVAL_CHANGE_SAVE_BUTTON).get_dom_attribute('disabled') == 'disabled'
 
     def click_save_eval_changes(self, evaluation):
         app.logger.info(f'Saving changes for CCN {evaluation.ccn}')

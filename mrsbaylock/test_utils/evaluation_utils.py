@@ -706,7 +706,7 @@ def get_eval_types(evals):
     subjects = get_dept_catalog_subjects()
     for e in evals:
         if e.eval_type or e.eval_type_custom:
-            app.logger.info('Skipping eval type')
+            app.logger.info(f'Skipping eval type for eval {e.ccn} with eval type {e.eval_type} custom {e.eval_type_custom}')
         else:
             if e.foreign_listing and e.subject not in subjects:
                 e.eval_type = None
@@ -775,7 +775,8 @@ def get_dept_with_listings_or_shares(term, depts):
     test_depts = [d for d in depts if d.users and d.dept_id not in [37, 52, 95]]
     for dept in test_depts:
         app.logger.info(f'Checking if {dept.name} has cross-listings or room shares and can be used for tests')
-        if 50 < dept.row_count < 100:
+        app.logger.info(f'Row count is {dept.row_count}')
+        if 10 < dept.row_count < 100:
             dept.evaluations = get_evaluations(term, dept)
             evals_with_instr = list(filter(lambda e: e.instructor.uid, dept.evaluations))
             if len(evals_with_instr) > 5:

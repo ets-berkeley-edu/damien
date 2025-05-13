@@ -28,9 +28,9 @@ from mrsbaylock.models.blue_perm import BluePerm
 
 class User(object):
 
-    def __init__(self, data, dept_roles=[]):
+    def __init__(self, data, dept_roles=None):
         self.data = data
-        self.dept_roles = dept_roles
+        self.dept_roles = dept_roles or []
 
     @property
     def user_id(self):
@@ -117,3 +117,11 @@ class User(object):
     @dept_forms.setter
     def dept_forms(self, value):
         self.data['dept_forms'] = value
+
+    @property
+    def role_code(self):
+        return self.data.get('role_code')
+
+    @role_code.setter
+    def role_code(self, value):
+        self.data['role_code'] = value
