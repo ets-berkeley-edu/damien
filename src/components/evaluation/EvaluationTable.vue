@@ -526,12 +526,13 @@
               <td :colspan="size(evaluationHeaders) - 1" class="pb-1 px-3">
                 <div class="d-flex justify-end">
                   <ConfirmDialog
-                    :hide-confirm="true"
+                    confirm-button-label="Confirm anyway"
+                    :hide-confirm="!currentUser.isAdmin"
                     :html="get(markAsDoneWarning, 'message')"
                     :icon="mdiAlertCircle"
                     :is-open="!!markAsDoneWarning"
                     :on-click-cancel="() => markAsDoneWarning = undefined"
-                    :on-click-confirm="noop"
+                    :on-click-confirm="onOverrideMarkAsDoneWarning"
                     text=""
                     title="Warning"
                   />
@@ -650,6 +651,7 @@ const props = defineProps({
 })
 
 const contextStore = useContextStore()
+const currentUser = contextStore.currentUser
 const departmentStore = useDepartmentStore()
 const {disableControls, errorDialog, errorDialogText, evaluations, selectedEvaluationIds} = storeToRefs(departmentStore)
 const departmentForms = ref([])
@@ -670,6 +672,7 @@ const isConfirmingNonSisInstructor = ref(false)
 const isSaving = ref(false)
 const markAsDoneWarning = ref(undefined)
 const openMenuEvaluationIds = ref([])
+const onOverrideMarkAsDoneWarning = ref(noop)
 const pendingEditRowId = ref(undefined)
 const pendingInstructor = ref(undefined)
 const rules = {
@@ -1047,6 +1050,12 @@ const validateAndSave = evaluation => {
   }
   if (warning) {
     markAsDoneWarning.value = {evaluation, fields, message: warning}
+    if (currentUser.isAdmin) {
+      onOverrideMarkAsDoneWarning.value = () => {
+        updateEvaluation(evaluation, fields)
+        markAsDoneWarning.value = null
+      }
+    }
   } else {
     updateEvaluation(evaluation, fields)
   }

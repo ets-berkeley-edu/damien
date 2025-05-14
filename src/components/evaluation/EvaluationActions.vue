@@ -92,12 +92,13 @@
       </template>
     </UpdateEvaluations>
     <ConfirmDialog
-      :hide-confirm="true"
+      confirm-button-label="Confirm anyway"
+      :hide-confirm="!currentUser.isAdmin"
       :html="markAsDoneWarning"
       :icon="mdiAlertCircle"
       :is-open="!!markAsDoneWarning"
       :on-click-cancel="() => markAsDoneWarning = undefined"
-      :on-click-confirm="noop"
+      :on-click-confirm="onOverrideMarkAsDoneWarning"
       title="Warning"
     />
   </div>
@@ -144,9 +145,10 @@ const isEditing = ref(false)
 const isLoading = ref(false)
 const markAsDoneWarning = ref(undefined)
 const midtermFormAvailable = ref(false)
+const onOverrideMarkAsDoneWarning = ref(noop)
 
+const currentUser = useContextStore().currentUser
 const allowEdits = computed(() => {
-  const currentUser = useContextStore().currentUser
   return currentUser.isAdmin || !useContextStore().isSelectedTermLocked
 })
 const selectedEvaluations = computed(() => {
@@ -273,7 +275,14 @@ const onClickIgnore = key => {
 const onClickMarkDone = key => {
   const selected = _filter(evaluations.value, e => includes(selectedEvaluationIds.value, e.id))
   markAsDoneWarning.value = validateMarkAsDone(selected)
-  if (!markAsDoneWarning.value) {
+  if (markAsDoneWarning.value) {
+    if (currentUser.isAdmin) {
+      onOverrideMarkAsDoneWarning.value = () => {
+        validateAndUpdate(key)
+        markAsDoneWarning.value = null
+      }
+    }
+  } else {
     validateAndUpdate(key)
   }
 }
