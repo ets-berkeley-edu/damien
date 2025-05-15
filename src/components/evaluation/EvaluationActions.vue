@@ -313,7 +313,14 @@ const onConfirmEdit = options => {
     }
   }))
   markAsDoneWarning.value = validateMarkAsDone(evaluationsToValidate)
-  if (!markAsDoneWarning.value) {
+  if (markAsDoneWarning.value) {
+    if (currentUser.isAdmin) {
+      onOverrideMarkAsDoneWarning.value = () => {
+        validateAndUpdate('edit')
+        markAsDoneWarning.value = null
+      }
+    }
+  } else {
     validateAndUpdate('edit')
   }
 }
