@@ -16,7 +16,7 @@
     "@mdi/font": "7.4.47",
     "@mdi/js": "7.4.47",
     "@popperjs/core": "2.11.8",
-    "axios": "1.7.8",
+    "axios": "1.11.0",
     "core-js": "3.39.0",
     "linkify-html": "4.1.4",
     "linkifyjs": "4.1.4",
