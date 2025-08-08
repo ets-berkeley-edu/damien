@@ -22,16 +22,17 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
 ENHANCEMENTS, OR MODIFICATIONS.
 """
+import pytest
 from flask import current_app as app
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.wait import WebDriverWait as Wait
+
 from mrsbaylock.models.email import Email
 from mrsbaylock.models.term import Term
 from mrsbaylock.models.user_dept_role import UserDeptRole
 from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.pages.dept_details_admin_page import DeptDetailsAdminPage
 from mrsbaylock.test_utils import utils
-import pytest
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import WebDriverWait as Wait
 
 term = utils.get_current_term()
 previous_term = Term(utils.get_previous_term_code(term.term_id), None)

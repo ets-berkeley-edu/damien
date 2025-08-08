@@ -25,14 +25,16 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import re
 
+from flask import current_app as app
+from flask import request
+from flask_login import login_required
+
 from damien.api.errors import BadRequestError
 from damien.api.util import admin_required
 from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_loch_basic_attributes_by_uid_or_name, get_loch_instructors_for_snippet
 from damien.lib.util import get as get_param
 from damien.models.supplemental_instructor import SupplementalInstructor
-from flask import current_app as app, request
-from flask_login import login_required
 
 
 @app.route('/api/instructor', methods=['POST'])

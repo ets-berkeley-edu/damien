@@ -23,11 +23,14 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import os
 from datetime import datetime
 from itertools import groupby
-import os
 from threading import Thread
 from urllib.parse import unquote
+
+from flask import Response, request, stream_with_context
+from flask import current_app as app
 
 from damien.api.errors import BadRequestError, InternalServerError
 from damien.api.util import admin_required, get_term_id
@@ -37,7 +40,6 @@ from damien.lib.http import tolerant_jsonify
 from damien.models.department import Department
 from damien.models.evaluation import Evaluation
 from damien.models.export import Export
-from flask import current_app as app, request, Response, stream_with_context
 
 
 @app.route('/api/evaluations/export', methods=['POST'])

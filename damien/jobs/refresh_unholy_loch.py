@@ -23,11 +23,13 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from datetime import datetime
 import os
+from datetime import datetime
 from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from sqlalchemy.sql import text
+
 from damien import cache, db, std_commit
 from damien.externals.s3 import get_s3_path
 from damien.lib.berkeley import get_current_term_id, get_refreshable_term_ids
@@ -38,8 +40,6 @@ from damien.models.department import Department
 from damien.models.export import Export
 from damien.models.tool_setting import ToolSetting
 from damien.models.util import advisory_lock, get_granted_lock_ids
-from sqlalchemy.sql import text
-
 
 LOCH_REFRESH_LOCK_ID = 666
 

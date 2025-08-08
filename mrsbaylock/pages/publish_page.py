@@ -31,9 +31,10 @@ import time
 import zipfile
 
 from flask import current_app as app
+from selenium.webdriver.common.by import By
+
 from mrsbaylock.pages.course_dashboards import CourseDashboards
 from mrsbaylock.test_utils import utils
-from selenium.webdriver.common.by import By
 
 
 class PublishPage(CourseDashboards):

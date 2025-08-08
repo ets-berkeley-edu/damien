@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 
-class Email(object):
+class Email(object):  # noqa: UP004
 
     def __init__(self, subject, body, recipients=None):
         self.subject = subject

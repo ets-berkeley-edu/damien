@@ -27,6 +27,11 @@ from collections import namedtuple
 from datetime import date, timedelta
 from itertools import groupby
 
+from flask import current_app as app
+from flask_login import current_user
+from sqlalchemy import and_, func, orm, text, update
+from sqlalchemy.dialects.postgresql import ENUM
+
 from damien import db, std_commit
 from damien.lib.cache import clear_department_cache, clear_section_cache
 from damien.lib.queries import get_default_meeting_dates, refresh_additional_instructors
@@ -34,11 +39,6 @@ from damien.lib.util import isoformat, safe_strftime
 from damien.models.base import Base
 from damien.models.department_form import DepartmentForm
 from damien.models.evaluation_type import EvaluationType
-from flask import current_app as app
-from flask_login import current_user
-from sqlalchemy import and_, func, orm, text, update
-from sqlalchemy.dialects.postgresql import ENUM
-
 
 evaluation_status_enum = ENUM(
     'marked',
@@ -63,7 +63,7 @@ EvaluationExportKey = namedtuple('EvaluationExportKey', ['course_number', 'depar
 class Evaluation(Base):
     __tablename__ = 'evaluations'
 
-    id = db.Column(db.Integer, nullable=False, primary_key=True, autoincrement=True)  # noqa: A003
+    id = db.Column(db.Integer, nullable=False, primary_key=True, autoincrement=True)
     term_id = db.Column(db.String(4), nullable=False, primary_key=True)
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), primary_key=True)
     course_number = db.Column(db.String(5), nullable=False, primary_key=True)

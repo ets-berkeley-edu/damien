@@ -26,7 +26,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from damien import std_commit
 from damien.models.evaluation_type import EvaluationType
 
-
 non_admin_uid = '100'
 admin_uid = '200'
 

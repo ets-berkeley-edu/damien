@@ -23,19 +23,20 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from datetime import datetime
 import itertools
 import os
+from datetime import datetime
+
+from flask import current_app as app
+from sqlalchemy import text
 
 from damien import db, std_commit
-from flask import current_app as app
 from mrsbaylock.models.department import Department
 from mrsbaylock.models.department_note import DepartmentNote
 from mrsbaylock.models.term import Term
 from mrsbaylock.models.user import User
 from mrsbaylock.models.user_dept_role import UserDeptRole
 from mrsbaylock.test_utils import evaluation_utils
-from sqlalchemy import text
 
 
 def get_browser():

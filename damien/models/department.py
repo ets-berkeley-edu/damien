@@ -25,6 +25,10 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from itertools import groupby
 
+from flask import current_app as app
+from sqlalchemy import text
+from sqlalchemy.orm import joinedload
+
 from damien import db, std_commit
 from damien.lib.berkeley import get_current_term_id
 from damien.lib.cache import clear_department_cache, fetch_all_sections, fetch_department_cache, set_department_cache
@@ -37,15 +41,12 @@ from damien.models.evaluation import Evaluation
 from damien.models.evaluation_type import EvaluationType
 from damien.models.supplemental_instructor import SupplementalInstructor
 from damien.models.supplemental_section import SupplementalSection
-from flask import current_app as app
-from sqlalchemy import text
-from sqlalchemy.orm import joinedload
 
 
 class Department(Base):
     __tablename__ = 'departments'
 
-    id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
+    id = db.Column(db.Integer, nullable=False, primary_key=True)
     dept_name = db.Column(db.String(255), nullable=False)
     is_enrolled = db.Column(db.Boolean, nullable=False, default=False)
 

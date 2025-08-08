@@ -23,8 +23,9 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.models.json_cache import JsonCache
 from flask import current_app as app
+
+from damien.models.json_cache import JsonCache
 
 
 def clear_department_cache(department_id, term_id):

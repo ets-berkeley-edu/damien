@@ -24,10 +24,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import boto3
-from botocore.exceptions import ClientError as BotoClientError, ConnectionError as BotoConnectionError
-from flask import current_app as app
 import smart_open
 import zipstream
+from botocore.exceptions import ClientError as BotoClientError
+from botocore.exceptions import ConnectionError as BotoConnectionError
+from flask import current_app as app
 
 
 def get_object_text(key):

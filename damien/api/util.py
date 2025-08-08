@@ -24,11 +24,13 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 from functools import wraps
 
+from flask import current_app as app
+from flask import request
+from flask_login import current_user
+
 from damien.api.errors import BadRequestError
 from damien.lib.berkeley import available_term_ids, get_current_term_id
 from damien.lib.util import get as get_param
-from flask import current_app as app, request
-from flask_login import current_user
 
 
 def admin_required(func):

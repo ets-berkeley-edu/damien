@@ -25,12 +25,14 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import re
 
+from flask import current_app as app
+from flask import request
+from flask_login import login_required
+
 from damien.api.errors import BadRequestError, ResourceNotFoundError
 from damien.api.util import get_term_id
 from damien.lib.http import tolerant_jsonify
 from damien.merged.section import Section
-from flask import current_app as app, request
-from flask_login import login_required
 
 
 @app.route('/api/section/<course_number>')

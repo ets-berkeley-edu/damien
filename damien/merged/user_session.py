@@ -23,8 +23,9 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.models.user import User
 from flask_login import UserMixin
+
+from damien.models.user import User
 
 
 class UserSession(UserMixin):

@@ -25,7 +25,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import json
 
-
 non_admin_uid = '100'
 admin_uid = '200'
 

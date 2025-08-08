@@ -24,16 +24,15 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import copy
-from datetime import date
-from datetime import timedelta
+from datetime import date, timedelta
 
+import pytest
 from flask import current_app as app
+
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.models.user import User
 from mrsbaylock.pages.publish_page import PublishPage
-from mrsbaylock.test_utils import evaluation_utils
-from mrsbaylock.test_utils import utils
-import pytest
+from mrsbaylock.test_utils import evaluation_utils, utils
 
 
 @pytest.mark.usefixtures('page_objects')

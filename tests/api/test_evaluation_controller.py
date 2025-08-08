@@ -25,13 +25,17 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import re
 
+from moto import mock_s3
+
 from damien import std_commit
 from damien.models.export import Export
-from moto import mock_s3
-from tests.api.test_department_controller import \
-    _api_get_evaluation, _api_update_evaluation, _api_update_history_evaluation, _api_update_melc_evaluation
+from tests.api.test_department_controller import (
+    _api_get_evaluation,
+    _api_update_evaluation,
+    _api_update_history_evaluation,
+    _api_update_melc_evaluation,
+)
 from tests.util import mock_s3_bucket
-
 
 non_admin_uid = '100'
 admin_uid = '200'

@@ -23,11 +23,11 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from damien.models.tool_setting import ToolSetting
-from freezegun import freeze_time
 import simplejson as json
-from tests.util import override_config
+from freezegun import freeze_time
 
+from damien.models.tool_setting import ToolSetting
+from tests.util import override_config
 
 non_admin_uid = '100'
 admin_uid = '200'

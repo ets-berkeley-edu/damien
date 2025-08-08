@@ -25,14 +25,15 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import json
 
+import psycopg2
+from flask import current_app as app
+from sqlalchemy.exc import SQLAlchemyError
+
 from damien import __version__ as version
 from damien import db
 from damien.externals.b_connected import BConnected
 from damien.externals.sftp import get_sftp_client
 from damien.lib.http import tolerant_jsonify
-from flask import current_app as app
-import psycopg2
-from sqlalchemy.exc import SQLAlchemyError
 
 
 @app.route('/api/ping')

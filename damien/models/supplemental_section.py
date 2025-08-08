@@ -32,7 +32,7 @@ from damien.models.base import Base
 class SupplementalSection(Base):
     __tablename__ = 'supplemental_sections'
 
-    id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
+    id = db.Column(db.Integer, nullable=False, primary_key=True)
     term_id = db.Column(db.String(4), nullable=False)
     course_number = db.Column(db.String(5), nullable=False)
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)

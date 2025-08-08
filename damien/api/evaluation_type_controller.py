@@ -23,11 +23,12 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from flask import current_app as app
+from flask_login import login_required
+
 from damien.api.util import admin_required
 from damien.lib.http import tolerant_jsonify
 from damien.models.evaluation_type import EvaluationType
-from flask import current_app as app
-from flask_login import login_required
 
 
 @app.route('/api/evaluation_type/<name>', methods=['POST'])

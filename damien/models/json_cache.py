@@ -23,16 +23,17 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from sqlalchemy.dialects.postgresql import JSONB, insert
+
 from damien import db, std_commit
 from damien.lib.util import utc_now
 from damien.models.base import Base
-from sqlalchemy.dialects.postgresql import insert, JSONB
 
 
 class JsonCache(Base):
     __tablename__ = 'json_cache'
 
-    id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
+    id = db.Column(db.Integer, nullable=False, primary_key=True)
     term_id = db.Column(db.String, nullable=False)
     department_id = db.Column(db.String, nullable=False)
     course_number = db.Column(db.String, nullable=False)

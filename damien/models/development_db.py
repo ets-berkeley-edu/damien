@@ -25,11 +25,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import re
 
-from damien import db, std_commit
-from damien.models.user import User
 from flask import current_app as app
 from sqlalchemy.sql import text
 
+from damien import db, std_commit
+from damien.models.user import User
 
 _test_users = [
     {

@@ -24,9 +24,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 import csv
-from itertools import groupby
 import os
 import tempfile
+from itertools import groupby
+
+from flask import current_app as app
 
 from damien.externals.s3 import get_s3_path, put_binary_data_to_s3, stream_object_text
 from damien.externals.sftp import get_sftp_client
@@ -39,7 +41,6 @@ from damien.models.department_form import DepartmentForm
 from damien.models.evaluation import Evaluation, is_modular
 from damien.models.export import Export
 from damien.models.user import User
-from flask import current_app as app
 
 
 def background_generate_exports(app_arg, term_id, timestamp):
