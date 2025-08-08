@@ -23,9 +23,10 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from flask import current_app as app
+
 import damien.api.errors
 from damien.lib.http import tolerant_jsonify
-from flask import current_app as app
 
 
 @app.errorhandler(damien.api.errors.BadRequestError)

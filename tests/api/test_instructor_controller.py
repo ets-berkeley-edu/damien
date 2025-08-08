@@ -25,7 +25,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import json
 
-
 admin_uid = '200'
 non_admin_uid = '100'
 default_instructor = {

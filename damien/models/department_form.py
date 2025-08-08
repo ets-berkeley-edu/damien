@@ -32,7 +32,7 @@ from damien.models.department_catalog_listing import DepartmentCatalogListing
 class DepartmentForm(Base):
     __tablename__ = 'department_forms'
 
-    id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
+    id = db.Column(db.Integer, nullable=False, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     deleted_at = db.Column(db.DateTime)
 

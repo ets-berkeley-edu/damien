@@ -30,7 +30,6 @@ from damien.models.department import Department
 from damien.models.evaluation import Evaluation
 from tests.util import override_config
 
-
 non_admin_uid = '100'
 admin_uid = '200'
 

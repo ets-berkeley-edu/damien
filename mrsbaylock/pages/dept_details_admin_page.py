@@ -25,10 +25,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import time
 
 from flask import current_app as app
+from selenium.webdriver.common.by import By
+
 from mrsbaylock.models.blue_perm import BluePerm
 from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
 from mrsbaylock.test_utils import utils
-from selenium.webdriver.common.by import By
 
 
 class DeptDetailsAdminPage(CourseDashboardEditsPage):

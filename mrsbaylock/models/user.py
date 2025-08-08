@@ -26,7 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from mrsbaylock.models.blue_perm import BluePerm
 
 
-class User(object):
+class User(object):  # noqa: UP004
 
     def __init__(self, data, dept_roles=None):
         self.data = data

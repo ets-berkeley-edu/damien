@@ -25,10 +25,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import re
 
+from sqlalchemy import and_, or_
+
 from damien import db, std_commit
 from damien.lib.util import isoformat, utc_now
 from damien.models.base import Base
-from sqlalchemy import and_, or_
 
 
 class SupplementalInstructor(Base):

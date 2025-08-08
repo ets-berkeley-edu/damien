@@ -26,10 +26,11 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import json
 import os
 
-from damien import db
-from damien.lib.util import parse_search_snippet
 from flask import current_app as app
 from sqlalchemy.sql import text
+
+from damien import db
+from damien.lib.util import parse_search_snippet
 
 
 # Refresh attributes in loch for evaluated instructors without instructor assignments in SIS data. These additional instructors

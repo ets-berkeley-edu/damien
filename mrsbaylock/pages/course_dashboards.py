@@ -28,9 +28,10 @@ import re
 import time
 
 from flask import current_app as app
+from selenium.webdriver.common.by import By
+
 from mrsbaylock.pages.damien_pages import DamienPages
 from mrsbaylock.test_utils import utils
-from selenium.webdriver.common.by import By
 
 
 class CourseDashboards(DamienPages):

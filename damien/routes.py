@@ -25,9 +25,10 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import datetime
 
-from damien.merged.user_session import UserSession
 from flask import jsonify, make_response, redirect, request, session
 from flask_login import LoginManager
+
+from damien.merged.user_session import UserSession
 
 
 def register_routes(app):
@@ -46,17 +47,17 @@ def register_routes(app):
     import damien.api.department_controller
     import damien.api.department_form_controller
     import damien.api.department_member_controller
+
+    # Register error handlers.
+    import damien.api.error_handlers
     import damien.api.evaluation_controller
-    import damien.api.evaluation_type_controller
     import damien.api.evaluation_term_controller
+    import damien.api.evaluation_type_controller
     import damien.api.instructor_controller
     import damien.api.job_controller
     import damien.api.section_controller
     import damien.api.status_controller
     import damien.api.user_controller
-
-    # Register error handlers.
-    import damien.api.error_handlers
 
     index_html = open(app.config['INDEX_HTML']).read()
 

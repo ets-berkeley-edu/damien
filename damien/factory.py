@@ -23,12 +23,13 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from flask import Flask
+
 from damien import cache, db
 from damien.configs import load_configs
 from damien.jobs.refresh_unholy_loch import initialize_refresh_schedule
 from damien.logger import initialize_logger
 from damien.routes import register_routes
-from flask import Flask
 
 
 def create_app():

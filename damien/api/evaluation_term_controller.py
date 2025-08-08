@@ -23,14 +23,16 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from flask import current_app as app
+from flask import request
+from flask_login import current_user, login_required
+
 from damien.api.errors import BadRequestError
 from damien.api.util import admin_required
 from damien.lib.berkeley import available_term_ids, get_current_term_id
 from damien.lib.http import tolerant_jsonify
 from damien.lib.util import get as get_param
 from damien.models.evaluation_term import EvaluationTerm
-from flask import current_app as app, request
-from flask_login import current_user, login_required
 
 
 @app.route('/api/evaluation_term/<term_id>')

@@ -25,8 +25,9 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from contextlib import contextmanager
 
-from damien import db
 from flask import current_app as app
+
+from damien import db
 
 
 def select_column(sql):

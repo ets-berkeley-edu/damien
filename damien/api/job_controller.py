@@ -23,11 +23,12 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from flask import current_app as app
+
 from damien.api.errors import InternalServerError
 from damien.api.util import admin_required
 from damien.jobs.refresh_unholy_loch import is_refreshing, refresh_from_api
 from damien.lib.http import tolerant_jsonify
-from flask import current_app as app
 
 
 @app.route('/api/job/refresh_unholy_loch')

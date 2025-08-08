@@ -23,13 +23,15 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from flask import current_app as app
+from flask import request
+from flask_login import current_user
+
 from damien.api.util import admin_required
 from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_loch_basic_attributes_by_uid_or_name
 from damien.lib.util import get as get_param
 from damien.models.user import User
-from flask import current_app as app, request
-from flask_login import current_user
 
 
 @app.route('/api/user/<uid>/forms')

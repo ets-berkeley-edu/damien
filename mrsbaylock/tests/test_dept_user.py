@@ -25,16 +25,16 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from datetime import date
 
-from flask import current_app as app
-from mrsbaylock.models.evaluation_status import EvaluationStatus
-from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
-from mrsbaylock.pages.dept_details_admin_page import DeptDetailsAdminPage
-from mrsbaylock.test_utils import evaluation_utils
-from mrsbaylock.test_utils import utils
 import pytest
+from flask import current_app as app
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait as Wait
+
+from mrsbaylock.models.evaluation_status import EvaluationStatus
+from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
+from mrsbaylock.pages.dept_details_admin_page import DeptDetailsAdminPage
+from mrsbaylock.test_utils import evaluation_utils, utils
 
 
 @pytest.mark.usefixtures('page_objects')

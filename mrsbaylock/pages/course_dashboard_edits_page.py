@@ -28,11 +28,12 @@ import datetime
 import time
 
 from flask import current_app as app
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.select import Select
+
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.pages.course_dashboards import CourseDashboards
 from mrsbaylock.test_utils import utils
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.select import Select
 
 
 class CourseDashboardEditsPage(CourseDashboards):

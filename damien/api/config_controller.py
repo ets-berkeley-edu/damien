@@ -23,6 +23,10 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from flask import current_app as app
+from flask import request
+from flask_login import current_user, login_required
+
 from damien.api.errors import BadRequestError
 from damien.api.util import admin_required
 from damien.lib.berkeley import available_term_ids, get_current_term_id, term_name_for_sis_id
@@ -32,8 +36,6 @@ from damien.lib.util import safe_strftime, to_bool_or_none
 from damien.models.department_form import DepartmentForm
 from damien.models.evaluation_type import EvaluationType
 from damien.models.tool_setting import ToolSetting
-from flask import current_app as app, request
-from flask_login import current_user, login_required
 
 
 @app.route('/api/config')

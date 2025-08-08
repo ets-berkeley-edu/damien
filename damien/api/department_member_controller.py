@@ -23,6 +23,9 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from flask import current_app as app
+from flask import request
+
 from damien.api.errors import BadRequestError, ResourceNotFoundError
 from damien.api.util import admin_required
 from damien.externals.b_connected import BConnected
@@ -32,7 +35,6 @@ from damien.models.department import Department
 from damien.models.department_member import DepartmentMember
 from damien.models.user import User
 from damien.models.user_department_form import UserDepartmentForm
-from flask import current_app as app, request
 
 
 @app.route('/api/department/<department_id>/contact/<user_id>', methods=['DELETE'])

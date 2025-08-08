@@ -25,18 +25,19 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import copy
 import datetime
-from datetime import timedelta
 import itertools
 import re
+from datetime import timedelta
+
+from flask import current_app as app
+from sqlalchemy import text
+from sqlalchemy.exc import NoSuchColumnError
 
 from damien import db, std_commit
-from flask import current_app as app
 from mrsbaylock.models.evaluation import Evaluation
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.models.instructor import Instructor
 from mrsbaylock.test_utils import utils
-from sqlalchemy import text
-from sqlalchemy.exc import NoSuchColumnError
 
 
 def list_to_str(list_o_strings):

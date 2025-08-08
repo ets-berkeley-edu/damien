@@ -23,17 +23,18 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from flask import current_app as app
+from sqlalchemy import func
+
 from damien import db
 from damien.lib.berkeley import get_current_term_id, term_ids_range
 from damien.models.base import Base
-from flask import current_app as app
-from sqlalchemy import func
 
 
 class DepartmentCatalogListing(Base):
     __tablename__ = 'department_catalog_listings'
 
-    id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
+    id = db.Column(db.Integer, nullable=False, primary_key=True)
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)
     subject_area = db.Column(db.String(255), nullable=False)
     catalog_id = db.Column(db.String(255))

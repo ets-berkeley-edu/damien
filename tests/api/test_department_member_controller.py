@@ -31,7 +31,6 @@ from damien.models.department_form import DepartmentForm
 from damien.models.department_member import DepartmentMember
 from damien.models.user import User
 
-
 non_admin_uid = '100'
 admin_uid = '200'
 
@@ -305,7 +304,7 @@ class TestUpdateDepartmentContact:
         melc_form = DepartmentForm.find_by_id(form_melc_id)
         params['departmentForms'] = [melc_form.to_api_json()]
         contact = _api_update_contact(client, dept_id=department.id, params=params)
-        # assert contact['departmentId'] == str(department.id)
+        # assert contact['departmentId'] == str(department.id)  # noqa: ERA001
         assert contact['userId'] == user.id
         assert len(contact['departmentForms']) == 1
         assert contact['departmentForms'][0]['name'] == 'MELC'

@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 
-class UserDeptRole(object):
+class UserDeptRole(object):  # noqa: UP004
 
     def __init__(self, dept_id, receives_comms):
         self.dept_id = dept_id

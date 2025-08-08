@@ -25,13 +25,13 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from datetime import datetime
 
+from sqlalchemy.dialects.postgresql import ENUM
+
 from damien import db, std_commit
 from damien.lib.util import isoformat, parse_search_snippet
 from damien.models.base import Base
 from damien.models.department_form import DepartmentForm
 from damien.models.department_member import DepartmentMember
-from sqlalchemy.dialects.postgresql import ENUM
-
 
 blue_permissions_enum = ENUM(
     'reports_only',
@@ -44,7 +44,7 @@ blue_permissions_enum = ENUM(
 class User(Base):
     __tablename__ = 'users'
 
-    id = db.Column(db.Integer, nullable=False, primary_key=True)  # noqa: A003
+    id = db.Column(db.Integer, nullable=False, primary_key=True)
     csid = db.Column(db.String(255))
     uid = db.Column(db.String(255), nullable=False, unique=True)
     first_name = db.Column(db.String(255), nullable=False)

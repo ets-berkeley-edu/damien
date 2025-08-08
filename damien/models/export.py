@@ -23,11 +23,11 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+from sqlalchemy.dialects.postgresql import ENUM
+
 from damien import db, std_commit
 from damien.lib.util import isoformat
 from damien.models.base import Base
-from sqlalchemy.dialects.postgresql import ENUM
-
 
 export_status_enum = ENUM(
     'started',

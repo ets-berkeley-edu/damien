@@ -23,11 +23,13 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from datetime import datetime
 import os
+from datetime import datetime
+
+import pytest
+from flask import current_app as app
 
 from damien.factory import create_app
-from flask import current_app as app
 from mrsbaylock.pages.api_page import ApiPage
 from mrsbaylock.pages.calnet_page import CalNetPage
 from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
@@ -39,10 +41,8 @@ from mrsbaylock.pages.login_page import LoginPage
 from mrsbaylock.pages.publish_page import PublishPage
 from mrsbaylock.pages.status_board_admin_page import StatusBoardAdminPage
 from mrsbaylock.test_utils.webdriver_utils import WebDriverManager
-import pytest
 
-
-os.environ['DAMIEN_ENV'] = 'mrsbaylock'  # noqa
+os.environ['DAMIEN_ENV'] = 'mrsbaylock'
 
 _app = create_app()
 
@@ -78,18 +78,18 @@ def page_objects(request):
     try:
         for item in session.items:
             cls = item.getparent(pytest.Class)
-            setattr(cls.obj, 'driver', driver)
-            setattr(cls.obj, 'test_id', test_id)
-            setattr(cls.obj, 'api_page', api_page)
-            setattr(cls.obj, 'calnet_page', calnet_page)
-            setattr(cls.obj, 'dept_details_admin_page', dept_details_admin_page)
-            setattr(cls.obj, 'dept_details_dept_page', dept_details_dept_page)
-            setattr(cls.obj, 'group_mgmt_page', group_mgmt_page)
-            setattr(cls.obj, 'homepage', homepage)
-            setattr(cls.obj, 'list_mgmt_page', list_mgmt_page)
-            setattr(cls.obj, 'login_page', login_page)
-            setattr(cls.obj, 'publish_page', publish_page)
-            setattr(cls.obj, 'status_board_admin_page', status_board_admin_page)
+            setattr(cls.obj, 'driver', driver)  # noqa: B010
+            setattr(cls.obj, 'test_id', test_id)  # noqa: B010
+            setattr(cls.obj, 'api_page', api_page)  # noqa: B010
+            setattr(cls.obj, 'calnet_page', calnet_page)  # noqa: B010
+            setattr(cls.obj, 'dept_details_admin_page', dept_details_admin_page)  # noqa: B010
+            setattr(cls.obj, 'dept_details_dept_page', dept_details_dept_page)  # noqa: B010
+            setattr(cls.obj, 'group_mgmt_page', group_mgmt_page)  # noqa: B010
+            setattr(cls.obj, 'homepage', homepage)  # noqa: B010
+            setattr(cls.obj, 'list_mgmt_page', list_mgmt_page)  # noqa: B010
+            setattr(cls.obj, 'login_page', login_page)  # noqa: B010
+            setattr(cls.obj, 'publish_page', publish_page)  # noqa: B010
+            setattr(cls.obj, 'status_board_admin_page', status_board_admin_page)  # noqa: B010
         yield
     finally:
         WebDriverManager.quit_browser(driver)

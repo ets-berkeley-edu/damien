@@ -23,8 +23,12 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from datetime import date
 import re
+from datetime import date
+
+from flask import current_app as app
+from flask import request
+from flask_login import login_required
 
 from damien.api.errors import BadRequestError, ResourceNotFoundError
 from damien.api.util import admin_required, department_membership_required, get_boolean_param, get_term_id
@@ -32,7 +36,8 @@ from damien.lib import cache
 from damien.lib.berkeley import term_name_for_sis_id
 from damien.lib.http import tolerant_jsonify
 from damien.lib.queries import get_valid_meeting_dates
-from damien.lib.util import get as get_param, safe_strftime
+from damien.lib.util import get as get_param
+from damien.lib.util import safe_strftime
 from damien.models.department import Department
 from damien.models.department_form import DepartmentForm
 from damien.models.department_note import DepartmentNote
@@ -40,8 +45,6 @@ from damien.models.evaluation import Evaluation
 from damien.models.evaluation_term import EvaluationTerm
 from damien.models.evaluation_type import EvaluationType
 from damien.models.supplemental_section import SupplementalSection
-from flask import current_app as app, request
-from flask_login import login_required
 
 
 @app.route('/api/department/<department_id>/section', methods=['POST'])
@@ -124,7 +127,7 @@ def update_note(department_id):
 
 @app.route('/api/department/<department_id>/evaluations', methods=['POST'])
 @login_required
-def update_evaluations(department_id):  # noqa C901
+def update_evaluations(department_id):
     department = Department.find_by_id(department_id)
     if not department:
         raise ResourceNotFoundError(f'Department {department_id} not found.')
@@ -202,7 +205,7 @@ def _validate_confirmable(evaluation_ids, term_id, evaluations_feed, fields={}):
             raise BadRequestError('Could not confirm evaluations with conflicting information.')
 
 
-def _validate_evaluation_fields(fields, term_id, dept_uses_midterm_forms):  # noqa C901
+def _validate_evaluation_fields(fields, term_id, dept_uses_midterm_forms):  # noqa: C901, PLR0912
     validated_fields = {}
     if not fields or not type(fields) is dict:
         raise BadRequestError('No fields supplied for evaluation edit.')

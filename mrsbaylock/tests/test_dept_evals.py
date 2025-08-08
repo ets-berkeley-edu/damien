@@ -25,10 +25,10 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import time
 
-from flask import current_app as app
-from mrsbaylock.test_utils import evaluation_utils
-from mrsbaylock.test_utils import utils
 import pytest
+from flask import current_app as app
+
+from mrsbaylock.test_utils import evaluation_utils, utils
 
 term = utils.get_current_term()
 depts = utils.get_test_eval_depts()

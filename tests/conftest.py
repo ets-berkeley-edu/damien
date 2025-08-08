@@ -26,17 +26,18 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import json
 import os
 
+import pytest
 from flask_login import logout_user
-import pytest  # noqa
-import damien.factory  # noqa
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+
+import damien.factory
 from tests.util import override_config
 
-os.environ['DAMIEN_ENV'] = 'test'  # noqa
+os.environ['DAMIEN_ENV'] = 'test'
 
 
-class FakeAuth(object):
+class FakeAuth(object):  # noqa: UP004
     def __init__(self, the_app, the_client):
         self.app = the_app
         self.client = the_client
@@ -71,12 +72,12 @@ def app(request):
     # Pop the context after running tests.
     def teardown():
         ctx.pop()
-    request.addfinalizer(teardown)
+    request.addfinalizer(teardown)  # noqa: PT021
 
     return _app
 
 
-# TODO Perform DB schema creation and deletion outside an app context, enabling test-specific app configurations.
+# TODO: Perform DB schema creation and deletion outside an app context, enabling test-specific app configurations.
 @pytest.fixture(scope='session')
 def db(app):
     """Fixture database object, shared by all tests."""

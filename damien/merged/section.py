@@ -23,8 +23,8 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-from itertools import groupby
 import re
+from itertools import groupby
 
 from damien.lib.cache import fetch_section_cache, set_section_cache
 from damien.lib.queries import get_loch_sections_by_ids

@@ -26,8 +26,6 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import time
 
 from flask import current_app as app
-from mrsbaylock.test_utils import utils
-from mrsbaylock.test_utils.webdriver_utils import WebDriverManager
 from selenium.common import exceptions
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -36,8 +34,11 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait as Wait
 
+from mrsbaylock.test_utils import utils
+from mrsbaylock.test_utils.webdriver_utils import WebDriverManager
 
-class Page(object):
+
+class Page(object):  # noqa: UP004
 
     def __init__(self, driver, headless):
         self.driver = driver

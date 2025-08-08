@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 
-class Term(object):
+class Term(object):  # noqa: UP004
 
     def __init__(self, term_id, name, prefix=None, start_date=None, end_date=None):
         self.term_id = term_id

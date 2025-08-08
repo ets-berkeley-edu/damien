@@ -25,9 +25,10 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from datetime import date, timedelta
 
+from flask import current_app as app
+
 from damien import cache
 from damien.models.util import select_column
-from flask import current_app as app
 
 
 def available_term_ids():

@@ -26,11 +26,12 @@ ENHANCEMENTS, OR MODIFICATIONS.
 import time
 
 from flask import current_app as app
-from mrsbaylock.pages.page import Page
-from mrsbaylock.test_utils import utils
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait as Wait
+
+from mrsbaylock.pages.page import Page
+from mrsbaylock.test_utils import utils
 
 
 class ApiPage(Page):

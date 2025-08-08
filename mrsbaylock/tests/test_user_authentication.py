@@ -23,9 +23,10 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 
+import pytest
+
 from mrsbaylock.pages.login_page import LoginPage
 from mrsbaylock.test_utils import utils
-import pytest
 
 
 @pytest.mark.usefixtures('page_objects')

@@ -26,12 +26,14 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from urllib.parse import urlencode, urljoin, urlparse
 
 import cas
+from flask import abort, flash, redirect, request, url_for
+from flask import current_app as app
+from flask_login import current_user, login_required, login_user, logout_user
+
 from damien.api.errors import ResourceNotFoundError
 from damien.lib.http import add_param_to_url, tolerant_jsonify
 from damien.merged.user_session import UserSession
 from damien.models.user import User
-from flask import abort, current_app as app, flash, redirect, request, url_for
-from flask_login import current_user, login_required, login_user, logout_user
 
 
 @app.route('/cas/callback', methods=['GET', 'POST'])

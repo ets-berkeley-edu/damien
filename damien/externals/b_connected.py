@@ -22,14 +22,15 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
 ENHANCEMENTS, OR MODIFICATIONS.
 """
+import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import logging
 from smtplib import SMTP
+
+from flask import current_app as app
 
 from damien import skip_when_pytest
 from damien.lib.util import get_eb_environment
-from flask import current_app as app
 
 
 class BConnected:

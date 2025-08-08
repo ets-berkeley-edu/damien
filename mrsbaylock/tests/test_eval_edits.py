@@ -23,15 +23,15 @@ SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
 ENHANCEMENTS, OR MODIFICATIONS.
 """
 import datetime
-from datetime import timedelta
 import time
+from datetime import timedelta
 
+import pytest
 from flask import current_app as app
+
 from mrsbaylock.models.evaluation_status import EvaluationStatus
 from mrsbaylock.pages.course_dashboard_edits_page import CourseDashboardEditsPage
-from mrsbaylock.test_utils import evaluation_utils
-from mrsbaylock.test_utils import utils
-import pytest
+from mrsbaylock.test_utils import evaluation_utils, utils
 
 
 @pytest.mark.usefixtures('page_objects', scope='class')

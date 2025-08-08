@@ -24,7 +24,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 
-class DepartmentNote(object):
+class DepartmentNote(object):  # noqa: UP004
 
     def __init__(self, term_id, note):
         self.term_id = term_id

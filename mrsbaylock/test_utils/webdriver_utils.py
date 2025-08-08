@@ -24,14 +24,15 @@ ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from flask import current_app as app
-from mrsbaylock.test_utils import utils
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as Coptions
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.firefox.options import Options as Foptions
 
+from mrsbaylock.test_utils import utils
 
-class WebDriverManager(object):
+
+class WebDriverManager(object):  # noqa: UP004
 
     @classmethod
     def launch_browser(cls, browser=None, headless=None):
