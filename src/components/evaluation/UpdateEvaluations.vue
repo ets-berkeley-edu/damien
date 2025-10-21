@@ -438,6 +438,7 @@ const showSelectedStatus = evaluation => {
 
 const reset = () => {
   const filterCriteria = duplicatingEvaluationId.value ? {'id': duplicatingEvaluationId.value} : 'isSelected'
+  midtermFormSelected.value = props.midtermFormEnabled
   selectedEvaluations.value = filter(evaluations.value, filterCriteria)
   selectedDepartmentForm.value = props.departmentForm
   selectedEvaluationStatus.value = props.evaluationStatus
