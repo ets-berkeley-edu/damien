@@ -241,7 +241,7 @@ class Evaluation(Base):
         return query.first()
 
     @classmethod
-    def find_potential_conflicts(cls, evaluation_ids, fields, defaults):
+    def check_conflicts_on_existing_evaluations(cls, evaluation_ids, fields, defaults):
         if defaults and len(defaults):
             defaults_cte = f"""
                     default_values (evaluation_id, department_form_id, evaluation_type_id, start_date) AS (
@@ -315,7 +315,47 @@ class Evaluation(Base):
                         edf.name <> c.department_form_name || '_MID' AND c.department_form_name <> edf.name || '_MID'
                     )"""
         results = db.session.execute(query, params).fetchall()
-        app.logger.info(f'Evaluation find_potential_conflicts query returned {len(results)} results: {query}\n{params}')
+        app.logger.info(f'check_conflicts_on_existing_evaluations query returned {len(results)} results: {query}\n{params}')
+        return results
+
+    @classmethod
+    def check_conflicts_on_new_evaluations(cls, values):
+        if not values:
+            return
+
+        params = {}
+        sql_values = []
+        props = ['term_id', 'course_number', 'instructor_uid', 'department_form_id', 'evaluation_type_id', 'start_date']
+        for row_idx, row in enumerate(values):
+            sql_props = []
+            for prop_idx, prop in enumerate(props):
+                identifier = f'{prop}_{row_idx}'
+                params[identifier] = row[prop_idx]
+                sql_props.append(':' + identifier)
+            sql_values.append('(' + ','.join(sql_props) + ')')
+
+        query = f"""WITH confirming (term_id, course_number, instructor_uid, department_form_id, evaluation_type_id, start_date)
+            AS (
+              VALUES
+              {','.join(sql_values)}
+            )
+            SELECT * FROM evaluations e
+            JOIN confirming c
+              ON e.term_id = c.term_id
+              AND e.course_number = c.course_number
+              AND e.instructor_uid = c.instructor_uid
+              AND (
+                  e.department_form_id != c.department_form_id::INT
+                  OR e.evaluation_type_id != c.evaluation_type_id::INT
+                  OR e.start_date != DATE(c.start_date)
+              )
+            JOIN department_forms cdf ON c.department_form_id::INT = cdf.id
+            JOIN department_forms edf ON e.department_form_id = edf.id
+            AND (
+              edf.name <> cdf.name || '_MID' AND cdf.name <> edf.name || '_MID'
+            );"""
+        results = db.session.execute(query, params).fetchall()
+        app.logger.info(f'check_conflicts_on_new_evaluations query returned {len(results)} results: {query}\n{params}')
         return results
 
     @classmethod

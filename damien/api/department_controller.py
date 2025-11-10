@@ -181,11 +181,16 @@ def update_evaluations(department_id):
     return tolerant_jsonify(response)
 
 
-def _validate_confirmable(evaluation_ids, term_id, evaluations_feed, fields={}):
+def _validate_confirmable(evaluation_ids, term_id, evaluations_feed, fields={}):  # noqa: C901
 
     def _is_numeric(eid):
         return re.match(r'\d+\Z', str(eid))
-    numeric_ids = [int(eid) for eid in evaluation_ids if _is_numeric(eid)]
+
+    numeric_ids, non_numeric_ids = [], []
+    for evaluation_id in evaluation_ids:
+        (numeric_ids if _is_numeric(evaluation_id) else non_numeric_ids).append(evaluation_id)
+
+    # Numeric IDs indicate evaluation rows that have already been saved in the database.
     if numeric_ids:
         if not (fields.get('departmentForm') and fields.get('evaluationType') and fields.get('instructorUid') and fields.get('startDate')):
             validation_errors = Evaluation.get_invalid(term_id, evaluation_ids=numeric_ids)
@@ -200,7 +205,33 @@ def _validate_confirmable(evaluation_ids, term_id, evaluations_feed, fields={}):
                 e['startDate'],
             )
         defaults = [_defaults(e) for e in evaluations_feed if (_is_numeric(e['id']) and e['departmentForm'] and e['evaluationType'])]
-        conflicts = Evaluation.find_potential_conflicts(numeric_ids, fields, defaults)
+        conflicts = Evaluation.check_conflicts_on_existing_evaluations(numeric_ids, fields, defaults)
+        if conflicts:
+            raise BadRequestError('Could not confirm evaluations with conflicting information.')
+
+    # Non-numeric IDs indicate evaluation rows that have not yet been saved and require different validation logic.
+    if non_numeric_ids:
+        to_be_confirmed = []
+        for evaluation_id in non_numeric_ids:
+            existing_feed_entry = next((e for e in evaluations_feed if e['id'] == evaluation_id), None)
+            if existing_feed_entry:
+                department_form_id = fields.get('departmentForm') and fields['departmentForm'].id
+                if not department_form_id:
+                    department_form_id = existing_feed_entry.get('departmentForm') and existing_feed_entry['departmentForm']['id']
+                evaluation_type_id = fields.get('evaluationType') and fields['evaluationType'].id
+                if not evaluation_type_id:
+                    evaluation_type_id = existing_feed_entry.get('evaluationType') and existing_feed_entry['evaluationType']['id']
+
+                to_be_confirmed.append((
+                    existing_feed_entry['termId'],
+                    existing_feed_entry['courseNumber'],
+                    fields.get('instructorUid') or (existing_feed_entry.get('instructor') and existing_feed_entry['instructor']['uid']),
+                    department_form_id,
+                    evaluation_type_id,
+                    fields.get('startDate') or existing_feed_entry.get('startDate'),
+                ))
+
+        conflicts = Evaluation.check_conflicts_on_new_evaluations(to_be_confirmed)
         if conflicts:
             raise BadRequestError('Could not confirm evaluations with conflicting information.')
 
