@@ -370,8 +370,59 @@ class TestUpdateEvaluationStatus:
         fake_auth.login(non_admin_uid)
         _api_update_evaluation(client, params={'evaluationIds': [incomplete_eval.id], 'action': 'confirm'}, expected_status_code=400)
 
-    def test_update_status_confirm_conflicts(self, client, fake_auth, history_id, form_melc_id, form_history_id, type_f_id, type_g_id):
+    def test_update_status_confirmed_conflicts(self, client, fake_auth, history_id, melc_id, form_melc_id, form_history_id, type_f_id, type_g_id):
         """Prevents duplicate evaluations for the same instructor from being confirmed with conflicting fields."""
+        # Create an evaluation in the database.
+        history_dept = Department.find_by_id(history_id)
+        course_number = '30643'
+        instructor_uid = '738551'
+        Evaluation.create(
+            term_id='2222',
+            course_number=course_number,
+            department_id=history_dept.id,
+            instructor_uid=instructor_uid,
+            department_form_id=form_history_id,
+            evaluation_type_id=type_f_id,
+            start_date='2022-03-15',
+        )
+        std_commit(allow_test_environment=True)
+
+        evals = Evaluation.fetch_by_course_numbers('2222', [course_number])[course_number]
+        assert len(evals) == 1
+
+        fake_auth.login(non_admin_uid)
+        melc_dept = Department.find_by_id(melc_id)
+
+        # Try to create a new confirmed evaluation with conflicting department form.
+        _api_update_evaluation(client, dept_id=melc_dept.id, params={
+            'evaluationIds': [f'_2222_{course_number}_{instructor_uid}'],
+            'fields': {'departmentFormId': form_melc_id, 'status': 'confirmed'},
+            'action': 'edit',
+        }, expected_status_code=400)
+
+        # Try to create a new confirmed evaluation with conflicting evaluation type.
+        _api_update_evaluation(client, dept_id=melc_dept.id, params={
+            'evaluationIds': [f'_2222_{course_number}_{instructor_uid}'],
+            'fields': {'evaluationTypeId': type_g_id, 'status': 'confirmed'},
+            'action': 'edit',
+        }, expected_status_code=400)
+
+        # Try to create a new confirmed evaluation with conflicting start date.
+        _api_update_evaluation(client, dept_id=melc_dept.id, params={
+            'evaluationIds': [f'_2222_{course_number}_{instructor_uid}'],
+            'fields': {'startDate': '2022-03-16', 'status': 'confirmed'},
+            'action': 'edit',
+        }, expected_status_code=400)
+
+        # Resolve all conflicts and confirm succeeds.
+        _api_update_evaluation(client, dept_id=melc_dept.id, params={
+            'evaluationIds': [f'_2222_{course_number}_{instructor_uid}'],
+            'fields': {'departmentFormId': form_history_id, 'evaluationTypeId': type_f_id, 'startDate': '2022-03-15', 'status': 'confirmed'},
+            'action': 'edit',
+        })
+
+    def test_create_conflicting_evaluation(self, client, fake_auth, history_id, form_melc_id, form_history_id, type_f_id, type_g_id):
+        """Prevents creating a new evaluation for an instructor with conflicting fields."""
         # First, create two evaluations with the same course and instructor but conflicting department form, evaluation type, and start date
         dept = Department.find_by_id(history_id)
         course_number = '30123'
