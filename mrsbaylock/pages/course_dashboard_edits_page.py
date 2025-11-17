@@ -221,6 +221,7 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def click_bulk_edit(self):
         self.wait_for_element_and_click(CourseDashboardEditsPage.EDIT_BUTTON)
+        time.sleep(1)
 
     def bulk_edit_eval_count(self):
         self.wait_for_element(CourseDashboardEditsPage.BULK_EDIT_DIALOG_TITLE, 2)
@@ -373,6 +374,11 @@ class CourseDashboardEditsPage(CourseDashboards):
     FOUND_SECTION_TITLE = (By.XPATH, '//h3[@id="add-section-title"]/following-sibling::div[2]')
     ADD_SECTION_CONFIRM_BUTTON = (By.ID, 'add-course-section-submit')
     ADD_SECTION_CANCEL_BUTTON = (By.ID, 'add-course-section-cancel')
+
+    def wait_for_add_section_button(self):
+        app.logger.info('Waiting for add section button')
+        time.sleep(2)
+        self.wait_for_element(self.ADD_SECTION_BUTTON, utils.get_short_timeout())
 
     def click_add_section(self):
         app.logger.info('Clicking the add-section button')

@@ -157,7 +157,7 @@ class DamienPages(Page):
 
     def notif_expand_dept_recipient_members(self, dept):
         app.logger.info(f'Expanding notification department {dept.name}')
-        if self.element((By.XPATH, DamienPages.notif_expand_dept_xpath(dept))).get_dom_attribute('aria-expanded'):
+        if self.element((By.XPATH, DamienPages.notif_expand_dept_xpath(dept))).get_dom_attribute('aria-expanded') == 'true':
             app.logger.info('Recipient list is already expanded')
         else:
             app.logger.info('Expanding recipient list')

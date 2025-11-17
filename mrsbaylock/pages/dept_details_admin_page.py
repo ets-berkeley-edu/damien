@@ -230,7 +230,7 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
             assert self.element(DeptDetailsAdminPage.DEPT_NOTE).text.strip() == note.strip()
         else:
             self.when_not_present(DeptDetailsAdminPage.DEPT_NOTE, utils.get_short_timeout())
-            assert 'Create' in self.element(self.DEPT_NOTE_EDIT_BUTTON).get_dom_attribute('innerText')
+            assert 'Create' in self.element(self.DEPT_NOTE_EDIT_BUTTON).get_property('innerText')
 
     def cxl_dept_note(self):
         app.logger.info('Canceling dept note')
