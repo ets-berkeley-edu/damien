@@ -89,7 +89,7 @@ class TestDeptMgmt:
 
     def test_previous_term_note(self):
         self.dept_details_admin_page.select_term(previous_term)
-        self.dept_details_admin_page.wait_for_eval_rows()
+        self.dept_details_admin_page.wait_for_add_section_button()
         self.dept_details_admin_page.wait_for_note()
         assert not self.dept_details_admin_page.is_present(DeptDetailsAdminPage.DEPT_NOTE_EDIT_BUTTON)
         assert not self.dept_details_admin_page.is_present(DeptDetailsAdminPage.DEPT_NOTE_DELETE_BUTTON)
