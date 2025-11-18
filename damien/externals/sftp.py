@@ -30,7 +30,7 @@ from flask import current_app as app
 
 
 @contextmanager
-def get_sftp_client():
+def get_sftp_client(timeout=None):
     if app.config['DAMIEN_ENV'] == 'test' or app.config['SKIP_SFTP']:
         yield None
     else:
@@ -48,6 +48,7 @@ def get_sftp_client():
                 'username': app.config['SFTP_USER'],
                 'pkey': private_key,
                 'port': app.config['SFTP_PORT'],
+                'timeout': timeout,
             }
             ssh.connect(**ssh_config)
             yield ssh.open_sftp()

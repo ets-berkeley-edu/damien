@@ -79,6 +79,8 @@ LOGGING_LOCATION = 'damien.log'
 LOGGING_LEVEL = logging.DEBUG
 LOGGING_PROPAGATION_LEVEL = logging.INFO
 
+PING_TIMEOUT_SECONDS = 5
+
 # Override in local configs.
 SCHEDULE_LOCH_REFRESH = {'hour': 0, 'minute': 0}
 

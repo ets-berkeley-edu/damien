@@ -38,12 +38,13 @@ from damien.lib.http import tolerant_jsonify
 
 @app.route('/api/ping')
 def ping():
+    timeout = app.config['PING_TIMEOUT_SECONDS']
     b_connected_ping = False
     db_ping = False
     try:
-        b_connected_ping = BConnected().ping()
+        b_connected_ping = BConnected().ping(timeout)
         db_ping = _db_status()
-        explorance_ping = _explorance_status()
+        explorance_ping = _explorance_status(timeout)
     except Exception as e:
         app.logger.error(f'Error during /api/ping: {e}')
         app.logger.exception(e)
@@ -99,9 +100,9 @@ def _db_status():
         return False
 
 
-def _explorance_status():
+def _explorance_status(timeout):
     try:
-        get_sftp_client()
+        get_sftp_client(timeout)
         return True
     except Exception as e:
         app.logger.error('SFTP connection error during /api/ping')
