@@ -12,7 +12,7 @@
     <template #title>{{ action }} {{ selectedEvaluationsDescription }}</template>
     <template #text>
       <v-container class="px-16 pb-4">
-        <slot name="status" :status="selectedEvaluationStatus" :on="{change: e => selectedEvaluationStatus = e.target.value}"></slot>
+        <slot name="status" :status="selectedEvaluationStatus" :on="{change: e => selectedEvaluationStatus = e.target.value}" />
         <PersonLookup
           v-if="isObject(instructor)"
           clearable
@@ -28,7 +28,7 @@
           :required="!midtermFormSelected"
         />
         <v-row v-if="midtermFormAvailable" class="d-flex align-center" dense>
-          <v-col cols="4"></v-col>
+          <v-col cols="4" />
           <v-col cols="8">
             <v-checkbox
               :id="`${idPrefix}-midterm-checkbox`"
@@ -42,7 +42,7 @@
             />
           </v-col>
         </v-row>
-        <slot name="form" :form="selectedDepartmentForm" :on="{change: e => selectedDepartmentForm = toInteger(e.target.value)}"></slot>
+        <slot name="form" :form="selectedDepartmentForm" :on="{change: e => selectedDepartmentForm = toInteger(e.target.value)}" />
         <v-row class="d-flex align-center" dense>
           <v-col cols="4">
             <label :for="`${idPrefix}-select-type`" class="v-label d-block text-no-wrap py-1">
@@ -149,7 +149,7 @@
               </td>
             </tr>
             <tr v-if="action === 'Duplicate'" :key="`${index}-dupe`">
-              <td :id="`preview-${index}-dupe-status`" class="bulk-action-status-col pr-1"></td>
+              <td :id="`preview-${index}-dupe-status`" class="bulk-action-status-col pr-1" />
               <td :id="`preview-${index}-dupe-courseNumber`" class="bulk-action-courseNumber-col px-1">{{ evaluation.courseNumber }}</td>
               <td :id="`preview-${index}-dupe-courseName`" class="bulk-action-courseName-col px-1">
                 <div>{{ evaluation.subjectArea }} {{ evaluation.catalogId }}</div>

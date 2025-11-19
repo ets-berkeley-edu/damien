@@ -4,10 +4,9 @@ language: python
 python: "3.11"
 
 before_install:
-  - nvm install 20.16.0
+  - nvm install 22
 
 install:
-  - echo -e '@neverendingsupport:registry=https://registry.nes.herodevs.com/npm/pkg/\n//registry.nes.herodevs.com/npm/pkg/:_authToken="'${NES_AUTH_TOKEN}'"' > .npmrc
   - npm install
   - pip3 install tox
 

@@ -119,7 +119,7 @@
           list-label="Choose department forms"
           :set-value="addDepartmentForm"
         >
-          <template #selection></template>
+          <template #selection />
         </AccessibleCombobox>
         <div class="py-1">
           <span :id="`select-department-forms-${contactId}-desc`" class="sr-only">
@@ -270,7 +270,7 @@ const onSave = () => {
 
 const onSelectSearchResult = person => {
   populateForm(person)
-  emit('department-contact-selected', fullName)
+  emit('department-contact-selected', fullName.value)
   putFocusNextTick(`input-email-${contactId.value}`)
 }
 

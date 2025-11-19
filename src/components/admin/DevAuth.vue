@@ -46,7 +46,7 @@
         @click="logIn"
       >
         Dev Auth
-        <img alt="Damien, the son of the Devil" src="@/assets/damien.svg" class="ml-2 damien-icon" />
+        <img alt="Damien, the son of the Devil" src="@/assets/damien.svg" class="ml-2 damien-icon">
       </v-btn>
     </div>
   </v-form>

@@ -16,7 +16,7 @@
     </template>
     <template #text>
       <span v-if="!html">{{ text }}</span>
-      <span v-if="html" v-html="html"></span>
+      <span v-if="html" v-html="html" />
     </template>
     <template #actions>
       <div class="align-center d-flex">

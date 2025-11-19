@@ -4,7 +4,7 @@
       <slot />
     </h1>
     <div class="ml-auto">
-      <slot name="append"></slot>
+      <slot name="append" />
     </div>
   </div>
 </template>

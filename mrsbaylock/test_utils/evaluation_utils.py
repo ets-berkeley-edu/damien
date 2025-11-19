@@ -456,7 +456,7 @@ def get_manual_sections(evals, term, dept):
 
 
 def get_edited_sections(term, dept):
-    dept_subjects, date_cond = get_dept_subjects(term, dept)
+    dept_subjects, date_cond = get_dept_subjects(term, dept)  # noqa: RUF059
     clause = '' if '' in dept_subjects else ' AND unholy_loch.sis_sections.subject_area = department_catalog_listings.subject_area'
     sql = f"""
         SELECT evaluations.course_number AS ccn,
