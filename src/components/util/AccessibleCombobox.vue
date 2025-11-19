@@ -73,7 +73,7 @@
             color="secondary"
             :icon="mdiCloseCircle"
             size="21"
-          ></v-icon>
+          />
         </v-btn>
       </template>
       <template #item="{index, item}">
@@ -95,7 +95,7 @@
         </v-list-item>
       </template>
       <template #selection="{item}">
-        <slot name="selection" :item="item"></slot>
+        <slot name="selection" :item="item" />
       </template>
     </component>
   </div>
@@ -317,6 +317,8 @@ const onFocusInput = isFocused => {
   // Passing open-on-focus via menuProps (https://vuetifyjs.com/en/api/v-menu/#props-open-on-focus)
   // doesn't seem to have an effect, thus this workaround.
   if (isFocused) {
+    // TODO: 'props.openOnFocus' is undefined. Can we remove it?
+    // eslint-disable-next-line vue/no-undef-properties
     if (props.openOnFocus && !container.value.menu) {
       container.value.menu = true
     }

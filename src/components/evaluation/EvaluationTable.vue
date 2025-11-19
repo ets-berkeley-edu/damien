@@ -1,9 +1,9 @@
 <template>
   <v-container
     v-if="evaluations.length"
-    v-resize="setStickySearchPosition"
     class="pa-0"
     max-width="100%"
+    @resize="setStickySearchPosition"
   >
     <div
       class="bg-surface-variant elevation-2 py-2 sticky"
@@ -522,7 +522,7 @@
               </td>
             </tr>
             <tr v-if="isEditing(evaluation)" :key="`${evaluation.id}-edit`" class="bg-tertiary text-white border-top-none">
-              <td></td>
+              <td />
               <td :colspan="size(evaluationHeaders) - 1" class="pb-1 px-3">
                 <div class="d-flex justify-end">
                   <ConfirmDialog

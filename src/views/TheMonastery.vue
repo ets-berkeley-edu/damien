@@ -59,7 +59,7 @@
               >
                 {{ department.totalSections }}
               </td>
-              <td colspan="5" :class="{'bg-hovered': hoveredDept === department.id}"></td>
+              <td colspan="5" :class="{'bg-hovered': hoveredDept === department.id}" />
             </tr>
             <tr
               v-for="(contact, contactIndex) in department.contacts"

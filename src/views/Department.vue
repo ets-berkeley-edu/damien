@@ -132,7 +132,7 @@
                   :aria-label="pendingDepartmentContactName ? `Edit ${pendingDepartmentContactName}` : undefined"
                   :on-cancel="onCancelAddContact"
                   :role="pendingDepartmentContactName ? 'region' : 'none'"
-                  @department-contact-selected="fullName => pendingDepartmentContactName = fullName.value"
+                  @department-contact-selected="fullName => pendingDepartmentContactName = fullName"
                 />
               </div>
             </div>
@@ -166,7 +166,7 @@
             alt="Movie poster of The Omen"
             class="omen-poster-img"
             src="@/assets/omen_poster.png"
-          />
+          >
         </v-card-text>
       </v-card>
     </v-dialog>

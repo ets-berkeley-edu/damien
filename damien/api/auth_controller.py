@@ -40,7 +40,7 @@ from damien.models.user import User
 def cas_login():
     ticket = request.args['ticket']
     target_url = request.args.get('url')
-    uid, attributes, proxy_granting_ticket = _cas_client(target_url).verify_ticket(ticket)
+    uid, attributes, proxy_granting_ticket = _cas_client(target_url).verify_ticket(ticket)  # noqa: RUF059
     app.logger.info(f'Logged into CAS as user {uid}')
     user = User.find_by_uid(uid)
     if _is_authorized_user(user):

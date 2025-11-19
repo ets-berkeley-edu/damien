@@ -45,7 +45,7 @@
             @change="inputEvents.change"
             @focusin="inputEvents.focusin"
             @focusout="inputEvents.focusout"
-          />
+          >
         </div>
       </template>
     </DatePicker>
@@ -61,7 +61,7 @@
         color="secondary"
         :icon="mdiCloseCircle"
         size="21"
-      ></v-icon>
+      />
     </button>
   </div>
 </template>

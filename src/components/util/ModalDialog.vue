@@ -20,14 +20,14 @@
         :width="width"
       >
         <v-card-title v-if="slots.title" :id="`${idPrefix}-dialog-title`">
-          <slot name="title"></slot>
+          <slot name="title" />
         </v-card-title>
         <v-card-text v-if="slots.text" :id="`${idPrefix}-dialog-text`" :class="textClass">
-          <slot name="text"></slot>
+          <slot name="text" />
         </v-card-text>
         <v-divider v-if="slots.actions" />
         <v-card-actions v-if="slots.actions" class="d-flex justify-end px-6 py-4">
-          <slot name="actions"></slot>
+          <slot name="actions" />
         </v-card-actions>
       </v-card>
     </slot>

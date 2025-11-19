@@ -8,8 +8,9 @@ const NannysRoom = () => import('@/views/NannysRoom.vue')
 const NotFound = () => import('@/views/NotFound.vue')
 const StatusBoard = () => import('@/views/StatusBoard.vue')
 const TheMonastery = () => import('@/views/TheMonastery.vue')
+import type {RouteRecordRaw} from 'vue-router'
 import {capitalize, find, get, size, sortBy, trim} from 'lodash'
-import {createRouter, createWebHistory, RouteRecordRaw} from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
 import {getEvaluationTerm} from '@/api/evaluationTerms'
 import {useContextStore} from '@/stores/context'
 

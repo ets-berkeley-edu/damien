@@ -6,7 +6,7 @@
         aria-label="Frustrated crow on a branch"
         class="frustrated-crow"
         src="@/assets/frustrated-crow.png"
-      />
+      >
     </div>
     <div>
       <h1 id="page-title" tabindex="-1">{{ message ? 'Uh-oh, error!' : 'Error' }}</h1>

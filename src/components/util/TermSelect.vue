@@ -58,9 +58,8 @@
 <script setup>
 import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {ref} from 'vue'
-import {getEvaluationTerm} from '@/api/evaluationTerms'
+import {getEvaluationTerm, lockEvaluationTerm, unlockEvaluationTerm} from '@/api/evaluationTerms'
 import {includes} from 'lodash'
-import {lockEvaluationTerm, unlockEvaluationTerm} from '@/api/evaluationTerms'
 import {mdiLock, mdiLockOpen} from '@mdi/js'
 import {useContextStore} from '@/stores/context'
 import {useRoute, useRouter} from 'vue-router'

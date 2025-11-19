@@ -2,6 +2,7 @@ import './main.scss'
 import '@mdi/font/css/materialdesignicons.css'
 import {aliases, mdi} from 'vuetify/iconsets/mdi-svg'
 import {createVuetify} from 'vuetify'
+import {VAlert} from 'vuetify/components/VAlert'
 import {VAppBar} from 'vuetify/components/VAppBar'
 import {VApp} from 'vuetify/components/VApp'
 import {VAutocomplete} from 'vuetify/components/VAutocomplete'
@@ -11,13 +12,14 @@ import {VBtnToggle} from 'vuetify/components/VBtnToggle'
 import {VCard, VCardActions, VCardSubtitle, VCardText, VCardTitle} from 'vuetify/components/VCard'
 import {VCheckbox} from 'vuetify/components/VCheckbox'
 import {VChip} from 'vuetify/components/VChip'
-import {VCol, VContainer, VSpacer, VRow} from 'vuetify/components/VGrid'
+import {VCol, VContainer, VRow, VSpacer} from 'vuetify/components/VGrid'
 import {VCombobox} from 'vuetify/components/VCombobox'
 import {VDataTable, VDataTableVirtual} from 'vuetify/components/VDataTable'
 import {VDialog} from 'vuetify/components/VDialog'
 import {VDivider} from 'vuetify/components/VDivider'
-import {VExpansionPanel, VExpansionPanels, VExpansionPanelText, VExpansionPanelTitle} from 'vuetify/components/VExpansionPanel'
+import {VExpansionPanel, VExpansionPanelText, VExpansionPanelTitle, VExpansionPanels} from 'vuetify/components/VExpansionPanel'
 import {VFooter} from 'vuetify/components/VFooter'
+import {VForm} from 'vuetify/components/VForm'
 import {VIcon} from 'vuetify/components/VIcon'
 import {VImg} from 'vuetify/components/VImg'
 import {VLayout} from 'vuetify/components/VLayout'
@@ -35,6 +37,7 @@ import {VSlideXReverseTransition, VSnackbar, VSwitch, VToolbar} from 'vuetify/co
 
 export default createVuetify({
   components: {
+    VAlert,
     VApp,
     VAppBar,
     VAutocomplete,
@@ -60,6 +63,7 @@ export default createVuetify({
     VExpansionPanelText,
     VExpansionPanelTitle,
     VFooter,
+    VForm,
     VIcon,
     VImg,
     VLayout,
