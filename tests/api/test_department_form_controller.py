@@ -98,9 +98,9 @@ class TestDeleteDepartmentForm:
         assert deleted_type.deleted_at is not None
 
     def test_invalid_dept_id(self, client, fake_auth):
-        """Fails silently when department form does not exist."""
+        """Fails when department form does not exist."""
         fake_auth.login(admin_uid)
-        _api_delete_department_form(client, name='NOPE')
+        _api_delete_department_form(client, name='NOPE', expected_status_code=404)
 
 
 def _api_department_forms(client, expected_status_code=200):

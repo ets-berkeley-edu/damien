@@ -565,6 +565,12 @@ class Evaluation(Base):
     def get_id(self):
         return self.id or self.transient_id()
 
+    def has_active_department_form(self):
+        return True if (self.department_form and not self.department_form.deleted_at) else False
+
+    def has_active_evaluation_type(self):
+        return True if (self.evaluation_type and not self.evaluation_type.deleted_at) else False
+
     def is_midterm(self):
         return True if self.department_form and self.department_form.name.endswith('_MID') else False
 
@@ -575,9 +581,15 @@ class Evaluation(Base):
         if self.status in ('marked', 'confirmed'):
             if next((v for v in (foreign_department_evaluation or self).conflicts.values() if len(v)), None):
                 return False
-            if not (self.department_form or (foreign_department_evaluation and foreign_department_evaluation.department_form)):
+            if not (
+                self.has_active_department_form()
+                or (foreign_department_evaluation and foreign_department_evaluation.has_active_department_form())
+            ):
                 return False
-            if not (self.evaluation_type or (foreign_department_evaluation and foreign_department_evaluation.evaluation_type)):
+            if not (
+                self.has_active_evaluation_type()
+                or (foreign_department_evaluation and foreign_department_evaluation.has_active_evaluation_type())
+            ):
                 return False
             if not (self.instructor_uid or (foreign_department_evaluation and foreign_department_evaluation.instructor_uid)):
                 return False
@@ -647,8 +659,6 @@ class Evaluation(Base):
                     break
         if default_form and not self.department_form:
             self.department_form = default_form
-        if self.department_form and self.status != 'confirmed' and self.department_form.deleted_at:
-            self.department_form = None
 
     def set_evaluation_type(self, saved_evaluation, foreign_dept_evaluations, instructor, default_evaluation_types):
         if saved_evaluation and saved_evaluation.evaluation_type:

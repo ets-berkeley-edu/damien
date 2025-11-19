@@ -270,7 +270,7 @@ def _validate_evaluation_fields(fields, term_id, dept_uses_midterm_forms):  # no
                 except (TypeError, ValueError):
                     evaluation_type = None
                 if not evaluation_type:
-                    raise BadRequestError(f'Invalid evaluation type id {v}.')
+                    raise BadRequestError('Invalid evaluation type.')
                 validated_fields['evaluationType'] = evaluation_type
         elif k == 'instructorUid':
             try:
