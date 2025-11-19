@@ -26,6 +26,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from flask import current_app as app
 from flask_login import login_required
 
+from damien.api.errors import ResourceNotFoundError
 from damien.api.util import admin_required
 from damien.lib.cache import delete_from_cache
 from damien.lib.http import tolerant_jsonify
@@ -42,7 +43,9 @@ def add_department_form(name):
 @app.route('/api/department_form/<name>', methods=['DELETE'])
 @admin_required
 def delete_department_form(name):
-    DepartmentForm.delete(name)
+    deleted_form = DepartmentForm.delete(name)
+    if not deleted_form:
+        raise ResourceNotFoundError(f'Department form {name} not found.')
     delete_from_cache(name)
     return tolerant_jsonify({'message': f'Department form {name} has been deleted'}), 200
 

@@ -98,9 +98,9 @@ class TestDeleteEvaluationType:
         assert deleted_type.deleted_at is not None
 
     def test_invalid_dept_id(self, client, fake_auth):
-        """Fails silently when evaluation type does not exist."""
+        """Fails when evaluation type does not exist."""
         fake_auth.login(admin_uid)
-        _api_delete_evaluation_type(client, name='NOPE')
+        _api_delete_evaluation_type(client, name='NOPE', expected_status_code=404)
 
 
 def _api_evaluation_types(client, expected_status_code=200):

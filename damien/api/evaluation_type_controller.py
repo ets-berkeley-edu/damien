@@ -26,7 +26,9 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from flask import current_app as app
 from flask_login import login_required
 
+from damien.api.errors import ResourceNotFoundError
 from damien.api.util import admin_required
+from damien.lib.cache import delete_from_cache
 from damien.lib.http import tolerant_jsonify
 from damien.models.evaluation_type import EvaluationType
 
@@ -41,7 +43,10 @@ def add_evaluation_type(name):
 @app.route('/api/evaluation_type/<name>', methods=['DELETE'])
 @admin_required
 def delete_evaluation_type(name):
-    EvaluationType.delete(name)
+    deleted_type = EvaluationType.delete(name)
+    if not deleted_type:
+        raise ResourceNotFoundError(f'Evaluation type {name} not found.')
+    delete_from_cache(name)
     return tolerant_jsonify({'message': f'Evaluation type {name} has been deleted'}), 200
 
 

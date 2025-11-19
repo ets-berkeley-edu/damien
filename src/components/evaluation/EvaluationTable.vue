@@ -407,6 +407,12 @@
                   :hover="isRowActive(evaluation)"
                   message="Department form required"
                 />
+                <EvaluationError
+                  v-if="evaluation.departmentForm && evaluation.departmentForm.deletedAt"
+                  :id="`error-msg-evaluation-department-form-${rowIndex}`"
+                  :hover="isRowActive(evaluation)"
+                  message="Department form has been deleted"
+                />
                 <div v-if="allowEdits && isEditing(evaluation)">
                   <label id="select-department-form-label" for="select-department-form">
                     Department Form
@@ -444,6 +450,12 @@
                   :id="`error-msg-evaluation-type-${rowIndex}`"
                   :hover="isRowActive(evaluation)"
                   message="Evaluation type required"
+                />
+                <EvaluationError
+                  v-if="evaluation.evaluationType && evaluation.evaluationType.deletedAt"
+                  :id="`error-msg-evaluation-department-form-${rowIndex}`"
+                  :hover="isRowActive(evaluation)"
+                  message="Evaluation type has been deleted"
                 />
                 <div v-if="allowEdits && isEditing(evaluation)">
                   <label id="select-evaluation-type-label" for="select-evaluation-type">

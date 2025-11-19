@@ -43,7 +43,8 @@ class EvaluationType(Base):
 
     def __repr__(self):
         return f"""<EvaluationType id={self.id},
-                    name={self.name}>
+                    name={self.name},
+                    deleted_at={self.deleted_at}>
                 """
 
     @classmethod
@@ -88,4 +89,5 @@ class EvaluationType(Base):
             'name': self.name,
             'createdAt': isoformat(self.created_at),
             'updatedAt': isoformat(self.updated_at),
+            'deletedAt': isoformat(self.deleted_at),
         }
