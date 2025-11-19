@@ -20,12 +20,6 @@ const gitignorePath = path.resolve(__dirname, '.gitignore')
 
 export default [
   includeIgnoreFile(gitignorePath),
-  {
-    ignores: [
-      '**/vue2.*',
-      '**/src-vue2/**'
-    ],
-  },
   ...pluginVue.configs['flat/essential'],
   ...vueTsEslintConfig({
     supportedScriptLangs: {
