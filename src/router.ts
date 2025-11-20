@@ -1,4 +1,3 @@
-import auth from './auth'
 const BaseView = () => import('@/views/BaseView.vue')
 const Department = () => import('@/views/Department.vue')
 const Error = () => import('@/views/Error.vue')
@@ -11,6 +10,7 @@ const TheMonastery = () => import('@/views/TheMonastery.vue')
 import type {RouteRecordRaw} from 'vue-router'
 import {capitalize, find, get, size, sortBy, trim} from 'lodash'
 import {createRouter, createWebHistory} from 'vue-router'
+import auth from './auth'
 import {getEvaluationTerm} from '@/api/evaluationTerms'
 import {useContextStore} from '@/stores/context'
 

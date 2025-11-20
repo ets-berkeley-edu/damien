@@ -219,6 +219,10 @@
 </template>
 
 <script setup>
+import {computed, inject, onMounted, ref, watch} from 'vue'
+import {endsWith, filter, find, get, isEmpty, isObject, map, max, min, size, toInteger} from 'lodash'
+import {storeToRefs} from 'pinia'
+import {DateTime} from 'luxon'
 import AccessibleDateInput from '@/components/util/AccessibleDateInput'
 import ConfirmDialog from '@/components/util/ConfirmDialog'
 import ModalDialog from '@/components/util/ModalDialog'
@@ -226,12 +230,8 @@ import PersonLookup from '@/components/admin/PersonLookup'
 import ProgressButton from '@/components/util/ProgressButton'
 import {EVALUATION_STATUSES, useDepartmentStore} from '@/stores/department/department-edit-session'
 import {addInstructor} from '@/api/instructor'
-import {computed, inject, onMounted, ref, watch} from 'vue'
-import {endsWith, filter, find, get, isEmpty, isObject, map, max, min, size, toInteger} from 'lodash'
 import {putFocusNextTick, toFormatFromJsDate} from '@/lib/utils'
-import {storeToRefs} from 'pinia'
 import {useContextStore} from '@/stores/context'
-import {DateTime} from 'luxon'
 
 const props = defineProps({
   action: {

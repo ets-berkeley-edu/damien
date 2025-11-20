@@ -95,12 +95,12 @@
 </template>
 
 <script setup>
-import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {computed, ref, watch} from 'vue'
 import {find} from 'lodash'
-import {getSection} from '@/api/sections'
 import {mdiAlert, mdiPlusThick} from '@mdi/js'
 import {storeToRefs} from 'pinia'
+import {getSection} from '@/api/sections'
+import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {useContextStore} from '@/stores/context'
 import {useDepartmentStore} from '@/stores/department/department-edit-session'
 

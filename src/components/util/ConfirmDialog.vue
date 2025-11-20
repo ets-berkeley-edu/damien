@@ -44,10 +44,10 @@
 </template>
 
 <script setup>
+import {onMounted} from 'vue'
 import ModalDialog from '@/components/util/ModalDialog'
 import ProgressButton from '@/components/util/ProgressButton'
 import {putFocusNextTick} from '@/lib/utils'
-import {onMounted} from 'vue'
 
 defineProps({
   buttonContext: {

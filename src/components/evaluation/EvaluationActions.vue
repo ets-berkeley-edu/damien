@@ -105,18 +105,18 @@
 </template>
 
 <script setup>
-import ConfirmDialog from '@/components/util/ConfirmDialog'
-import UpdateEvaluations from '@/components/evaluation/UpdateEvaluations'
-import {EVALUATION_STATUSES, useDepartmentStore} from '@/stores/department/department-edit-session'
-import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {filter as _filter, chain, compact, each, every, get, has, includes, map, noop, uniq} from 'lodash'
 import {computed, inject, onMounted, ref, watch} from 'vue'
 import {mdiAlertCircle} from '@mdi/js'
 import {storeToRefs} from 'pinia'
+import {DateTime} from 'luxon'
+import ConfirmDialog from '@/components/util/ConfirmDialog'
+import UpdateEvaluations from '@/components/evaluation/UpdateEvaluations'
+import {EVALUATION_STATUSES, useDepartmentStore} from '@/stores/department/department-edit-session'
+import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {updateEvaluations} from '@/api/departments'
 import {useContextStore} from '@/stores/context'
 import {validateConfirmable, validateDuplicable, validateMarkAsDone} from '@/stores/department/utils'
-import {DateTime} from 'luxon'
 
 const props = defineProps({
   reset: {

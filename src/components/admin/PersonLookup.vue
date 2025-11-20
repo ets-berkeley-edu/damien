@@ -55,12 +55,12 @@
 </template>
 
 <script setup>
-import AccessibleCombobox from '@/components/util/AccessibleCombobox'
 import {debounce, delay, each, replace, size, split, trim} from 'lodash'
 import {onMounted, ref} from 'vue'
+import {useTheme} from 'vuetify'
+import AccessibleCombobox from '@/components/util/AccessibleCombobox'
 import {searchInstructors} from '@/api/instructor'
 import {searchUsers} from '@/api/user'
-import {useTheme} from 'vuetify'
 
 const props = defineProps({
   ariaLabel: {

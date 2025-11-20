@@ -175,15 +175,15 @@
 </template>
 
 <script setup>
+import {find, isEmpty, size} from 'lodash'
+import {onMounted, ref} from 'vue'
+import {storeToRefs} from 'pinia'
+import {useTheme} from 'vuetify'
 import BooleanIcon from '@/components/util/BooleanIcon'
 import PageHeader from '@/components/util/PageHeader'
 import {alertScreenReader, getCatalogListings} from '@/lib/utils'
-import {find, isEmpty, size} from 'lodash'
 import {getDepartmentsEnrolled} from '@/api/departments'
-import {onMounted, ref} from 'vue'
-import {storeToRefs} from 'pinia'
 import {useContextStore} from '@/stores/context'
-import {useTheme} from 'vuetify'
 
 const contextStore = useContextStore()
 const {config} = storeToRefs(contextStore)

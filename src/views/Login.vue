@@ -36,14 +36,14 @@
 </template>
 
 <script setup>
+import {mdiArrowRightCircleOutline} from '@mdi/js'
+import {onMounted, ref} from 'vue'
+import {useRoute} from 'vue-router'
 import DevAuth from '@/components/admin/DevAuth'
 import Snackbar from '@/components/util/Snackbar'
 import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {getCasLoginURL} from '@/api/auth'
-import {mdiArrowRightCircleOutline} from '@mdi/js'
-import {onMounted, ref} from 'vue'
 import {useContextStore} from '@/stores/context'
-import {useRoute} from 'vue-router'
 
 const contextStore = useContextStore()
 const config = contextStore.config

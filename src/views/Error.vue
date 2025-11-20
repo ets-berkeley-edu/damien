@@ -24,8 +24,8 @@
 
 <script setup>
 import {onMounted} from 'vue'
-import {useContextStore} from '@/stores/context'
 import {useRoute} from 'vue-router'
+import {useContextStore} from '@/stores/context'
 
 const message = useRoute().query.m
 

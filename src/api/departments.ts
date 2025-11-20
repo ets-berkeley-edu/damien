@@ -1,5 +1,5 @@
-import {getApiBaseUrl} from '@/api/api-utils'
 import axios from 'axios'
+import {getApiBaseUrl} from '@/api/api-utils'
 
 export function addSection(departmentId: number, courseNumber: string, termId: string) {
   return axios.post(`${getApiBaseUrl()}/api/department/${departmentId}/section?term_id=${termId}`, {courseNumber})

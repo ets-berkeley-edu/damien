@@ -457,19 +457,19 @@
 </template>
 
 <script setup>
+import {find, get, size, trim} from 'lodash'
+import {mdiPlusThick, mdiTrashCan} from '@mdi/js'
+import {onMounted, ref} from 'vue'
+import {storeToRefs} from 'pinia'
+import {useTheme} from 'vuetify'
 import ConfirmDialog from '@/components/util/ConfirmDialog'
 import EditServiceAnnouncement from '@/components/admin/EditServiceAnnouncement'
 import PageHeader from '@/components/util/PageHeader'
 import ProgressButton from '@/components/util/ProgressButton.vue'
 import SortableTableHeader from '@/components/util/SortableTableHeader'
 import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
-import {find, get, size, trim} from 'lodash'
 import {getAutoPublishStatus, setAutoPublishStatus} from '@/api/config'
-import {mdiPlusThick, mdiTrashCan} from '@mdi/js'
-import {onMounted, ref} from 'vue'
-import {storeToRefs} from 'pinia'
 import {useContextStore} from '@/stores/context'
-import {useTheme} from 'vuetify'
 import {useListManagementStore} from '@/stores/list-management-session'
 
 const contextStore = useContextStore()

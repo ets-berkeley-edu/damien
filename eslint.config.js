@@ -65,7 +65,7 @@ export default [
       'import/no-duplicates': 2,
       'import/no-named-as-default': 0,
       'import/no-unresolved': 0,
-      'import/order': 1,
+      'import/order': 2,
       'key-spacing': 2,
       'no-console': 2,
       'no-debugger': 2,

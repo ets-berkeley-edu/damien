@@ -150,16 +150,16 @@
 </template>
 
 <script setup>
+import {computed, onMounted, ref} from 'vue'
+import {filter as _filter, each, find, get, includes, indexOf, isEmpty, kebabCase, map, size} from 'lodash'
+import {mdiCheckCircle} from '@mdi/js'
 import ModalDialog from '@/components/util/ModalDialog'
 import NotificationForm from '@/components/admin/NotificationForm'
 import PageHeader from '@/components/util/PageHeader'
 import SortableTableHeader from '@/components/util/SortableTableHeader'
 import TermSelect from '@/components/util/TermSelect'
 import {alertScreenReader, getCatalogListings, pluralize, putFocusNextTick, toLocaleFromISO} from '@/lib/utils'
-import {computed, onMounted, ref} from 'vue'
-import {filter as _filter, each, find, get, includes, indexOf, isEmpty, kebabCase, map, size} from 'lodash'
 import {getDepartmentsEnrolled} from '@/api/departments'
-import {mdiCheckCircle} from '@mdi/js'
 import {useContextStore} from '@/stores/context'
 
 const contextStore = useContextStore()

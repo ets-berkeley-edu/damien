@@ -1,7 +1,7 @@
+import {defineStore} from 'pinia'
 import {addDepartmentForm, deleteDepartmentForm, getDepartmentForms} from '@/api/departmentForms'
 import {addEvaluationType, deleteEvaluationType, getEvaluationTypes} from '@/api/evaluationTypes'
 import {addInstructor, deleteInstructor, getInstructors} from '@/api/instructor'
-import {defineStore} from 'pinia'
 import {putFocusNextTick} from '@/lib/utils'
 import {useContextStore} from '@/stores/context'
 

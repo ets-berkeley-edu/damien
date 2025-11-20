@@ -82,11 +82,11 @@
 </template>
 
 <script setup>
-import ConfirmDialog from '@/components/util/ConfirmDialog'
-import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {onMounted, ref, watch} from 'vue'
 import {storeToRefs} from 'pinia'
 import {trim} from 'lodash'
+import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
+import ConfirmDialog from '@/components/util/ConfirmDialog'
 import {useContextStore} from '@/stores/context'
 import {useDepartmentStore} from '@/stores/department/department-edit-session'
 
