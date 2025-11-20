@@ -321,7 +321,7 @@ class Evaluation(Base):
     @classmethod
     def check_conflicts_on_new_evaluations(cls, values):
         if not values:
-            return
+            return None
 
         params = {}
         sql_values = []

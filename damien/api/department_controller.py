@@ -238,7 +238,7 @@ def _validate_confirmable(evaluation_ids, term_id, evaluations_feed, fields={}):
 
 def _validate_evaluation_fields(fields, term_id, dept_uses_midterm_forms):  # noqa: C901, PLR0912
     validated_fields = {}
-    if not fields or not type(fields) is dict:
+    if not fields or type(fields) is not dict:
         raise BadRequestError('No fields supplied for evaluation edit.')
     for k, v in fields.items():
         if k == 'departmentFormId':

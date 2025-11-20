@@ -64,7 +64,7 @@ def get_evaluations(term, dept, log=False):
     sorted_evals = sorted(
         evals_total,
         key=lambda x: (
-            x.ccn, (float('-inf') if x.instructor and x.instructor.uid is None or 'None' or '' else float(x.uid))),
+            x.ccn, (float('-inf') if (x.instructor and x.instructor.uid is None) or 'None' or '' else float(x.uid))),
     )
     if log:
         for e in sorted_evals:
@@ -541,9 +541,9 @@ def merge_edited_evals(evaluations, edited_evals):
                     e.ccn == edit.ccn
                     and ((e.instructor and e.instructor.uid == uid)
                          or (edit.instructor.uid and not e.instructor.uid))
-                    and (e.dept_form and not form
-                         or form and not e.dept_form
-                         or not form and not e.dept_form
+                    and ((e.dept_form and not form)
+                         or (form and not e.dept_form)
+                         or (not form and not e.dept_form)
                          or (e.dept_form and form and e.dept_form == form)
                          or (e.dept_form and form and e.dept_form != form and '_MID' not in e.dept_form and '_MID' not in form))
             ):

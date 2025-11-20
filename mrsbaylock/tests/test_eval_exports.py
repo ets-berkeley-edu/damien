@@ -197,7 +197,7 @@ class TestEvalExports:
         assert past_term_rows
 
     def test_x_listed_course_supervisors(self):
-        self.expected_x_listed_supervisors.extend((utils.expected_x_listed_course_supervisors(self.term, self.confirmed)))
+        self.expected_x_listed_supervisors.extend(utils.expected_x_listed_course_supervisors(self.term, self.confirmed))
         current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), self.csv_x_listed_supervisors))
         utils.verify_actual_includes_expected(current_term_rows, self.expected_x_listed_supervisors)
 
