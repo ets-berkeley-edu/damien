@@ -90,7 +90,7 @@ def db(app):
     return _db
 
 
-@pytest.fixture(scope='function', autouse=True)
+@pytest.fixture(autouse=True)
 def db_session(db):
     """Fixture database session used for the scope of a single test.
 
@@ -120,13 +120,13 @@ def db_session(db):
     return _session
 
 
-@pytest.fixture(scope='function', autouse=True)
+@pytest.fixture(autouse=True)
 def cache_session():
     from damien import cache
     cache.clear()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def fake_auth(app, db, client):
     """Shortcut to start an authenticated session."""
     yield FakeAuth(app, client)

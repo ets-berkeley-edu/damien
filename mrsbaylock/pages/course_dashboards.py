@@ -387,12 +387,12 @@ class CourseDashboards(DamienPages):
         for k, g in grouped:
             sections = list(g)
             sections.sort(
-                key=lambda l: (
-                    l.subject,
-                    int(''.join([x for x in l.catalog_id if x.isdigit()])),
-                    (l.catalog_id.split(''.join([x for x in l.catalog_id if x.isdigit()]))[1]),
-                    l.instruction_format,
-                    l.section_num,
+                key=lambda section: (
+                    section.subject,
+                    int(''.join([x for x in section.catalog_id if x.isdigit()])),
+                    (section.catalog_id.split(''.join([x for x in section.catalog_id if x.isdigit()]))[1]),
+                    section.instruction_format,
+                    section.section_num,
                 ),
             )
             for i in sections:

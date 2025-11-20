@@ -88,7 +88,7 @@ class Page(object):  # noqa: UP004
 
     def is_present(self, locator):
         try:
-            self.element(locator).size
+            self.element(locator).size  # noqa: B018
             return True
         except (AttributeError, exceptions.NoSuchElementException, exceptions.StaleElementReferenceException):
             return False

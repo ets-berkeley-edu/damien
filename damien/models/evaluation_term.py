@@ -52,7 +52,7 @@ class EvaluationTerm(db.Model):
         evaluation_term = cls.query.filter_by(term_id=term_id).first()
         if not evaluation_term:
             evaluation_term = cls(term_id=term_id)
-            evaluation_term.is_locked = False if term_id == get_current_term_id() else True
+            evaluation_term.is_locked = term_id != get_current_term_id()
             db.session.add(evaluation_term)
             std_commit()
         return evaluation_term
