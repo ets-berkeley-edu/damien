@@ -48,7 +48,8 @@ class WebDriverManager(object):  # noqa: UP004
             p.set_preference(key='devtools.jsonview.enabled', value=False)
             options = Foptions()
             options.profile = p
-            options.headless = _headless
+            if _headless:
+                options.add_argument('--headless')
             driver = webdriver.Firefox(options=options)
         else:
             options = Coptions()
