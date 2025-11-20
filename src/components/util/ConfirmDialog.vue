@@ -7,7 +7,7 @@
     <template #title>
       <div class="align-center d-flex px-2">
         <div v-if="icon" class="pb-1 pr-2">
-          <v-icon aria-label="Error icon" color="error">{{ icon }}</v-icon>
+          <v-icon alt="Error" color="error">{{ icon }}</v-icon>
         </div>
         <h3>
           {{ title }}
