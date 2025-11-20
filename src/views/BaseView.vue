@@ -23,7 +23,7 @@
         <span v-if="contextStore.screenReaderAlert.politeness === 'assertive'">ALERT: </span> {{ contextStore.screenReaderAlert.message }}
       </div>
       <div class="ml-auto pr-4">
-        <v-menu offset-y rounded="lg">
+        <v-menu eager offset-y rounded="lg">
           <template #activator="{props: menuProps}">
             <v-btn
               id="btn-main-menu"
@@ -37,6 +37,7 @@
             <v-list-item
               id="dark-mode-toggle"
               link
+              role="option"
               @click="toggleColorScheme"
             >
               <v-list-item-title class="font-weight-medium">
@@ -47,6 +48,7 @@
               id="menu-item-log-out"
               :append-icon="mdiLogout"
               link
+              role="option"
               @click="logOut"
             >
               <v-list-item-title class="font-weight-medium">Log Out</v-list-item-title>
@@ -194,7 +196,7 @@ const setPreferredColorScheme = () => {
   } else {
     prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
   }
-  theme.global.name.value = prefersDarkMode ? 'dark' : 'light'
+  theme.change(prefersDarkMode ? 'dark' : 'light')
 }
 
 const setPreferredSidebarState = () => {
@@ -205,7 +207,7 @@ const setPreferredSidebarState = () => {
 
 const toggleColorScheme = () => {
   const getDark = !theme.global.current.value.dark
-  theme.global.name.value = getDark ? 'dark' : 'light'
+  theme.change(getDark ? 'dark' : 'light')
   window.localStorage.setItem('prefersDarkMode', `${getDark}`)
 }
 

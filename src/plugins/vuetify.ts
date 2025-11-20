@@ -30,10 +30,10 @@ import {VNavigationDrawer} from 'vuetify/components/VNavigationDrawer'
 import {VProgressCircular} from 'vuetify/components/VProgressCircular'
 import {VRadio} from 'vuetify/components/VRadio'
 import {VRadioGroup} from 'vuetify/components/VRadioGroup'
+import {VSlideXReverseTransition, VSlideYTransition, VSnackbar, VSwitch, VToolbar} from 'vuetify/components'
 import {VTable} from 'vuetify/components/VTable'
 import {VTextarea} from 'vuetify/components/VTextarea'
 import {VTextField} from 'vuetify/components/VTextField'
-import {VSlideXReverseTransition, VSnackbar, VSwitch, VToolbar} from 'vuetify/components'
 
 export default createVuetify({
   components: {
@@ -78,6 +78,7 @@ export default createVuetify({
     VRadio,
     VRadioGroup,
     VRow,
+    VSlideYTransition,
     VSlideXReverseTransition,
     VSnackbar,
     VSpacer,
