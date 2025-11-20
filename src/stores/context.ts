@@ -1,6 +1,6 @@
-import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {defineStore} from 'pinia'
 import {find, get} from 'lodash'
+import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import router from '@/router'
 
 export type CurrentUser = {

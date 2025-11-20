@@ -103,10 +103,10 @@
 </template>
 
 <script setup>
-import {alertScreenReader, pluralize, putFocusNextTick} from '@/lib/utils'
 import {get, size} from 'lodash'
 import {mdiChevronDown, mdiCloseCircle} from '@mdi/js'
 import {nextTick, onMounted, onUpdated, ref} from 'vue'
+import {alertScreenReader, pluralize, putFocusNextTick} from '@/lib/utils'
 
 const props = defineProps({
   ariaLabel: {

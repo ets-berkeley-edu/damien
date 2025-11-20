@@ -31,9 +31,9 @@
 </template>
 
 <script setup>
-import {getServiceAnnouncement, updateServiceAnnouncement} from '@/api/config'
 import {onMounted, ref} from 'vue'
 import {trim} from 'lodash'
+import {getServiceAnnouncement, updateServiceAnnouncement} from '@/api/config'
 import {useContextStore} from '@/stores/context'
 import ProgressButton from '@/components/util/ProgressButton.vue'
 

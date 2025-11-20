@@ -174,6 +174,11 @@
 </template>
 
 <script setup>
+import {computed, onMounted, ref, watch} from 'vue'
+import {filter as _filter, find, get, includes, isEmpty, isUndefined, size, sortBy, toInteger} from 'lodash'
+import {mdiChevronDown, mdiClose, mdiMinusBoxMultipleOutline, mdiPlusBoxMultipleOutline, mdiPlusThick} from '@mdi/js'
+import {storeToRefs} from 'pinia'
+import {useRoute, useRouter} from 'vue-router'
 import DepartmentContact from '@/components/admin/DepartmentContact'
 import DepartmentNote from '@/components/admin/DepartmentNote'
 import EditDepartmentContact from '@/components/admin/EditDepartmentContact'
@@ -183,12 +188,7 @@ import PageHeader from '@/components/util/PageHeader'
 import TermSelect from '@/components/util/TermSelect'
 import {NUMBER_OF_THE_BEAST, useDepartmentStore} from '@/stores/department/department-edit-session'
 import {alertScreenReader, getCatalogListings, putFocusNextTick} from '@/lib/utils'
-import {computed, onMounted, ref, watch} from 'vue'
-import {filter as _filter, find, get, includes, isEmpty, isUndefined, size, sortBy, toInteger} from 'lodash'
-import {mdiChevronDown, mdiClose, mdiMinusBoxMultipleOutline, mdiPlusBoxMultipleOutline, mdiPlusThick} from '@mdi/js'
-import {storeToRefs} from 'pinia'
 import {useContextStore} from '@/stores/context'
-import {useRoute, useRouter} from 'vue-router'
 
 const contextStore = useContextStore()
 const contactDetailsPanel = ref([])

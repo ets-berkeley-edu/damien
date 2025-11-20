@@ -115,11 +115,11 @@
 </template>
 
 <script setup>
-import ProgressButton from '@/components/util/ProgressButton'
-import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {cloneDeep, indexOf, size, trim} from 'lodash'
 import {computed, onMounted, ref} from 'vue'
 import {mdiCloseCircle} from '@mdi/js'
+import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
+import ProgressButton from '@/components/util/ProgressButton'
 import {notifyContacts} from '@/api/departments'
 import {useContextStore} from '@/stores/context'
 

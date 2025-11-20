@@ -128,15 +128,15 @@
 </template>
 
 <script setup>
-import ConfirmDialog from '@/components/util/ConfirmDialog'
-import EditDepartmentContact from '@/components/admin/EditDepartmentContact'
 import {computed, ref, watch} from 'vue'
-import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {sortBy} from 'lodash'
-import {useContextStore} from '@/stores/context'
-import {useDepartmentStore} from '@/stores/department/department-edit-session'
 import {mdiCheckCircle, mdiMinusCircle} from '@mdi/js'
 import {storeToRefs} from 'pinia'
+import ConfirmDialog from '@/components/util/ConfirmDialog'
+import EditDepartmentContact from '@/components/admin/EditDepartmentContact'
+import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
+import {useContextStore} from '@/stores/context'
+import {useDepartmentStore} from '@/stores/department/department-edit-session'
 
 const props = defineProps({
   contact: {

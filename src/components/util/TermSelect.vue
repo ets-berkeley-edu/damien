@@ -56,13 +56,13 @@
 </template>
 
 <script setup>
-import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 import {ref} from 'vue'
-import {getEvaluationTerm, lockEvaluationTerm, unlockEvaluationTerm} from '@/api/evaluationTerms'
 import {includes} from 'lodash'
 import {mdiLock, mdiLockOpen} from '@mdi/js'
-import {useContextStore} from '@/stores/context'
 import {useRoute, useRouter} from 'vue-router'
+import {useContextStore} from '@/stores/context'
+import {getEvaluationTerm, lockEvaluationTerm, unlockEvaluationTerm} from '@/api/evaluationTerms'
+import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
 
 defineProps({
   termIds: {

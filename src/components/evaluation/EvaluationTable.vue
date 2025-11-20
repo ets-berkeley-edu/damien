@@ -636,6 +636,10 @@
 </template>
 
 <script setup>
+import {clone, each, filter, find, get, includes, isEmpty, keys, map, noop, pickBy, pull, size, some} from 'lodash'
+import {computed, nextTick, onMounted, provide, ref, watch} from 'vue'
+import {mdiAlertCircle, mdiCheckCircle, mdiChevronDown, mdiPlusCircle} from '@mdi/js'
+import {storeToRefs} from 'pinia'
 import AccessibleDateInput from '@/components/util/AccessibleDateInput'
 import AddCourseSection from '@/components/evaluation/AddCourseSection'
 import ConfirmDialog from '@/components/util/ConfirmDialog'
@@ -647,11 +651,7 @@ import ProgressButton from '@/components/util/ProgressButton.vue'
 import SortableTableHeader from '@/components/util/SortableTableHeader'
 import {addInstructor} from '@/api/instructor'
 import {alertScreenReader, oxfordJoin, pluralize, putFocusNextTick, toFormatFromJsDate, toLocaleFromISO} from '@/lib/utils'
-import {clone, each, filter, find, get, includes, isEmpty, keys, map, noop, pickBy, pull, size, some} from 'lodash'
-import {computed, nextTick, onMounted, provide, ref, watch} from 'vue'
 import {EVALUATION_STATUSES, useDepartmentStore} from '@/stores/department/department-edit-session'
-import {mdiAlertCircle, mdiCheckCircle, mdiChevronDown, mdiPlusCircle} from '@mdi/js'
-import {storeToRefs} from 'pinia'
 import {useContextStore} from '@/stores/context'
 import {validateMarkAsDone} from '@/stores/department/utils'
 

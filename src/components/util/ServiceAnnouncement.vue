@@ -17,10 +17,10 @@
 </template>
 
 <script setup>
-import {getServiceAnnouncement} from '@/api/config'
 import {onMounted} from 'vue'
-import {useContextStore} from '@/stores/context'
 import {useRoute} from 'vue-router'
+import {getServiceAnnouncement} from '@/api/config'
+import {useContextStore} from '@/stores/context'
 
 const route = useRoute()
 

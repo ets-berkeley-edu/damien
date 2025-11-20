@@ -1,13 +1,3 @@
-import {
-  addSection,
-  deleteContact,
-  getDepartment,
-  getSectionEvaluations,
-  updateContact,
-  updateDepartmentNote,
-  updateEvaluations
-} from '@/api/departments'
-import {alertScreenReader} from '@/lib/utils'
 import {DateTime} from 'luxon'
 import {defineStore} from 'pinia'
 import {
@@ -26,6 +16,16 @@ import {
   sortBy,
   toString
 } from 'lodash'
+import {
+  addSection,
+  deleteContact,
+  getDepartment,
+  getSectionEvaluations,
+  updateContact,
+  updateDepartmentNote,
+  updateEvaluations
+} from '@/api/departments'
+import {alertScreenReader} from '@/lib/utils'
 import {useContextStore} from '@/stores/context'
 
 export const EVALUATION_STATUSES = [

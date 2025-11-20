@@ -108,16 +108,16 @@
 </template>
 
 <script setup>
+import {DateTime} from 'luxon'
+import {filter, find, groupBy, isEmpty, mapValues, size, sortBy} from 'lodash'
+import {mdiAlertCircle, mdiRefresh, mdiTrayArrowDown} from '@mdi/js'
+import {nextTick, onMounted, ref} from 'vue'
 import EvaluationTable from '@/components/evaluation/EvaluationTable'
 import PageHeader from '@/components/util/PageHeader'
 import ProgressButton from '@/components/util/ProgressButton.vue'
 import TermSelect from '@/components/util/TermSelect'
-import {DateTime} from 'luxon'
 import {alertScreenReader, putFocusNextTick, toLocaleFromISO} from '@/lib/utils'
 import {exportEvaluations, getConfirmed, getExportStatus, getExports, getValidation} from '@/api/evaluations'
-import {filter, find, groupBy, isEmpty, mapValues, size, sortBy} from 'lodash'
-import {mdiAlertCircle, mdiRefresh, mdiTrayArrowDown} from '@mdi/js'
-import {nextTick, onMounted, ref} from 'vue'
 import {useContextStore} from '@/stores/context'
 import {useDepartmentStore} from '@/stores/department/department-edit-session'
 

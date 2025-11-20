@@ -136,14 +136,8 @@
 </template>
 
 <script setup>
-import DamienFooter from '@/components/util/DamienFooter'
-import ServiceAnnouncement from '@/components/util/ServiceAnnouncement'
-import Snackbar from '@/components/util/Snackbar'
-import Spinner from '@/components/util/Spinner'
-import {alertScreenReader, stripAnchorRef} from '@/lib/utils'
 import {computed, onMounted, ref} from 'vue'
 import {get, startsWith} from 'lodash'
-import {getCasLogoutUrl} from '@/api/auth'
 import {
   mdiAccountGroup,
   mdiAlertCircle,
@@ -153,9 +147,15 @@ import {
   mdiLogout,
   mdiPlaylistEdit
 } from '@mdi/js'
-import {useContextStore} from '@/stores/context'
 import {useTheme} from 'vuetify'
 import {useRoute, useRouter} from 'vue-router'
+import DamienFooter from '@/components/util/DamienFooter'
+import ServiceAnnouncement from '@/components/util/ServiceAnnouncement'
+import Snackbar from '@/components/util/Snackbar'
+import Spinner from '@/components/util/Spinner'
+import {alertScreenReader, stripAnchorRef} from '@/lib/utils'
+import {getCasLogoutUrl} from '@/api/auth'
+import {useContextStore} from '@/stores/context'
 
 const contextStore = useContextStore()
 const currentUser = contextStore.currentUser

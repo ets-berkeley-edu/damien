@@ -166,14 +166,14 @@
 </template>
 
 <script setup>
+import {cloneDeep, differenceBy, find, get, isEmpty, isNil, map, remove, size, some, sortBy, upperCase} from 'lodash'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {storeToRefs} from 'pinia'
 import AccessibleCombobox from '@/components/util/AccessibleCombobox'
 import PersonLookup from '@/components/admin/PersonLookup'
 import ProgressButton from '@/components/util/ProgressButton'
 import {alertScreenReader, oxfordJoin, putFocusNextTick} from '@/lib/utils'
-import {cloneDeep, differenceBy, find, get, isEmpty, isNil, map, remove, size, some, sortBy, upperCase} from 'lodash'
-import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {getUserDepartmentForms} from '@/api/user'
-import {storeToRefs} from 'pinia'
 import {useDepartmentStore} from '@/stores/department/department-edit-session'
 
 const emit = defineEmits(['department-contact-selected'])

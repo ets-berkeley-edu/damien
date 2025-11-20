@@ -53,13 +53,13 @@
 </template>
 
 <script setup>
-import {devAuthLogIn} from '@/api/auth'
-import {putFocusNextTick} from '@/lib/utils'
 import {ref} from 'vue'
 import {trim} from 'lodash'
-import {useContextStore} from '@/stores/context'
 import {useTheme} from 'vuetify'
 import {useRoute, useRouter} from 'vue-router'
+import {useContextStore} from '@/stores/context'
+import {putFocusNextTick} from '@/lib/utils'
+import {devAuthLogIn} from '@/api/auth'
 
 const contextStore = useContextStore()
 const uid = ref(undefined)
