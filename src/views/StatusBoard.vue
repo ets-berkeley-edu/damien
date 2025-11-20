@@ -105,21 +105,17 @@
                 </v-chip>
                 <v-icon
                   v-if="!department.totalInError"
-                  :aria-hidden="false"
-                  aria-label="no errors"
+                  alt="no errors"
                   class="text-success ml-1"
                   :icon="mdiCheckCircle"
-                  role="presentation"
                 />
               </td>
               <td class="department-confirmed">
                 <v-icon
                   v-if="department.totalConfirmed > 0 && department.totalConfirmed === department.totalEvaluations"
-                  :aria-hidden="false"
-                  aria-label="all confirmed"
+                  alt="all confirmed"
                   class="text-success ml-1"
                   :icon="mdiCheckCircle"
-                  role="presentation"
                 />
                 <span v-if="department.totalConfirmed === 0 || department.totalConfirmed < department.totalEvaluations">
                   <span aria-hidden="true">{{ department.totalConfirmed }} / {{ department.totalEvaluations }}</span>

@@ -83,11 +83,10 @@
                     >
                       <v-icon
                         aria-hidden="false"
-                        aria-label="download"
+                        alt="download"
                         class="pr-2"
                         color="anchor"
                         :icon="mdiTrayArrowDown"
-                        role="presentation"
                         size="small"
                       />
                       {{ toLocaleFromISO(e.createdAt, dateFormat) }}
