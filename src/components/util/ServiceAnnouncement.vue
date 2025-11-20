@@ -1,10 +1,10 @@
 <template>
-  <div id="service-announcement" aria-live="polite" class="service-announcement">
+  <div aria-live="polite" class="service-announcement">
     <v-banner
       v-if="contextStore.serviceAnnouncement && contextStore.serviceAnnouncement.isLive && route.path !== '/404'"
       class="service-announcement-content"
     >
-      <h2 class="sr-only">Course Evaluations Annoucement.</h2>
+      <h2 class="sr-only">Course Evaluations Announcement.</h2>
       <pre>
         <span
           id="service-announcement"
@@ -16,15 +16,14 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import {onMounted} from 'vue'
 import {useRoute} from 'vue-router'
 import {getServiceAnnouncement} from '@/api/config'
 import {useContextStore} from '@/stores/context'
 
-const route = useRoute()
-
 const contextStore = useContextStore()
+const route = useRoute()
 
 onMounted(() => {
   getServiceAnnouncement().then(data => {
