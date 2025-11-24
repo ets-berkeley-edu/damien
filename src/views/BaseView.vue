@@ -114,7 +114,6 @@
             :class="startsWith(route.path, item.path) ? 'text-white' : 'text-on-tertiary'"
             :icon="item.icon"
             size="x-large"
-            :title="isSidebarCollapsed ? item.title : undefined"
           />
           <div
             class="ml-4 nav-drawer-letter-spacing text-no-wrap"
