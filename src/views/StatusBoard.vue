@@ -92,20 +92,21 @@
                 </span>
               </td>
               <td class="department-errors">
-                <v-chip
+                <v-badge
                   v-if="department.totalInError"
                   :id="`errors-count-dept-${department.id}`"
-                  class="error-count px-2"
+                  aria-hidden="true"
+                  :aria-live="null"
+                  class="error-count"
                   color="error"
-                  size="small"
-                  variant="outlined"
-                >
-                  <span :aria-hidden="true">{{ department.totalInError }}</span>
-                  <span class="sr-only">{{ pluralize('error', department.totalInError) }}</span>
-                </v-chip>
+                  :content="department.totalInError"
+                  inline
+                />
+                <span v-if="department.totalInError" class="sr-only">{{ pluralize('error', department.totalInError) }}</span>
                 <v-icon
                   v-if="!department.totalInError"
                   alt="no errors"
+                  :aria-hidden="null"
                   class="text-success ml-1"
                   :icon="mdiCheckCircle"
                 />
@@ -282,9 +283,10 @@ const toggleSelectAll = () => {
 .department-note {
   max-width: 400px;
 }
-.error-count {
-  border-width: 2px;
+</style>
+
+<style>
+.v-badge--inline .v-badge__badge {
   font-weight: bold;
-  margin-left: 2px;
 }
 </style>
