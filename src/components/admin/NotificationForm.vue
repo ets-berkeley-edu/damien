@@ -4,7 +4,7 @@
     flat
     :min-width="minWidth"
   >
-    <v-card-title id="send-notification-title" class="px-6 pb-4">
+    <v-card-title id="send-notification-dialog-title" class="px-6 pb-4">
       <h3 id="send-notification-header">
         Send Notification
       </h3>
@@ -55,7 +55,7 @@
         </v-expansion-panel>
       </v-expansion-panels>
     </v-card-subtitle>
-    <v-card-text id="send-notification-text" class="px-6">
+    <v-card-text id="send-notification-dialog-text" class="px-6">
       <v-form
         :class="isSending ? 'text-muted' : ''"
         :disabled="isSending"
