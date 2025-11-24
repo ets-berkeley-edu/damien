@@ -6,6 +6,7 @@ import {VAlert} from 'vuetify/components/VAlert'
 import {VAppBar} from 'vuetify/components/VAppBar'
 import {VApp} from 'vuetify/components/VApp'
 import {VAutocomplete} from 'vuetify/components/VAutocomplete'
+import {VBadge} from 'vuetify/components/VBadge'
 import {VBanner} from 'vuetify/components/VBanner'
 import {VBtn} from 'vuetify/components/VBtn'
 import {VBtnToggle} from 'vuetify/components/VBtnToggle'
@@ -41,6 +42,7 @@ export default createVuetify({
     VApp,
     VAppBar,
     VAutocomplete,
+    VBadge,
     VBanner,
     VBtn,
     VBtnToggle,
