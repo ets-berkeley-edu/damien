@@ -205,7 +205,7 @@ onMounted(() => {
   contextStore.loadingStart()
   getDepartmentsEnrolled(true, true).then(data => {
     departments.value = data
-    contextStore.loadingComplete('Group Management')
+    contextStore.loadingComplete()
   })
 })
 

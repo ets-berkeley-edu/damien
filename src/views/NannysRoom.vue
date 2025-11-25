@@ -524,7 +524,7 @@ onMounted(() => {
   contextStore.loadingStart()
   resetNewInstructor()
   listStore.init().then(() => {
-    contextStore.loadingComplete('List Management')
+    contextStore.loadingComplete()
     putFocusNextTick('page-title')
   })
   getAutoPublishStatus().then(data => {
