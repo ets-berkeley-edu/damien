@@ -10,14 +10,15 @@
       </h3>
     </v-card-title>
     <v-card-subtitle v-if="selectedRecipients" class="px-6">
-      <h4 id="notification-recipients-header" class="font-size-16 mb-2">Message will be sent to:</h4>
+      <h4 id="notification-recipients-header" class="font-size-16 mb-2" aria-live="polite">
+        Message will be sent to recipients in {{ pluralize('department', selectedRecipients.length) }}.
+      </h4>
       <v-expansion-panels
         id="notification-recipients-container"
         aria-describedby="notification-recipients-header"
         class="recipients-container border-sm"
         hover
         multiple
-        tabindex="-1"
         tile
       >
         <v-expansion-panel
@@ -118,7 +119,7 @@
 import {cloneDeep, indexOf, size, trim} from 'lodash'
 import {computed, onMounted, ref} from 'vue'
 import {mdiCloseCircle} from '@mdi/js'
-import {alertScreenReader, putFocusNextTick} from '@/lib/utils'
+import {alertScreenReader, pluralize, putFocusNextTick} from '@/lib/utils'
 import ProgressButton from '@/components/util/ProgressButton'
 import {notifyContacts} from '@/api/departments'
 import {useContextStore} from '@/stores/context'
@@ -156,7 +157,7 @@ const disabled = computed(() => {
 
 onMounted(() => {
   selectedRecipients.value = cloneDeep(props.recipients)
-  putFocusNextTick('notification-recipients-container')
+  putFocusNextTick('input-notification-subject')
 })
 
 const recipientLabel = recipient => `${recipient.firstName} ${recipient.lastName} (${recipient.email})`
