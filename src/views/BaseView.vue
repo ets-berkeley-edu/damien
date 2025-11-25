@@ -83,8 +83,9 @@
             :aria-label="`${isSidebarCollapsed ? 'expand' : 'collapse'} navigation`"
             class="font-size-16 nav-item px-0"
             color="on-tertiary"
+            min-height="2.5rem"
+            min-width="2.5rem !important"
             variant="tonal"
-            min-width="40"
             @click="toggleSidebarCollapsed"
           >
             <v-icon :icon="isSidebarCollapsed ? mdiArrowExpandRight : mdiArrowCollapseLeft" size="x-large" />

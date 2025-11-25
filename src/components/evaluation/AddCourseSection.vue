@@ -9,7 +9,7 @@
       :prepend-icon="mdiPlusThick"
       text="Add Course Section"
       variant="text"
-      @click="() => isAddingSection = true"
+      @click="onClickAdd"
     />
     <div v-if="isAddingSection" class="full-width px-4">
       <div v-if="!section">
@@ -107,10 +107,15 @@ import {useDepartmentStore} from '@/stores/department/department-edit-session'
 const departmentStore = useDepartmentStore()
 const {disableControls} = storeToRefs(departmentStore)
 
-defineProps({
+const props = defineProps({
   allowEdits: {
     required: false,
     type: Boolean
+  },
+  onClickAdd: {
+    default: () => {},
+    required: false,
+    type: Function
   }
 })
 
@@ -135,8 +140,7 @@ watch(courseNumber, () => {
 })
 watch(isAddingSection, v => {
   if (v) {
-    alertScreenReader('Add course section form is ready.')
-    putFocusNextTick('lookup-course-number-input')
+    putFocusNextTick('lookup-course-number-input', {scroll: false})
   }
 })
 
@@ -169,6 +173,11 @@ const onCancel = () => {
     alertScreenReader('Section lookup canceled.')
     putFocusNextTick('add-course-section-btn')
   }
+}
+
+const onClickAdd = () => {
+  isAddingSection.value = true
+  props.onClickAdd()
 }
 
 const onSubmit = courseNumber => {
