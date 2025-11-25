@@ -1027,8 +1027,13 @@ const updateEvaluation = (evaluation, fields) => {
         evaluation.courseNumber,
         contextStore.selectedTermId,
         fields
-      ).then(() => {
-        alertScreenReader('Changes saved.')
+      ).then(response => {
+        const conflicts = get(response, '0.conflicts')
+        if (conflicts) {
+          alertScreenReader(`Changes saved. Conflicting data on field ${Object.keys(conflicts).join(' and ')}`)
+        } else {
+          alertScreenReader('Changes saved.')
+        }
         isSaving.value = false
         afterEditEvaluation(evaluation)
         departmentStore.deselectAllEvaluations()

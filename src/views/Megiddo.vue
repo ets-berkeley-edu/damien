@@ -17,7 +17,7 @@
               </li>
             </ul>
           </div>
-          <div id="blockers" aria-live="assertive" role="alert">
+          <div id="blockers">
             <v-alert
               v-if="size(blockers)"
               class="my-3 alert-blockers"

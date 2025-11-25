@@ -182,7 +182,7 @@ export const useDepartmentStore = defineStore('department', {
       return new Promise((resolve: Function, reject) => {
         const departmentId = get(this.department, 'id', NaN)
         updateEvaluations(departmentId, 'edit', [evaluationId], termId, fields).then(
-          () => {
+          response => {
             getSectionEvaluations(departmentId, sectionId, termId).then((data: any) => {
               let sectionIndex = findIndex(this.evaluations, ['courseNumber', sectionId])
               if (sectionIndex === -1) {
@@ -191,7 +191,7 @@ export const useDepartmentStore = defineStore('department', {
               const sectionCount = filter(this.evaluations, ['courseNumber', sectionId]).length
               const updatedEvaluations = each(data, e => $_decorateEvaluation(e, this.evaluations))
               useDepartmentStore().replaceEvaluations(sectionIndex, sectionCount, updatedEvaluations)
-              resolve()
+              resolve(response)
             })
           },
           error => reject(error)
