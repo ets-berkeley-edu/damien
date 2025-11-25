@@ -62,6 +62,7 @@
               :disabled="disableControls"
               :status="status"
               :value="status"
+              autocomplete="off"
               v-on="on"
             >
               <option v-for="s in EVALUATION_STATUSES" :key="s.text" :value="s.value">{{ s.text }}</option>
@@ -83,6 +84,7 @@
               :disabled="disableControls"
               :form="form"
               :value="form"
+              autocomplete="off"
               v-on="on"
             >
               <option v-for="df in activeDepartmentForms" :key="df.id" :value="df.id">{{ df.name }}</option>

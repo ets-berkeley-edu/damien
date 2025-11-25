@@ -274,6 +274,7 @@
                     v-model="selectedEvaluationStatus"
                     class="d-block mx-auto v-theme--light w-99"
                     :disabled="isSaving"
+                    autocomplete="off"
                   >
                     <option
                       v-if="!selectedEvaluationStatus"
@@ -422,6 +423,7 @@
                     v-model="selectedDepartmentForm"
                     class="v-theme--light"
                     :disabled="isSaving"
+                    autocomplete="off"
                   >
                     <option v-for="df in departmentForms" :key="df.id" :value="df.id">{{ df.name }}</option>
                   </select>
@@ -466,6 +468,7 @@
                     v-model="selectedEvaluationType"
                     class="v-theme--light"
                     :disabled="isSaving"
+                    autocomplete="off"
                   >
                     <option
                       v-if="!selectedEvaluationType"
