@@ -100,13 +100,13 @@ class StatusBoardAdminPage(DamienPages):
         xpath = f'{StatusBoardAdminPage.dept_row_xpath(dept)}/td[@class="department-errors"]'
         self.wait_for_element((By.XPATH, xpath), utils.get_short_timeout())
         if self.is_present((By.ID, f'errors-count-dept-{dept.dept_id}')):
-            return int(self.element((By.XPATH, f'{xpath}/span/div/span')).text.strip())
-        elif self.is_present((By.XPATH, f'{xpath}/i[@aria-label="no errors"]')):
+            return int(self.element((By.XPATH, f'{xpath}//span')).text.strip())
+        elif self.is_present((By.XPATH, f'{xpath}/i[@alt="no errors"]')):
             return 0
 
     def dept_confirmed_all(self, dept):
         time.sleep(2)
-        xpath = f'{StatusBoardAdminPage.dept_row_xpath(dept)}/td[@class="department-confirmed"]/i[@aria-label="all confirmed"]'
+        xpath = f'{StatusBoardAdminPage.dept_row_xpath(dept)}/td[@class="department-confirmed"]/i[@alt="all confirmed"]'
         return self.is_present((By.XPATH, xpath))
 
     def dept_confirmed_count(self, dept):

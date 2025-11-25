@@ -149,19 +149,23 @@ class TestListManagement:
         assert self.eval_type not in self.list_mgmt_page.visible_eval_type_names()
 
     def test_unmarked_form_and_type_deleted(self):
-        self.eval_unmarked.dept_form = self.eval_unmarked.default_dept_form
         self.dept_details_admin_page.load_dept_page(self.dept)
-        assert self.form not in self.dept_details_admin_page.eval_dept_form(self.eval_unmarked)
-        assert self.dept_details_admin_page.eval_type(self.eval_unmarked) == self.eval_type
+        assert self.form in self.dept_details_admin_page.eval_dept_form(self.eval_unmarked)
+        assert 'Department form has been deleted' in self.dept_details_admin_page.eval_dept_form(self.eval_unmarked)
+        assert self.eval_type in self.dept_details_admin_page.eval_type(self.eval_unmarked)
+        assert 'Evaluation type has been deleted' in self.dept_details_admin_page.eval_type(self.eval_unmarked)
 
     def test_for_review_form_and_type_deleted(self):
-        self.eval_to_review.dept_form = self.eval_to_review.default_dept_form
-        assert self.form not in self.dept_details_admin_page.eval_dept_form(self.eval_to_review)
-        assert self.dept_details_admin_page.eval_type(self.eval_to_review) == self.eval_type
+        assert self.form in self.dept_details_admin_page.eval_dept_form(self.eval_to_review)
+        assert 'Department form has been deleted' in self.dept_details_admin_page.eval_dept_form(self.eval_to_review)
+        assert self.eval_type in self.dept_details_admin_page.eval_type(self.eval_to_review)
+        assert 'Evaluation type has been deleted' in self.dept_details_admin_page.eval_type(self.eval_to_review)
 
     def test_confirmed_form_and_type_deleted(self):
-        assert self.dept_details_admin_page.eval_dept_form(self.eval_confirmed) == self.form
-        assert self.dept_details_admin_page.eval_type(self.eval_confirmed) == self.eval_type
+        assert self.form in self.dept_details_admin_page.eval_dept_form(self.eval_confirmed)
+        assert 'Department form has been deleted' in self.dept_details_admin_page.eval_dept_form(self.eval_confirmed)
+        assert self.eval_type in self.dept_details_admin_page.eval_type(self.eval_confirmed)
+        assert 'Evaluation type has been deleted' in self.dept_details_admin_page.eval_type(self.eval_confirmed)
 
     def test_deleted_form_not_available(self):
         self.dept_details_admin_page.click_edit_evaluation(self.eval_unmarked)
@@ -198,41 +202,15 @@ class TestListManagement:
 
     # PUBLISH WITH DELETED FORM, TYPE, AND INSTRUCTOR
 
-    def test_publish(self):
+    def test_publish_blocked(self):
         evals = evaluation_utils.get_evaluations(self.term, self.dept)
         confirmed = list(filter(lambda ev: (ev.status == EvaluationStatus.CONFIRMED), evals))
         self.confirmed.extend(confirmed)
         self.publish_page.load_page()
-        self.publish_page.download_export_csvs()
+        self.publish_page.when_present(self.publish_page.PUBLISH_BLOCKED_MSG, utils.get_short_timeout())
 
-    def test_get_course_ids(self):
-        utils.calculate_course_ids(self.confirmed)
-
-    def test_courses(self):
-        expected = utils.expected_courses(self.confirmed)
-        actual = self.publish_page.parse_csv('courses')
-        utils.verify_actual_matches_expected(actual, expected)
-
-    def test_course_instructors(self):
-        expected = utils.expected_course_instructors(self.confirmed)
-        actual = self.publish_page.parse_csv('course_instructors')
-        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), actual))
-        utils.verify_actual_matches_expected(current_term_rows, expected)
-
-    def test_course_supervisors(self):
-        expected = utils.expected_course_supervisors(self.confirmed, self.all_contacts)
-        actual = self.publish_page.parse_csv('course_supervisors')
-        utils.verify_actual_matches_expected(actual, expected)
-
-    def test_dept_hierarchy(self):
-        expected_dept_hierarchy = utils.expected_dept_hierarchy()
-        csv_dept_hierarchy = self.publish_page.parse_csv('department_hierarchy')
-        utils.verify_actual_matches_expected(csv_dept_hierarchy, expected_dept_hierarchy)
-
-    def test_report_viewers(self):
-        expected_viewers = utils.expected_report_viewers()
-        csv_viewers = self.publish_page.parse_csv('report_viewer_hierarchy')
-        utils.verify_actual_matches_expected(csv_viewers, expected_viewers)
+    def test_publish_disabled(self):
+        assert not self.publish_page.element(self.publish_page.PUBLISH_BUTTON).is_enabled()
 
     # SERVICE ALERTS
 

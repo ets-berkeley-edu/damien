@@ -46,6 +46,7 @@ class PublishPage(CourseDashboards):
     PUBLISH_BUTTON = (By.ID, 'publish-btn')
     TERM_EXPORT_BUTTON = (By.ID, 'term-exports-btn')
     TERM_EXPORT_LINK = (By.XPATH, '//a[contains(@id, "term-export-")]')
+    PUBLISH_BLOCKED_MSG = (By.XPATH, '//div[contains(., "Publication is blocked by errors")]')
 
     def expand_term_exports(self):
         self.wait_for_element_and_click(PublishPage.TERM_EXPORT_BUTTON, addl_pause=3)
