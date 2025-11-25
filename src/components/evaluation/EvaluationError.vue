@@ -2,6 +2,7 @@
   <v-alert
     class="evaluation-error px-1"
     density="compact"
+    :role="undefined"
     :text="message"
     type="error"
     :variant="hover ? 'flat' : 'text'"

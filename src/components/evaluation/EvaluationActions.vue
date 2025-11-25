@@ -107,7 +107,7 @@
 </template>
 
 <script setup>
-import {filter as _filter, chain, compact, each, every, get, has, includes, map, noop, uniq} from 'lodash'
+import {filter as _filter, chain, compact, countBy, each, every, get, has, includes, isEmpty, map, noop, uniq} from 'lodash'
 import {computed, inject, onMounted, ref, watch} from 'vue'
 import {mdiAlertCircle} from '@mdi/js'
 import {storeToRefs} from 'pinia'
@@ -417,7 +417,14 @@ const update = (fields, key) => {
         const selectedRowCount = applyingAction.value.key === 'duplicate' ? ((response.length || 0) / 2) : (response.length || 0)
         const target = `${selectedRowCount} ${selectedRowCount === 1 ? 'row' : 'rows'}`
         departmentStore.deselectAllEvaluations()
-        alertScreenReader(`${applyingAction.value.completedText} ${target}`)
+
+        let conflictAlert = ''
+        const conflictCount = countBy(response, row => isEmpty(row.conflicts)).false
+        if (conflictCount) {
+          conflictAlert = `. ${conflictCount} ${conflictCount === 1 ? 'row reports' : 'rows report'} conflicting data.`
+        }
+        alertScreenReader(`${applyingAction.value.completedText} ${target}${conflictAlert}`)
+
         putFocusNextTick(duplicatingEvaluationId.value ? `evaluation-menu-btn-${duplicatingEvaluationId.value}` : `apply-course-action-btn-${key}`, {scroll: false})
         reset()
       }).finally(() => {
