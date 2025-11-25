@@ -55,6 +55,7 @@
               v-model="selectedEvaluationType"
               class="bulk-action-form-input v-theme--light"
               :disabled="disableControls"
+              autocomplete="off"
             >
               <option v-for="et in evaluationTypes" :key="et.id" :value="et.id">{{ et.name }}</option>
             </select>

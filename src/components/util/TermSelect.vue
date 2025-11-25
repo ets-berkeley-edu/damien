@@ -4,6 +4,7 @@
       <select
         id="select-term"
         aria-label="Term"
+        autocomplete="off"
         class="font-size-18 select-term my-2"
         :disabled="contextStore.loading"
         :value="contextStore.selectedTermId"
