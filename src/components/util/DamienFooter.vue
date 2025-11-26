@@ -42,9 +42,7 @@ const screenReaderAlert = contextStore.screenReaderAlert
 
 <style scoped>
 .footer {
-  position: fixed;
-  bottom: 0;
-  width: calc(100% - 150px);
-  z-index: 1100;
+  left: calc(3rem + 8px) !important;
+  width: calc(100% - calc(3rem + 8px)) !important;
 }
 </style>

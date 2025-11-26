@@ -65,11 +65,9 @@
       color="tertiary"
       permanent
       :rail="isSidebarCollapsed"
-      rail-width="56"
       role="navigation"
       :scrim="false"
       tag="nav"
-      width="220"
     >
       <template #prepend>
         <h2 id="nav-header" class="sr-only" tabindex="-1">Main Menu</h2>
@@ -99,11 +97,7 @@
         :active="startsWith(route.path, item.path)"
         active-class="active"
         :aria-current="startsWith(route.path, item.path) ? 'page' : null"
-        class="font-size-16 nav-item"
-        :class="{
-          'py-4 px-3': isSidebarCollapsed,
-          'pa-4': !isSidebarCollapsed
-        }"
+        class="font-size-16 nav-item nav-link"
         base-color="tertiary"
         link
         role="link"
@@ -117,7 +111,7 @@
             size="x-large"
           />
           <div
-            class="ml-4 nav-drawer-letter-spacing text-no-wrap"
+            class="nav-drawer-item-label text-no-wrap"
             :class="startsWith(route.path, item.path) ? 'font-weight-bold text-white' : 'font-weight-medium text-on-tertiary'"
           >
             {{ item.title }}
@@ -236,12 +230,16 @@ const toRoute = path => router.push({path})
   opacity: var(--v-high-emphasis-opacity);
   text-decoration: none;
 }
-.nav-drawer-letter-spacing {
+.nav-drawer-item-label {
   letter-spacing: 0.1em;
+  margin-left: 0.5rem;
 }
 </style>
 
 <style>
+.nav-item.nav-link {
+  padding: 16px calc(0.5rem + 4px);
+}
 .nav-item.v-list-item.active,
 .nav-item.v-list-item:focus,
 .nav-item.v-list-item:focus-visible {
