@@ -21,30 +21,32 @@
         </option>
       </select>
     </div>
-    <v-btn
+    <v-switch
       v-if="contextStore.currentUser.isAdmin"
       id="toggle-term-locked"
+      v-model="termLocked"
       :disabled="isTogglingLock || contextStore.loading"
-      icon
-      :title="`${contextStore.isSelectedTermLocked ? 'Unlock' : 'Lock'} ${contextStore.selectedTermName} for editing`"
-      @click="toggleTermLocked"
+      density="comfortable"
+      hide-details
+      inset
+      :title="`${termLocked ? 'Lock' : 'Unlocked'} ${contextStore.selectedTermName} for editing.`"
+      :aria-label="`Toggle lock for ${contextStore.selectedTermName}`"
+      :true-icon="mdiLock"
+      :false-icon="mdiLockOpen"
+      @update:model-value="toggleTermLocked"
     >
-      <v-progress-circular
-        v-if="isTogglingLock"
-        class="spinner"
-        color="primary"
-        :indeterminate="true"
-        rotate="5"
-        size="24"
-        width="4"
-      />
-      <v-icon
-        v-if="!isTogglingLock"
-        :color="contextStore.isSelectedTermLocked ? 'error' : 'success'"
-        :icon="contextStore.isSelectedTermLocked ? mdiLock : mdiLockOpen"
-        size="large"
-      />
-    </v-btn>
+      <template #append>
+        <v-progress-circular
+          v-if="isTogglingLock"
+          class="ml-2"
+          color="primary"
+          :indeterminate="true"
+          rotate="5"
+          size="20"
+          width="3"
+        />
+      </template>
+    </v-switch>
     <v-icon
       v-if="!contextStore.currentUser.isAdmin"
       id="term-locked-indicator"
@@ -57,7 +59,7 @@
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import {ref, watch} from 'vue'
 import {includes} from 'lodash'
 import {mdiLock, mdiLockOpen} from '@mdi/js'
 import {useRoute, useRouter} from 'vue-router'
@@ -77,6 +79,16 @@ const contextStore = useContextStore()
 const isTogglingLock = ref(false)
 const query = useRoute().query
 const router = useRouter()
+const termLocked = ref(false)
+
+watch(
+  () => contextStore.isSelectedTermLocked,
+  v => {
+    if (!isTogglingLock.value) termLocked.value = !!v
+  },
+  {immediate: true}
+)
+
 
 const onChangeTerm = event => {
   const termId = event.target.value
@@ -93,24 +105,49 @@ const onChangeTerm = event => {
   }
 }
 
-const toggleTermLocked = () => {
+const toggleTermLocked = desiredLocked => {
+  if (isTogglingLock.value || contextStore.loading) return
+
   isTogglingLock.value = true
-  if (!contextStore.isSelectedTermLocked) {
-    alertScreenReader(`Locking ${contextStore.selectedTermName}`)
-    lockEvaluationTerm(contextStore.selectedTermId).then(data => {
-      contextStore.setIsSelectedTermLocked(data.isLocked === true)
-      alertScreenReader(`Locked ${contextStore.selectedTermName}`)
-      putFocusNextTick('toggle-term-locked')
-      isTogglingLock.value = false
-    })
+  const termName = contextStore.selectedTermName
+  const prev = contextStore.isSelectedTermLocked
+
+  if (desiredLocked) {
+    alertScreenReader(`Locking ${termName}`)
+    lockEvaluationTerm(contextStore.selectedTermId)
+      .then(data => {
+        const locked = data.isLocked === true
+        contextStore.setIsSelectedTermLocked(locked)
+        termLocked.value = locked
+        alertScreenReader(`Locked ${termName}`)
+      })
+      .catch(() => {
+        contextStore.setIsSelectedTermLocked(prev)
+        termLocked.value = !!prev
+        alertScreenReader(`Unable to update lock state for ${termName}`)
+      })
+      .finally(() => {
+        isTogglingLock.value = false
+        putFocusNextTick('toggle-term-locked')
+      })
   } else {
-    unlockEvaluationTerm(contextStore.selectedTermId).then(data => {
-      alertScreenReader(`Unlocking ${contextStore.selectedTermName}`)
-      contextStore.setIsSelectedTermLocked(data.isLocked === true)
-      alertScreenReader(`Unlocked ${contextStore.selectedTermName}`)
-      putFocusNextTick('toggle-term-locked')
-      isTogglingLock.value = false
-    })
+    alertScreenReader(`Unlocking ${termName}`)
+    unlockEvaluationTerm(contextStore.selectedTermId)
+      .then(data => {
+        const locked = data.isLocked === true
+        contextStore.setIsSelectedTermLocked(locked)
+        termLocked.value = locked
+        alertScreenReader(`Unlocked ${termName}`)
+      })
+      .catch(() => {
+        contextStore.setIsSelectedTermLocked(prev)
+        termLocked.value = !!prev
+        alertScreenReader(`Unable to update lock state for ${termName}`)
+      })
+      .finally(() => {
+        isTogglingLock.value = false
+        putFocusNextTick('toggle-term-locked')
+      })
   }
 }
 </script>
@@ -118,5 +155,16 @@ const toggleTermLocked = () => {
 <style scoped>
 .select-term {
   max-width: 12.5rem;
+}
+:deep(.v-switch .v-selection-control:not(.v-selection-control--dirty) .v-selection-control__input .v-icon) {
+  color: rgb(var(--v-theme-success));
+}
+
+:deep(.v-switch .v-selection-control.v-selection-control--dirty .v-selection-control__input .v-icon) {
+  color: rgb(var(--v-theme-error));
+}
+
+:deep(.v-switch .v-selection-control__input .v-icon) {
+  font-size: 26px;
 }
 </style>
