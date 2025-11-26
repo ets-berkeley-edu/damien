@@ -202,12 +202,12 @@ const someDepartmentsSelected = computed(() => {
 })
 
 onMounted(() => {
-  contextStore.loadingStart(`Loading ${contextStore.selectedTermName} Status Dashboard`)
+  contextStore.loadingStart()
   departments.value = []
   getDepartmentsEnrolled(true, false, true, contextStore.selectedTermId).then(data => {
     departments.value = data
     loadBlockers().then(() => {
-      contextStore.loadingComplete(`${contextStore.selectedTermName} Status Dashboard`)
+      contextStore.loadingComplete()
       putFocusNextTick('page-title')
     })
   })

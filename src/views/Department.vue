@@ -175,7 +175,7 @@
 
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue'
-import {filter as _filter, find, get, includes, isEmpty, isUndefined, size, sortBy, toInteger} from 'lodash'
+import {filter as _filter, get, includes, isEmpty, isUndefined, size, sortBy} from 'lodash'
 import {mdiChevronDown, mdiClose, mdiMinusBoxMultipleOutline, mdiPlusBoxMultipleOutline, mdiPlusThick} from '@mdi/js'
 import {storeToRefs} from 'pinia'
 import {useRoute, useRouter} from 'vue-router'
@@ -265,11 +265,10 @@ const onClickAddContact = () => {
 }
 
 const refresh = () => {
-  const departmentName = get(find(currentUser.departments, {id: toInteger(departmentId.value)}), 'name', '')
-  contextStore.loadingStart(`Loading ${departmentName} ${contextStore.selectedTermName}`)
-  departmentStore.init(departmentId.value).then(department => {
+  contextStore.loadingStart()
+  departmentStore.init(departmentId.value).then(() => {
     departmentStore.setShowTheOmenPoster(route.query.n === NUMBER_OF_THE_BEAST)
-    contextStore.loadingComplete(`${department.deptName} ${contextStore.selectedTermName}`)
+    contextStore.loadingComplete()
   })
 }
 

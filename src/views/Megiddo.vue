@@ -147,7 +147,7 @@ const publish = () => {
 }
 
 const refresh = () => {
-  contextStore.loadingStart(`Loading ${contextStore.selectedTermName}`)
+  contextStore.loadingStart()
   Promise.all([
     getValidation(contextStore.selectedTermId),
     getConfirmed(contextStore.selectedTermId),
@@ -159,7 +159,7 @@ const refresh = () => {
     blockers.value = mapValues(groupBy(blockerEvals, e => e.department.name), 'length')
     confirmed.value = responses[1]
     termExports.value = responses[2]
-    contextStore.loadingComplete(`Publish ${contextStore.selectedTermName || ''}`)
+    contextStore.loadingComplete()
   })
 }
 
