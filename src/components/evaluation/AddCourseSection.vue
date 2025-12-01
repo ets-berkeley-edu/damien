@@ -195,7 +195,7 @@ const onSubmit = courseNumber => {
 
 <style scoped>
 .add-course-section {
-  max-width: 300px;
+  max-width: 18.75rem;
 }
 .full-width {
   width: 100%;

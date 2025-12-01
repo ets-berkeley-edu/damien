@@ -248,6 +248,20 @@
 .v-field--variant-outlined.v-field--focused .v-field__outline {
   --v-field-border-width: 1.875px !important;
 }
+.v-input--density-default {
+  --v-input-control-height: 3.5rem !important;
+  --v-input-padding-top: 1rem;
+}
+
+.v-input--density-comfortable {
+  --v-input-control-height: 3rem !important;
+  --v-input-padding-top: .75rem;
+}
+
+.v-input--density-compact {
+  --v-input-control-height: 2.5rem !important;
+  --v-input-padding-top: .5rem;
+}
 .v-input--is-focused .v-input--selection-controls__input {
   appearance: auto !important;
   color: -webkit-focus-ring-color !important;

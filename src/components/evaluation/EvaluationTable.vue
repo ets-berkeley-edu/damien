@@ -24,7 +24,7 @@
             density="comfortable"
             hide-details
             label="Filter courses"
-            max-width="600px"
+            max-width="37.5rem"
             type="search"
           />
           <AddCourseSection
@@ -1209,29 +1209,17 @@ tr.border-top-none td {
   font-size: 1.25rem;
   height: fit-content;
 }
-.pill {
-  border: 1px solid #999;
-  border-radius: 5px;
-  color: #fff;
-  font-size: 0.8em;
-  font-weight: bold;
-  margin: 0;
-  padding: 3px 10px;
-  text-align: center;
-  text-transform: uppercase;
-  width: 90px;
-}
 .pill-invisible {
   border: none;
   padding: 0;
 }
 .select-all-evals {
-  height: 36px;
+  height: 2.25em;
   margin-left: -3px;
-  width: 6.5rem;
+  width: 7.5rem;
 }
 .select-evaluation-status {
-  min-width: 5.5rem;
+  min-width: 5.5em;
 }
 .status-filter {
   height: fit-content !important;
