@@ -1,650 +1,656 @@
 <template>
-  <v-container
-    v-if="evaluations.length"
-    class="pa-0"
-    max-width="100%"
-    @resize="setStickySearchPosition"
-  >
-    <div
-      id="evaluations-table-header"
-      class="bg-surface-variant elevation-2 py-2 sticky"
-      :class="{'collapsed': isHeaderCollapsed}"
-      role="search"
+  <div>
+    <v-container
+      v-if="evaluations.length"
+      class="pa-0"
+      max-width="100%"
+      @resize="setStickySearchPosition"
     >
-      <div class="align-center d-flex flex-wrap px-4" :class="{'pt-2': !isHeaderCollapsed, 'pb-2': readonly}">
-        <v-text-field
-          id="evaluation-search-input"
-          v-model="searchFilter"
-          :aria-describedby="undefined"
-          aria-label="Filter evaluations table by search terms."
-          class="bg-surface mr-3"
-          clearable
-          color="primary"
-          density="comfortable"
-          hide-details
-          label="Filter courses"
-          max-width="600px"
-          type="search"
-        />
-        <AddCourseSection
-          v-if="!readonly"
-          id="add-course-section"
-          :allow-edits="allowEdits"
-          :on-click-add="onClickExpandHeader"
-        />
-        <v-btn
-          v-if="isHeaderCollapsed"
-          :icon="mdiDotsVertical"
-          size="small"
-          title="More"
-          @click.stop="onClickExpandHeader"
-        />
-      </div>
-      <div class="align-center d-flex flex-wrap justify-space-between px-4">
-        <div v-if="!readonly && allowEdits" class="d-flex pt-2">
-          <v-checkbox
-            id="select-all-evals-checkbox"
+      <div
+        id="evaluations-table-header"
+        class="bg-surface-variant elevation-2 py-2 sticky"
+        :class="{'collapsed': isHeaderCollapsed}"
+        role="search"
+      >
+        <div class="align-center d-flex flex-wrap pl-4 pr-2" :class="{'pt-2': !isHeaderCollapsed, 'pb-2': readonly}">
+          <v-text-field
+            id="evaluation-search-input"
+            v-model="searchFilter"
             :aria-describedby="undefined"
-            class="select-all-evals my-auto mr-3"
+            aria-label="Filter evaluations table by search terms."
+            class="bg-surface mr-3"
+            clearable
             color="primary"
-            density="compact"
-            :disabled="!searchFilterResults.length || disableControls"
-            :false-value="!someEvaluationsSelected && !allEvaluationsSelected"
+            density="comfortable"
             hide-details
-            :indeterminate="someEvaluationsSelected"
-            :input-value="someEvaluationsSelected || allEvaluationsSelected"
-            :model-value="allEvaluationsSelected"
-            :ripple="false"
-            @update:model-value="toggleSelectAll"
-          >
-            <template #label>
-              <span class="text-no-wrap my-auto pl-1">
-                {{ someEvaluationsSelected || allEvaluationsSelected ? 'Unselect' : 'Select' }} all
-              </span>
-            </template>
-          </v-checkbox>
-          <div class="evaluation-actions">
-            <EvaluationActions v-if="!readonly" :reset="() => duplicatingEvaluationId = null" />
+            label="Filter courses"
+            max-width="600px"
+            type="search"
+          />
+          <AddCourseSection
+            v-if="!readonly"
+            id="add-course-section"
+            :allow-edits="allowEdits"
+            :on-click-add="onClickExpandHeader"
+          />
+          <div class="button-container">
+            <v-btn
+              v-if="isHeaderCollapsed"
+              aria-label="More Options"
+              :icon="mdiDotsVertical"
+              size="small"
+              variant="text"
+              @click.stop="onClickExpandHeader"
+            />
           </div>
         </div>
-        <div class="align-center d-flex flex-wrap pt-2">
-          <div class="mr-2">Show statuses:</div>
-          <v-btn-toggle
-            v-model="selectedFilterTypes"
-            aria-controls="evaluation-table"
-            borderless
-            class="status-filter d-flex flex-wrap"
-            color="tertiary"
-            density="compact"
-            flat
-            multiple
-            rounded
-          >
-            <v-btn
-              v-for="status in keys(filterTypes)"
-              :id="`evaluations-filter-${status}`"
-              :key="status"
-              :active="filterTypes[status].enabled"
-              :aria-pressed="filterTypes[status].enabled"
-              class="mb-1 mr-1 rounded-pill text-uppercase"
-              color="tertiary"
-              :disabled="disableControls"
-              height="1.875rem !important"
-              :value="status"
-              :width="filterTypes[status].width"
+        <div class="align-center d-flex flex-wrap justify-space-between px-4">
+          <div v-if="!readonly && allowEdits" class="d-flex pt-2">
+            <v-checkbox
+              id="select-all-evals-checkbox"
+              :aria-describedby="undefined"
+              class="select-all-evals my-auto mr-3"
+              color="primary"
+              density="compact"
+              :disabled="!searchFilterResults.length || disableControls"
+              :false-value="!someEvaluationsSelected && !allEvaluationsSelected"
+              hide-details
+              :indeterminate="someEvaluationsSelected"
+              :input-value="someEvaluationsSelected || allEvaluationsSelected"
+              :model-value="allEvaluationsSelected"
+              :ripple="false"
+              @focus="onClickExpandHeader"
+              @update:model-value="toggleSelectAll"
             >
-              <template #prepend>
-                <v-icon
-                  v-if="filterTypes[status].enabled"
-                  color="success"
-                  :icon="filterTypes[status].enabled ? mdiCheckCircle : mdiPlusCircle"
-                />
+              <template #label>
+                <span class="text-no-wrap my-auto pl-1">
+                  {{ someEvaluationsSelected || allEvaluationsSelected ? 'Unselect' : 'Select' }} all
+                </span>
               </template>
-              <div :class="{'font-weight-bold': filterTypes[status].enabled, 'text-disabled': !filterTypes[status].enabled}">
-                <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations marked with</span>
-                {{ filterTypes[status].label }}
-              </div>
-              <template #append>
-                <v-chip
-                  class="evaluation-status-filter-count px-1"
-                  :class="{'font-weight-bold': filterTypes[status].enabled, 'text-disabled': !filterTypes[status].enabled}"
-                  size="small"
-                >
-                  {{ filterTypeCounts(status) }}<span class="sr-only"> evaluations</span>
-                </v-chip>
-              </template>
-            </v-btn>
-          </v-btn-toggle>
+            </v-checkbox>
+            <div class="evaluation-actions">
+              <EvaluationActions v-if="!readonly" :reset="() => duplicatingEvaluationId = null" />
+            </div>
+          </div>
+          <div class="align-center d-flex flex-wrap pt-2">
+            <div class="mr-2">Show statuses:</div>
+            <v-btn-toggle
+              v-model="selectedFilterTypes"
+              aria-controls="evaluation-table"
+              borderless
+              class="status-filter d-flex flex-wrap"
+              color="tertiary"
+              density="compact"
+              flat
+              multiple
+              rounded
+            >
+              <v-btn
+                v-for="status in keys(filterTypes)"
+                :id="`evaluations-filter-${status}`"
+                :key="status"
+                :active="filterTypes[status].enabled"
+                :aria-pressed="filterTypes[status].enabled"
+                class="mb-1 mr-1 rounded-pill text-uppercase"
+                color="tertiary"
+                :disabled="disableControls"
+                height="1.875rem !important"
+                :value="status"
+                :width="filterTypes[status].width"
+              >
+                <template #prepend>
+                  <v-icon
+                    v-if="filterTypes[status].enabled"
+                    color="success"
+                    :icon="filterTypes[status].enabled ? mdiCheckCircle : mdiPlusCircle"
+                  />
+                </template>
+                <div :class="{'font-weight-bold': filterTypes[status].enabled, 'text-disabled': !filterTypes[status].enabled}">
+                  <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations marked with</span>
+                  {{ filterTypes[status].label }}
+                </div>
+                <template #append>
+                  <v-chip
+                    class="evaluation-status-filter-count px-1"
+                    :class="{'font-weight-bold': filterTypes[status].enabled, 'text-disabled': !filterTypes[status].enabled}"
+                    size="small"
+                  >
+                    {{ filterTypeCounts(status) }}<span class="sr-only"> evaluations</span>
+                  </v-chip>
+                </template>
+              </v-btn>
+            </v-btn-toggle>
+          </div>
         </div>
       </div>
-    </div>
-    <div
-      id="evaluation-table-search-results-desc"
-      aria-atomic="true"
-      aria-live="polite"
-      class="sr-only"
-    >
-      <span v-if="searchFilter">{{ pluralize('evaluation', size(searchFilterResults.value)) }} displayed.</span>
-    </div>
-    <v-data-table
-      id="evaluation-table"
-      v-model:sort-by="sortBy"
-      v-scroll="onScroll"
-      class="v-table-hidden-row-override v-table-overflow-override pt-3"
-      :custom-filter="customFilter"
-      density="compact"
-      :headers="evaluationHeaders"
-      hide-default-footer
-      :items="visibleEvaluations"
-      items-per-page="-1"
-      :loading="contextStore.loading"
-      must-sort
-      :search="searchFilter"
-      :sort-by="sortBy"
-      @update:current-items="onChangeSearchFilter"
-      @update:sort-by="onUpdateSortBy"
-    >
-      <template #headers="{columns, isSorted, toggleSort, getSortIcon, sortBy: _sortBy}">
-        <SortableTableHeader
-          :columns="columns"
-          :is-sorted="isSorted"
-          :on-sort="toggleSort"
-          :sort-desc="get(_sortBy, 'order') === 'desc'"
-          :sort-icon="getSortIcon"
-        />
-      </template>
-      <template #body="{items}">
-        <transition-group v-if="size(items)" name="evaluation-row">
-          <template v-for="(evaluation, rowIndex) in items" :key="evaluation.id">
-            <tr
-              :id="rowId(evaluation, rowIndex)"
-              class="evaluation-row"
-              :class="{
-                'bg-evaluation-active text-tertiary': isRowActive(evaluation) && !isEditing(evaluation),
-                'bg-evaluation-done': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'confirmed',
-                'bg-evaluation-ignore text-muted': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'ignore',
-                'bg-tertiary text-white border-bottom-none': evaluation.id === editRowId,
-                'bg-evaluation-to-do': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'review',
-                'bg-evaluation-xlisting': !isRowActive(evaluation) && !isEditing(evaluation) && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith),
-                'text-primary': isRowSelected(evaluation) && !isRowActive(evaluation) && !isEditing(evaluation)
-              }"
-              @mouseenter="onMouseenterRow(evaluation)"
-              @mouseleave="onMouseleaveRow(evaluation)"
-            >
-              <td v-if="readonly" :id="`evaluation-${rowIndex}-department`" class="align-middle py-1 pl-2">
-                <router-link :to="`/department/${get(evaluation.department, 'id')}`" class="font-weight-bold">
-                  {{ get(evaluation.department, 'name') }}
-                </router-link>
-              </td>
-              <td
-                v-if="!readonly && allowEdits && !(allowEdits && isEditing(evaluation))"
-                :id="`evaluation-${rowIndex}-select`"
-                class="align-middle pl-1 pr-5"
-              >
-                <v-checkbox
-                  v-if="!isEditing(evaluation)"
-                  :id="`evaluation-${rowIndex}-checkbox`"
-                  :key="`checkbox-${rowIndex}`"
-                  :aria-describedby="undefined"
-                  :aria-description="`${describeRow(evaluation)}`"
-                  :aria-label="`Evaluation ${rowIndex + 1} of ${size(items)}`"
-                  class="d-flex justify-center"
-                  :color="`${isRowActive(evaluation) ? 'tertiary' : 'primary'}`"
-                  :disabled="editRowId === evaluation.id || disableControls"
-                  hide-details
-                  :model-value="evaluation.isSelected"
-                  :ripple="false"
-                  @update:model-value="() => departmentStore.toggleSelectEvaluation(evaluation)"
-                />
-              </td>
-              <td
-                :id="`evaluation-${rowIndex}-status`"
-                class="pl-1 pr-3"
+      <div
+        id="evaluation-table-search-results-desc"
+        aria-atomic="true"
+        aria-live="polite"
+        class="sr-only"
+      >
+        <span v-if="searchFilter">{{ pluralize('evaluation', size(searchFilterResults.value)) }} displayed.</span>
+      </div>
+      <v-data-table
+        id="evaluation-table"
+        v-model:sort-by="sortBy"
+        v-scroll="onScroll"
+        class="v-table-hidden-row-override v-table-overflow-override pt-3"
+        :custom-filter="customFilter"
+        density="compact"
+        :headers="evaluationHeaders"
+        hide-default-footer
+        :items="visibleEvaluations"
+        items-per-page="-1"
+        :loading="contextStore.loading"
+        must-sort
+        :search="searchFilter"
+        :sort-by="sortBy"
+        @update:current-items="onChangeSearchFilter"
+        @update:sort-by="onUpdateSortBy"
+      >
+        <template #headers="{columns, isSorted, toggleSort, getSortIcon, sortBy: _sortBy}">
+          <SortableTableHeader
+            :columns="columns"
+            :is-sorted="isSorted"
+            :on-sort="toggleSort"
+            :sort-desc="get(_sortBy, 'order') === 'desc'"
+            :sort-icon="getSortIcon"
+          />
+        </template>
+        <template #body="{items}">
+          <transition-group v-if="size(items)" name="evaluation-row">
+            <template v-for="(evaluation, rowIndex) in items" :key="evaluation.id">
+              <tr
+                :id="rowId(evaluation, rowIndex)"
+                class="evaluation-row"
                 :class="{
-                  'align-middle': !isEditing(evaluation),
-                  'pr-1': isRowActive(evaluation)
+                  'bg-evaluation-active text-tertiary': isRowActive(evaluation) && !isEditing(evaluation),
+                  'bg-evaluation-done': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'confirmed',
+                  'bg-evaluation-ignore text-muted': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'ignore',
+                  'bg-tertiary text-white border-bottom-none': evaluation.id === editRowId,
+                  'bg-evaluation-to-do': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'review',
+                  'bg-evaluation-xlisting': !isRowActive(evaluation) && !isEditing(evaluation) && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith),
+                  'text-primary': isRowSelected(evaluation) && !isRowActive(evaluation) && !isEditing(evaluation)
                 }"
-                :colspan="allowEdits && isEditing(evaluation) ? 2 : 1"
+                @mouseenter="onMouseenterRow(evaluation)"
+                @mouseleave="onMouseleaveRow(evaluation)"
               >
-                <v-chip
-                  v-if="isStatusVisible(evaluation)"
-                  :key="`status-${rowIndex}`"
-                  class="mx-auto px-1 status-label text-caption"
+                <td v-if="readonly" :id="`evaluation-${rowIndex}-department`" class="align-middle py-1 pl-2">
+                  <router-link :to="`/department/${get(evaluation.department, 'id')}`" class="font-weight-bold">
+                    {{ get(evaluation.department, 'name') }}
+                  </router-link>
+                </td>
+                <td
+                  v-if="!readonly && allowEdits && !(allowEdits && isEditing(evaluation))"
+                  :id="`evaluation-${rowIndex}-select`"
+                  class="align-middle pl-1 pr-5"
+                >
+                  <v-checkbox
+                    v-if="!isEditing(evaluation)"
+                    :id="`evaluation-${rowIndex}-checkbox`"
+                    :key="`checkbox-${rowIndex}`"
+                    :aria-describedby="undefined"
+                    :aria-description="`${describeRow(evaluation)}`"
+                    :aria-label="`Evaluation ${rowIndex + 1} of ${size(items)}`"
+                    class="d-flex justify-center"
+                    :color="`${isRowActive(evaluation) ? 'tertiary' : 'primary'}`"
+                    :disabled="editRowId === evaluation.id || disableControls"
+                    hide-details
+                    :model-value="evaluation.isSelected"
+                    :ripple="false"
+                    @update:model-value="() => departmentStore.toggleSelectEvaluation(evaluation)"
+                  />
+                </td>
+                <td
+                  :id="`evaluation-${rowIndex}-status`"
+                  class="pl-1 pr-3"
                   :class="{
-                    'bg-evaluation-done-label': evaluation.status === 'confirmed',
-                    'bg-evaluation-ignore-label': evaluation.status === 'ignore',
-                    'bg-evaluation-to-do-label': evaluation.status === 'review',
-                    'sr-only': hoverId === evaluation.id && allowEdits && !readonly
+                    'align-middle': !isEditing(evaluation),
+                    'pr-1': isRowActive(evaluation)
+                  }"
+                  :colspan="allowEdits && isEditing(evaluation) ? 2 : 1"
+                >
+                  <v-chip
+                    v-if="isStatusVisible(evaluation)"
+                    :key="`status-${rowIndex}`"
+                    class="mx-auto px-1 status-label text-caption"
+                    :class="{
+                      'bg-evaluation-done-label': evaluation.status === 'confirmed',
+                      'bg-evaluation-ignore-label': evaluation.status === 'ignore',
+                      'bg-evaluation-to-do-label': evaluation.status === 'review',
+                      'sr-only': hoverId === evaluation.id && allowEdits && !readonly
+                    }"
+                  >
+                    {{ displayStatus(evaluation) }}
+                  </v-chip>
+                  <div
+                    v-if="allowEdits && !isEditing(evaluation) && (!readonly || !evaluation.status)"
+                    class="pill-invisible mx-auto"
+                  >
+                    <v-menu
+                      :key="`menu-${rowIndex}`"
+                      scroll-strategy="none"
+                      z-index="0"
+                      @update:model-value="isOpen => onToggleEditMenu(isOpen, evaluation)"
+                    >
+                      <template #activator="{props: menuProps}">
+                        <v-btn
+                          :id="`evaluation-menu-btn-${evaluation.id}`"
+                          :append-icon="mdiChevronDown"
+                          class="mx-auto px-1 text-uppercase evaluation-row-btn"
+                          :class="{
+                            'sr-only': !isRowActive(evaluation),
+                            'focus-btn': evaluation.id === focusedEditButtonEvaluationId
+                          }"
+                          color="tertiary"
+                          :disabled="!allowEdits || disableControls"
+                          max-width="150"
+                          min-width="54"
+                          text="Edit"
+                          variant="text"
+                          width="100%"
+                          v-bind="menuProps"
+                          @blur="() => focusedEditButtonEvaluationId = null"
+                          @focus="() => focusedEditButtonEvaluationId = evaluation.id"
+                        />
+                      </template>
+                      <v-list
+                        :id="`evaluation-menu-list-${evaluation.id}`"
+                        class="border-sm py-0"
+                        rounded="sm"
+                      >
+                        <v-list-item
+                          :id="`option-edit-evaluation-${evaluation.id}`"
+                          base-color="secondary"
+                          density="compact"
+                          @click="() => onEditEvaluation(evaluation)"
+                        >
+                          <v-list-item-title>Edit</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item
+                          :id="`option-duplicate-evaluation-${evaluation.id}`"
+                          base-color="secondary"
+                          density="compact"
+                          @click="() => duplicatingEvaluationId = evaluation.id"
+                        >
+                          <v-list-item-title>Duplicate</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </div>
+                  <div v-if="allowEdits && isEditing(evaluation)" class="pl-2 pt-2 select-evaluation-status">
+                    <label for="select-evaluation-status">
+                      Status
+                    </label>
+                    <select
+                      id="select-evaluation-status"
+                      v-model="selectedEvaluationStatus"
+                      class="d-block mx-auto v-theme--light w-99"
+                      :disabled="isSaving"
+                      autocomplete="off"
+                    >
+                      <option
+                        v-if="!selectedEvaluationStatus"
+                        selected
+                        :value="selectedEvaluationStatus"
+                      >
+                        Select...
+                      </option>
+                      <option
+                        v-for="s in EVALUATION_STATUSES"
+                        :key="s.text"
+                        :selected="selectedEvaluationStatus === s.value"
+                        :value="s.value"
+                      >
+                        {{ s.text }}
+                      </option>
+                    </select>
+                  </div>
+                </td>
+                <td
+                  :id="`evaluation-${rowIndex}-lastUpdated`"
+                  class="px-1"
+                  :class="{
+                    'font-weight-bold pt-7': isEditing(evaluation),
+                    'align-middle': !isEditing(evaluation)
                   }"
                 >
-                  {{ displayStatus(evaluation) }}
-                </v-chip>
-                <div
-                  v-if="allowEdits && !isEditing(evaluation) && (!readonly || !evaluation.status)"
-                  class="pill-invisible mx-auto"
+                  {{ toFormatFromJsDate(evaluation.lastUpdated, 'LL/dd/yyyy') }}
+                </td>
+                <td
+                  :id="`evaluation-${rowIndex}-courseNumber`"
+                  class="px-1 td-courseNumber"
+                  :class="{
+                    'font-weight-bold pt-7': isEditing(evaluation),
+                    'align-middle': !isEditing(evaluation)
+                  }"
                 >
-                  <v-menu
-                    :key="`menu-${rowIndex}`"
-                    scroll-strategy="none"
-                    z-index="0"
-                    @update:model-value="isOpen => onToggleEditMenu(isOpen, evaluation)"
-                  >
-                    <template #activator="{props: menuProps}">
-                      <v-btn
-                        :id="`evaluation-menu-btn-${evaluation.id}`"
-                        :append-icon="mdiChevronDown"
-                        class="mx-auto px-1 text-uppercase evaluation-row-btn"
-                        :class="{
-                          'sr-only': !isRowActive(evaluation),
-                          'focus-btn': evaluation.id === focusedEditButtonEvaluationId
-                        }"
-                        color="tertiary"
-                        :disabled="!allowEdits || disableControls"
-                        max-width="150"
-                        min-width="54"
-                        text="Edit"
-                        variant="text"
-                        width="100%"
-                        v-bind="menuProps"
-                        @blur="() => focusedEditButtonEvaluationId = null"
-                        @focus="() => focusedEditButtonEvaluationId = evaluation.id"
-                      />
-                    </template>
-                    <v-list
-                      :id="`evaluation-menu-list-${evaluation.id}`"
-                      class="border-sm py-0"
-                      rounded="sm"
-                    >
-                      <v-list-item
-                        :id="`option-edit-evaluation-${evaluation.id}`"
-                        base-color="secondary"
-                        density="compact"
-                        @click="() => onEditEvaluation(evaluation)"
-                      >
-                        <v-list-item-title>Edit</v-list-item-title>
-                      </v-list-item>
-                      <v-list-item
-                        :id="`option-duplicate-evaluation-${evaluation.id}`"
-                        base-color="secondary"
-                        density="compact"
-                        @click="() => duplicatingEvaluationId = evaluation.id"
-                      >
-                        <v-list-item-title>Duplicate</v-list-item-title>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-                </div>
-                <div v-if="allowEdits && isEditing(evaluation)" class="pl-2 pt-2 select-evaluation-status">
-                  <label for="select-evaluation-status">
-                    Status
+                  {{ evaluation.courseNumber }}
+                  <div v-if="evaluation.crossListedWith" class="xlisting-note">
+                    (Cross-listed with {{ evaluation.crossListedWith.length > 1 ? 'sections' : 'section' }}
+                    {{ evaluation.crossListedWith.join(', ') }})
+                  </div>
+                  <div v-if="evaluation.roomSharedWith" class="xlisting-note">
+                    (Room shared with {{ evaluation.roomSharedWith.length > 1 ? 'sections' : 'section' }}
+                    {{ evaluation.roomSharedWith.join(', ') }})
+                  </div>
+                </td>
+                <td
+                  class="px-1 td-courseName"
+                  :class="{
+                    'font-weight-bold pt-7': isEditing(evaluation),
+                    'align-middle': !isEditing(evaluation)
+                  }"
+                >
+                  <label :id="`evaluation-${rowIndex}-courseName`" :for="isEditing(evaluation) ? undefined : `evaluation-${rowIndex}-checkbox`">
+                    {{ evaluation.subjectArea }}
+                    {{ evaluation.catalogId }}
+                    {{ evaluation.instructionFormat }}
+                    {{ evaluation.sectionNumber }}
                   </label>
-                  <select
-                    id="select-evaluation-status"
-                    v-model="selectedEvaluationStatus"
-                    class="d-block mx-auto v-theme--light w-99"
-                    :disabled="isSaving"
-                    autocomplete="off"
-                  >
-                    <option
-                      v-if="!selectedEvaluationStatus"
-                      selected
-                      :value="selectedEvaluationStatus"
-                    >
-                      Select...
-                    </option>
-                    <option
-                      v-for="s in EVALUATION_STATUSES"
-                      :key="s.text"
-                      :selected="selectedEvaluationStatus === s.value"
-                      :value="s.value"
-                    >
-                      {{ s.text }}
-                    </option>
-                  </select>
-                </div>
-              </td>
-              <td
-                :id="`evaluation-${rowIndex}-lastUpdated`"
-                class="px-1"
-                :class="{
-                  'font-weight-bold pt-7': isEditing(evaluation),
-                  'align-middle': !isEditing(evaluation)
-                }"
-              >
-                {{ toFormatFromJsDate(evaluation.lastUpdated, 'LL/dd/yyyy') }}
-              </td>
-              <td
-                :id="`evaluation-${rowIndex}-courseNumber`"
-                class="px-1 td-courseNumber"
-                :class="{
-                  'font-weight-bold pt-7': isEditing(evaluation),
-                  'align-middle': !isEditing(evaluation)
-                }"
-              >
-                {{ evaluation.courseNumber }}
-                <div v-if="evaluation.crossListedWith" class="xlisting-note">
-                  (Cross-listed with {{ evaluation.crossListedWith.length > 1 ? 'sections' : 'section' }}
-                  {{ evaluation.crossListedWith.join(', ') }})
-                </div>
-                <div v-if="evaluation.roomSharedWith" class="xlisting-note">
-                  (Room shared with {{ evaluation.roomSharedWith.length > 1 ? 'sections' : 'section' }}
-                  {{ evaluation.roomSharedWith.join(', ') }})
-                </div>
-              </td>
-              <td
-                class="px-1 td-courseName"
-                :class="{
-                  'font-weight-bold pt-7': isEditing(evaluation),
-                  'align-middle': !isEditing(evaluation)
-                }"
-              >
-                <label :id="`evaluation-${rowIndex}-courseName`" :for="isEditing(evaluation) ? undefined : `evaluation-${rowIndex}-checkbox`">
-                  {{ evaluation.subjectArea }}
-                  {{ evaluation.catalogId }}
-                  {{ evaluation.instructionFormat }}
-                  {{ evaluation.sectionNumber }}
-                </label>
-                <div :id="`evaluation-${rowIndex}-courseTitle`">
-                  {{ evaluation.courseTitle }}
-                </div>
-              </td>
-              <td
-                :id="`evaluation-${rowIndex}-instructor`"
-                class="px-1 td-instructor"
-                :class="{
-                  'font-weight-bold pt-7': isEditing(evaluation) && evaluation.instructor,
-                  'font-weight-bold pt-2': isEditing(evaluation) && !evaluation.instructor,
-                  'align-middle': !isEditing(evaluation)
-                }"
-              >
-                <div v-if="evaluation.instructor">
-                  {{ evaluation.instructor.firstName }}
-                  {{ evaluation.instructor.lastName }}
-                  ({{ evaluation.instructor.uid }})
-                </div>
-                <div v-if="evaluation.instructor">
-                  {{ evaluation.instructor.emailAddress }}
-                </div>
-                <EvaluationError
-                  v-if="!evaluation.instructor && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
-                  :id="`error-msg-evaluation-instructor-${rowIndex}`"
-                  :hover="isRowActive(evaluation)"
-                  message="Instructor required"
-                />
-                <div v-if="!evaluation.instructor && isEditing(evaluation) && allowEdits" class="position-relative">
-                  <PersonLookup
-                    class="font-weight-regular instructor-lookup"
-                    clearable
-                    color="black"
-                    :disabled="isSaving"
-                    input-class="text-no-wrap overflow-hidden"
-                    :instructor-lookup="true"
-                    label="Instructor"
-                    list-label="Suggested Instructors List"
-                    :on-select-result="selectInstructor"
+                  <div :id="`evaluation-${rowIndex}-courseTitle`">
+                    {{ evaluation.courseTitle }}
+                  </div>
+                </td>
+                <td
+                  :id="`evaluation-${rowIndex}-instructor`"
+                  class="px-1 td-instructor"
+                  :class="{
+                    'font-weight-bold pt-7': isEditing(evaluation) && evaluation.instructor,
+                    'font-weight-bold pt-2': isEditing(evaluation) && !evaluation.instructor,
+                    'align-middle': !isEditing(evaluation)
+                  }"
+                >
+                  <div v-if="evaluation.instructor">
+                    {{ evaluation.instructor.firstName }}
+                    {{ evaluation.instructor.lastName }}
+                    ({{ evaluation.instructor.uid }})
+                  </div>
+                  <div v-if="evaluation.instructor">
+                    {{ evaluation.instructor.emailAddress }}
+                  </div>
+                  <EvaluationError
+                    v-if="!evaluation.instructor && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
+                    :id="`error-msg-evaluation-instructor-${rowIndex}`"
+                    :hover="isRowActive(evaluation)"
+                    message="Instructor required"
                   />
-                  <div v-if="pendingInstructor" class="pt-1">
-                    <div>
-                      {{ pendingInstructor.firstName }} {{ pendingInstructor.lastName }} ({{ pendingInstructor.uid }})
-                    </div>
-                    <div>
-                      {{ pendingInstructor.emailAddress }}
+                  <div v-if="!evaluation.instructor && isEditing(evaluation) && allowEdits" class="position-relative">
+                    <PersonLookup
+                      class="font-weight-regular instructor-lookup"
+                      clearable
+                      color="black"
+                      :disabled="isSaving"
+                      input-class="text-no-wrap overflow-hidden"
+                      :instructor-lookup="true"
+                      label="Instructor"
+                      list-label="Suggested Instructors List"
+                      :on-select-result="selectInstructor"
+                    />
+                    <div v-if="pendingInstructor" class="pt-1">
+                      <div>
+                        {{ pendingInstructor.firstName }} {{ pendingInstructor.lastName }} ({{ pendingInstructor.uid }})
+                      </div>
+                      <div>
+                        {{ pendingInstructor.emailAddress }}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </td>
-              <td
-                :id="`evaluation-${rowIndex}-departmentForm`"
-                class="px-1"
-                :class="{
-                  'pt-2': isEditing(evaluation),
-                  'align-middle': !isEditing(evaluation)
-                }"
-              >
-                <div v-if="evaluation.departmentForm && !isEditing(evaluation)">
-                  {{ evaluation.departmentForm.name }}
-                  <EvaluationError
-                    v-for="(conflict, index) in evaluation.conflicts.departmentForm"
-                    :id="`error-msg-evaluation-department-form-conflict-${rowIndex}-${index}`"
-                    :key="index"
-                    :hover="isRowActive(evaluation)"
-                    :message="`Conflicts with value ${conflict.value} from ${conflict.department} department`"
-                  />
-                </div>
-                <EvaluationError
-                  v-if="!evaluation.departmentForm && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
-                  :id="`error-msg-evaluation-department-form-${rowIndex}`"
-                  :hover="isRowActive(evaluation)"
-                  message="Department form required"
-                />
-                <EvaluationError
-                  v-if="evaluation.departmentForm && evaluation.departmentForm.deletedAt"
-                  :id="`error-msg-evaluation-department-form-${rowIndex}`"
-                  :hover="isRowActive(evaluation)"
-                  message="Department form has been deleted"
-                />
-                <div v-if="allowEdits && isEditing(evaluation)">
-                  <label id="select-department-form-label" for="select-department-form">
-                    Department Form
-                  </label>
-                  <select
-                    id="select-department-form"
-                    v-model="selectedDepartmentForm"
-                    class="v-theme--light"
-                    :disabled="isSaving"
-                    autocomplete="off"
-                  >
-                    <option v-for="df in departmentForms" :key="df.id" :value="df.id">{{ df.name }}</option>
-                  </select>
-                </div>
-              </td>
-              <td
-                :id="`evaluation-${rowIndex}-evaluationType`"
-                class="px-1"
-                :class="{
-                  'pt-2': isEditing(evaluation),
-                  'align-middle': !isEditing(evaluation)
-                }"
-              >
-                <div v-if="evaluation.evaluationType && !isEditing(evaluation)">
-                  {{ evaluation.evaluationType.name }}
-                  <EvaluationError
-                    v-for="(conflict, index) in evaluation.conflicts.evaluationType"
-                    :id="`error-msg-evaluation-type-conflict-${rowIndex}-${index}`"
-                    :key="index"
-                    :hover="isRowActive(evaluation)"
-                    :message="`Conflicts with value ${conflict.value} from ${conflict.department} department`"
-                  />
-                </div>
-                <EvaluationError
-                  v-if="!evaluation.evaluationType && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
-                  :id="`error-msg-evaluation-type-${rowIndex}`"
-                  :hover="isRowActive(evaluation)"
-                  message="Evaluation type required"
-                />
-                <EvaluationError
-                  v-if="evaluation.evaluationType && evaluation.evaluationType.deletedAt"
-                  :id="`error-msg-evaluation-department-form-${rowIndex}`"
-                  :hover="isRowActive(evaluation)"
-                  message="Evaluation type has been deleted"
-                />
-                <div v-if="allowEdits && isEditing(evaluation)">
-                  <label id="select-evaluation-type-label" for="select-evaluation-type">
-                    Evaluation Type
-                  </label>
-                  <select
-                    id="select-evaluation-type"
-                    v-model="selectedEvaluationType"
-                    class="v-theme--light"
-                    :disabled="isSaving"
-                    autocomplete="off"
-                  >
-                    <option
-                      v-if="!selectedEvaluationType"
-                      selected
-                      :value="selectedEvaluationType"
-                    >
-                      Select...
-                    </option>
-                    <option
-                      v-for="et in evaluationTypes"
-                      :key="et.id"
-                      :selected="selectedEvaluationType === et.id"
-                      :value="et.id"
-                    >
-                      {{ et.name }}
-                    </option>
-                  </select>
-                </div>
-              </td>
-              <td
-                :id="`evaluation-${rowIndex}-period`"
-                class="px-1"
-                :class="{
-                  'pt-2': isEditing(evaluation),
-                  'align-middle': !isEditing(evaluation)
-                }"
-              >
-                <div v-if="evaluation.startDate && !isEditing(evaluation)">
-                  <div>
-                    {{ toFormatFromJsDate(evaluation.startDate, 'LL/dd/yyyy') }} -
-                    {{ toFormatFromJsDate(evaluation.endDate, 'LL/dd/yyyy') }}
+                </td>
+                <td
+                  :id="`evaluation-${rowIndex}-departmentForm`"
+                  class="px-1"
+                  :class="{
+                    'pt-2': isEditing(evaluation),
+                    'align-middle': !isEditing(evaluation)
+                  }"
+                >
+                  <div v-if="evaluation.departmentForm && !isEditing(evaluation)">
+                    {{ evaluation.departmentForm.name }}
+                    <EvaluationError
+                      v-for="(conflict, index) in evaluation.conflicts.departmentForm"
+                      :id="`error-msg-evaluation-department-form-conflict-${rowIndex}-${index}`"
+                      :key="index"
+                      :hover="isRowActive(evaluation)"
+                      :message="`Conflicts with value ${conflict.value} from ${conflict.department} department`"
+                    />
                   </div>
-                  <div>{{ evaluation.modular ? 2 : 3 }} weeks</div>
                   <EvaluationError
-                    v-for="(conflict, index) in evaluation.conflicts.evaluationPeriod"
-                    :id="`error-msg-evaluation-period-conflict-${index}`"
-                    :key="index"
+                    v-if="!evaluation.departmentForm && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
+                    :id="`error-msg-evaluation-department-form-${rowIndex}`"
                     :hover="isRowActive(evaluation)"
-                    :message="`Conflicts with period starting
-                    ${toLocaleFromISO(conflict.value, 'LL/dd/yyyy')}
-                    from ${conflict.department} department`"
-                  />
-                </div>
-                <div v-if="allowEdits && isEditing(evaluation)" class="evaluation-period-edit">
-                  <label for="evaluation-start-date-input">
-                    Start date
-                  </label>
-                  <AccessibleDateInput
-                    aria-label="Start Date"
-                    :container-id="`evaluation-${rowIndex}-period`"
-                    :disabled="isSaving"
-                    :get-value="() => selectedStartDate"
-                    id-prefix="evaluation-start-date"
-                    :min-date="minStartDate(evaluation)"
-                    :max-date="evaluation.maxStartDate"
-                    :placement="rowIndex > 3 ? 'top' : 'bottom'"
-                    :set-value="selectedDate => selectedStartDate = selectedDate"
+                    message="Department form required"
                   />
                   <EvaluationError
-                    v-if="!selectedStartDate"
-                    id="error-msg-evaluation-start-date"
-                    color="white"
-                    message="Required"
+                    v-if="evaluation.departmentForm && evaluation.departmentForm.deletedAt"
+                    :id="`error-msg-evaluation-department-form-${rowIndex}`"
+                    :hover="isRowActive(evaluation)"
+                    message="Department form has been deleted"
                   />
-                </div>
-              </td>
-            </tr>
-            <tr v-if="isEditing(evaluation)" :key="`${evaluation.id}-edit`" class="bg-tertiary text-white border-top-none">
-              <td />
-              <td :colspan="size(evaluationHeaders) - 1" class="pb-1 px-3">
-                <div class="d-flex justify-end">
-                  <ConfirmDialog
-                    confirm-button-label="Confirm anyway"
-                    :hide-confirm="!currentUser.isAdmin"
-                    :html="get(markAsDoneWarning, 'message')"
-                    :icon="mdiAlertCircle"
-                    :is-open="!!markAsDoneWarning"
-                    :on-click-cancel="() => markAsDoneWarning = undefined"
-                    :on-click-confirm="onOverrideMarkAsDoneWarning"
-                    text=""
-                    title="Warning"
+                  <div v-if="allowEdits && isEditing(evaluation)">
+                    <label id="select-department-form-label" for="select-department-form">
+                      Department Form
+                    </label>
+                    <select
+                      id="select-department-form"
+                      v-model="selectedDepartmentForm"
+                      class="v-theme--light"
+                      :disabled="isSaving"
+                      autocomplete="off"
+                    >
+                      <option v-for="df in departmentForms" :key="df.id" :value="df.id">{{ df.name }}</option>
+                    </select>
+                  </div>
+                </td>
+                <td
+                  :id="`evaluation-${rowIndex}-evaluationType`"
+                  class="px-1"
+                  :class="{
+                    'pt-2': isEditing(evaluation),
+                    'align-middle': !isEditing(evaluation)
+                  }"
+                >
+                  <div v-if="evaluation.evaluationType && !isEditing(evaluation)">
+                    {{ evaluation.evaluationType.name }}
+                    <EvaluationError
+                      v-for="(conflict, index) in evaluation.conflicts.evaluationType"
+                      :id="`error-msg-evaluation-type-conflict-${rowIndex}-${index}`"
+                      :key="index"
+                      :hover="isRowActive(evaluation)"
+                      :message="`Conflicts with value ${conflict.value} from ${conflict.department} department`"
+                    />
+                  </div>
+                  <EvaluationError
+                    v-if="!evaluation.evaluationType && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
+                    :id="`error-msg-evaluation-type-${rowIndex}`"
+                    :hover="isRowActive(evaluation)"
+                    message="Evaluation type required"
                   />
-                  <ProgressButton
-                    id="save-evaluation-edit-btn"
-                    :action="() => validateAndSave(evaluation)"
-                    class="ma-2 evaluation-form-btn"
-                    color="primary"
-                    :disabled="!rowValid || isSaving"
-                    :in-progress="isSaving"
-                    :text="isSaving ? 'Saving...' : 'Save'"
+                  <EvaluationError
+                    v-if="evaluation.evaluationType && evaluation.evaluationType.deletedAt"
+                    :id="`error-msg-evaluation-department-form-${rowIndex}`"
+                    :hover="isRowActive(evaluation)"
+                    message="Evaluation type has been deleted"
                   />
-                  <v-btn
-                    id="cancel-evaluation-edit-btn"
-                    class="evaluation-form-btn evaluation-form-btn-cancel ma-2"
-                    :disabled="isSaving"
-                    text="Cancel"
-                    variant="flat"
-                    @click="onCancelEdit(evaluation)"
-                  />
-                </div>
-              </td>
-            </tr>
-          </template>
-        </transition-group>
-        <tr v-if="isEmpty(items)">
-          <td :colspan="size(evaluationHeaders)">
-            <div id="no-courses-found" class="font-size-16 pa-5 text-center text-muted">
-              {{ searchFilter ? 'No courses match your filter.' : 'No courses' }}
-            </div>
-          </td>
-        </tr>
-      </template>
-    </v-data-table>
-    <ConfirmDialog
-      :is-open="isConfirmingCancelEdit"
-      :on-click-cancel="onCancelConfirm"
-      :on-click-confirm="onConfirm"
-      :text="'You have unsaved changes that will be lost.'"
-      :title="'Cancel edit?'"
-    />
-    <ConfirmDialog
-      :is-open="isConfirmingNonSisInstructor"
-      :on-click-cancel="onCancelNonSisInstructor"
-      :on-click-confirm="onConfirmNonSisInstructor"
-      :text="instructorConfirmationText(pendingInstructor)"
-      title="Add new instructor?"
-    />
-    <ModalDialog
-      id-prefix="error"
-      :is-open="errorDialog"
-      persistent
-      width="400"
-    >
-      <template #title><span class="px-2">Error</span></template>
-      <template #text>{{ errorDialogText }}</template>
-      <template #actions>
-        <div class="align-center d-flex">
-          <v-btn
-            id="error-dialog-ok-btn"
-            color="tertiary"
-            text="OK"
-            variant="flat"
-            @click="departmentStore.dismissErrorDialog"
+                  <div v-if="allowEdits && isEditing(evaluation)">
+                    <label id="select-evaluation-type-label" for="select-evaluation-type">
+                      Evaluation Type
+                    </label>
+                    <select
+                      id="select-evaluation-type"
+                      v-model="selectedEvaluationType"
+                      class="v-theme--light"
+                      :disabled="isSaving"
+                      autocomplete="off"
+                    >
+                      <option
+                        v-if="!selectedEvaluationType"
+                        selected
+                        :value="selectedEvaluationType"
+                      >
+                        Select...
+                      </option>
+                      <option
+                        v-for="et in evaluationTypes"
+                        :key="et.id"
+                        :selected="selectedEvaluationType === et.id"
+                        :value="et.id"
+                      >
+                        {{ et.name }}
+                      </option>
+                    </select>
+                  </div>
+                </td>
+                <td
+                  :id="`evaluation-${rowIndex}-period`"
+                  class="px-1"
+                  :class="{
+                    'pt-2': isEditing(evaluation),
+                    'align-middle': !isEditing(evaluation)
+                  }"
+                >
+                  <div v-if="evaluation.startDate && !isEditing(evaluation)">
+                    <div>
+                      {{ toFormatFromJsDate(evaluation.startDate, 'LL/dd/yyyy') }} -
+                      {{ toFormatFromJsDate(evaluation.endDate, 'LL/dd/yyyy') }}
+                    </div>
+                    <div>{{ evaluation.modular ? 2 : 3 }} weeks</div>
+                    <EvaluationError
+                      v-for="(conflict, index) in evaluation.conflicts.evaluationPeriod"
+                      :id="`error-msg-evaluation-period-conflict-${index}`"
+                      :key="index"
+                      :hover="isRowActive(evaluation)"
+                      :message="`Conflicts with period starting
+                      ${toLocaleFromISO(conflict.value, 'LL/dd/yyyy')}
+                      from ${conflict.department} department`"
+                    />
+                  </div>
+                  <div v-if="allowEdits && isEditing(evaluation)" class="evaluation-period-edit">
+                    <label for="evaluation-start-date-input">
+                      Start date
+                    </label>
+                    <AccessibleDateInput
+                      aria-label="Start Date"
+                      :container-id="`evaluation-${rowIndex}-period`"
+                      :disabled="isSaving"
+                      :get-value="() => selectedStartDate"
+                      id-prefix="evaluation-start-date"
+                      :min-date="minStartDate(evaluation)"
+                      :max-date="evaluation.maxStartDate"
+                      :placement="rowIndex > 3 ? 'top' : 'bottom'"
+                      :set-value="selectedDate => selectedStartDate = selectedDate"
+                    />
+                    <EvaluationError
+                      v-if="!selectedStartDate"
+                      id="error-msg-evaluation-start-date"
+                      color="white"
+                      message="Required"
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="isEditing(evaluation)" :key="`${evaluation.id}-edit`" class="bg-tertiary text-white border-top-none">
+                <td />
+                <td :colspan="size(evaluationHeaders) - 1" class="pb-1 px-3">
+                  <div class="d-flex justify-end">
+                    <ConfirmDialog
+                      confirm-button-label="Confirm anyway"
+                      :hide-confirm="!currentUser.isAdmin"
+                      :html="get(markAsDoneWarning, 'message')"
+                      :icon="mdiAlertCircle"
+                      :is-open="!!markAsDoneWarning"
+                      :on-click-cancel="() => markAsDoneWarning = undefined"
+                      :on-click-confirm="onOverrideMarkAsDoneWarning"
+                      text=""
+                      title="Warning"
+                    />
+                    <ProgressButton
+                      id="save-evaluation-edit-btn"
+                      :action="() => validateAndSave(evaluation)"
+                      class="ma-2 evaluation-form-btn"
+                      color="primary"
+                      :disabled="!rowValid || isSaving"
+                      :in-progress="isSaving"
+                      :text="isSaving ? 'Saving...' : 'Save'"
+                    />
+                    <v-btn
+                      id="cancel-evaluation-edit-btn"
+                      class="evaluation-form-btn evaluation-form-btn-cancel ma-2"
+                      :disabled="isSaving"
+                      text="Cancel"
+                      variant="flat"
+                      @click="onCancelEdit(evaluation)"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </transition-group>
+          <tr v-if="isEmpty(items)">
+            <td :colspan="size(evaluationHeaders)">
+              <div id="no-courses-found" class="font-size-16 pa-5 text-center text-muted">
+                {{ searchFilter ? 'No courses match your filter.' : 'No courses' }}
+              </div>
+            </td>
+          </tr>
+        </template>
+      </v-data-table>
+      <ConfirmDialog
+        :is-open="isConfirmingCancelEdit"
+        :on-click-cancel="onCancelConfirm"
+        :on-click-confirm="onConfirm"
+        :text="'You have unsaved changes that will be lost.'"
+        :title="'Cancel edit?'"
+      />
+      <ConfirmDialog
+        :is-open="isConfirmingNonSisInstructor"
+        :on-click-cancel="onCancelNonSisInstructor"
+        :on-click-confirm="onConfirmNonSisInstructor"
+        :text="instructorConfirmationText(pendingInstructor)"
+        title="Add new instructor?"
+      />
+      <ModalDialog
+        id-prefix="error"
+        :is-open="errorDialog"
+        persistent
+        width="400"
+      >
+        <template #title><span class="px-2">Error</span></template>
+        <template #text>{{ errorDialogText }}</template>
+        <template #actions>
+          <div class="align-center d-flex">
+            <v-btn
+              id="error-dialog-ok-btn"
+              color="tertiary"
+              text="OK"
+              variant="flat"
+              @click="departmentStore.dismissErrorDialog"
+            />
+          </div>
+        </template>
+      </ModalDialog>
+    </v-container>
+    <v-container v-if="!evaluations.length" class="no-eligible-sections mt-3">
+      <v-row>
+        <v-col align-self="center">
+          <div class="d-flex flex-column text-muted">
+            <span>No eligible sections to load.</span>
+            <span v-if="!readonly && allowEdits">You may still add a section manually.</span>
+          </div>
+        </v-col>
+      </v-row>
+      <v-row v-if="!readonly">
+        <v-col align-self="center">
+          <AddCourseSection
+            id="add-course-section"
+            :allow-edits="allowEdits"
+            class="d-flex align-baseline justify-center ml-0"
           />
-        </div>
-      </template>
-    </ModalDialog>
-  </v-container>
-  <v-container v-if="!evaluations.length" class="no-eligible-sections mt-3">
-    <v-row>
-      <v-col align-self="center">
-        <div class="d-flex flex-column text-muted">
-          <span>No eligible sections to load.</span>
-          <span v-if="!readonly && allowEdits">You may still add a section manually.</span>
-        </div>
-      </v-col>
-    </v-row>
-    <v-row v-if="!readonly">
-      <v-col align-self="center">
-        <AddCourseSection
-          id="add-course-section"
-          :allow-edits="allowEdits"
-          class="d-flex align-baseline justify-center ml-0"
-        />
-      </v-col>
-    </v-row>
-  </v-container>
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
 </template>
 
 <script setup>
@@ -1145,6 +1151,9 @@ tr.border-top-none td {
 .align-middle {
   vertical-align: middle;
 }
+.button-container {
+  min-width: 2.5rem;
+}
 .evaluation-actions {
   position: relative;
   top: 2px;
@@ -1238,7 +1247,7 @@ tr.border-top-none td {
   width: 100%;
 }
 .sticky {
-  max-height: 12.5rem;
+  max-height: 13rem;
   overflow-y: hidden;
   position: sticky;
   top: v-bind(stickyTop);
