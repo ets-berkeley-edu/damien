@@ -2,11 +2,11 @@
   <v-footer
     id="footer"
     app
-    class="footer font-size-14 bg-secondary px-0"
+    class="footer font-size-14 bg-secondary pa-0"
     name="footer"
   >
-    <div class="d-flex justify-space-between w-100">
-      <div class="px-3">
+    <div class="d-flex flex-wrap justify-space-between w-100">
+      <div class="px-3 py-1">
         Problem? Question?
         <a
           id="damien-support-mailto"
@@ -18,7 +18,7 @@
           <span class="sr-only"> (opens a new window)</span>
         </a>
       </div>
-      <div class="ml-auto px-3">
+      <div class="ml-auto px-3 py-1">
         <span v-if="contextStore.config.isVueAppDebugMode && screenReaderAlert.message">
           {{ screenReaderAlert.message }}
         </span>
