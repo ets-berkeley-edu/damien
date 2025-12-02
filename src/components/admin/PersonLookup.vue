@@ -34,7 +34,7 @@
       :when-item-selected="onSelectItem"
     >
       <template #selection="{item}">
-        <span class="truncate-with-ellipsis">{{ getUserLabel(item.value) }}</span>
+        <span class="text-truncate">{{ getUserLabel(item.value) }}</span>
       </template>
     </AccessibleCombobox>
     <div
@@ -233,14 +233,14 @@ const validate = suggestion => {
   padding: 0 !important;
 }
 :deep(.person-lookup .v-field__clearable) {
-  height: 38px;
-  max-height: 38px;
+  height: 2.375rem;
+  max-height: 2.375rem;
 }
 :deep(.person-lookup .v-field__input) {
   flex-wrap: nowrap;
-  height: 38px;
-  max-height: 38px;
-  padding-inline-start: 12px !important;
+  height: 2.375rem;
+  max-height: 2.375rem;
+  padding-inline-start: 0.75rem !important;
 }
 :deep(.person-lookup .v-field__loader) {
   display: flex;
@@ -251,6 +251,6 @@ const validate = suggestion => {
   top: 0;
 }
 :deep(.person-lookup .v-input__control) {
-  height: 38px;
+  height: 2.375rem;
 }
 </style>

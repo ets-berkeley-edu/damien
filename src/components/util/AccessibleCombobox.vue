@@ -27,7 +27,6 @@
       :item-value="itemValue"
       :items="items"
       :list-props="{ariaLive: ariaLive}"
-      :loading="isBusy"
       :menu-icon="isAutocomplete ? null : mdiChevronDown"
       :menu-props="menuProps"
       :multiple="!isAutocomplete"
@@ -43,10 +42,10 @@
       @update:menu="onToggleMenu"
       @update:search="onUpdateSearch"
     >
-      <template #loader="{isActive}">
+      <template #append-inner>
         <v-progress-circular
-          v-if="isActive"
-          class="mr-2"
+          v-if="isBusy"
+          class="r-mx-2"
           color="tertiary"
           indeterminate
           size="x-small"

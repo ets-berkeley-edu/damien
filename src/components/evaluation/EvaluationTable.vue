@@ -25,6 +25,7 @@
             hide-details
             label="Filter courses"
             max-width="37.5rem"
+            min-width="10rem"
             type="search"
           />
           <AddCourseSection

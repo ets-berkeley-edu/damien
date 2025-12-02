@@ -5,7 +5,7 @@
     class="panel-width"
     role="region"
   >
-    <v-expansion-panel-title :id="`department-contact-${contact.id}-btn`" class="pa-2 rounded-b-0 height-unset">
+    <v-expansion-panel-title :id="`department-contact-${contact.id}-btn`" class="r-px-2 py-2 rounded-b-0 height-unset">
       <span v-if="isEditing" class="sr-only">Edit</span>
       <div :id="`dept-contact-${contact.id}-name`" class="font-weight-bold">{{ fullName }}</div>
       <span class="sr-only">department contact</span>
@@ -20,10 +20,11 @@
         <v-row :id="`dept-contact-${contact.id}-email`">
           <v-col class="px-2 pt-1" cols="12"><span class="sr-only">Email address:</span>{{ contact.email }}</v-col>
         </v-row>
-        <v-row :id="`dept-contact-${contact.id}-notifications`" class="mt-0">
-          <v-col class="text-right px-1" cols="1">
+        <v-row :id="`dept-contact-${contact.id}-notifications`" class="flex-nowrap mt-0">
+          <v-col class="text-right px-1 icon-col" cols="1">
             <span class="sr-only">Communications:</span>
             <v-icon
+              class="r-mr-1"
               :class="contact.canReceiveCommunications ? 'text-success' : 'text-muted'"
               :icon="contact.canReceiveCommunications ? mdiCheckCircle : mdiMinusCircle"
               size="small"
@@ -33,10 +34,11 @@
             {{ `${contact.canReceiveCommunications ? 'Does' : 'Does not'} receive notifications` }}
           </v-col>
         </v-row>
-        <v-row :id="`dept-contact-${contact.id}-permissions`" class="mt-0">
-          <v-col class="text-right px-1" cols="1">
+        <v-row :id="`dept-contact-${contact.id}-permissions`" class="flex-nowrap mt-0">
+          <v-col class="text-right px-1 icon-col" cols="1">
             <span class="sr-only">Blue access:</span>
             <v-icon
+              class="r-mr-1"
               :class="contact.canViewReports ? 'text-success' : 'text-muted'"
               :icon="contact.canViewReports ? mdiCheckCircle : mdiMinusCircle"
               size="small"
@@ -53,14 +55,14 @@
           <v-col cols="12">
             <span class="sr-only">Department forms:</span>
             <div class="d-flex flex-wrap">
-              <div v-for="(form, formIndex) in departmentForms" :key="form.id" class="pb-1 pr-1">
-                <v-chip
-                  :id="`dept-contact-${contact.id}-form-${formIndex}`"
-                  class="font-weight-bold border-sm"
-                  color="success"
-                  :text="form.name"
-                />
-              </div>
+              <v-chip
+                v-for="(form, formIndex) in departmentForms"
+                :id="`dept-contact-${contact.id}-form-${formIndex}`"
+                :key="form.id"
+                class="font-weight-bold border-sm r-mb-1 r-mr-1"
+                color="success"
+                :text="form.name"
+              />
             </div>
           </v-col>
         </v-row>
@@ -69,7 +71,7 @@
             <v-toolbar
               v-if="currentUser.isAdmin"
               :id="`dept-contact-${contact.id}-actions`"
-              class="pl-0"
+              class="pl-0 pt-2"
               color="surface"
               density="compact"
               flat
@@ -88,7 +90,7 @@
                 @click="() => isEditing = true"
               />
               <v-divider
-                class="mx-1"
+                class="r-mx-1"
                 role="presentation"
                 thickness="2"
                 vertical
@@ -217,6 +219,9 @@ const onDelete = () => {
 .edit-contact-container {
   border-radius: 0 0 4px 4px;
   border: 2px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+.icon-col {
+  min-width: fit-content;
 }
 .panel-width {
   min-width: 320px;

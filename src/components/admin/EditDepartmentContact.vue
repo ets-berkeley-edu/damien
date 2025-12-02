@@ -1,11 +1,11 @@
 <template>
   <v-form
     v-model="valid"
-    class="px-3 py-4"
+    class="department-contact-form py-4 px-2"
     :class="{'bg-surface-variant': uid && !contact}"
     lazy-validation
   >
-    <div v-if="!contact && !uid" class="w-75">
+    <div v-if="!contact && !uid">
       <h3 id="add-contact-sub-header" class="form-title">
         Add Contact
       </h3>
@@ -25,7 +25,7 @@
         {{ fullName }} ({{ uid }})
       </h3>
     </div>
-    <div v-if="uid" class="department-contact-form w-75">
+    <div v-if="uid" class="department-contact-form">
       <div class="pt-2">
         <label :for="`input-email-${contactId}`" class="form-label">
           Email Address
@@ -52,13 +52,13 @@
             :aria-describedby="undefined"
             class="checkbox-override rounded-sm"
             color="primary"
-            density="compact"
+            density="comfortable"
             :disabled="isSaving"
             hide-details
             role="checkbox"
             tabindex="0"
           />
-          <label :for="`checkbox-communications-${contactId}`" class="v-label ml-1">
+          <label class="v-label opacity-100 ml-1 text-wrap" :for="`checkbox-communications-${contactId}`">
             Receive notifications
           </label>
         </div>
@@ -106,7 +106,7 @@
         <AccessibleCombobox
           :id-prefix="`select-department-forms-${contactId}`"
           :aria-live="undefined"
-          clazz="mt-1"
+          clazz="mt-1 department-contact-lookup"
           :custom-filter="filterDepartmentForms"
           :disabled="isSaving"
           :get-value="() => contactDepartmentForms"
@@ -142,12 +142,12 @@
         </div>
       </div>
     </div>
-    <div class="mt-4">
+    <div class="mt-2">
       <ProgressButton
         :id="`save-dept-contact-${contactId}-btn`"
         :action="onSave"
         aria-label="Save department contact"
-        class="text-capitalize mr-2"
+        class="text-capitalize mr-2 mt-2"
         :disabled="!valid || !uid || isSaving"
         :in-progress="isSaving"
         text="Save"
@@ -155,7 +155,7 @@
       <v-btn
         :id="`cancel-dept-contact-${contactId}-btn`"
         aria-label="Cancel save department contact"
-        class="text-capitalize"
+        class="text-capitalize mt-2"
         :disabled="isSaving"
         text="Cancel"
         variant="outlined"
@@ -324,11 +324,10 @@ const removeDepartmentForm = formId => {
 
 <style scoped>
 .department-contact-form {
+  max-width: 30rem;
   z-index: 10;
 }
-.checkbox-override.v-simple-checkbox div {
-  height: 20px;
-  margin: 0px;
-  width: 20px;
+.checkbox-override {
+  min-width: 2.25rem;
 }
 </style>
