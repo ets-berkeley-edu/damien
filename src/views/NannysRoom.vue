@@ -1,5 +1,5 @@
 <template>
-  <div class="page-margins pb-6">
+  <div>
     <PageHeader>
       Settings
       <template #append>
@@ -17,11 +17,8 @@
     </PageHeader>
     <v-container v-if="!contextStore.loading" class="pa-0 mx-0" fluid>
       <v-row>
-        <v-col cols="12" md="6" lg="3">
-          <v-card
-            height="100%"
-            min-width="fit-content"
-          >
+        <v-col cols="12" lg="6" xl="3">
+          <v-card height="100%">
             <v-card-title
               id="department-forms-card-title"
               class="pb-0"
@@ -37,7 +34,7 @@
                 color="primary"
                 :disabled="disableControls"
                 :prepend-icon="mdiPlusThick"
-                text="Add new department form"
+                text="Add department form"
                 variant="text"
                 @click="onClickAddDepartmentForm"
               />
@@ -123,11 +120,8 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" md="6" lg="3">
-          <v-card
-            height="100%"
-            min-width="fit-content"
-          >
+        <v-col cols="12" lg="6" xl="3">
+          <v-card height="100%">
             <v-card-title
               id="evaluation-types-card-title"
               class="pb-0"
@@ -143,7 +137,7 @@
                 color="primary"
                 :disabled="disableControls"
                 :prepend-icon="mdiPlusThick"
-                text="Add new evaluation type"
+                text="Add evaluation type"
                 variant="text"
                 @click="onClickAddEvaluationType"
               />
@@ -229,11 +223,8 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" lg="6">
-          <v-card
-            class="mr-4"
-            min-width="fit-content"
-          >
+        <v-col cols="12" xl="6">
+          <v-card min-width="fit-content">
             <v-card-title
               id="manually-added-instructors-title"
               tabindex="-1"
@@ -244,11 +235,11 @@
               <v-btn
                 v-if="!isAddingInstructor"
                 id="add-instructor-btn"
-                class="font-weight-bold text-capitalize pl-2 my-1"
+                class="font-weight-bold pl-2 my-1"
                 color="primary"
                 :disabled="disableControls"
                 :prepend-icon="mdiPlusThick"
-                text="Add new instructor"
+                text="Add instructor"
                 variant="text"
                 @click="onClickAddInstructor"
               />
@@ -410,11 +401,11 @@
               </div>
             </v-card-text>
           </v-card>
-          <v-card class="mr-4 mt-6 pa-3">
+          <v-card class="mt-6 pa-3">
             <v-card-title>Service Announcement</v-card-title>
             <EditServiceAnnouncement />
           </v-card>
-          <v-card class="mr-4 mt-6 pa-3">
+          <v-card class="mt-6 pa-3">
             <v-card-title>Automatically Publish</v-card-title>
             <v-card-text class="pt-0">
               <span v-if="config.scheduleLochRefresh">
@@ -665,6 +656,6 @@ const toggleAutoPublishEnabled = enabled => {
 
 <style scoped>
 .nannys-list {
-  max-height: 500px;
+  max-height: 31.25rem;
 }
 </style>

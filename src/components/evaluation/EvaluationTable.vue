@@ -12,29 +12,34 @@
         :class="{'collapsed': isHeaderCollapsed}"
         role="search"
       >
-        <div class="align-center d-flex flex-wrap pl-4 pr-2" :class="{'pt-2': !isHeaderCollapsed, 'pb-2': readonly}">
-          <v-text-field
-            id="evaluation-search-input"
-            v-model="searchFilter"
-            :aria-describedby="undefined"
-            aria-label="Filter evaluations table by search terms."
-            class="bg-surface mr-3"
-            clearable
-            color="primary"
-            density="comfortable"
-            hide-details
-            label="Filter courses"
-            max-width="37.5rem"
-            min-width="10rem"
-            type="search"
-          />
-          <AddCourseSection
-            v-if="!readonly"
-            id="add-course-section"
-            :allow-edits="allowEdits"
-            :on-click-add="onClickExpandHeader"
-          />
-          <div class="button-container">
+        <div class="align-start d-flex pl-4 pr-2" :class="{'pt-2': !isHeaderCollapsed, 'pb-2': readonly}">
+          <div class="d-flex flex-grow-1 flex-wrap">
+            <div class="flex-grow-1">
+              <v-text-field
+                id="evaluation-search-input"
+                v-model="searchFilter"
+                :aria-describedby="undefined"
+                aria-label="Filter evaluations table by search terms."
+                class="bg-surface mr-4"
+                clearable
+                color="primary"
+                density="compact"
+                hide-details
+                label="Filter courses"
+                max-width="37.5rem"
+                min-width="8rem"
+                type="search"
+              />
+            </div>
+            <AddCourseSection
+              v-if="!readonly"
+              id="add-course-section"
+              :allow-edits="allowEdits"
+              class="align-self-center"
+              :on-click-add="onClickExpandHeader"
+            />
+          </div>
+          <div class="button-container ml-auto">
             <v-btn
               v-if="isHeaderCollapsed"
               aria-label="More Options"
@@ -760,7 +765,7 @@ watch(selectedFilterTypes, types => {
 const stickySearchPosition = ref(0)
 const setStickySearchPosition = () => {
   const serviceAnnouncementEl = document.getElementById('service-announcement')
-  stickySearchPosition.value = serviceAnnouncementEl ? (64 + serviceAnnouncementEl.clientHeight) : 64
+  stickySearchPosition.value = serviceAnnouncementEl ? serviceAnnouncementEl.clientHeight : 0
 }
 
 onMounted(() => {
@@ -993,7 +998,9 @@ const onMouseleaveRow = evaluation => {
 
 const onScroll = () => {
   const tableHeader = document.getElementById('evaluations-table-header')
-  if (tableHeader.getBoundingClientRect().top <= stickySearchPosition.value) {
+  const appBar = document.getElementById('app-bar')
+  const appBarHeight = appBar ? (appBar.getBoundingClientRect().height || 64) : 64
+  if (tableHeader.getBoundingClientRect().top <= (stickySearchPosition.value + appBarHeight)) {
     if (!forceExpandHeader.value && !isHeaderCollapsed.value) {
       isHeaderCollapsed.value = true
     }
@@ -1217,7 +1224,7 @@ tr.border-top-none td {
 .select-all-evals {
   height: 2.25em;
   margin-left: -3px;
-  width: 7.5rem;
+  min-width: 7rem;
 }
 .select-evaluation-status {
   min-width: 5.5em;
@@ -1236,14 +1243,13 @@ tr.border-top-none td {
   width: 100%;
 }
 .sticky {
-  max-height: 13rem;
   overflow-y: hidden;
   position: sticky;
-  top: v-bind(stickyTop);
+  top: calc(v-bind(stickyTop) + var(--v-layout-top));
   transition: max-height 0.2s;
   z-index: 11;
   &.collapsed {
-    max-height: 4rem;
+    max-height: 3rem;
   }
 }
 .td-courseNumber {

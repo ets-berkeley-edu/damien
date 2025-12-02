@@ -1,5 +1,5 @@
 <template>
-  <div class="page-margins">
+  <div>
     <PageHeader>
       Departments
       <template #append>

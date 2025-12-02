@@ -1,5 +1,5 @@
 <template>
-  <div class="page-margins">
+  <div>
     <PageHeader>
       <div class="align-center d-flex justify-space-between">
         <div v-if="get(department, 'deptName')">
