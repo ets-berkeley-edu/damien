@@ -1,12 +1,14 @@
 <template>
-  <div
-    id="screen-reader-alert"
-    class="sr-only"
-    :aria-live="contextStore.screenReaderAlert.politeness"
-  >
-    {{ contextStore.screenReaderAlert.message }}
+  <div>
+    <div
+      id="screen-reader-alert"
+      class="sr-only"
+      :aria-live="contextStore.screenReaderAlert.politeness"
+    >
+      {{ contextStore.screenReaderAlert.message }}
+    </div>
+    <router-view />
   </div>
-  <router-view />
 </template>
 
 <script setup>

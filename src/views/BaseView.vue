@@ -73,6 +73,7 @@
       :rail="isSidebarCollapsed"
       role="navigation"
       :scrim="false"
+      style="height: calc(100% - max(64px, 2.75rem)); top: max(64px, 2.75rem);"
       tag="nav"
     >
       <template #prepend>
@@ -128,14 +129,14 @@
     <v-main
       id="content"
       class="mb-4"
-      :style="`--v-layout-bottom: ${footerHeight}px; --v-layout-top: max(64px, 2.75rem);`"
+      :style="`--v-layout-bottom: ${footerHeight}px; --v-layout-top: max(64px, 2.75rem); --v-layout-left: ${layoutLeft}`"
     >
       <Snackbar />
       <Spinner v-if="contextStore.loading" />
       <ServiceAnnouncement />
       <router-view :key="stripAnchorRef(route.fullPath)" class="page-margins mx-xl-6" />
     </v-main>
-    <DamienFooter />
+    <DamienFooter :style="`--v-layout-left: ${layoutLeft}`" />
   </v-layout>
 </template>
 
@@ -173,6 +174,10 @@ const theme = useTheme()
 const footerHeight = computed(() => {
   const footer = layout.value ? layout.value.getLayoutItem('footer') : null
   return get(footer, 'size', 60)
+})
+
+const layoutLeft = computed(() => {
+  return isSidebarCollapsed.value ? '3rem' : '11.5rem'
 })
 
 onMounted(() => {
@@ -260,7 +265,6 @@ const toRoute = path => router.push({path})
 .nav-item.v-list-item:focus-visible > .v-list-item__overlay {
   opacity: calc(var(--v-focus-opacity)) !important;
 }
-
 .topbar .v-toolbar__content {
   height: max(64px, 2.75rem) !important;
 }
