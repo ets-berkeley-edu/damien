@@ -152,7 +152,7 @@ const lookupSection = () => {
       alertScreenReader(`Section ${courseNumber.value} found.`)
       courseNumber.value = null
       section.value = data
-      putFocusNextTick('add-section-title')
+      putFocusNextTick('add-course-section-submit')
     }, () => {
       sectionError.value = true
       errorMessage.value = `Section ${courseNumber.value} not found.`
@@ -167,7 +167,7 @@ const onCancel = () => {
   errorMessage.value = null
   if (section.value) {
     section.value = null
-    alertScreenReader('Canceled. Add course section form is ready.')
+    alertScreenReader('Canceled.')
     putFocusNextTick('lookup-course-number-input')
   } else {
     isAddingSection.value = false
@@ -189,6 +189,8 @@ const onSubmit = courseNum => {
     errorMessage.value = null
     section.value = null
     alertScreenReader(`Section ${courseNum} added.`)
+    putFocusNextTick('add-course-section-btn')
+
   }, error => departmentStore.showErrorDialog(error.response.data.message))
     .finally(() => departmentStore.disableControls = false)
 }

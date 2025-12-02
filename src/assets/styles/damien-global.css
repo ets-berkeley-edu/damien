@@ -212,3 +212,13 @@ table thead th button {
 ul {
   list-style: none;
 }
+.v-btn.v-btn--disabled {
+  opacity: 1 !important;
+}
+
+.v-btn.v-btn--variant-elevated.v-btn--disabled, .v-btn.v-btn--variant-elevated:disabled, .v-btn.v-btn--variant-flat.v-btn--disabled, .v-btn.v-btn--variant-flat:disabled {
+  background-color: rgb(var(--v-theme-primary)) !important;
+  color: rgb(var(--v-theme-on-primary)) !important;
+
+  filter: grayscale(0.9) brightness(0.9);
+}
