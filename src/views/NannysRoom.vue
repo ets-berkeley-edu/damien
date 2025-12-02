@@ -411,11 +411,11 @@
             </v-card-text>
           </v-card>
           <v-card class="mr-4 mt-6 pa-3">
-            <v-card-title>Service Announcement</v-card-title>
+            <v-card-title>Publish Service Announcement</v-card-title>
             <EditServiceAnnouncement />
           </v-card>
           <v-card class="mr-4 mt-6 pa-3">
-            <v-card-title>Automatically Publish</v-card-title>
+            <v-card-title>Automatically Publish Evaluations</v-card-title>
             <v-card-text class="pt-0">
               <span v-if="config.scheduleLochRefresh">
                 When enabled, publication will run daily at
