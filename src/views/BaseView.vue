@@ -10,6 +10,7 @@
   </a>
   <v-layout ref="layout" :aria-hidden="contextStore.isModalOpen">
     <v-app-bar
+      id="app-bar"
       app
       class="topbar"
       clipped-left
@@ -67,6 +68,7 @@
       aria-labelledby="nav-header"
       class="font-size-14"
       color="tertiary"
+      style="height: calc(100% - max(64px, 2.75rem)); top: max(64px, 2.75rem)"
       permanent
       :rail="isSidebarCollapsed"
       role="navigation"
@@ -131,7 +133,7 @@
       <Snackbar />
       <Spinner v-if="contextStore.loading" />
       <ServiceAnnouncement />
-      <router-view :key="stripAnchorRef(route.fullPath)" class="px-4" />
+      <router-view :key="stripAnchorRef(route.fullPath)" class="page-margins mx-xl-6" />
     </v-main>
     <DamienFooter />
   </v-layout>

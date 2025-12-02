@@ -1,5 +1,5 @@
 <template>
-  <div class="page-margins">
+  <div>
     <PageHeader>
       Evaluation Status Dashboard &mdash;&nbsp;{{ contextStore.selectedTermName }}
       <template #append>

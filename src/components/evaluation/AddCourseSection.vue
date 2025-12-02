@@ -3,8 +3,9 @@
     <v-btn
       v-if="!isAddingSection"
       id="add-course-section-btn"
-      class="font-weight-bold mr-3"
+      class="font-weight-bold mr-3 my-1"
       color="primary"
+      density="default"
       :disabled="!allowEdits || disableControls"
       :prepend-icon="mdiPlusThick"
       text="Add Course Section"
@@ -180,15 +181,16 @@ const onClickAdd = () => {
   props.onClickAdd()
 }
 
-const onSubmit = courseNumber => {
-  alertScreenReader(`Adding section ${courseNumber}.`)
-  departmentStore.addSection(courseNumber, useContextStore().selectedTermId).then(() => {
+const onSubmit = courseNum => {
+  alertScreenReader(`Adding section ${courseNum}.`)
+  departmentStore.addSection(courseNum, useContextStore().selectedTermId).then(() => {
     isAddingSection.value = false
     courseNumber.value = null
     errorMessage.value = null
     section.value = null
-    alertScreenReader(`Section ${courseNumber} added.`)
+    alertScreenReader(`Section ${courseNum} added.`)
     putFocusNextTick('add-course-section-btn')
+
   }, error => departmentStore.showErrorDialog(error.response.data.message))
     .finally(() => departmentStore.disableControls = false)
 }
