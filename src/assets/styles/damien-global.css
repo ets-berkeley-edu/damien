@@ -184,9 +184,6 @@ h2 {
 input.vs__search:enabled {
   cursor: text !important;
 }
-main {
-  --v-layout-left: calc(3rem + 8px) !important;
-}
 select {
   -moz-appearance: none;
   -webkit-appearance: none;

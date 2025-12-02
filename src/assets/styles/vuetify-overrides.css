@@ -112,6 +112,9 @@
   outline-style: auto !important;
   outline-width: 1px !important;
 }
+.v-main {
+  padding-left: calc(var(--v-layout-left) + 8px);
+}
 .v-navigation-drawer {
   width: 12rem !important;
 }
