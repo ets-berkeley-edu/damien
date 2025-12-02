@@ -167,7 +167,7 @@
 .v-table.v-table--density-compact > .v-table__wrapper > table > tbody > tr > th,
 .v-table.v-table--density-compact > .v-table__wrapper > table > thead > tr > td,
 .v-table.v-table--density-compact > .v-table__wrapper > table > thead > tr > th {
-  padding: 0 12px ;
+  padding: 0 12px;
 }
 .v-table-hidden-row-override table tbody tr[style="height: 0px; border: 0px;"] {
   display: none;

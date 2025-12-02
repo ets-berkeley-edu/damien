@@ -11,11 +11,12 @@
   <v-layout ref="layout" :aria-hidden="contextStore.isModalOpen">
     <v-app-bar
       app
+      class="topbar"
       clipped-left
       color="topbar"
     >
-      <router-link class="home-link ml-2 px-1 on-topbar" :to="`/`">
-        <div class="text-h4 text-no-wrap cursor-pointer">
+      <router-link class="home-link ma-2 px-1 on-topbar text-truncate" :to="`/`">
+        <div class="text-h4 text-no-wrap cursor-pointer text-truncate">
           Course Evaluations
         </div>
       </router-link>
@@ -27,10 +28,13 @@
           <template #activator="{props: menuProps}">
             <v-btn
               id="btn-main-menu"
+              :aria-label="`User profile for ${currentUser.firstName}`"
+              min-width="2rem !important"
               variant="outlined"
               v-bind="menuProps"
             >
-              <span class="sr-only">User profile for </span>{{ currentUser.firstName }}
+              <span class="d-none d-sm-block">{{ currentUser.firstName }}</span>
+              <span class="d-block d-sm-none">{{ first(currentUser.firstName) }}</span>
             </v-btn>
           </template>
           <v-list density="comfortable">
@@ -119,7 +123,11 @@
         </div>
       </v-list-item>
     </v-navigation-drawer>
-    <v-main id="content" class="mb-4" :style="`--v-layout-bottom: ${footerHeight}px;`">
+    <v-main
+      id="content"
+      class="mb-4"
+      :style="`--v-layout-bottom: ${footerHeight}px; --v-layout-top: max(64px, 2.75rem);`"
+    >
       <Snackbar />
       <Spinner v-if="contextStore.loading" />
       <ServiceAnnouncement />
@@ -131,7 +139,7 @@
 
 <script setup>
 import {computed, onMounted, ref} from 'vue'
-import {get, startsWith} from 'lodash'
+import {first, get, startsWith} from 'lodash'
 import {
   mdiAccountGroup,
   mdiAlertCircle,
@@ -249,5 +257,9 @@ const toRoute = path => router.push({path})
 .nav-item.v-list-item:focus > .v-list-item__overlay,
 .nav-item.v-list-item:focus-visible > .v-list-item__overlay {
   opacity: calc(var(--v-focus-opacity)) !important;
+}
+
+.topbar .v-toolbar__content {
+  height: max(64px, 2.75rem) !important;
 }
 </style>
