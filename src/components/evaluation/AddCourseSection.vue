@@ -177,13 +177,20 @@ const onCancel = () => {
 }
 
 const onClickAdd = () => {
+  courseNumber.value = null
+  errorMessage.value = null
+  section.value = null
+  sectionError.value = false
+
   isAddingSection.value = true
   props.onClickAdd()
 }
 
 const onSubmit = courseNum => {
   alertScreenReader(`Adding section ${courseNum}.`)
+  let added = false
   departmentStore.addSection(courseNum, useContextStore().selectedTermId).then(() => {
+    added = true
     isAddingSection.value = false
     courseNumber.value = null
     errorMessage.value = null
@@ -192,7 +199,12 @@ const onSubmit = courseNum => {
     putFocusNextTick('add-course-section-btn')
 
   }, error => departmentStore.showErrorDialog(error.response.data.message))
-    .finally(() => departmentStore.disableControls = false)
+    .finally(() => {
+      departmentStore.disableControls = false
+      if (added) {
+        putFocusNextTick('add-course-section-btn')
+      }
+    })
 }
 </script>
 
