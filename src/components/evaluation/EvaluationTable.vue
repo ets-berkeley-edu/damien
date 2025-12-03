@@ -764,7 +764,7 @@ watch(selectedFilterTypes, types => {
 
 const stickySearchPosition = ref(0)
 const setStickySearchPosition = () => {
-  const serviceAnnouncementEl = document.getElementById('service-announcement')
+  const serviceAnnouncementEl = document.getElementById('service-announcement-wrapper')
   stickySearchPosition.value = serviceAnnouncementEl ? serviceAnnouncementEl.clientHeight : 0
 }
 
