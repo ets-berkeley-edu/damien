@@ -34,7 +34,7 @@
               title="Select All Departments"
               @update:model-value="toggleSelectAll"
             />
-            <div id="checkbox-select-dept-all-desc">Send notification</div>
+            <div id="checkbox-select-dept-all-desc" class="px-1">Send notification</div>
             <v-btn
               id="open-notification-form-btn"
               class="r-mx-2 text-capitalize"

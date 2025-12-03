@@ -16,7 +16,7 @@
       clipped-left
       color="topbar"
     >
-      <router-link class="home-link ma-2 px-1 on-topbar text-truncate" :to="`/`">
+      <router-link class="home-link my-1 mx-2 py-1 px-2 on-topbar text-truncate" :to="`/`">
         <div class="text-h4 text-no-wrap cursor-pointer text-truncate">
           Course Evaluations
         </div>
@@ -229,16 +229,19 @@ const toRoute = path => router.push({path})
 </script>
 
 <style scoped>
-.home-link {
-  border: 2px solid transparent;
+@supports not selector(:focus-visible) {
+  .home-link:focus {
+    background-color: rgba(var(--v-theme-on-topbar), var(--v-focus-opacity));
+    outline: rgba(var(--v-border-color)) solid 0.125rem;
+    outline-offset: 0
+  }
 }
-.home-link:focus, .home-link:focus-visible {
-  background-color: rgba(var(--v-theme-on-topbar), var(--v-focus-opacity));
-  border-color: rgba(var(--v-theme-on-topbar), var(--v-focus-opacity));
-  border-radius: 4px;
-  border-style: solid;
-  border-width: 2px;
-  outline: none;
+@supports selector(:focus-visible) {
+  .home-link:focus-visible {
+    background-color: rgba(var(--v-theme-on-topbar), var(--v-focus-opacity));
+    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+    outline-offset: 0
+  }
 }
 .home-link:hover {
   opacity: var(--v-high-emphasis-opacity);
@@ -254,15 +257,10 @@ const toRoute = path => router.push({path})
 .nav-item.nav-link {
   padding: 16px calc(0.5rem + 4px);
 }
-.nav-item.v-list-item.active,
-.nav-item.v-list-item:focus,
-.nav-item.v-list-item:focus-visible {
+.nav-item.active,
+.nav-item:focus,
+.nav-item:focus-visible {
   color: white !important;
-}
-.nav-item.v-list-item.active > .v-list-item__overlay,
-.nav-item.v-list-item:focus > .v-list-item__overlay,
-.nav-item.v-list-item:focus-visible > .v-list-item__overlay {
-  opacity: calc(var(--v-focus-opacity)) !important;
 }
 .topbar .v-toolbar__content {
   height: max(64px, 2.75rem) !important;
