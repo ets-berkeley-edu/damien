@@ -1,3 +1,51 @@
+@supports not selector(:focus-visible) {
+  *:focus::after,
+  .v-selection-control--focus-visible .v-selection-control__input::before,
+  a:focus {
+    --v-theme-overlay-multiplier: 3;
+    border-width: 0;
+    outline: rgba(var(--v-border-color)) solid 0.125rem;
+  }
+  .v-list-item:focus > .v-list-item__overlay {
+    opacity: calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)) !important;
+  }
+  .v-list-item:focus::after {
+    opacity: calc(0.25 * var(--v-theme-overlay-multiplier));
+    outline-offset: -0.125rem;
+  }
+  .v-selection-control--focus-visible .v-selection-control__input::before {
+    background-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+  }
+  a:focus {
+    border-radius: 1px;
+    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+    outline-offset: 0.25rem;
+  }
+}
+@supports selector(:focus-visible) {
+  *:focus-visible::after,
+  .v-selection-control--focus-visible .v-selection-control__input::before,
+  a:focus-visible {
+    --v-theme-overlay-multiplier: 3;
+    border-width: 0;
+    outline: rgba(var(--v-border-color)) solid 0.125rem;
+  }
+  .v-list-item:focus-visible > .v-list-item__overlay {
+    opacity: calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)) !important;
+  }
+  .v-list-item:focus-visible::after {
+    opacity: calc(0.25 * var(--v-theme-overlay-multiplier));
+    outline-offset: -0.125rem;
+  }
+  .v-selection-control--focus-visible .v-selection-control__input::before {
+    background-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+  }
+  a:focus-visible {
+    border-radius: 1px;
+    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+    outline-offset: 0.25rem;
+  }
+}
 .v-btn.v-btn--variant-elevated.v-btn--disabled,
 .v-btn.v-btn--variant-elevated:disabled,
 .v-btn.v-btn--variant-flat.v-btn--disabled,

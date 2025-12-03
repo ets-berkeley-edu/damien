@@ -26,12 +26,25 @@
   &:hover:not(:disabled) {
     --v-field-border-opacity: var(--v-high-emphasis-opacity);
   }
-  &:focus {
-    --v-field-border-width: 1.875px;
-    --v-field-border-opacity: 1;
-    border: var(--v-field-border-width) solid rgba(var(--v-border-color), var(--v-field-border-opacity)) !important;
-    outline: 0;
-    box-shadow: inset 0 -1.3em 1em 0 rgba(0, 0, 0, 0.02);
+  @supports not selector(:focus-visible) {
+    &:focus {
+      --v-field-border-opacity: 0.7;
+      --v-theme-overlay-multiplier: 3;
+      outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+      outline-offset: 0.125rem;
+      outline-style: solid;
+      outline-width: 0.125rem;
+    }
+  }
+  @supports selector(:focus-visible) {
+    &:focus-visible {
+      --v-field-border-opacity: 0.7;
+      --v-theme-overlay-multiplier: 3;
+      outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+      outline-offset: 0.125rem;
+      outline-style: solid;
+      outline-width: 0.125rem;
+    }
   }
   &:disabled {
     color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
@@ -167,6 +180,7 @@
 }
 a {
   color: rgb(var(--v-theme-anchor));
+  display: inline-block;
   text-decoration: none;
   &:hover {
     text-decoration: underline;
@@ -212,10 +226,8 @@ ul {
 .v-btn.v-btn--disabled {
   opacity: 1 !important;
 }
-
 .v-btn.v-btn--variant-elevated.v-btn--disabled, .v-btn.v-btn--variant-elevated:disabled, .v-btn.v-btn--variant-flat.v-btn--disabled, .v-btn.v-btn--variant-flat:disabled {
   background-color: rgb(var(--v-theme-primary)) !important;
   color: rgb(var(--v-theme-on-primary)) !important;
-
   filter: grayscale(0.9) brightness(0.9);
 }
