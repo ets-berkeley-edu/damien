@@ -491,7 +491,7 @@ const instructorHeaders = [
   {key: 'firstName', class: 'pl-0 pr-2', sortable: true, title: 'First Name', value: 'firstName'},
   {key: 'lastName', class: 'pl-0 pr-2', sortable: true, title: 'Last Name', value: 'lastName'},
   {key: 'email', class: 'pl-0 pr-2', sortable: true, title: 'Email', value: 'email'},
-  {key: 'delete', class: 'pl-0 pr-2', sortable: false, title: '', value: 'delete'}
+  {key: 'delete', class: 'pl-0 pr-2', sortable: false, title: 'Delete', value: 'delete'}
 ]
 const isDeleting = ref(false)
 const newInstructor = ref(null)
