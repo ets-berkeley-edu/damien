@@ -27,9 +27,10 @@
     --v-field-border-opacity: var(--v-high-emphasis-opacity);
   }
   @supports not selector(:focus-visible) {
-    &:focus {
+    &:focus, &:has(input:focus) {
       --v-field-border-opacity: 0.7;
       --v-theme-overlay-multiplier: 3;
+      box-shadow: 0 0 0 0.125rem rgba(var(--v-theme-surface));
       outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
       outline-offset: 0.125rem;
       outline-style: solid;
@@ -37,9 +38,11 @@
     }
   }
   @supports selector(:focus-visible) {
-    &:focus-visible {
+    &:focus-visible, &:has(input:focus-visible) {
       --v-field-border-opacity: 0.7;
       --v-theme-overlay-multiplier: 3;
+      border-width: 0.125rem !important;
+      box-shadow: 0 0 0 0.125rem rgba(var(--v-theme-surface));
       outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
       outline-offset: 0.125rem;
       outline-style: solid;
@@ -126,6 +129,9 @@
 .page-margins {
   margin: 12px 16px;
 }
+.r-ma-1 {
+  margin: 0.25rem !important;
+}
 .r-mb-1 {
   margin-bottom: 0.25rem !important;
 }
@@ -178,6 +184,9 @@
 .w-fit-content {
   width: fit-content;
 }
+:root {
+  interpolate-size: allow-keywords;
+}
 a {
   color: rgb(var(--v-theme-anchor));
   display: inline-block;
@@ -185,6 +194,14 @@ a {
   &:hover {
     text-decoration: underline;
   }
+}
+/* Fix for monospace Font. */
+code,
+kbd,
+pre,
+samp,
+var {
+  font-family: "Open Sans", Helvetica, Arial, sans-serif !important;
 }
 h1 {
   color: rgb(var(--v-theme-title));
@@ -222,12 +239,4 @@ table thead th button {
 }
 ul {
   list-style: none;
-}
-.v-btn.v-btn--disabled {
-  opacity: 1 !important;
-}
-.v-btn.v-btn--variant-elevated.v-btn--disabled, .v-btn.v-btn--variant-elevated:disabled, .v-btn.v-btn--variant-flat.v-btn--disabled, .v-btn.v-btn--variant-flat:disabled {
-  background-color: rgb(var(--v-theme-primary)) !important;
-  color: rgb(var(--v-theme-on-primary)) !important;
-  filter: grayscale(0.9) brightness(0.9);
 }

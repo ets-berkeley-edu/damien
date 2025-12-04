@@ -58,10 +58,10 @@
       @click.stop.prevent="event => onClickClear(event)"
     >
       <v-icon
+        aria-hidden="true"
         color="secondary"
         :icon="mdiCloseCircle"
-        size="21"
-        aria-hidden="true"
+        size="1.25rem"
       />
     </button>
   </div>
@@ -337,8 +337,9 @@ const onUpdateFocus = (hasFocus, inputEvents) => {
   border: none;
   border-radius: 100%;
   cursor: pointer;
-  width: 28px;
-  height: 28px;
+  width: 1.75rem;
+  height: 1.75rem;
+  opacity: 0.9;
   position: absolute;
   right: 4px;
   top: 0.29rem;
@@ -346,12 +347,30 @@ const onUpdateFocus = (hasFocus, inputEvents) => {
     cursor: not-allowed;
     opacity: 0.26;
   }
-  &:focus-visible {
-    background-color: rgba(0, 0, 0, var(--v-focus-opacity));
-    border: 2px solid rgba(0, 0, 0, var(--v-border-opacity));
+  @supports not selector(:focus-visible) {
+    &:focus {
+      outline-color: rgba(var(--v-theme-secondary)) !important;
+      outline-offset: -0.25rem;
+      outline-style: solid;
+      outline-width: 0.125rem;
+      &::after {
+        opacity: 0;
+      }
+    }
   }
-  &:hover:not(:focus-visible) {
-    background-color: rgba(0, 0, 0, var(--v-hover-opacity));
+  @supports selector(:focus-visible) {
+    &:focus-visible {
+      outline-color: rgba(var(--v-theme-secondary)) !important;
+      outline-offset: -0.25rem;
+      outline-style: solid;
+      outline-width: 0.125rem;
+      &::after {
+        opacity: 0;
+      }
+    }
+  }
+  &:hover {
+    opacity: 1;
   }
 }
 .custom-text-field {
@@ -360,11 +379,6 @@ const onUpdateFocus = (hasFocus, inputEvents) => {
   padding: .375rem .75rem;
   position: relative;
   transition: border-color 0.3s;
-  &:focus-within {
-    --v-field-border-width: 1.875px;
-    --v-field-border-opacity: 1;
-    outline: 0;
-  }
 }
 .custom-text-field input {
   background-color: transparent;
@@ -390,9 +404,32 @@ const onUpdateFocus = (hasFocus, inputEvents) => {
   opacity: var(--v-disabled-opacity);
 }
 .date-picker {
-  max-width: 250px;
-  min-width: 7.85rem;
+  max-width: 15.625rem;
+  min-width: 8.25rem;
+}
+</style>
+
+<style>
+.date-picker .vc-popover-content-wrapper {
   z-index: 1200;
+}
+@supports not selector(:focus-visible) {
+  .vc-focus:focus {
+    box-shadow: 0 0 0 0.125rem white;
+    outline-color: rgba(var(--v-theme-secondary)) !important;
+    outline-offset: 0.125rem;
+    outline-style: solid;
+    outline-width: 0.125rem;
+  }
+}
+@supports selector(:focus-visible) {
+  .vc-focus:focus-visible {
+    box-shadow: 0 0 0 0.125rem white;
+    outline-color: rgba(var(--v-theme-secondary)) !important;
+    outline-offset: 0.125rem;
+    outline-style: solid;
+    outline-width: 0.125rem;
+  }
 }
 </style>
 

@@ -1,50 +1,118 @@
 @supports not selector(:focus-visible) {
-  *:focus::after,
-  .v-selection-control--focus-visible .v-selection-control__input::before,
-  a:focus {
+  .bg-primary:focus::after,
+  .text-primary:focus::after {
+    outline-color: rgba(var(--v-theme-primary)) !important;
+  }
+  .bg-secondary:focus::after,
+  .text-secondary:focus::after {
+    outline-color: rgba(var(--v-theme-secondary)) !important;
+  }
+  .bg-tertiary:focus::after,
+  .text-on-tertiary:focus::after,
+  .text-tertiary:focus::after {
+    outline-color: rgba(var(--v-theme-tertiary)) !important;
+  }
+  .btn-status-filter:focus::after {
+    outline-offset: 0.1rem;
+  }
+  .v-btn:focus > .v-btn__overlay {
+    opacity: var(--v-focus-opacity);
+  }
+  .v-btn:focus::after,
+  .v-expansion-panel-title:focus,
+  .v-list-item:focus::after,
+  .v-selection-control--focus .v-selection-control__input::before,
+  a:focus,
+  *[tabindex="-1"]:focus {
     --v-theme-overlay-multiplier: 3;
     border-width: 0;
-    outline: rgba(var(--v-border-color)) solid 0.125rem;
+    box-shadow: 0 0 0 0.125rem var(--v-theme-surface);
+    outline-color: currentColor;
+    outline-offset: 0.125rem;
+    outline-style: solid;
+    outline-width: 0.125rem;
   }
   .v-list-item:focus > .v-list-item__overlay {
     opacity: calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)) !important;
   }
   .v-list-item:focus::after {
+    box-shadow: inset 0 0 0 0.125rem var(--v-theme-surface);
     opacity: calc(0.25 * var(--v-theme-overlay-multiplier));
+  }
+  .v-menu .v-list-item:focus::after {
     outline-offset: -0.125rem;
   }
-  .v-selection-control--focus-visible .v-selection-control__input::before {
+  .v-selection-control--focus .v-selection-control__input::before {
     background-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+  }
+  .v-expansion-panel-title:focus,
+  a:focus {
+    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
   }
   a:focus {
     border-radius: 1px;
-    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
     outline-offset: 0.25rem;
   }
 }
 @supports selector(:focus-visible) {
-  *:focus-visible::after,
+  .bg-primary:focus-visible::after,
+  .text-primary:focus-visible::after {
+    outline-color: rgba(var(--v-theme-primary)) !important;
+  }
+  .bg-secondary:focus-visible::after,
+  .text-secondary:focus-visible::after {
+    outline-color: rgba(var(--v-theme-secondary)) !important;
+  }
+  .bg-tertiary:focus-visible::after,
+  .text-on-tertiary:focus-visible::after,
+  .text-tertiary:focus-visible::after {
+    outline-color: rgba(var(--v-theme-tertiary)) !important;
+  }
+  .btn-status-filter:focus-visible::after {
+    outline-offset: 0.1rem;
+  }
+  .v-btn:focus-visible > .v-btn__overlay {
+    opacity: var(--v-focus-opacity);
+  }
+  .v-btn:focus-visible::after,
+  .v-expansion-panel-title:focus-visible,
+  .v-list-item:focus-visible::after,
   .v-selection-control--focus-visible .v-selection-control__input::before,
-  a:focus-visible {
+  a:focus-visible,
+  *[tabindex="-1"]:focus-visible {
     --v-theme-overlay-multiplier: 3;
     border-width: 0;
-    outline: rgba(var(--v-border-color)) solid 0.125rem;
+    box-shadow: 0 0 0 0.125rem var(--v-theme-surface);
+    outline-color: currentColor;
+    outline-offset: 0.125rem;
+    outline-style: solid;
+    outline-width: 0.125rem;
   }
   .v-list-item:focus-visible > .v-list-item__overlay {
     opacity: calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)) !important;
   }
   .v-list-item:focus-visible::after {
+    box-shadow: inset 0 0 0 0.125rem var(--v-theme-surface);
     opacity: calc(0.25 * var(--v-theme-overlay-multiplier));
+  }
+  .v-menu .v-list-item:focus-visible::after {
     outline-offset: -0.125rem;
   }
   .v-selection-control--focus-visible .v-selection-control__input::before {
     background-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
   }
+  .v-expansion-panel-title:focus-visible,
+  a:focus-visible {
+    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+  }
   a:focus-visible {
     border-radius: 1px;
-    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
     outline-offset: 0.25rem;
   }
+}
+.v-btn.v-btn--disabled.v-btn--variant-elevated .v-btn__overlay,
+.v-btn.v-btn--disabled.v-btn--variant-flat .v-btn__overlay {
+    opacity: var(--v-disabled-opacity) !important;
 }
 .v-btn.v-btn--variant-elevated.v-btn--disabled,
 .v-btn.v-btn--variant-elevated:disabled,
@@ -52,6 +120,15 @@
 .v-btn.v-btn--variant-flat:disabled {
   background-color: rgba(var(--v-theme-disabled), var(--v-disabled-opacity)) !important;
   color: rgba(var(--v-theme-on-disabled), var(--v-disabled-opacity)) !important;
+  &.bg-primary {
+    background-color: rgb(var(--v-theme-primary)) !important;
+    color: rgb(var(--v-theme-on-primary)) !important;
+    filter: grayscale(0.9) brightness(0.9);
+  }
+  &.bg-secondary {
+    background-color: rgb(var(--v-theme-secondary)) !important;
+    color: rgb(var(--v-theme-on-secondary)) !important;
+  }
 }
 .v-btn.v-btn--density-comfortable {
   height: calc(var(--v-btn-height) + -0.5rem) !important;
@@ -133,8 +210,21 @@
   --v-field-padding-start: 1rem !important;
   font-size: 1rem !important;
 }
-.v-field--variant-outlined.v-field--focused .v-field__outline {
-  --v-field-border-width: 1.875px !important;
+.v-text-field.v-input--focused {
+  --v-field-border-opacity: 0.7;
+  border-radius: 4px;
+  box-shadow: 0 0 0 0.125rem white;
+  outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+  outline-offset: 0.125rem;
+  outline-style: solid;
+  outline-width: 0.125rem;
+}
+.v-text-field.v-input--focused:has(.v-field__outline__notch) {
+  box-shadow: none;
+  outline: none;
+}
+.v-input {
+  outline: none;
 }
 .v-input--density-default, .v-input--density-default * {
   --v-input-control-height: 3.5rem !important;

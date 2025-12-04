@@ -26,6 +26,7 @@
       :item-title="itemTitle"
       :item-value="itemValue"
       :items="items"
+      theme="light"
       :list-props="{ariaLive: ariaLive}"
       :menu-icon="isAutocomplete ? null : mdiChevronDown"
       :menu-props="menuProps"

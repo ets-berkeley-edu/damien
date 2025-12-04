@@ -8,7 +8,7 @@
     >
       <div
         id="evaluations-table-header"
-        class="bg-surface-variant elevation-2 py-2 sticky"
+        class="bg-surface-variant elevation-2 sticky"
         :class="{'collapsed': isHeaderCollapsed}"
         role="search"
       >
@@ -97,29 +97,29 @@
                 :key="status"
                 :active="filterTypes[status].enabled"
                 :aria-pressed="filterTypes[status].enabled"
-                class="mb-1 mr-1 rounded-pill text-uppercase"
+                class="btn-status-filter r-ma-1 rounded-pill text-uppercase"
                 color="tertiary"
                 :disabled="disableControls"
                 height="1.875rem !important"
                 :value="status"
-                :width="filterTypes[status].width"
+                width="8rem"
               >
                 <template #prepend>
                   <v-icon
-                    v-if="filterTypes[status].enabled"
-                    color="success"
-                    :icon="filterTypes[status].enabled ? mdiCheckCircle : mdiPlusCircle"
+                    class="bg-white rounded-circle"
+                    :color="filterTypes[status].enabled ? 'success' : 'muted'"
+                    :icon="filterTypes[status].enabled ? mdiCheckBold : mdiPlusCircle"
                     aria-hidden="true"
                   />
                 </template>
-                <div :class="{'font-weight-bold': filterTypes[status].enabled, 'text-disabled': !filterTypes[status].enabled}">
+                <div :class="{'font-weight-bold': filterTypes[status].enabled, 'text-medium-emphasis': !filterTypes[status].enabled}">
                   <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations marked with</span>
                   {{ filterTypes[status].label }}
                 </div>
                 <template #append>
                   <v-chip
                     class="evaluation-status-filter-count px-1"
-                    :class="{'font-weight-bold': filterTypes[status].enabled, 'text-disabled': !filterTypes[status].enabled}"
+                    :class="{'font-weight-bold text-white': filterTypes[status].enabled, 'text-medium-emphasis': !filterTypes[status].enabled}"
                     size="small"
                   >
                     {{ filterTypeCounts(status) }}<span class="sr-only"> evaluations</span>
@@ -663,7 +663,7 @@
 <script setup>
 import {clone, each, filter, find, get, includes, isEmpty, keys, map, noop, pickBy, pull, size, some} from 'lodash'
 import {computed, nextTick, onMounted, provide, ref, watch} from 'vue'
-import {mdiAlertCircle, mdiCheckCircle, mdiChevronDown, mdiDotsVertical, mdiPlusCircle} from '@mdi/js'
+import {mdiAlertCircle, mdiCheckBold, mdiChevronDown, mdiDotsVertical, mdiPlusCircle} from '@mdi/js'
 import {storeToRefs} from 'pinia'
 import AccessibleDateInput from '@/components/util/AccessibleDateInput'
 import AddCourseSection from '@/components/evaluation/AddCourseSection'
@@ -697,10 +697,10 @@ const editRowId = ref(undefined)
 const evaluationHeaders = ref([])
 const evaluationTypes = ref([])
 const filterTypes = {
-  unmarked: {label: 'None', enabled: true, width: '7.75rem'},
-  review: {label: 'To-Do', enabled: true, width: '7.875rem'},
-  confirmed: {label: 'Done', enabled: true, width: '7.75rem'},
-  ignore: {label: 'Ignore', enabled: false, width: '7.75rem'}
+  unmarked: {label: 'None', enabled: true},
+  review: {label: 'To-Do', enabled: true},
+  confirmed: {label: 'Done', enabled: true},
+  ignore: {label: 'Ignore', enabled: false}
 }
 const focusedEditButtonEvaluationId = ref(undefined)
 const forceExpandHeader = ref(false)
@@ -1231,7 +1231,9 @@ tr.border-top-none td {
   min-width: 5.5em;
 }
 .status-filter {
+  align-items: center;
   height: fit-content !important;
+  min-height: 2.5rem
 }
 .status-label {
   border-radius: 4px;
@@ -1244,13 +1246,23 @@ tr.border-top-none td {
   width: 100%;
 }
 .sticky {
-  overflow-y: hidden;
+  max-height: fit-content;
+  overflow-y: clip;
+  padding-bottom: 8px;
+  padding-top: 8px;
   position: sticky;
   top: calc(v-bind(stickyTop) + var(--v-layout-top));
-  transition: max-height 0.2s;
+  transition-property: max-height;
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   z-index: 11;
   &.collapsed {
-    max-height: 3rem;
+    max-height: 3.25rem;
+    padding-bottom: 0.25rem;
+    padding-top: 0.5rem;
+    transition-property: max-height;
+    transition-duration: 0.2s;
+    transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 }
 .td-courseNumber {

@@ -137,7 +137,7 @@ export default createVuetify({
           hovered: '#EEE',
           muted: '#606060',
           'on-surface-variant': '#000',
-          primary: '#154D70',
+          primary: '#0D364E',
           'on-tertiary': '#E2E8E9',
           secondary: '#005C8A',
           success: '#009C41',
