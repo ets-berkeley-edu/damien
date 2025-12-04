@@ -482,8 +482,8 @@ class Evaluation(Base):
         default_evaluation_types=None,
     ):
         transient_evaluation = cls(
-            term_id=loch_rows[0].term_id,
-            course_number=loch_rows[0].course_number,
+            term_id=loch_rows[0]['term_id'],
+            course_number=loch_rows[0]['course_number'],
             instructor_uid=uid,
         )
         transient_evaluation.set_status(saved_evaluation, foreign_dept_evaluations)
