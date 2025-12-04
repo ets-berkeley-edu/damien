@@ -237,15 +237,13 @@ const toRoute = path => router.push({path})
 @supports not selector(:focus-visible) {
   .home-link:focus {
     background-color: rgba(var(--v-theme-on-topbar), var(--v-focus-opacity));
-    outline: rgba(var(--v-border-color)) solid 0.125rem;
-    outline-offset: 0
+    outline-color: rgba(var(--v-theme-topbar));
   }
 }
 @supports selector(:focus-visible) {
   .home-link:focus-visible {
     background-color: rgba(var(--v-theme-on-topbar), var(--v-focus-opacity));
-    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
-    outline-offset: 0
+    outline-color: rgba(var(--v-theme-topbar));
   }
 }
 .home-link:hover {

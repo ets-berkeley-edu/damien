@@ -23,7 +23,7 @@
             />
           </v-btn>
         </div>
-        <div v-if="key === 'ignore'" class="pipe-separator text-disabled">
+        <div v-if="key === 'ignore'" class="pipe-separator text-medium-emphasis">
           <span role="separator">|</span>
         </div>
       </div>

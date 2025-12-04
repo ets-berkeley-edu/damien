@@ -83,7 +83,7 @@ defineProps({
 .v-table-sort-btn-override:active .v-btn__append .v-icon,
 .v-table-sort-btn-override:hover .v-btn__append .v-icon,
 .v-table-sort-btn-override:focus .v-btn__append .v-icon {
-  opacity: var(--v-disabled-opacity);
+  opacity: var(--v-medium-emphasis-opacity);
 }
 .v-table-sort-btn-override.icon-visible .v-btn__append .v-icon {
   opacity: 1;
