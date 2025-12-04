@@ -8,8 +8,8 @@
           border="sm"
           class="text-no-wrap"
           single-line
-          max-width="12rem"
-          min-width="12rem"
+          max-width="12.25rem"
+          min-width="12.25rem"
         >
           Welcome to&nbsp;<a :href="config.easterEggMonastery" target="_blank">The Monastery</a>
         </v-banner>
