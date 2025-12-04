@@ -196,7 +196,8 @@ class Department(Base):
 
         visible_loch_rows_by_course_number = {}
         for course_number in sorted(sections_by_number.keys()):
-            visible_loch_rows = [r for r in sections_by_number[course_number] if _is_loch_row_visible(r)]
+            visible_loch_rows = [dict(r) for r in sections_by_number[course_number] if _is_loch_row_visible(r)]
+            visible_loch_rows = _remove_icnt_instructors(visible_loch_rows)
             if len(visible_loch_rows):
                 visible_loch_rows_by_course_number[course_number] = visible_loch_rows
 
@@ -388,3 +389,25 @@ def _get_instructors(all_sections, evaluations):
             'emailAddress': None,
         }
     return instructors
+
+
+def _remove_icnt_instructors(loch_rows):
+    has_icnt_instructors = False
+    has_non_icnt_instructors = False
+    for row in loch_rows:
+        if row['instructor_role_code'] == 'ICNT':
+            has_icnt_instructors = True
+        elif row['instructor_role_code']:
+            has_non_icnt_instructors = True
+
+    if has_icnt_instructors and has_non_icnt_instructors:
+        return [row for row in loch_rows if row['instructor_role_code'] != 'ICNT']
+    elif has_icnt_instructors:
+        def _suppress_icnt_instructor(row):
+            if row['instructor_role_code'] == 'ICNT':
+                row['instructor_uid'] = None
+                row['instructor_role_code'] = None
+            return row
+        return [_suppress_icnt_instructor(row) for row in loch_rows]
+    else:
+        return loch_rows

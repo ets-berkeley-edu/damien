@@ -42,14 +42,14 @@ class Section:
         instructors=None,
         visible_course_numbers=None,
     ):
-        self.term_id = loch_rows[0].term_id
-        self.course_number = loch_rows[0].course_number
-        self.subject_area = loch_rows[0].subject_area
-        self.catalog_id = loch_rows[0].catalog_id
-        self.instruction_format = loch_rows[0].instruction_format
-        self.section_num = loch_rows[0].section_num
-        self.course_title = loch_rows[0].course_title
-        self.is_primary = loch_rows[0].is_primary
+        self.term_id = loch_rows[0]['term_id']
+        self.course_number = loch_rows[0]['course_number']
+        self.subject_area = loch_rows[0]['subject_area']
+        self.catalog_id = loch_rows[0]['catalog_id']
+        self.instruction_format = loch_rows[0]['instruction_format']
+        self.section_num = loch_rows[0]['section_num']
+        self.course_title = loch_rows[0]['course_title']
+        self.is_primary = loch_rows[0]['is_primary']
 
         self.start_date = min((r['meeting_start_date'] for r in loch_rows if r['meeting_start_date']), default=None)
         self.end_date = max((r['meeting_end_date'] for r in loch_rows if r['meeting_end_date']), default=None)
@@ -82,9 +82,8 @@ class Section:
     @classmethod
     def is_visible_by_default(cls, loch_row, include_empty_sections=False):
         return (
-            (loch_row.enrollment_count or include_empty_sections)
-            and loch_row.instructor_role_code != 'ICNT'
-            and loch_row.instruction_format not in {'CLC', 'GRP', 'IND', 'SUP', 'VOL'}
+            (loch_row['enrollment_count'] or include_empty_sections)
+            and loch_row['instruction_format'] not in {'CLC', 'GRP', 'IND', 'SUP', 'VOL'}
         )
 
     @classmethod
@@ -102,14 +101,14 @@ class Section:
         self.foreign_department_course = True
         for r in loch_rows:
             # Any row with a room-share or cross-listing notation applies to the whole section.
-            clw = getattr(r, 'cross_listed_with', None)
+            clw = dict(r).get('cross_listed_with')
             if clw and (not visible_course_numbers or clw in visible_course_numbers):
                 self.cross_listed_with.add(clw)
-            rsw = getattr(r, 'room_shared_with', None)
+            rsw = dict(r).get('room_shared_with')
             if rsw and (not visible_course_numbers or rsw in visible_course_numbers):
                 self.room_shared_with.add(rsw)
             # But a section is treated as belonging to a foreign department only if all rows have the notation.
-            fdc = getattr(r, 'foreign_department_course', None)
+            fdc = dict(r).get('foreign_department_course')
             if not fdc:
                 self.foreign_department_course = False
         self.cross_listed_with = sorted(self.cross_listed_with)
