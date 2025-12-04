@@ -11,6 +11,7 @@
       :style="column.headerProps"
     >
       <v-btn
+        v-if="column.sortable"
         :id="`sort-col-${id}${column.value}-btn`"
         :aria-label="`Sort by ${column.title} ${isSorted(column) && !sortDesc ? 'descending' : 'ascending'}`"
         :append-icon="sortIcon(column)"
@@ -24,6 +25,9 @@
       >
         {{ column.title }}
       </v-btn>
+      <div v-if="!column.sortable">
+        {{ column.title }}
+      </div>
     </th>
   </tr>
 </template>
