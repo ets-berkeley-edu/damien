@@ -64,11 +64,16 @@
                             <v-icon
                               class="rotate-180"
                               :icon="mdiPlusBoxMultipleOutline"
+                              aria-hidden="true"
                             />
                           </span>
                           <span v-if="expanded">
                             Collapse All
-                            <v-icon class="rotate-180 ml-1" :icon="mdiMinusBoxMultipleOutline" />
+                            <v-icon
+                              class="rotate-180 ml-1"
+                              :icon="mdiMinusBoxMultipleOutline"
+                              aria-hidden="true"
+                            />
                           </span>
                           <span class="sr-only">department contacts</span>
                         </template>

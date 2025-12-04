@@ -28,6 +28,7 @@
               :class="contact.canReceiveCommunications ? 'text-success' : 'text-muted'"
               :icon="contact.canReceiveCommunications ? mdiCheckCircle : mdiMinusCircle"
               size="small"
+              aria-hidden="true"
             />
           </v-col>
           <v-col align-self="center" class="font-italic font-size-14 pl-0" cols="11">
@@ -42,6 +43,7 @@
               :class="contact.canViewReports ? 'text-success' : 'text-muted'"
               :icon="contact.canViewReports ? mdiCheckCircle : mdiMinusCircle"
               size="small"
+              aria-hidden="true"
             />
           </v-col>
           <v-col align-self="center" class="font-italic font-size-14 pl-0" cols="11">

@@ -3,6 +3,7 @@
     class="pb-1"
     :class="model ? 'text-success' : 'text-muted'"
     :icon="model ? mdiCheckCircle : mdiMinusCircle"
+    aria-hidden="true"
   />
 </template>
 

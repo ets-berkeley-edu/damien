@@ -23,7 +23,7 @@
               >
                 Sign In
                 <div class="pl-2">
-                  <v-icon :icon="mdiArrowRightCircleOutline" />
+                  <v-icon :icon="mdiArrowRightCircleOutline" aria-hidden="true" />
                 </div>
               </v-btn>
               <DevAuth v-if="config.devAuthEnabled" class="mb-2 mt-8" />

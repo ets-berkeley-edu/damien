@@ -40,6 +40,7 @@
                   color="error"
                   :icon="mdiAlert"
                   size="small"
+                  aria-hidden="true"
                 />
                 {{ message }}
               </div>

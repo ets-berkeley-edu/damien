@@ -61,6 +61,7 @@
         color="secondary"
         :icon="mdiCloseCircle"
         size="21"
+        aria-hidden="true"
       />
     </button>
   </div>
