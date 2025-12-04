@@ -23,7 +23,7 @@
           {{ screenReaderAlert.message }}
         </span>
         <span v-if="!contextStore.config.isVueAppDebugMode || !screenReaderAlert.message">
-          <v-icon :icon="mdiCopyright" size="small" /><span class="sr-only">Copyright:</span> {{ new Date().getFullYear() }}
+          <v-icon :icon="mdiCopyright" size="small" aria-hidden="true" /><span class="sr-only">Copyright:</span> {{ new Date().getFullYear() }}
           The Regents of the University of California
         </span>
       </div>

@@ -92,7 +92,11 @@
             variant="tonal"
             @click="toggleSidebarCollapsed"
           >
-            <v-icon :icon="isSidebarCollapsed ? mdiArrowExpandRight : mdiArrowCollapseLeft" size="x-large" />
+            <v-icon
+              :icon="isSidebarCollapsed ? mdiArrowExpandRight : mdiArrowCollapseLeft"
+              size="x-large"
+              aria-hidden="true"
+            />
           </v-btn>
         </div>
       </template>
@@ -115,6 +119,7 @@
             :class="startsWith(route.path, item.path) ? 'text-white' : 'text-on-tertiary'"
             :icon="item.icon"
             size="x-large"
+            aria-hidden="true"
           />
           <div
             class="nav-drawer-item-label text-no-wrap"

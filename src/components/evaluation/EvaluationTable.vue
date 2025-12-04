@@ -109,6 +109,7 @@
                     v-if="filterTypes[status].enabled"
                     color="success"
                     :icon="filterTypes[status].enabled ? mdiCheckCircle : mdiPlusCircle"
+                    aria-hidden="true"
                   />
                 </template>
                 <div :class="{'font-weight-bold': filterTypes[status].enabled, 'text-disabled': !filterTypes[status].enabled}">

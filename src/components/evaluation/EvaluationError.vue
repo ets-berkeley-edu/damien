@@ -11,6 +11,7 @@
       <v-icon
         :icon="mdiAlertCircle"
         size="18"
+        aria-hidden="true"
       />
     </template>
   </v-alert>
