@@ -10,7 +10,7 @@
       :popover="{autoHide: false, placement: placement, visibility: 'focus'}"
       :step="1"
       @did-move="makeCalendarAccessible"
-      @dayclick="() => putFocusNextTick(`${idPrefix}-clear-btn`)"
+      @dayclick="(day, e) => onDayClick(e)"
       @daykeydown="(day, e) => onDaykeydown(e)"
       @popover-did-hide="() => isPopoverVisible = false"
       @popover-did-show="onPopoverShown"
@@ -239,6 +239,11 @@ const onClickClear = (e) => {
     putFocusNextTick(inputId)
     model.value = undefined
   }
+}
+
+const onDayClick = e => {
+  e.target.blur()
+  putFocusNextTick(`${props.idPrefix}-clear-btn`)
 }
 
 const onDaykeydown = e => {
