@@ -1,4 +1,7 @@
 @supports not selector(:focus-visible) {
+  .bg-accent:focus::after {
+    outline-color: rgba(var(--v-theme-accent)) !important;
+  }
   .bg-primary:focus::after,
   .text-primary:focus::after {
     outline-color: rgba(var(--v-theme-primary)) !important;
@@ -54,8 +57,14 @@
     outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
     outline-offset: 0.2rem;
   }
+  a.text-surface:focus {
+    outline-color: rgba(var(--v-theme-surface)) !important;
+  }
 }
 @supports selector(:focus-visible) {
+  .bg-accent:focus-visible::after {
+    outline-color: rgba(var(--v-theme-accent)) !important;
+  }
   .bg-primary:focus-visible::after,
   .text-primary:focus-visible::after {
     outline-color: rgba(var(--v-theme-primary)) !important;
@@ -110,6 +119,9 @@
     border-radius: 1px;
     outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
     outline-offset: 0.2rem;
+  }
+  a.text-surface:focus-visible {
+    outline-color: rgba(var(--v-theme-surface)) !important;
   }
 }
 .v-btn.v-btn--disabled.v-btn--variant-elevated .v-btn__overlay,

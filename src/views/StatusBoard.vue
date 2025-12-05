@@ -97,7 +97,7 @@
                   :id="`errors-count-dept-${department.id}`"
                   aria-hidden="true"
                   :aria-live="null"
-                  class="error-count"
+                  class="error-count text-surface"
                   color="error"
                   :content="department.totalInError"
                   inline
