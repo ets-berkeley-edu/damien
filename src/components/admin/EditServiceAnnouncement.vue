@@ -10,6 +10,7 @@
       max-rows="5"
       hide-details="auto"
       solo
+      autocomplete="on"
       variant="outlined"
     />
     <v-checkbox

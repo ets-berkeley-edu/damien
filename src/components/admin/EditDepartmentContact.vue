@@ -35,6 +35,7 @@
           v-model="email"
           class="mt-1"
           density="compact"
+          autocomplete="on"
           :disabled="isSaving"
           variant="outlined"
           required
