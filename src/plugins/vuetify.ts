@@ -163,7 +163,7 @@ export default createVuetify({
           'evaluation-to-do': '#001E00',
           'evaluation-to-do-label': '#005400',
           'evaluation-xlisting': '#2B2600',
-          hovered: '#616161',
+          hovered: '#262626',
           muted: '#BDBDBD',
           'on-primary': '#07324A',
           'on-secondary': '#072636',

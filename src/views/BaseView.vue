@@ -233,18 +233,26 @@ const toRoute = path => router.push({path})
 
 </script>
 
-<style scoped>
+<style>
 @supports not selector(:focus-visible) {
   .home-link:focus {
     background-color: rgba(var(--v-theme-on-topbar), var(--v-focus-opacity));
-    outline-color: rgba(var(--v-theme-topbar));
+    box-shadow: 0 0 0 0.125rem white !important;
+    outline-color: rgba(var(--v-theme-topbar)) !important;
+  }
+  .nav-item:focus::after {
+    box-shadow: inset 0 0 0 0.125rem white !important;
+    outline: none !important;
   }
 }
-@supports selector(:focus-visible) {
-  .home-link:focus-visible {
-    background-color: rgba(var(--v-theme-on-topbar), var(--v-focus-opacity));
-    outline-color: rgba(var(--v-theme-topbar));
-  }
+.home-link:focus-visible {
+  background-color: rgba(var(--v-theme-on-topbar), var(--v-focus-opacity));
+  box-shadow: 0 0 0 0.125rem white !important;
+  outline-color: rgba(var(--v-theme-topbar)) !important;
+}
+.nav-item:focus-visible::after {
+  box-shadow: inset 0 0 0 0.125rem white !important;
+  outline: none !important;
 }
 .home-link:hover {
   opacity: var(--v-high-emphasis-opacity);
@@ -254,9 +262,6 @@ const toRoute = path => router.push({path})
   letter-spacing: 0.1em;
   margin-left: 0.5rem;
 }
-</style>
-
-<style>
 .nav-item.nav-link {
   padding: 16px calc(0.5rem + 4px);
 }

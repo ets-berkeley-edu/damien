@@ -37,17 +37,15 @@
       outline-width: 0.125rem;
     }
   }
-  @supports selector(:focus-visible) {
-    &:focus-visible, &:has(input:focus-visible) {
-      --v-field-border-opacity: 0.7;
-      --v-theme-overlay-multiplier: 3;
-      border-width: 0.125rem !important;
-      box-shadow: 0 0 0 0.125rem rgba(var(--v-theme-surface));
-      outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
-      outline-offset: 0.125rem;
-      outline-style: solid;
-      outline-width: 0.125rem;
-    }
+  &:focus-visible, &:has(input:focus-visible) {
+    --v-field-border-opacity: 0.7;
+    --v-theme-overlay-multiplier: 3;
+    border-width: 0.125rem !important;
+    box-shadow: 0 0 0 0.125rem rgba(var(--v-theme-surface));
+    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+    outline-offset: 0.125rem;
+    outline-style: solid;
+    outline-width: 0.125rem;
   }
   &:disabled {
     color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));

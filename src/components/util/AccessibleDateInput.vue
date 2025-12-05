@@ -358,15 +358,13 @@ const onUpdateFocus = (hasFocus, inputEvents) => {
       }
     }
   }
-  @supports selector(:focus-visible) {
-    &:focus-visible {
-      outline-color: rgba(var(--v-theme-secondary)) !important;
-      outline-offset: -0.25rem;
-      outline-style: solid;
-      outline-width: 0.125rem;
-      &::after {
-        opacity: 0;
-      }
+  &:focus-visible {
+    outline-color: rgba(var(--v-theme-secondary)) !important;
+    outline-offset: -0.25rem;
+    outline-style: solid;
+    outline-width: 0.125rem;
+    &::after {
+      opacity: 0;
     }
   }
   &:hover {
@@ -422,14 +420,12 @@ const onUpdateFocus = (hasFocus, inputEvents) => {
     outline-width: 0.125rem;
   }
 }
-@supports selector(:focus-visible) {
-  .vc-focus:focus-visible {
-    box-shadow: 0 0 0 0.125rem white;
-    outline-color: rgba(var(--v-theme-secondary)) !important;
-    outline-offset: 0.125rem;
-    outline-style: solid;
-    outline-width: 0.125rem;
-  }
+.vc-focus:focus-visible {
+  box-shadow: 0 0 0 0.125rem white;
+  outline-color: rgba(var(--v-theme-secondary)) !important;
+  outline-offset: 0.125rem;
+  outline-style: solid;
+  outline-width: 0.125rem;
 }
 </style>
 

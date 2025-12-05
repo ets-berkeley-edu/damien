@@ -32,6 +32,13 @@
     outline-style: solid;
     outline-width: 0.125rem;
   }
+  .v-btn.v-btn--icon:focus::after,
+  .v-menu .v-list-item:focus::after {
+    outline-offset: -0.125rem !important;
+  }
+  .v-expansion-panel-title:focus {
+    outline-offset: -0.125rem !important
+  }
   .v-list-item:focus > .v-list-item__overlay {
     opacity: calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)) !important;
   }
@@ -39,19 +46,13 @@
     box-shadow: inset 0 0 0 0.125rem var(--v-theme-surface);
     opacity: calc(0.25 * var(--v-theme-overlay-multiplier));
   }
-  .v-menu .v-list-item:focus::after {
-    outline-offset: -0.125rem;
-  }
   .v-selection-control--focus .v-selection-control__input::before {
     background-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
   }
-  .v-expansion-panel-title:focus,
-  a:focus {
-    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
-  }
   a:focus {
     border-radius: 1px;
-    outline-offset: 0.25rem;
+    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+    outline-offset: 0.2rem;
   }
 }
 @supports selector(:focus-visible) {
@@ -88,6 +89,13 @@
     outline-style: solid;
     outline-width: 0.125rem;
   }
+  .v-btn.v-btn--icon:focus-visible::after,
+  .v-menu .v-list-item:focus-visible::after {
+    outline-offset: -0.125rem !important;
+  }
+  .v-expansion-panel-title:focus-visible {
+    outline-offset: -0.125rem !important
+  }
   .v-list-item:focus-visible > .v-list-item__overlay {
     opacity: calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)) !important;
   }
@@ -95,19 +103,13 @@
     box-shadow: inset 0 0 0 0.125rem var(--v-theme-surface);
     opacity: calc(0.25 * var(--v-theme-overlay-multiplier));
   }
-  .v-menu .v-list-item:focus-visible::after {
-    outline-offset: -0.125rem;
-  }
   .v-selection-control--focus-visible .v-selection-control__input::before {
     background-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
   }
-  .v-expansion-panel-title:focus-visible,
-  a:focus-visible {
-    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
-  }
   a:focus-visible {
     border-radius: 1px;
-    outline-offset: 0.25rem;
+    outline-color: rgba(var(--v-border-color), calc(var(--v-focus-opacity) * var(--v-theme-overlay-multiplier)));
+    outline-offset: 0.2rem;
   }
 }
 .v-btn.v-btn--disabled.v-btn--variant-elevated .v-btn__overlay,
