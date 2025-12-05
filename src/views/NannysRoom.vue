@@ -52,6 +52,7 @@
                   hide-details="auto"
                   required
                   variant="outlined"
+                  autocomplete="on"
                   @keydown.esc="cancelAdd('add-dept-form-btn')"
                 />
                 <div class="align-center d-flex mt-2">
@@ -155,6 +156,7 @@
                   hide-details="auto"
                   required
                   variant="outlined"
+                  autocomplete="on"
                   @keydown.esc="cancelAdd('add-eval-type-btn')"
                 />
                 <div class="align-center d-flex mt-2">
@@ -263,6 +265,7 @@
                   required
                   :rules="rules.numeric"
                   variant="outlined"
+                  autocomplete="on"
                   width="160"
                 />
                 <div class="mt-2">
@@ -280,6 +283,7 @@
                     maxlength="24"
                     variant="outlined"
                     :rules="rules.csid"
+                    autocomplete="on"
                     width="240"
                   />
                 </div>
@@ -296,6 +300,7 @@
                     :disabled="isSaving"
                     hide-details="auto"
                     variant="outlined"
+                    autocomplete="on"
                     width="240"
                   />
                 </div>
@@ -313,6 +318,7 @@
                     hide-details="auto"
                     required
                     variant="outlined"
+                    autocomplete="on"
                     width="240"
                   />
                 </div>
@@ -331,6 +337,7 @@
                     required
                     :rules="rules.email"
                     variant="outlined"
+                    autocomplete="on"
                     width="360"
                   />
                 </div>

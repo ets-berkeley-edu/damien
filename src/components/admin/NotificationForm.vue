@@ -74,6 +74,7 @@
           :disabled="isSending"
           hide-details
           variant="outlined"
+          autocomplete="on"
           @keydown.esc="onCancel"
         />
         <div class="pt-3">
@@ -87,6 +88,7 @@
             auto-grow
             class="bg-surface mt-1"
             color="primary"
+            autocomplete="on"
             :disabled="isSending"
             hide-details
             variant="outlined"

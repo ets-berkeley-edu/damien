@@ -26,6 +26,7 @@
             :disabled="disableControls"
             :error-messages="errorMessage"
             hide-details="auto"
+            autocomplete="on"
             label="Course Number"
             maxlength="5"
             required

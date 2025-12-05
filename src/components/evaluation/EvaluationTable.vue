@@ -29,6 +29,7 @@
                 max-width="37.5rem"
                 min-width="8rem"
                 type="search"
+                autocomplete="on"
               />
             </div>
             <AddCourseSection
