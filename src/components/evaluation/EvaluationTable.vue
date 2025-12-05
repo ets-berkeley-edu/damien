@@ -765,8 +765,11 @@ watch(selectedFilterTypes, types => {
 
 const stickySearchPosition = ref(0)
 const setStickySearchPosition = () => {
+  const appBar = document.getElementById('app-bar')
+  const appBarHeight = appBar ? (appBar.getBoundingClientRect().height || 64) : 64
   const serviceAnnouncementEl = document.getElementById('service-announcement-wrapper')
-  stickySearchPosition.value = serviceAnnouncementEl ? serviceAnnouncementEl.clientHeight : 0
+  const serviceAnnouncementHeight = serviceAnnouncementEl ? serviceAnnouncementEl.clientHeight : 0
+  stickySearchPosition.value = appBarHeight + serviceAnnouncementHeight
 }
 
 onMounted(() => {
@@ -999,9 +1002,8 @@ const onMouseleaveRow = evaluation => {
 
 const onScroll = () => {
   const tableHeader = document.getElementById('evaluations-table-header')
-  const appBar = document.getElementById('app-bar')
-  const appBarHeight = appBar ? (appBar.getBoundingClientRect().height || 64) : 64
-  if (tableHeader.getBoundingClientRect().top <= (stickySearchPosition.value + appBarHeight)) {
+  const tableHeaderTop = tableHeader.getBoundingClientRect().top
+  if (Math.floor(tableHeaderTop) <= (stickySearchPosition.value)) {
     if (!forceExpandHeader.value && !isHeaderCollapsed.value) {
       isHeaderCollapsed.value = true
     }
@@ -1191,12 +1193,6 @@ tr.border-top-none td {
   opacity: 0;
   transform: translateX(20%);
 }
-@media (prefers-reduced-motion) {
-  .evaluation-row.evaluation-row-enter-from,
-  .evaluation-row.evaluation-row-leave-to {
-    transform: none;
-  }
-}
 .evaluation-row.evaluation-row-move,
 .evaluation-row.evaluation-row-enter-active,
 .evaluation-row.evaluation-row-leave-active {
@@ -1251,7 +1247,7 @@ tr.border-top-none td {
   padding-bottom: 8px;
   padding-top: 8px;
   position: sticky;
-  top: calc(v-bind(stickyTop) + var(--v-layout-top));
+  top: v-bind(stickyTop);
   transition-property: max-height;
   transition-duration: 0.2s;
   transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -1279,5 +1275,17 @@ tr.border-top-none td {
 }
 .xlisting-note {
   font-size: 0.8em;
+}
+@media (prefers-reduced-motion) {
+  .evaluation-row.evaluation-row-enter-from,
+  .evaluation-row.evaluation-row-leave-to {
+    transform: none;
+  }
+  .sticky {
+    transition: none;
+    &.collapsed {
+      transition: none;
+    }
+  }
 }
 </style>
