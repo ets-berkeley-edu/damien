@@ -112,7 +112,7 @@
                         min-width="unset"
                         text="Delete"
                         variant="text"
-                        @click.stop="() => listStore.confirmDeleteDepartmentForm(item)"
+                        @click.stop="onClickDeleteDepartmentForm(item)"
                       />
                     </div>
                   </template>
@@ -216,7 +216,7 @@
                         min-width="unset"
                         text="Delete"
                         variant="text"
-                        @click.stop="() => listStore.confirmDeleteEvaluationType(item)"
+                        @click.stop="onClickDeleteEvaluationType(item)"
                       />
                     </div>
                   </template>
@@ -579,6 +579,16 @@ const onClickAddInstructor = () => {
     resetNewInstructor()
     putFocusNextTick('input-instructor-uid')
   })
+}
+
+const onClickDeleteDepartmentForm = item => {
+  listStore.confirmDeleteDepartmentForm(item)
+  putFocusNextTick('confirm-dialog-btn')
+}
+
+const onClickDeleteEvaluationType = item => {
+  listStore.confirmDeleteEvaluationType(item)
+  putFocusNextTick('confirm-dialog-btn')
 }
 
 const onSortDepartmentForms = primarySortBy => {
