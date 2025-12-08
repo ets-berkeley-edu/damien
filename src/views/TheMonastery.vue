@@ -30,6 +30,15 @@
         @focusout="() => hoveredDept = null"
         @update:sort-by="onUpdateSortBy"
       >
+        <template #headers="{ columns, isSorted, toggleSort, sortBy: internalSortBy }">
+          <SortableTableHeader
+            id="department-table-"
+            :columns="columns"
+            :is-sorted="isSorted"
+            :on-sort="toggleSort"
+            :sort-desc="internalSortBy?.[0]?.order === 'desc'"
+          />
+        </template>
         <template #body="{items}">
           <template v-for="(department, deptIndex) in items">
             <tr
@@ -181,6 +190,7 @@ import {storeToRefs} from 'pinia'
 import {useTheme} from 'vuetify'
 import BooleanIcon from '@/components/util/BooleanIcon'
 import PageHeader from '@/components/util/PageHeader'
+import SortableTableHeader from '@/components/util/SortableTableHeader'
 import {alertScreenReader, getCatalogListings} from '@/lib/utils'
 import {getDepartmentsEnrolled} from '@/api/departments'
 import {useContextStore} from '@/stores/context'
@@ -189,7 +199,7 @@ const contextStore = useContextStore()
 const {config} = storeToRefs(contextStore)
 const departments = ref([])
 const headers = [
-  {key: 'deptName', class: 'text-no-wrap', sortable: true, title: 'Department', value: 'deptName', width: 100},
+  {key: 'deptName', class: 'text-no-wrap', sortable: true, title: 'Department', value: 'deptName', headerProps: {width: '20rem'}},
   {class: 'text-no-wrap', sortable: false, title: 'Courses', width: 10},
   {class: 'text-no-wrap', sortable: false, title: 'Contacts', width: 200},
   {class: 'text-no-wrap', sortable: false, title: 'UID', width: 10},
