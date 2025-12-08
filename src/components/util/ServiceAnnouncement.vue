@@ -39,6 +39,7 @@ onMounted(() => {
 <style>
 .service-announcement a {
   color: rgb(var(--v-theme-primary)) !important;
+  text-decoration: underline;
 }
 </style>
 

@@ -10,7 +10,7 @@
         Problem? Question?
         <a
           id="damien-support-mailto"
-          class="text-decoration-none text-surface"
+          class="footer-link"
           :href="`mailto:${emailSupport}`"
           target="_blank"
         >
@@ -44,5 +44,10 @@ const screenReaderAlert = contextStore.screenReaderAlert
 .footer {
   left: calc(var(--v-layout-left) + 8px) !important;
   width: calc(100% - calc(var(--v-layout-left) + 8px)) !important;
+}
+
+.footer-link {
+  color: rgb(var(--v-theme-on-secondary));
+  text-decoration: underline;
 }
 </style>
