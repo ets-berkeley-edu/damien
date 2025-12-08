@@ -162,7 +162,7 @@ import DamienFooter from '@/components/util/DamienFooter'
 import ServiceAnnouncement from '@/components/util/ServiceAnnouncement'
 import Snackbar from '@/components/util/Snackbar'
 import Spinner from '@/components/util/Spinner'
-import {alertScreenReader, stripAnchorRef} from '@/lib/utils'
+import {alertScreenReader, putFocusNextTick, stripAnchorRef} from '@/lib/utils'
 import {getCasLogoutUrl} from '@/api/auth'
 import {useContextStore} from '@/stores/context'
 
@@ -222,6 +222,7 @@ const toggleColorScheme = () => {
   const getDark = !theme.global.current.value.dark
   theme.change(getDark ? 'dark' : 'light')
   window.localStorage.setItem('prefersDarkMode', `${getDark}`)
+  putFocusNextTick('btn-main-menu')
 }
 
 const toggleSidebarCollapsed = () => {
