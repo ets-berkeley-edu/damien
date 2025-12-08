@@ -3,7 +3,7 @@
     id="skip-to-content-link"
     :aria-hidden="contextStore.isModalOpen"
     href="#content"
-    class="sr-only"
+    class="sr-only sr-only-focusable"
     tabindex="0"
   >
     Skip to main content
@@ -270,6 +270,18 @@ const toRoute = path => router.push({path})
 .nav-item:focus,
 .nav-item:focus-visible {
   color: white !important;
+}
+.sr-only-focusable:active, .sr-only-focusable:focus {
+  background-color: color-mix(in srgb, rgb(var(--v-theme-topbar)) 80%, white 20%);
+  box-shadow: inset 0 0 0 0.125rem white !important;
+  color: white;
+  height: auto !important;
+  left: 0 !important;
+  outline: none !important;
+  padding: 10px;
+  white-space: normal;
+  width: auto !important;
+  z-index: 2000;
 }
 .topbar .v-toolbar__content {
   height: max(64px, 2.75rem) !important;
