@@ -59,7 +59,7 @@
               class="select-all-evals my-auto mr-3"
               color="primary"
               density="compact"
-              :disabled="!searchFilterResults.length || disableControls"
+              :disabled="!(searchFilterResults && searchFilterResults.length) || disableControls"
               :false-value="!someEvaluationsSelected && !allEvaluationsSelected"
               hide-details
               :indeterminate="someEvaluationsSelected"
@@ -754,6 +754,10 @@ const someEvaluationsSelected = computed(() => {
 const stickyTop = computed(() => {
   return `${stickySearchPosition.value}px`
 })
+const isStatusFilterEnabled = evaluation => {
+  const status = evaluation.status || 'unmarked'
+  return includes(selectedFilterTypes.value, status)
+}
 const visibleEvaluations = computed(() => {
   return filter(evaluations.value, isStatusFilterEnabled)
 })
@@ -919,11 +923,6 @@ const isRowActive = evaluation => {
 
 const isRowSelected = evaluation => {
   return selectedEvaluationIds.value.includes(evaluation.id)
-}
-
-const isStatusFilterEnabled = evaluation => {
-  const status = evaluation.status || 'unmarked'
-  return includes(selectedFilterTypes.value, status)
 }
 
 const isStatusVisible = evaluation => {
