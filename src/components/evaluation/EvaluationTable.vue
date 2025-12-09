@@ -128,6 +128,15 @@
                 </template>
               </v-btn>
             </v-btn-toggle>
+            <div
+              id="evaluation-row-count"
+              class="ml-3 text-caption text-large-emphasis text-no-wrap"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              Showing {{ displayedCount }} of {{ totalCount }} rows
+            </div>
           </div>
         </div>
       </div>
@@ -749,6 +758,9 @@ const visibleEvaluations = computed(() => {
   return filter(evaluations.value, isStatusFilterEnabled)
 })
 
+const totalCount = computed(() => size(evaluations.value))
+const displayedCount = computed(() => size(searchFilterResults.value))
+
 provide('duplicatingEvaluationId', duplicatingEvaluationId)
 
 watch(errorDialog, isOpen => {
@@ -763,6 +775,10 @@ watch(selectedFilterTypes, types => {
     filterTypes[type].enabled = types.includes(type)
   })
 })
+
+watch([evaluations, selectedFilterTypes], () => {
+  searchFilterResults.value = visibleEvaluations.value
+}, {immediate: true})
 
 const stickySearchPosition = ref(0)
 const setStickySearchPosition = () => {
