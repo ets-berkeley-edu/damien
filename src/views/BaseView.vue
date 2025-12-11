@@ -251,10 +251,6 @@ const toRoute = path => router.push({path})
   box-shadow: 0 0 0 0.125rem white !important;
   outline-color: rgba(var(--v-theme-topbar)) !important;
 }
-.nav-item:focus-visible::after {
-  box-shadow: inset 0 0 0 0.125rem white !important;
-  outline: none !important;
-}
 .home-link:hover {
   opacity: var(--v-high-emphasis-opacity);
   text-decoration: none;
@@ -263,13 +259,17 @@ const toRoute = path => router.push({path})
   letter-spacing: 0.1em;
   margin-left: 0.5rem;
 }
-.nav-item.nav-link {
-  padding: 16px calc(0.5rem + 4px);
+.nav-item:focus-visible::after {
+  box-shadow: inset 0 0 0 0.125rem white !important;
+  outline: none !important;
 }
 .nav-item.active,
 .nav-item:focus,
 .nav-item:focus-visible {
   color: white !important;
+}
+.nav-item.nav-link {
+  padding: 16px calc(0.5rem + 4px);
 }
 .sr-only-focusable:active, .sr-only-focusable:focus {
   background-color: color-mix(in srgb, rgb(var(--v-theme-topbar)) 80%, white 20%);
@@ -283,7 +283,10 @@ const toRoute = path => router.push({path})
   width: auto !important;
   z-index: 2000;
 }
-.topbar .v-toolbar__content {
-  height: max(64px, 2.75rem) !important;
+.topbar {
+  width: 100vw !important;
+  .v-toolbar__content {
+    height: max(64px, 2.75rem) !important;
+  }
 }
 </style>

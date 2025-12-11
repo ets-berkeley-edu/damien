@@ -1,6 +1,6 @@
 <template>
   <div :class="inline ? 'v-row d-flex align-center v-row--dense' : 'd-flex flex-column'">
-    <div :class="{'v-col v-col-4': inline}">
+    <div class="person-lookup-label" :class="{'v-col v-col-4': inline}">
       <label
         :id="`${idPrefix}-label`"
         :for="`${idPrefix}-input`"
