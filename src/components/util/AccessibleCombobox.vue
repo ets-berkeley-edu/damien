@@ -1,5 +1,5 @@
 <template>
-  <div :id="`${idPrefix}-container`" :class="containerClass">
+  <div :id="`${idPrefix}-container`" class="person-lookup-container" :class="containerClass">
     <component
       :is="isAutocomplete ? 'v-autocomplete' : 'v-combobox'"
       :id="`${idPrefix}-input`"

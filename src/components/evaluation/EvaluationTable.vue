@@ -2,9 +2,9 @@
   <div>
     <v-container
       v-if="evaluations.length"
+      v-resize="setStickySearchPosition"
       class="pa-0"
       max-width="100%"
-      @resize="setStickySearchPosition"
     >
       <div
         id="evaluations-table-header"
@@ -168,6 +168,8 @@
       >
         <template #headers="{columns, isSorted, toggleSort, getSortIcon, sortBy: _sortBy}">
           <SortableTableHeader
+            breakpoint="62.5rem"
+            class="evaluation-head-row"
             :columns="columns"
             :is-sorted="isSorted"
             :on-sort="toggleSort"
@@ -185,7 +187,7 @@
                   'bg-evaluation-active text-tertiary': isRowActive(evaluation) && !isEditing(evaluation),
                   'bg-evaluation-done': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'confirmed',
                   'bg-evaluation-ignore text-muted': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'ignore',
-                  'bg-tertiary text-white border-bottom-none': evaluation.id === editRowId,
+                  'bg-tertiary text-white border-bottom-none editing': evaluation.id === editRowId,
                   'bg-evaluation-to-do': !isRowActive(evaluation) && !isEditing(evaluation) && evaluation.status === 'review',
                   'bg-evaluation-xlisting': !isRowActive(evaluation) && !isEditing(evaluation) && !evaluation.status && (evaluation.crossListedWith || evaluation.roomSharedWith),
                   'text-primary': isRowSelected(evaluation) && !isRowActive(evaluation) && !isEditing(evaluation)
@@ -193,7 +195,11 @@
                 @mouseenter="onMouseenterRow(evaluation)"
                 @mouseleave="onMouseleaveRow(evaluation)"
               >
-                <td v-if="readonly" :id="`evaluation-${rowIndex}-department`" class="align-middle py-1 pl-2">
+                <td
+                  v-if="readonly"
+                  :id="`evaluation-${rowIndex}-department`"
+                  class="align-middle py-1 pl-2 td-department"
+                >
                   <router-link :to="`/department/${get(evaluation.department, 'id')}`" class="font-weight-bold">
                     {{ get(evaluation.department, 'name') }}
                   </router-link>
@@ -201,7 +207,7 @@
                 <td
                   v-if="!readonly && allowEdits && !(allowEdits && isEditing(evaluation))"
                   :id="`evaluation-${rowIndex}-select`"
-                  class="align-middle pl-1 pr-5"
+                  class="align-middle pl-1 pr-5 td-select"
                 >
                   <v-checkbox
                     v-if="!isEditing(evaluation)"
@@ -221,7 +227,7 @@
                 </td>
                 <td
                   :id="`evaluation-${rowIndex}-status`"
-                  class="pl-1 pr-3"
+                  class="pl-1 pr-3 td-status"
                   :class="{
                     'align-middle': !isEditing(evaluation),
                     'pr-1': isRowActive(evaluation)
@@ -229,14 +235,13 @@
                   :colspan="allowEdits && isEditing(evaluation) ? 2 : 1"
                 >
                   <v-chip
-                    v-if="isStatusVisible(evaluation)"
                     :key="`status-${rowIndex}`"
                     class="mx-auto px-1 status-label text-caption"
                     :class="{
                       'bg-evaluation-done-label': evaluation.status === 'confirmed',
                       'bg-evaluation-ignore-label': evaluation.status === 'ignore',
                       'bg-evaluation-to-do-label': evaluation.status === 'review',
-                      'sr-only': hoverId === evaluation.id && allowEdits && !readonly
+                      'sr-only': !isStatusVisible(evaluation) || (hoverId === evaluation.id && allowEdits && !readonly)
                     }"
                   >
                     {{ displayStatus(evaluation) }}
@@ -261,6 +266,7 @@
                             'focus-btn': evaluation.id === focusedEditButtonEvaluationId
                           }"
                           color="tertiary"
+                          density="compact"
                           :disabled="!allowEdits || disableControls"
                           max-width="150"
                           min-width="54"
@@ -327,13 +333,14 @@
                 </td>
                 <td
                   :id="`evaluation-${rowIndex}-lastUpdated`"
-                  class="px-1"
+                  class="px-1 td-lastUpdated"
                   :class="{
-                    'font-weight-bold pt-7': isEditing(evaluation),
-                    'align-middle': !isEditing(evaluation)
+                    'align-middle': !isEditing(evaluation),
+                    'font-weight-bold pt-7': isEditing(evaluation)
                   }"
                 >
-                  {{ toFormatFromJsDate(evaluation.lastUpdated, 'LL/dd/yyyy') }}
+                  <div class="evaluation-label px-3 w-25">Last Updated</div>
+                  <div class="evaluation-value">{{ toFormatFromJsDate(evaluation.lastUpdated, 'LL/dd/yyyy') }}</div>
                 </td>
                 <td
                   :id="`evaluation-${rowIndex}-courseNumber`"
@@ -343,14 +350,18 @@
                     'align-middle': !isEditing(evaluation)
                   }"
                 >
-                  {{ evaluation.courseNumber }}
-                  <div v-if="evaluation.crossListedWith" class="xlisting-note">
-                    (Cross-listed with {{ evaluation.crossListedWith.length > 1 ? 'sections' : 'section' }}
-                    {{ evaluation.crossListedWith.join(', ') }})
-                  </div>
-                  <div v-if="evaluation.roomSharedWith" class="xlisting-note">
-                    (Room shared with {{ evaluation.roomSharedWith.length > 1 ? 'sections' : 'section' }}
-                    {{ evaluation.roomSharedWith.join(', ') }})
+                  <div class="evaluation-label px-3 w-25">Course Number</div>
+                  <div class="evaluation-value">
+                    {{ evaluation.courseNumber }}
+                    <span>&nbsp;</span>
+                    <div v-if="evaluation.crossListedWith" class="xlisting-note">
+                      (Cross-listed with {{ evaluation.crossListedWith.length > 1 ? 'sections' : 'section' }}
+                      {{ evaluation.crossListedWith.join(', ') }})
+                    </div>
+                    <div v-if="evaluation.roomSharedWith" class="xlisting-note">
+                      (Room shared with {{ evaluation.roomSharedWith.length > 1 ? 'sections' : 'section' }}
+                      {{ evaluation.roomSharedWith.join(', ') }})
+                    </div>
                   </div>
                 </td>
                 <td
@@ -360,14 +371,18 @@
                     'align-middle': !isEditing(evaluation)
                   }"
                 >
-                  <label :id="`evaluation-${rowIndex}-courseName`" :for="isEditing(evaluation) ? undefined : `evaluation-${rowIndex}-checkbox`">
-                    {{ evaluation.subjectArea }}
-                    {{ evaluation.catalogId }}
-                    {{ evaluation.instructionFormat }}
-                    {{ evaluation.sectionNumber }}
-                  </label>
-                  <div :id="`evaluation-${rowIndex}-courseTitle`">
-                    {{ evaluation.courseTitle }}
+                  <div class="evaluation-label px-3 w-25">Course Name</div>
+                  <div class="evaluation-value">
+                    <label :id="`evaluation-${rowIndex}-courseName`" :for="isEditing(evaluation) ? undefined : `evaluation-${rowIndex}-checkbox`">
+                      {{ evaluation.subjectArea }}
+                      {{ evaluation.catalogId }}
+                      {{ evaluation.instructionFormat }}
+                      {{ evaluation.sectionNumber }}
+                      <span>&nbsp;</span>
+                    </label>
+                    <div :id="`evaluation-${rowIndex}-courseTitle`">
+                      {{ evaluation.courseTitle }}
+                    </div>
                   </div>
                 </td>
                 <td
@@ -379,21 +394,25 @@
                     'align-middle': !isEditing(evaluation)
                   }"
                 >
-                  <div v-if="evaluation.instructor">
-                    {{ evaluation.instructor.firstName }}
-                    {{ evaluation.instructor.lastName }}
-                    ({{ evaluation.instructor.uid }})
+                  <div v-if="!isEditing(evaluation) || evaluation.instructor" class="evaluation-label px-3 w-25">Instructor</div>
+                  <div class="evaluation-value">
+                    <div v-if="evaluation.instructor">
+                      {{ evaluation.instructor.firstName }}
+                      {{ evaluation.instructor.lastName }}
+                      ({{ evaluation.instructor.uid }})
+                      <span>&nbsp;</span>
+                    </div>
+                    <div v-if="evaluation.instructor">
+                      {{ evaluation.instructor.emailAddress }}
+                    </div>
+                    <EvaluationError
+                      v-if="!evaluation.instructor && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
+                      :id="`error-msg-evaluation-instructor-${rowIndex}`"
+                      :hover="isRowActive(evaluation)"
+                      message="Instructor required"
+                    />
                   </div>
-                  <div v-if="evaluation.instructor">
-                    {{ evaluation.instructor.emailAddress }}
-                  </div>
-                  <EvaluationError
-                    v-if="!evaluation.instructor && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
-                    :id="`error-msg-evaluation-instructor-${rowIndex}`"
-                    :hover="isRowActive(evaluation)"
-                    message="Instructor required"
-                  />
-                  <div v-if="!evaluation.instructor && isEditing(evaluation) && allowEdits" class="position-relative">
+                  <div v-if="!evaluation.instructor && isEditing(evaluation) && allowEdits" class="position-relative select-instructor">
                     <PersonLookup
                       class="font-weight-regular instructor-lookup"
                       clearable
@@ -405,10 +424,11 @@
                       list-label="Suggested Instructors List"
                       :on-select-result="selectInstructor"
                     />
-                    <div v-if="pendingInstructor" class="pt-1">
+                    <div v-if="pendingInstructor" class="pt-1 pending-instructor">
                       <div>
                         {{ pendingInstructor.firstName }} {{ pendingInstructor.lastName }} ({{ pendingInstructor.uid }})
                       </div>
+                      <span>&nbsp;</span>
                       <div>
                         {{ pendingInstructor.emailAddress }}
                       </div>
@@ -417,35 +437,38 @@
                 </td>
                 <td
                   :id="`evaluation-${rowIndex}-departmentForm`"
-                  class="px-1"
+                  class="px-1 td-departmentForm"
                   :class="{
                     'pt-2': isEditing(evaluation),
                     'align-middle': !isEditing(evaluation)
                   }"
                 >
-                  <div v-if="evaluation.departmentForm && !isEditing(evaluation)">
-                    {{ evaluation.departmentForm.name }}
+                  <div v-if="!isEditing(evaluation)" class="evaluation-label px-3 w-25">Department Form</div>
+                  <div v-if="!isEditing(evaluation)" class="evaluation-value">
+                    <div v-if="evaluation.departmentForm" class="d-flex flex-wrap align-center">
+                      {{ evaluation.departmentForm.name }}
+                      <EvaluationError
+                        v-for="(conflict, index) in evaluation.conflicts.departmentForm"
+                        :id="`error-msg-evaluation-department-form-conflict-${rowIndex}-${index}`"
+                        :key="index"
+                        :hover="isRowActive(evaluation)"
+                        :message="`Conflicts with value ${conflict.value} from ${conflict.department} department`"
+                      />
+                    </div>
                     <EvaluationError
-                      v-for="(conflict, index) in evaluation.conflicts.departmentForm"
-                      :id="`error-msg-evaluation-department-form-conflict-${rowIndex}-${index}`"
-                      :key="index"
+                      v-if="!evaluation.departmentForm && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
+                      :id="`error-msg-evaluation-department-form-${rowIndex}`"
                       :hover="isRowActive(evaluation)"
-                      :message="`Conflicts with value ${conflict.value} from ${conflict.department} department`"
+                      message="Department form required"
+                    />
+                    <EvaluationError
+                      v-if="evaluation.departmentForm && evaluation.departmentForm.deletedAt"
+                      :id="`error-msg-evaluation-department-form-${rowIndex}`"
+                      :hover="isRowActive(evaluation)"
+                      message="Department form has been deleted"
                     />
                   </div>
-                  <EvaluationError
-                    v-if="!evaluation.departmentForm && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
-                    :id="`error-msg-evaluation-department-form-${rowIndex}`"
-                    :hover="isRowActive(evaluation)"
-                    message="Department form required"
-                  />
-                  <EvaluationError
-                    v-if="evaluation.departmentForm && evaluation.departmentForm.deletedAt"
-                    :id="`error-msg-evaluation-department-form-${rowIndex}`"
-                    :hover="isRowActive(evaluation)"
-                    message="Department form has been deleted"
-                  />
-                  <div v-if="allowEdits && isEditing(evaluation)">
+                  <div v-if="allowEdits && isEditing(evaluation)" class="select-department-form">
                     <label id="select-department-form-label" for="select-department-form">
                       Department Form
                     </label>
@@ -462,35 +485,38 @@
                 </td>
                 <td
                   :id="`evaluation-${rowIndex}-evaluationType`"
-                  class="px-1"
+                  class="px-1 td-evaluationType"
                   :class="{
                     'pt-2': isEditing(evaluation),
                     'align-middle': !isEditing(evaluation)
                   }"
                 >
-                  <div v-if="evaluation.evaluationType && !isEditing(evaluation)">
-                    {{ evaluation.evaluationType.name }}
+                  <div v-if="!isEditing(evaluation)" class="evaluation-label px-3 w-25">Evaluation Type</div>
+                  <div v-if="!isEditing(evaluation)" class="evaluation-value">
+                    <div v-if="evaluation.evaluationType" class="d-flex flex-wrap align-center">
+                      {{ evaluation.evaluationType.name }}
+                      <EvaluationError
+                        v-for="(conflict, index) in evaluation.conflicts.evaluationType"
+                        :id="`error-msg-evaluation-type-conflict-${rowIndex}-${index}`"
+                        :key="index"
+                        :hover="isRowActive(evaluation)"
+                        :message="`Conflicts with value ${conflict.value} from ${conflict.department} department`"
+                      />
+                    </div>
                     <EvaluationError
-                      v-for="(conflict, index) in evaluation.conflicts.evaluationType"
-                      :id="`error-msg-evaluation-type-conflict-${rowIndex}-${index}`"
-                      :key="index"
+                      v-if="!evaluation.evaluationType && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
+                      :id="`error-msg-evaluation-type-${rowIndex}`"
                       :hover="isRowActive(evaluation)"
-                      :message="`Conflicts with value ${conflict.value} from ${conflict.department} department`"
+                      message="Evaluation type required"
+                    />
+                    <EvaluationError
+                      v-if="evaluation.evaluationType && evaluation.evaluationType.deletedAt"
+                      :id="`error-msg-evaluation-department-form-${rowIndex}`"
+                      :hover="isRowActive(evaluation)"
+                      message="Evaluation type has been deleted"
                     />
                   </div>
-                  <EvaluationError
-                    v-if="!evaluation.evaluationType && !isEditing(evaluation) && (evaluation.status === 'review' || evaluation.status === 'confirmed')"
-                    :id="`error-msg-evaluation-type-${rowIndex}`"
-                    :hover="isRowActive(evaluation)"
-                    message="Evaluation type required"
-                  />
-                  <EvaluationError
-                    v-if="evaluation.evaluationType && evaluation.evaluationType.deletedAt"
-                    :id="`error-msg-evaluation-department-form-${rowIndex}`"
-                    :hover="isRowActive(evaluation)"
-                    message="Evaluation type has been deleted"
-                  />
-                  <div v-if="allowEdits && isEditing(evaluation)">
+                  <div v-if="allowEdits && isEditing(evaluation)" class="select-evaluation-type">
                     <label id="select-evaluation-type-label" for="select-evaluation-type">
                       Evaluation Type
                     </label>
@@ -521,17 +547,19 @@
                 </td>
                 <td
                   :id="`evaluation-${rowIndex}-period`"
-                  class="px-1"
+                  class="px-1 td-evaluationPeriod"
                   :class="{
                     'pt-2': isEditing(evaluation),
                     'align-middle': !isEditing(evaluation)
                   }"
                 >
-                  <div v-if="evaluation.startDate && !isEditing(evaluation)">
+                  <div v-if="!isEditing(evaluation)" class="evaluation-label px-3 w-25">Evaluation Period</div>
+                  <div v-if="evaluation.startDate && !isEditing(evaluation)" class="evaluation-value">
                     <div>
                       {{ toFormatFromJsDate(evaluation.startDate, 'LL/dd/yyyy') }} -
                       {{ toFormatFromJsDate(evaluation.endDate, 'LL/dd/yyyy') }}
                     </div>
+                    <span class="d-md-none">&nbsp;&nbsp;</span>
                     <div>{{ evaluation.modular ? 2 : 3 }} weeks</div>
                     <EvaluationError
                       v-for="(conflict, index) in evaluation.conflicts.evaluationPeriod"
@@ -567,10 +595,13 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="isEditing(evaluation)" :key="`${evaluation.id}-edit`" class="bg-tertiary text-white border-top-none">
-                <td />
-                <td :colspan="size(evaluationHeaders) - 1" class="pb-1 px-3">
-                  <div class="d-flex justify-end">
+              <tr
+                v-if="isEditing(evaluation)"
+                :key="`${evaluation.id}-edit`"
+                class="evaluation-second-row bg-tertiary text-white border-top-none"
+              >
+                <td :colspan="size(evaluationHeaders)" class="pb-1 px-3">
+                  <div class="d-flex justify-end evaluation-buttons">
                     <ConfirmDialog
                       confirm-button-label="Confirm anyway"
                       :hide-confirm="!currentUser.isAdmin"
@@ -751,6 +782,7 @@ const someEvaluationsSelected = computed(() => {
   const selectedCount = size(selectedEvaluationIds.value)
   return !!selectedCount && selectedCount < size(evaluations.value)
 })
+const stickySearchPosition = ref(0)
 const stickyTop = computed(() => {
   return `${stickySearchPosition.value}px`
 })
@@ -784,7 +816,6 @@ watch([evaluations, selectedFilterTypes], () => {
   searchFilterResults.value = visibleEvaluations.value
 }, {immediate: true})
 
-const stickySearchPosition = ref(0)
 const setStickySearchPosition = () => {
   const appBar = document.getElementById('app-bar')
   const appBarHeight = appBar ? (appBar.getBoundingClientRect().height || 64) : 64
@@ -795,14 +826,14 @@ const setStickySearchPosition = () => {
 
 onMounted(() => {
   evaluationHeaders.value = [
-    {key: 'status', class: 'text-no-wrap', headerProps: {justifyItems: 'center', minWidth: '5rem', width: '7%'}, sortable: true, title: 'Status', value: 'status'},
-    {key: 'lastUpdated', class: 'text-no-wrap', headerProps: {minWidth: '5.63rem', width: '5%'}, sortable: true, title: 'Last Updated', value: 'lastUpdated'},
-    {key: 'courseNumber', class: 'text-no-wrap', headerProps: {minWidth: '2.5rem', width: '5%'}, sortable: true, title: 'Course Number', value: 'sortableCourseNumber'},
+    {key: 'status', headerProps: {justifyItems: 'center', minWidth: '5rem', width: '7%'}, sortable: true, title: 'Status', value: 'status'},
+    {key: 'lastUpdated', headerProps: {minWidth: '5.63rem', width: '5%'}, sortable: true, title: 'Last Updated', value: 'lastUpdated'},
+    {key: 'courseNumber', headerProps: {minWidth: '2.5rem', width: '5%'}, sortable: true, title: 'Course Number', value: 'sortableCourseNumber'},
     {key: 'courseName', headerProps: {minWidth: '6.25rem', width: '25%'}, sortable: true, title: 'Course Name', value: 'sortableCourseName'},
     {key: 'instructor', headerProps: {minWidth: '5rem', width: '20%'}, sortable: true, title: 'Instructor', value: 'sortableInstructor'},
     {key: 'departmentForm', class: 'text-start', headerProps: {minWidth: '6.25rem', width: '10%'}, sortable: true, title: 'Department Form', value: 'departmentForm.name'},
     {key: 'evaluationType', class: 'text-start', headerProps: {minWidth: '6.25rem', width: '10%'}, sortable: true, title: 'Evaluation Type', value: 'evaluationType.name'},
-    {key: 'startDate', class: 'text-no-wrap', headerProps: {minWidth: '6.88', width: '15%'}, sortable: true, title: 'Evaluation Period', value: 'startDate'}
+    {key: 'startDate', headerProps: {minWidth: '6.88', width: '15%'}, sortable: true, title: 'Evaluation Period', value: 'startDate'}
   ]
   if (props.readonly) {
     evaluationHeaders.value.unshift({key: 'departmentId', class: 'pl-1 text-no-wrap', headerProps: {width: '15%'}, sortable: true, title: 'Department', value: 'department.id'})
@@ -1172,6 +1203,182 @@ tr.border-bottom-none td {
 tr.border-top-none td {
   border-top: none !important;
 }
+@media (max-width: 64rem) {
+  .evaluation-head-row th {
+    display: none;
+    &.compact-table-header {
+      display: table-cell !important;
+    }
+  }
+  .evaluation-row,
+  .evaluation-second-row {
+    border-bottom: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+    padding-right: 16px;
+    td {
+      align-items: center;
+      border-bottom: none !important;
+      display: flex;
+      flex: 0 0 100% !important;
+      height: unset !important;
+      max-width: 100% !important;
+    }
+  }
+  .evaluation-row {
+    padding-bottom: 8px;
+    padding-top: 4px;
+    .evaluation-error {
+      flex: 0 0 75% !important;
+      margin: 0 0 4px auto !important;
+      max-width: 75%;
+      padding: 0px 12px !important;
+    }
+    .evaluation-label {
+      display: block !important;
+      font-weight: bold;
+      min-width: 8.25rem;
+    }
+    .evaluation-value {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      font-weight: normal;
+      padding: 0 4px 0 12px;
+      width: 75%;
+    }
+    .td-courseNumber .xlisting-note {
+      align-content: center;
+      font-size: 14px;
+    }
+    .td-department {
+      align-items: center;
+      flex: 1 0 40% !important;
+      font-size: 18px;
+      width: 40% !important;
+      padding: 0 16px !important;
+    }
+    .td-lastUpdated {
+      flex: 1 0 25% !important;
+      min-width: 14rem;
+      width: 25% !important;
+    }
+    .td-select {
+      flex: 0 0 5% !important;
+      max-width: 5% !important;
+      min-width: 3.5rem;
+    }
+    .td-status {
+      align-items: center;
+      flex: 1 0 25% !important;
+      min-width: 12.5rem;
+      .evaluation-row-btn {
+        height: calc(var(--v-btn-height) + 0px);
+        padding: 0 16px !important;
+      }
+      .evaluation-row-btn,
+      .status-label {
+        position: relative !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        overflow: revert-layer !important;
+      }
+      .status-label {
+        height: revert-layer !important;
+        margin: 0 8px 0 0 !important;
+        max-width: 6rem;
+        min-width: 5rem;
+      }
+    }
+  }
+  .evaluation-row.editing {
+    border-bottom: none;
+    padding-top: 8px !important;
+    .td-courseName,
+    .td-courseNumber,
+    .td-instructor,
+    .td-lastUpdated {
+      align-items: center;
+      flex-wrap: wrap;
+      min-height: 2.875rem !important;
+      padding-top: 8px !important;
+    }
+    .td-departmentForm .select-department-form,
+    .td-evaluationPeriod .evaluation-period-edit,
+    .td-evaluationType .select-evaluation-type,
+    .td-instructor .select-instructor .instructor-lookup,
+    .td-instructor .select-instructor .pending-instructor,
+    .td-status .select-evaluation-status {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: wrap;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+    .td-departmentForm .select-department-form label,
+    .td-evaluationPeriod .evaluation-period-edit label,
+    .td-evaluationType .select-evaluation-type label,
+    .td-instructor .instructor-lookup .person-lookup-label,
+    .td-lastUpdated .evaluation-label,
+    .td-status .select-evaluation-status label {
+      flex: 0 0 25% !important;
+      font-weight: bold;
+      margin: auto 0;
+      max-width: 25% !important;
+      min-width: 6rem;
+      padding: 0 12px;
+    }
+    .td-departmentForm .select-department-form select,
+    .td-evaluationPeriod .evaluation-period-edit .date-picker,
+    .td-evaluationType .select-evaluation-type select,
+    .td-instructor .select-instructor .instructor-lookup .person-lookup-container,
+    .td-status .select-evaluation-status select {
+      flex: 0 1 75% !important;
+      margin-left: 12px !important;
+      max-width: 20rem !important;
+      min-width: 12.5rem;
+    }
+    .td-instructor {
+      flex-wrap: wrap;
+      .evaluation-value {
+        order: 2;
+      }
+      .select-instructor {
+        width: 100%;
+        .pending-instructor {
+          padding-left: calc(25% + 12px);
+        }
+      }
+    }
+    .td-lastUpdated {
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+    }
+    .td-status {
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+      padding-right: 0 !important;
+      .select-evaluation-status {
+        padding-left: 0 !important;
+      }
+      .status-label {
+        display: none !important;
+      }
+    }
+  }
+  .evaluation-second-row .evaluation-buttons {
+    flex-wrap: wrap;
+    justify-content: flex-start !important;
+    margin-left: 25%;
+    width: 100%;
+    .evaluation-form-btn {
+      max-width: 9.375rem;
+      width: 40%;
+    }
+  }
+}
 </style>
 
 <style scoped>
@@ -1190,7 +1397,7 @@ tr.border-top-none td {
   color: rgb(var(--v-theme-anchor-darken-2));
 }
 .evaluation-form-btn {
-  width: 150px;
+  width: 9.375rem;
 }
 .evaluation-form-btn-cancel {
   color: rgba(var(--v-theme-on-surface),var(--v-high-emphasis-opacity)) !important;
@@ -1218,6 +1425,9 @@ tr.border-top-none td {
 }
 .evaluation-row.evaluation-row-leave-active {
   position: absolute;
+}
+.evaluation-row td .evaluation-label {
+  display: none;
 }
 .evaluation-status-filter-count {
   min-width: 1.75rem

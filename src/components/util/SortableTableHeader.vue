@@ -29,11 +29,28 @@
         {{ column.title }}
       </div>
     </th>
+    <th class="compact-table-header" :colspan="columns.length">
+      <select
+        :id="`sort-col-${id}all-btn`"
+        v-model="selectedSortColumn"
+        autocomplete="off"
+        class="mb-2 w-100 w-sm-50"
+        :disabled="disableControls"
+      >
+        <option selected :value="selectedSortColumn">Sort by...</option>
+        <option v-for="col in sortableColumns" :key="col.key" :value="col.title">{{ col.title }}</option>
+      </select>
+    </th>
   </tr>
 </template>
 
 <script setup>
-defineProps({
+import {filter} from 'lodash'
+import {computed, ref} from 'vue'
+import {storeToRefs} from 'pinia'
+import {useDepartmentStore} from '@/stores/department/department-edit-session'
+
+const props = defineProps({
   columns: {
     required: true,
     type: Array
@@ -62,9 +79,18 @@ defineProps({
     type: Function
   }
 })
+
+const {disableControls} = storeToRefs(useDepartmentStore())
+const selectedSortColumn = ref(undefined)
+const sortableColumns = computed(() => {
+  return filter(props.columns, 'sortable')
+})
 </script>
 
 <style scoped>
+.compact-table-header {
+  display: none;
+}
 .sort-col-btn {
   height: 28px !important;
   letter-spacing: normal !important;
@@ -79,6 +105,9 @@ defineProps({
 }
 .v-table-sort-btn-override .v-btn__append .v-icon {
   opacity: 0;
+}
+.v-table-sort-btn-override .v-btn__content {
+  text-align: left;
 }
 .v-table-sort-btn-override:active .v-btn__append .v-icon,
 .v-table-sort-btn-override:hover .v-btn__append .v-icon,

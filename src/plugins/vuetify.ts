@@ -2,6 +2,7 @@ import './main.scss'
 import '@mdi/font/css/materialdesignicons.css'
 import {aliases, mdi} from 'vuetify/iconsets/mdi-svg'
 import {createVuetify} from 'vuetify'
+import {Resize} from 'vuetify/directives/resize'
 import {Scroll} from 'vuetify/directives/scroll'
 import {VAlert} from 'vuetify/components/VAlert'
 import {VAppBar} from 'vuetify/components/VAppBar'
@@ -102,6 +103,7 @@ export default createVuetify({
     }
   },
   directives: {
+    Resize,
     Scroll
   },
   icons: {
