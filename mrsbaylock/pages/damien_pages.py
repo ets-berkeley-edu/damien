@@ -136,7 +136,8 @@ class DamienPages(Page):
         self.remove_and_type_chars(DamienPages.ADD_CONTACT_LOOKUP_INPUT, name)
 
     def click_look_up_result(self, user):
-        self.wait_for_element_and_click(self.add_contact_lookup_result(user))
+        time.sleep(utils.get_click_sleep())
+        self.wait_for_page_and_click(self.add_contact_lookup_result(user))
 
     NOTIF_FORM_BUTTON = (By.ID, 'open-notification-form-btn')
     NOTIF_SUBJ_INPUT = (By.ID, 'input-notification-subject')
@@ -164,7 +165,7 @@ class DamienPages(Page):
             self.wait_for_element_and_click((By.XPATH, DamienPages.notif_expand_dept_xpath(dept)))
 
     def notif_dept_recipient_emails(self, dept):
-        time.sleep(1)
+        time.sleep(2)
         els = self.elements((By.XPATH, f'{DamienPages.notif_expand_dept_xpath(dept)}/following-sibling::div//button/preceding-sibling::div'))
         return list(map(lambda e: e.text.strip().replace(')', '').split(' (')[-1], els))
 

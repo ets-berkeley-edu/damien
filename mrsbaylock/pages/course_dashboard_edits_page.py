@@ -60,7 +60,8 @@ class CourseDashboardEditsPage(CourseDashboards):
         time.sleep(1)
 
     def dept_contact_name(self, user):
-        return self.element((By.XPATH, f'{self.dept_contact_xpath(user)}//div[@id="dept-contact-{user.user_id}-name"]')).text
+        return self.element(
+            (By.XPATH, f'{self.dept_contact_xpath(user)}//div[@id="dept-contact-{user.user_id}-name"]')).text
 
     def expand_dept_contact(self, user):
         el = self.dept_contact_email_loc(user)
@@ -76,15 +77,18 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def dept_contact_comms_perms(self, user):
         return self.element(
-            (By.XPATH, f'//div[@id="dept-contact-{user.user_id}-notifications"]')).text.strip()
+            (By.XPATH, f'//div[@id="dept-contact-{user.user_id}-notifications"]')).get_property('innerText').strip()
 
     def dept_contact_blue_perms(self, user):
         return self.element(
-            (By.XPATH, f'{self.dept_contact_xpath(user)}//div[@id="dept-contact-{user.user_id}-permissions"]')).text.strip()
+            (By.XPATH,
+             f'{self.dept_contact_xpath(user)}//div[@id="dept-contact-{user.user_id}-permissions"]')).get_property(
+            'innerText').strip()
 
     def dept_contact_dept_forms(self, user):
-        els = self.elements((By.XPATH, f'{self.dept_contact_xpath(user)}//span[contains(@id, "dept-contact-{user.user_id}-form-")]'))
-        forms = list(map(lambda el: el.text.strip(), els))
+        els = self.elements(
+            (By.XPATH, f'{self.dept_contact_xpath(user)}//span[contains(@id, "dept-contact-{user.user_id}-form-")]'))
+        forms = list(map(lambda el: el.get_property('innerText').strip(), els))
         forms.sort()
         return forms
 
@@ -432,11 +436,13 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def open_edit_menu(self, evaluation, form):
         app.logger.info('Clicking evaluation edit menu button')
+        time.sleep(1)
         self.wait_for_page_and_click((By.XPATH, f'{self.eval_row_xpath(evaluation, form=form)}//button'))
 
     def click_edit_evaluation(self, evaluation, form=None, eval_type=None):
         self.scroll_to_top()
-        app.logger.info(f'Waiting for element locator {self.eval_row_xpath(evaluation, form=form, eval_type=eval_type)}//button')
+        app.logger.info(
+            f'Waiting for element locator {self.eval_row_xpath(evaluation, form=form, eval_type=eval_type)}//button')
         self.when_present((By.XPATH, f'{self.eval_row_xpath(evaluation, form=form)}//button'),
                           utils.get_medium_timeout())
         self.hide_damien_footer()
@@ -516,7 +522,8 @@ class CourseDashboardEditsPage(CourseDashboards):
 
     def save_eval_changes_button_disabled(self):
         time.sleep(2)
-        app.logger.info(f"Save button disabled is {self.element(self.EVAL_CHANGE_SAVE_BUTTON).get_dom_attribute('disabled')}")
+        app.logger.info(
+            f"Save button disabled is {self.element(self.EVAL_CHANGE_SAVE_BUTTON).get_dom_attribute('disabled')}")
         return self.element(self.EVAL_CHANGE_SAVE_BUTTON).get_dom_attribute('disabled') == 'disabled'
 
     def click_save_eval_changes(self, evaluation):

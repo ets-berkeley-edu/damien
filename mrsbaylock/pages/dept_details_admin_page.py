@@ -173,7 +173,7 @@ class DeptDetailsAdminPage(CourseDashboardEditsPage):
 
     def click_edit_contact(self, user):
         self.scroll_to_top()
-        self.wait_for_page_and_click_js(self.dept_contact_edit_button(user))
+        self.wait_for_page_and_click(self.dept_contact_edit_button(user))
 
     def enter_dept_contact_email_edit(self, user, email):
         app.logger.info(f'Entering email "{email}" for UID {user.uid}')

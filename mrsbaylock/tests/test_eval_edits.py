@@ -152,7 +152,8 @@ class TestEvaluationManagement:
     def test_change_start_date(self):
         e = self.dept_1.evaluations[0]
         e.eval_start_date = e.eval_start_date - timedelta(days=1)
-        e.eval_end_date = evaluation_utils.row_eval_end_from_eval_start(e.course_start_date, e.eval_start_date, e.course_end_date)
+        e.eval_end_date = evaluation_utils.row_eval_end_from_eval_start(e.course_start_date, e.eval_start_date,
+                                                                        e.course_end_date)
         self.dept_details_admin_page.click_edit_evaluation(e)
         self.dept_details_admin_page.change_eval_start_date(e, e.eval_start_date)
         self.dept_details_admin_page.save_eval_changes(e)
@@ -244,7 +245,10 @@ class TestEvaluationManagement:
 
     def test_add_supp_section(self):
         self.dept_details_admin_page.click_cancel_lookup_section()
-        e = next(filter(lambda ev: ev.instructor.uid and ev.dept_form and ev.eval_type, self.dept_2.evaluations))
+        e = next(filter(
+            lambda
+                ev: ev.instructor.uid and ev.dept_form and ev.eval_type and not ev.x_listing_ccns_all and not ev.room_share_ccns_all,
+            self.dept_2.evaluations))
         self.dept_details_admin_page.click_add_section()
         self.dept_details_admin_page.look_up_section(e.ccn)
         self.dept_details_admin_page.click_confirm_add_section()
@@ -368,8 +372,10 @@ class TestEvaluationManagement:
 
     def test_bulk_edit_start_date(self):
         new_date = self.bulk_dept.evaluations[0].eval_start_date - timedelta(days=1)
-        evaluations = list(filter(lambda e: e.eval_start_date == self.bulk_dept.evaluations[0].eval_start_date, self.bulk_dept.evaluations))
-        app.logger.info(f'There are {len(evaluations)} evaluations with eval start date of {self.bulk_dept.evaluations[0].eval_start_date}')
+        evaluations = list(filter(lambda e: e.eval_start_date == self.bulk_dept.evaluations[0].eval_start_date,
+                                  self.bulk_dept.evaluations))
+        app.logger.info(
+            f'There are {len(evaluations)} evaluations with eval start date of {self.bulk_dept.evaluations[0].eval_start_date}')
         self.dept_details_dept_page.filter_rows(f"{self.bulk_dept.evaluations[0].eval_start_date.strftime('%m/%d')}")
         self.dept_details_dept_page.click_select_all_evals()
         self.dept_details_dept_page.click_bulk_edit()
@@ -390,8 +396,10 @@ class TestEvaluationManagement:
         new_form = 'ENGLISH'
         new_type = 'F'
         new_date = self.bulk_dept.evaluations[0].eval_start_date + timedelta(days=1)
-        evaluations = list(filter(lambda e: e.eval_start_date == self.bulk_dept.evaluations[0].eval_start_date, self.bulk_dept.evaluations))
-        app.logger.info(f'There are {len(evaluations)} evaluations with eval start date of {self.bulk_dept.evaluations[0].eval_start_date}')
+        evaluations = list(filter(lambda e: e.eval_start_date == self.bulk_dept.evaluations[0].eval_start_date,
+                                  self.bulk_dept.evaluations))
+        app.logger.info(
+            f'There are {len(evaluations)} evaluations with eval start date of {self.bulk_dept.evaluations[0].eval_start_date}')
         self.dept_details_dept_page.load_dept_page(self.bulk_dept)
         self.dept_details_dept_page.filter_rows(f"{self.bulk_dept.evaluations[0].eval_start_date.strftime('%m/%d')}")
 

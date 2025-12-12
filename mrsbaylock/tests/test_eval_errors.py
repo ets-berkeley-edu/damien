@@ -37,7 +37,6 @@ from mrsbaylock.test_utils import evaluation_utils, utils
 
 @pytest.mark.usefixtures('page_objects')
 class TestEvalErrors:
-
     term = utils.get_current_term()
     utils.reset_test_data(term)
     all_contacts = utils.get_all_users()
@@ -62,9 +61,11 @@ class TestEvalErrors:
 
     x_list_eval_has_instr = True if x_list_eval.instructor.uid else False
     x_list_start_1 = term.end_date - timedelta(days=22)
-    x_list_end_1 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_1, x_list_eval.course_end_date)
+    x_list_end_1 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_1,
+                                                                 x_list_eval.course_end_date)
     x_list_start_2 = term.end_date - timedelta(days=21)
-    x_list_end_2 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_2, x_list_eval.course_end_date)
+    x_list_end_2 = evaluation_utils.row_eval_end_from_eval_start(x_list_eval.course_start_date, x_list_start_2,
+                                                                 x_list_eval.course_end_date)
 
     x_list_eval_dept_1 = copy.deepcopy(x_list_eval)
     x_list_eval_dept_1.dept = x_list_dept_1
@@ -115,7 +116,9 @@ class TestEvalErrors:
     manual_dept_1_evals = evaluation_utils.get_evaluations(term, manual_dept_1, log=True)
     manual_dept_2_evals = evaluation_utils.get_evaluations(term, manual_dept_2, log=True)
 
-    no_listings_no_shares = list(filter(lambda c: (c.instructor.uid and not c.x_listing_ccns and not c.room_share_ccns), manual_dept_2_evals))
+    no_listings_no_shares = list(
+        filter(lambda c: (c.instructor.uid and not c.x_listing_ccns_all and not c.room_share_ccns_all),
+               manual_dept_2_evals))
     manual_eval = no_listings_no_shares[0]
 
     manual_eval_dept_1 = copy.deepcopy(manual_eval)
@@ -490,7 +493,8 @@ class TestEvalErrors:
         self.dept_details_dept_page.log_out()
         self.login_page.dev_auth(self.share_contact_1, self.share_dept_1)
         self.dept_details_dept_page.wait_for_eval_row(self.share_eval_dept_1)
-        assert self.share_eval.status.value['ui'].upper() in self.dept_details_admin_page.eval_status(self.share_eval_dept_1)
+        assert self.share_eval.status.value['ui'].upper() in self.dept_details_admin_page.eval_status(
+            self.share_eval_dept_1)
 
     @pytest.mark.skipif(not share, reason='No foreign room shares in course data')
     def test_share_confirmed_dept_1_verify_form_conflict(self):
