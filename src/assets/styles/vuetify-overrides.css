@@ -18,8 +18,9 @@
   .btn-status-filter:focus::after {
     outline-offset: 0.1rem;
   }
-  .v-btn:focus > .v-btn__overlay {
-    opacity: var(--v-focus-opacity);
+  .v-btn:focus > .v-btn__overlay,
+  .v-expansion-panel-title:focus .v-expansion-panel-title__overlay {
+    opacity: var(--v-focus-opacity) !important;
   }
   .v-btn:focus::after,
   .v-expansion-panel-title:focus,
@@ -81,8 +82,9 @@
   .btn-status-filter:focus-visible::after {
     outline-offset: 0.1rem;
   }
-  .v-btn:focus-visible > .v-btn__overlay {
-    opacity: var(--v-focus-opacity);
+  .v-btn:focus-visible > .v-btn__overlay,
+  .v-expansion-panel-title:focus-visible .v-expansion-panel-title__overlay {
+    opacity: var(--v-focus-opacity) !important;
   }
   .v-btn:focus-visible::after,
   .v-expansion-panel-title:focus-visible,
