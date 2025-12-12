@@ -2,7 +2,7 @@
   <v-footer
     id="footer"
     app
-    class="footer font-size-14 bg-secondary pa-0"
+    class="footer font-size-14 bg-secondary pa-0 pl-2"
     name="footer"
   >
     <div class="d-flex flex-wrap justify-space-between w-100">
@@ -42,8 +42,8 @@ const screenReaderAlert = contextStore.screenReaderAlert
 
 <style scoped>
 .footer {
-  left: calc(var(--v-layout-left) + 8px) !important;
-  width: calc(100vw - calc(var(--v-layout-left) + 8px)) !important;
+  left: var(--v-layout-left) !important;
+  width: calc(100vw - calc(var(--v-layout-left) + 14px)) !important;
 }
 
 .footer-link {

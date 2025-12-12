@@ -181,7 +181,11 @@ const footerHeight = computed(() => {
 })
 
 const layoutLeft = computed(() => {
-  return isSidebarCollapsed.value ? '3rem' : '11.5rem'
+  if (currentUser.isAdmin) {
+    return isSidebarCollapsed.value ? '3rem' : '11.5rem'
+  } else {
+    return '0px'
+  }
 })
 
 onMounted(() => {
