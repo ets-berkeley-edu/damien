@@ -134,28 +134,35 @@ class CourseDashboards(DamienPages):
         data = []
         for el in self.elements(CourseDashboards.EVALUATION_STATUS):
             idx = el.get_dom_attribute('id').split('-')[1]
-            uid_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-instructor"]/div')
+            ccn_loc = By.XPATH, f'//td[@id="evaluation-{idx}-courseNumber"]/div[@class="evaluation-value"]'
+            course_loc = By.XPATH, f'//td[@id="evaluation-{idx}-courseNumber"]/following-sibling::td/div[@class="evaluation-value"]'
+            form_loc = By.XPATH, f'//td[@id="evaluation-{idx}-departmentForm"]/div[@class="evaluation-value"]'
+            type_loc = By.XPATH, f'//td[@id="evaluation-{idx}-evaluationType"]/div[@class="evaluation-value"]'
+            dates_loc = By.XPATH, f'//td[@id="evaluation-{idx}-period"]/div[@class="evaluation-value"]'
+
+            uid_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-instructor"]/div[@class="evaluation-value"]/div')
             uid = ''
             name = ''
             if self.is_present(uid_loc):
                 parts = self.element(uid_loc).text.strip().split()
                 uid = parts[-1].replace('(', '').replace(')', '')
                 name = ' '.join(parts[0:-1])
-            listings_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-courseNumber"]/div[@class="xlisting-note"]')
+
+            listings_loc = (By.XPATH, f'//td[@id="evaluation-{idx}-courseNumber"]//div[@class="xlisting-note"]')
             listings = []
             if self.is_present(listings_loc):
                 listings = re.sub('[a-zA-Z(,)-]+', '', self.element(listings_loc).text).strip().split()
 
             data.append(
                 {
-                    'ccn': self.element((By.ID, f'evaluation-{idx}-courseNumber')).text.strip().split('\n')[0],
+                    'ccn': self.element(ccn_loc).text.strip().split('\n')[0].strip(),
                     'listings': listings,
-                    'course': self.element((By.ID, f'evaluation-{idx}-courseName')).text.strip(),
+                    'course': self.element(course_loc).text.split('\n')[0].strip(),
                     'uid': uid,
                     'name': name,
-                    'form': self.element((By.ID, f'evaluation-{idx}-departmentForm')).text.strip(),
-                    'type': self.element((By.ID, f'evaluation-{idx}-evaluationType')).text.strip(),
-                    'dates': self.element((By.ID, f'evaluation-{idx}-period')).text.split('\n')[0],
+                    'form': self.element(form_loc).text.strip(),
+                    'type': self.element(type_loc).text.strip(),
+                    'dates': self.element(dates_loc).text.split('\n')[0],
                 },
             )
         return data
