@@ -10,6 +10,8 @@
           single-line
           max-width="14.5rem"
           min-width="14.5rem"
+          role="complementary"
+          tag="aside"
         >
           Welcome to&nbsp;<a :href="config.easterEggNannysRoom" target="_blank">The Nanny's Room</a>
         </v-banner>

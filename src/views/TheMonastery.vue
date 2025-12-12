@@ -10,6 +10,8 @@
           single-line
           max-width="12.25rem"
           min-width="12.25rem"
+          role="complementary"
+          tag="aside"
         >
           Welcome to&nbsp;<a :href="config.easterEggMonastery" target="_blank">The Monastery</a>
         </v-banner>

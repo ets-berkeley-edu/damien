@@ -122,9 +122,9 @@ export default createVuetify({
     themes: {
       light: {
         colors: {
-          accent: '#CC4000',
+          accent: '#C73F00',
           alert: '#FA9301',
-          anchor: '#CC4000',
+          anchor: '#C73F00',
           background: '#FFF',
           disabled: '#BBCAD4',
           error: '#B71C1C',
@@ -136,7 +136,7 @@ export default createVuetify({
           'evaluation-to-do': '#F2FFF6',
           'evaluation-to-do-label': '#478047',
           'evaluation-xlisting': '#FFFFDD',
-          hovered: '#EEE',
+          hovered: '#F2F2F2',
           muted: '#606060',
           'on-surface-variant': '#000',
           primary: '#0D364E',
@@ -165,7 +165,7 @@ export default createVuetify({
           'evaluation-to-do': '#001E00',
           'evaluation-to-do-label': '#005400',
           'evaluation-xlisting': '#2B2600',
-          hovered: '#262626',
+          hovered: '#121212',
           muted: '#BDBDBD',
           'on-error': '#240000',
           'on-primary': '#07324A',
