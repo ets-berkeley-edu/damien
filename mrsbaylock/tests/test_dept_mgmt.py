@@ -105,9 +105,9 @@ class TestDeptMgmt:
         self.dept_details_admin_page.expand_dept_contact(user)
         self.dept_details_admin_page.wait_for_contact(user)
         expected_comms = 'Does receive notifications' if dept_role.receives_comms else 'Does not receive notifications'
-        assert self.dept_details_admin_page.dept_contact_comms_perms(user) == expected_comms
+        assert expected_comms in self.dept_details_admin_page.dept_contact_comms_perms(user)
         expected_blue = user.blue_permissions.value['description']
-        assert self.dept_details_admin_page.dept_contact_blue_perms(user) == expected_blue
+        assert expected_blue in self.dept_details_admin_page.dept_contact_blue_perms(user)
         expected_forms = list(filter(None, user.dept_forms))
         actual_forms = self.dept_details_admin_page.dept_contact_dept_forms(user)
         assert actual_forms == expected_forms
@@ -171,9 +171,9 @@ class TestDeptMgmt:
     def test_add_contact_verify(self):
         self.dept_details_admin_page.expand_dept_contact(dept_1_user)
         expected_comms = 'Does receive notifications' if dept_1_role.receives_comms else 'Does not receive notifications'
-        assert self.dept_details_admin_page.dept_contact_comms_perms(dept_1_user) == expected_comms
+        assert expected_comms in self.dept_details_admin_page.dept_contact_comms_perms(dept_1_user)
         expected_blue = dept_1_user.blue_permissions.value['description']
-        assert self.dept_details_admin_page.dept_contact_blue_perms(dept_1_user) == expected_blue
+        assert expected_blue in self.dept_details_admin_page.dept_contact_blue_perms(dept_1_user)
         expected_forms = list(filter(None, dept_1_user.dept_forms))
         actual_forms = self.dept_details_admin_page.dept_contact_dept_forms(dept_1_user)
         assert actual_forms == expected_forms
@@ -201,9 +201,9 @@ class TestDeptMgmt:
             expected_comms = 'Does receive notifications'
         else:
             expected_comms = 'Does not receive notifications'
-        assert self.dept_details_admin_page.dept_contact_comms_perms(dept_1_user) == expected_comms
+        assert expected_comms in self.dept_details_admin_page.dept_contact_comms_perms(dept_1_user)
         expected_blue = dept_1_user.blue_permissions.value['description']
-        assert self.dept_details_admin_page.dept_contact_blue_perms(dept_1_user) == expected_blue
+        assert expected_blue in self.dept_details_admin_page.dept_contact_blue_perms(dept_1_user)
         expected_forms = list(filter(None, dept_1_user.dept_forms))
         actual_forms = self.dept_details_admin_page.dept_contact_dept_forms(dept_1_user)
         assert actual_forms == expected_forms

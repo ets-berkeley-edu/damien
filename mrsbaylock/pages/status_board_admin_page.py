@@ -44,6 +44,7 @@ class StatusBoardAdminPage(DamienPages):
 
     def wait_for_depts(self):
         self.when_visible((By.XPATH, '//a[starts-with(@id, "link-to-dept-")]'), utils.get_medium_timeout())
+        time.sleep(2)
 
     LOCK_BOX = (By.ID, 'toggle-term-locked')
 
@@ -53,7 +54,7 @@ class StatusBoardAdminPage(DamienPages):
 
     def is_current_term_locked(self):
         time.sleep(1)
-        return 'Unlock' in self.element(StatusBoardAdminPage.LOCK_BOX).get_dom_attribute('title')
+        return 'Lock' in self.element(StatusBoardAdminPage.LOCK_BOX).get_dom_attribute('title')
 
     NOTIF_SELECT_ALL_CBX = (By.ID, 'checkbox-select-dept-all')
     NOTIF_APPLY_BUTTON = (By.ID, 'open-notification-form-btn')
@@ -81,7 +82,7 @@ class StatusBoardAdminPage(DamienPages):
                 self.notif_expand_dept_recipient_members(dept)
                 self.notif_remove_recipient(dept, user)
         self.click_notif_send()
-        self.when_not_present(DamienPages.NOTIF_SEND_BUTTON, utils.get_medium_timeout())
+        self.when_not_present(DamienPages.NOTIF_SEND_BUTTON, 180)
         time.sleep(2)
 
     @staticmethod

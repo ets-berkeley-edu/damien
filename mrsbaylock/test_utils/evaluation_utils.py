@@ -57,6 +57,7 @@ def get_evaluations(term, dept, log=False):
     get_manual_sections(evals_total, term, dept)
     edits = get_edited_sections(term, dept)
     merge_edited_evals(evals_total, edits)
+    transform_icnt_instructor_evals(evals_total)
     get_instructors(evals_total)
     get_eval_types(evals_total)
     calculate_eval_dates(evals_total)
@@ -120,22 +121,28 @@ def row_instructor(row):
         return None
 
 
+def eval_end_grace_period(course_end):
+    term_end_date = datetime.datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d').date()
+    end = course_end or term_end_date
+    if app.config['CURRENT_TERM_ID'][3] == '5':
+        # No grace period for summer evals
+        return end
+    else:
+        # 2 day grace period (i.e., weekend) for fall and spring evals
+        grace_pd = 2 if (end == term_end_date) else 0
+        return end + timedelta(days=grace_pd)
+
+
 def row_eval_end_from_eval_start(course_start, eval_start, course_end):
     start = course_start or datetime.datetime.strptime(app.config['CURRENT_TERM_BEGIN'], '%Y-%m-%d').date()
-    end = course_end or datetime.datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d').date()
-    return (eval_start + timedelta(days=20)) if (end - start).days > 90 else (eval_start + timedelta(days=13))
+    graceful_end = eval_end_grace_period(course_end)
+    return (eval_start + timedelta(days=20)) if (graceful_end - start).days >= 90 else (eval_start + timedelta(days=13))
 
 
 def row_eval_start_from_course_end(course_end, course_start):
-    term_end_date = datetime.datetime.strptime(app.config['CURRENT_TERM_END'], '%Y-%m-%d').date()
     start = course_start or datetime.datetime.strptime(app.config['CURRENT_TERM_BEGIN'], '%Y-%m-%d').date()
-    end = course_end or term_end_date
-    if app.config['CURRENT_TERM_ID'][3] == '5':
-        graceful_end = end
-    else:
-        grace_pd = 2 if (end == term_end_date) else 0
-        graceful_end = end + timedelta(days=grace_pd)
-    return graceful_end - timedelta(days=20) if (graceful_end - start).days > 90 else graceful_end - timedelta(days=13)
+    graceful_end = eval_end_grace_period(course_end)
+    return graceful_end - timedelta(days=20) if (graceful_end - start).days >= 90 else graceful_end - timedelta(days=13)
 
 
 def remove_listing_dept_forms(evals):
@@ -269,8 +276,6 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
          WHERE departments.id = '{dept.dept_id}'
            AND unholy_loch.sis_sections.term_id = '{term.term_id}'
            AND unholy_loch.sis_sections.enrollment_count > 0
-           AND (unholy_loch.sis_sections.instructor_role_code IS NULL
-            OR unholy_loch.sis_sections.instructor_role_code !='ICNT')
            AND unholy_loch.sis_sections.instruction_format NOT IN ('CLC', 'GRP', 'IND', 'SUP', 'VOL')
       GROUP BY unholy_loch.sis_sections.course_number,
                unholy_loch.sis_sections.subject_area,
@@ -592,6 +597,27 @@ def get_all_eval_types():
     for row in results:
         types.append(row['name'])
     return types
+
+
+def transform_icnt_instructor_evals(evals):
+    sorted_evals = sorted(evals, key=lambda ev: ev.ccn)
+    grouped_evals = [list(result) for key, result in itertools.groupby(sorted_evals, key=lambda sorted_ev: sorted_ev.ccn)]
+    for grp in grouped_evals:
+        roles = []
+        for grouped_ev in grp:
+            if grouped_ev.instructor.role_code not in roles:
+                roles.append(grouped_ev.instructor.role_code)
+        if roles == ['ICNT']:
+            fake_eval = copy.deepcopy(grp[0])
+            fake_eval.instructor = Instructor({'uid': None, 'role_code': None, 'affiliations': None, 'dept_roles': []})
+            for non_eligible_eval in grp:
+                evals.remove(non_eligible_eval)
+            evals.append(fake_eval)
+        else:
+            for e in grp:
+                if e.instructor.role_code == 'ICNT':
+                    evals.remove(e)
+    return evals
 
 
 def get_instructors(evals):
