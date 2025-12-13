@@ -296,6 +296,7 @@ def get_participating_depts():
     app.logger.info(sql)
     depts = []
     result = db.session.execute(text(sql))
+    all_data = []
     for row in result:
         data = {
             'dept_id': row['id'],
@@ -304,6 +305,9 @@ def get_participating_depts():
             'row_count': row['row_count'],
             'participating': True,
         }
+        if data not in all_data:
+            all_data.append(data)
+    for data in all_data:
         depts.append(Department(data))
     users = get_all_users()
     for d in depts:
