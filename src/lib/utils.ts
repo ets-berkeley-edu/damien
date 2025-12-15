@@ -33,8 +33,10 @@ export function oxfordJoin(arr: string[]) {
   }
 }
 
-export function pluralize(noun: string, count: number, substitutions: any = {}, pluralSuffix: string = 's') {
-  return (`${substitutions[count] || substitutions['other'] || count} ` + (count !== 1 ? `${noun}${pluralSuffix}` : noun))
+export function pluralize(noun: string, count: number, substitutions: any = {}, includeCount = true) {
+  const countOf = includeCount ? `${substitutions[count] || substitutions['other'] || count} ` : ''
+  const desc = count !== 1 ? `${noun}s` : noun
+  return `${countOf}${desc}`
 }
 
 export function putFocusNextTick(

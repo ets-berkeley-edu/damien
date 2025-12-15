@@ -2,17 +2,15 @@
   <v-card
     class="modal-content"
     flat
+    min-height="90vh"
     :min-width="minWidth"
   >
     <v-card-title id="send-notification-dialog-title" class="px-6 pb-4">
-      <h3 id="send-notification-header">
+      <h2 id="send-notification-header">
         Send Notification
-      </h3>
+      </h2>
     </v-card-title>
     <v-card-subtitle v-if="selectedRecipients" class="px-6">
-      <h4 id="notification-recipients-header" class="font-size-16 mb-2" aria-live="polite">
-        Message will be sent to recipients in {{ pluralize('department', selectedRecipients.length) }}.
-      </h4>
       <v-expansion-panels
         id="notification-recipients-container"
         aria-describedby="notification-recipients-header"
@@ -25,10 +23,14 @@
           v-for="(department, deptIndex) in selectedRecipients"
           :key="deptIndex"
         >
-          <v-expansion-panel-title :id="`notification-recipients-dept-${department.deptId}`" class="border-sm">
-            <h5 :id="`dept-head-${deptIndex}`" class="font-size-14">
-              {{ department.deptName }} <span class="sr-only">recipients</span>
-            </h5>
+          <v-expansion-panel-title
+            :id="`notification-recipients-dept-${department.deptId}`"
+            class="border-sm"
+            @click="scrollTo(`notification-recipients-dept-${department.deptId}`, 'start')"
+          >
+            <h3 :id="`dept-head-${deptIndex}`" class="font-size-14">
+              {{ department.deptName }} ({{ size(department.recipients) }}<span class="sr-only">{{ pluralize('recipient', size(department.recipients), {}, false) }}</span>)
+            </h3>
           </v-expansion-panel-title>
           <v-expansion-panel-text :aria-describedby="`notification-recipients-dept-${department.deptId}`">
             <div v-for="(recipient, index) in department.recipients" :key="index" class="d-flex flex-wrap pt-1">
@@ -40,9 +42,8 @@
                   {{ recipientLabel(recipient) }}
                 </div>
                 <v-btn
-                  v-if="department.recipients.length > 1"
                   :id="`notification-recipient-remove-${department.deptId}-${recipient.uid}-btn`"
-                  :aria-label="`Remove ${recipientLabel(recipient)} from recipients`"
+                  :aria-label="`Remove ${recipientLabel(recipient)}`"
                   color="green-accent-1"
                   density="compact"
                   :disabled="isSending"
@@ -55,6 +56,9 @@
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
+      <div id="notification-recipients-header" class="font-size-16 font-weight-bold text-on-surface mt-4">
+        {{ recipientsDescription }}
+      </div>
     </v-card-subtitle>
     <v-card-text id="send-notification-dialog-text" class="px-6">
       <v-form
@@ -68,13 +72,13 @@
           id="input-notification-subject"
           v-model="subject"
           :aria-describeby="undefined"
+          autocomplete="on"
           class="bg-surface mt-1"
           color="primary"
           density="compact"
           :disabled="isSending"
           hide-details
           variant="outlined"
-          autocomplete="on"
           @keydown.esc="onCancel"
         />
         <div class="pt-3">
@@ -85,10 +89,10 @@
             id="input-notification-message"
             v-model="message"
             :aria-describeby="undefined"
+            autocomplete="on"
             auto-grow
             class="bg-surface mt-1"
             color="primary"
-            autocomplete="on"
             :disabled="isSending"
             hide-details
             variant="outlined"
@@ -101,6 +105,7 @@
       <ProgressButton
         id="send-notification-btn"
         :action="sendNotification"
+        aria-label="Send notification"
         class="mr-2"
         :disabled="disabled"
         :in-progress="isSending"
@@ -108,6 +113,7 @@
       />
       <v-btn
         id="cancel-send-notification-btn"
+        aria-label="Cancel notification"
         :disabled="isSending"
         text="Cancel"
         variant="outlined"
@@ -118,10 +124,10 @@
 </template>
 
 <script setup>
-import {cloneDeep, indexOf, size, trim} from 'lodash'
+import {cloneDeep, first, get, indexOf, last, size, trim} from 'lodash'
 import {computed, onMounted, ref} from 'vue'
 import {mdiCloseCircle} from '@mdi/js'
-import {alertScreenReader, pluralize, putFocusNextTick} from '@/lib/utils'
+import {alertScreenReader, pluralize, putFocusNextTick, scrollTo} from '@/lib/utils'
 import ProgressButton from '@/components/util/ProgressButton'
 import {notifyContacts} from '@/api/departments'
 import {useContextStore} from '@/stores/context'
@@ -157,22 +163,32 @@ const disabled = computed(() => {
   return isSending.value || !trim(subject.value) || !trim(message.value) || !size(selectedRecipients.value)
 })
 
+const recipientsDescription = computed(() => {
+  return `Message will be sent to recipients in ${pluralize('department', size(selectedRecipients.value))}.`
+})
+
 onMounted(() => {
   selectedRecipients.value = cloneDeep(props.recipients)
-  putFocusNextTick('input-notification-subject')
+  describeRecipients()
+  putFocusNextTick(`notification-recipients-dept-${first(selectedRecipients.value).deptId}`)
 })
 
 const recipientLabel = recipient => `${recipient.firstName} ${recipient.lastName} (${recipient.email})`
 
-const removeRecipient = (department, recipient, index) => {
+const removeRecipient = (department, recipient, indexOfRecipient) => {
   const label = recipientLabel(recipient)
   const indexOfDepartment = indexOf(selectedRecipients.value, department)
   if (size(department.recipients) === 1) {
+    const nextFocusIndex = department.deptId === last(selectedRecipients.value).deptId ? indexOfDepartment - 1 : indexOfDepartment
     selectedRecipients.value.splice(indexOfDepartment, 1)
+    alertScreenReader(`Removed ${label}. ${recipientsDescription.value}`)
+    putFocusNextTick(`notification-recipients-dept-${get(selectedRecipients.value, `${nextFocusIndex}.deptId`)}`)
   } else {
-    selectedRecipients.value[indexOfDepartment].recipients.splice(index, 1)
+    const nextFocusIndex = recipient.uid === last(department.recipients).uid ? indexOfRecipient - 1 : indexOfRecipient
+    selectedRecipients.value[indexOfDepartment].recipients.splice(indexOfRecipient, 1)
+    alertScreenReader(`Removed ${label} from recipients.`)
+    putFocusNextTick(`notification-recipient-remove-${department.deptId}-${get(department.recipients, `${nextFocusIndex}.uid`)}-btn`)
   }
-  alertScreenReader(`Removed ${label} from recipients.`)
   return false
 }
 
