@@ -118,7 +118,7 @@
   border-color: rgba(0, 0, 0, 0.86) !important;
 }
 .modal-content {
-  margin: 24px auto 16px auto !important;
+  margin: auto !important;
   padding: 16px 6px 6px !important;
 }
 .modal-content .v-card-title {
