@@ -140,14 +140,6 @@
           </div>
         </div>
       </div>
-      <div
-        id="evaluation-table-search-results-desc"
-        aria-atomic="true"
-        aria-live="polite"
-        class="sr-only"
-      >
-        <span v-if="searchFilter">{{ pluralize('evaluation', size(searchFilterResults.value)) }} displayed.</span>
-      </div>
       <v-data-table
         id="evaluation-table"
         v-model:sort-by="sortBy"
@@ -716,7 +708,7 @@ import PersonLookup from '@/components/admin/PersonLookup'
 import ProgressButton from '@/components/util/ProgressButton.vue'
 import SortableTableHeader from '@/components/util/SortableTableHeader'
 import {addInstructor} from '@/api/instructor'
-import {alertScreenReader, oxfordJoin, pluralize, putFocusNextTick, toFormatFromJsDate, toLocaleFromISO} from '@/lib/utils'
+import {alertScreenReader, oxfordJoin, putFocusNextTick, toFormatFromJsDate, toLocaleFromISO} from '@/lib/utils'
 import {EVALUATION_STATUSES, useDepartmentStore} from '@/stores/department/department-edit-session'
 import {useContextStore} from '@/stores/context'
 import {validateMarkAsDone} from '@/stores/department/utils'
