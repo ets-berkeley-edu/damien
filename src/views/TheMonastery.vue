@@ -32,13 +32,14 @@
         @focusout="() => hoveredDept = null"
         @update:sort-by="onUpdateSortBy"
       >
-        <template #headers="{ columns, isSorted, toggleSort, sortBy: internalSortBy }">
+        <template #headers="{ columns, isSorted, toggleSort, getSortIcon, sortBy: internalSortBy }">
           <SortableTableHeader
             id="department-table-"
             :columns="columns"
             :is-sorted="isSorted"
             :on-sort="toggleSort"
             :sort-desc="internalSortBy?.[0]?.order === 'desc'"
+            :sort-icon="getSortIcon"
           />
         </template>
         <template #body="{items}">
