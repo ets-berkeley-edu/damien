@@ -135,14 +135,14 @@
       id-prefix="send-notification"
       :is-open="isCreatingNotification"
       max-width="1200"
-      min-width="800"
+      min-width="300"
       persistent
       role="dialog"
       width="90%"
     >
       <NotificationForm
         :after-send="afterSendNotification"
-        min-width="800"
+        min-width="300"
         :on-cancel="cancelSendNotification"
         :recipients="notificationRecipients"
       />

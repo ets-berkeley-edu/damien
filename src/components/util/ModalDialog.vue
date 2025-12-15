@@ -4,6 +4,7 @@
     :aria-describedby="`${idPrefix}-dialog-text`"
     :aria-hidden="ariaHidden"
     :aria-labelledby="`${idPrefix}-dialog-title`"
+    :fullscreen="display.xs.value"
     :persistent="persistent"
     :role="role"
     @click:outside="onClickOutside"
@@ -36,6 +37,7 @@
 
 <script setup>
 import {nextTick, ref, useSlots} from 'vue'
+import {useDisplay} from 'vuetify'
 import {useContextStore} from '@/stores/context'
 
 defineProps({
@@ -85,6 +87,7 @@ defineProps({
 
 const ariaHidden = ref(true)
 const contextStore = useContextStore()
+const display = useDisplay()
 const slots = useSlots()
 
 const onClosed = () => {
