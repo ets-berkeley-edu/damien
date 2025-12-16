@@ -10,7 +10,7 @@
         Send Notification
       </h2>
     </v-card-title>
-    <v-card-subtitle v-if="selectedRecipients" class="px-6">
+    <v-card-subtitle v-if="selectedRecipients" class="px-6 opacity-100">
       <v-expansion-panels
         id="notification-recipients-container"
         aria-describedby="notification-recipients-header"
@@ -22,11 +22,12 @@
         <v-expansion-panel
           v-for="(department, deptIndex) in selectedRecipients"
           :key="deptIndex"
+          eager
         >
           <v-expansion-panel-title
             :id="`notification-recipients-dept-${department.deptId}`"
             class="border-sm"
-            @click="scrollTo(`notification-recipients-dept-${department.deptId}`, 'start')"
+            @click="scrollTo(`notification-recipients-dept-${department.deptId}`)"
           >
             <h3 :id="`dept-head-${deptIndex}`" class="font-size-14">
               {{ department.deptName }} ({{ size(department.recipients) }}<span class="sr-only">{{ pluralize('recipient', size(department.recipients), {}, false) }}</span>)
@@ -56,9 +57,16 @@
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
-      <div id="notification-recipients-header" class="font-size-16 font-weight-bold text-on-surface mt-4">
+      <v-alert
+        id="notification-recipients-header"
+        class="bg-surface font-size-16 font-weight-bold mt-4"
+        density="compact"
+        :role="undefined"
+        :type="size(selectedRecipients) ? 'info' : 'error'"
+        variant="tonal"
+      >
         {{ recipientsDescription }}
-      </div>
+      </v-alert>
     </v-card-subtitle>
     <v-card-text id="send-notification-dialog-text" class="px-6">
       <v-form
@@ -169,7 +177,6 @@ const recipientsDescription = computed(() => {
 
 onMounted(() => {
   selectedRecipients.value = cloneDeep(props.recipients)
-  describeRecipients()
   putFocusNextTick(`notification-recipients-dept-${first(selectedRecipients.value).deptId}`)
 })
 
