@@ -213,6 +213,10 @@ h2 {
 input.vs__search:enabled {
   cursor: text !important;
 }
+.scroll-margins {
+  scroll-margin-bottom: 60px;
+  scroll-margin-top: 80px;
+}
 select {
   -moz-appearance: none;
   -webkit-appearance: none;
