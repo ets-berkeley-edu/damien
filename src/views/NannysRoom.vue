@@ -325,7 +325,7 @@
                   />
                 </div>
                 <div class="mt-2">
-                  <label for="input-instructor-last-name" class="form-label">
+                  <label for="input-instructor-email" class="form-label">
                     Email
                   </label>
                   <v-text-field

@@ -43,7 +43,6 @@
       :color="contextStore.isSelectedTermLocked ? 'error' : 'success'"
       :icon="contextStore.isSelectedTermLocked ? mdiLock : mdiLockOpen"
       size="large"
-      :title="`${contextStore.selectedTermName} is ${contextStore.isSelectedTermLocked ? 'locked' : 'unlocked'} for editing.`"
       :alt="`${contextStore.selectedTermName} is ${contextStore.isSelectedTermLocked ? 'locked' : 'unlocked'} for editing.`"
     />
   </div>
