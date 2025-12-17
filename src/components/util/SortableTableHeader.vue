@@ -33,6 +33,7 @@
       <select
         :id="`sort-col-${id}all-btn`"
         v-model="selectedSortColumn"
+        aria-label="Sort by"
         autocomplete="off"
         class="mb-2 w-100 w-sm-50"
         :disabled="disableControls"
