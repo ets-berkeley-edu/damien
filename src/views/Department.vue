@@ -14,7 +14,7 @@
     </PageHeader>
     <div v-if="!contextStore.loading">
       <div v-if="!currentUser.isAdmin && currentUser.departments.length > 1" class="mb-2">
-        <v-menu rounded="lg">
+        <v-menu rounded="lg" eager>
           <template #activator="{props: defineProps}">
             <v-btn
               id="change-department-menu"

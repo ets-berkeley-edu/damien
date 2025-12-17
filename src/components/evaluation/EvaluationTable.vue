@@ -246,6 +246,7 @@
                       :key="`menu-${rowIndex}`"
                       scroll-strategy="none"
                       z-index="0"
+                      eager
                       @update:model-value="isOpen => onToggleEditMenu(isOpen, evaluation)"
                     >
                       <template #activator="{props: menuProps}">
