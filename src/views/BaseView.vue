@@ -38,11 +38,11 @@
               <span class="d-block d-sm-none">{{ first(currentUser.firstName) }}</span>
             </v-btn>
           </template>
-          <v-list density="comfortable">
+          <v-list density="comfortable" role="menu">
             <v-list-item
               id="dark-mode-toggle"
               link
-              role="option"
+              role="menuitem"
               @click="toggleColorScheme"
             >
               <v-list-item-title class="font-weight-medium">
@@ -53,7 +53,7 @@
               id="menu-item-log-out"
               :append-icon="mdiLogout"
               link
-              role="option"
+              role="menuitem"
               @click="logOut"
             >
               <v-list-item-title class="font-weight-medium">Log Out</v-list-item-title>
