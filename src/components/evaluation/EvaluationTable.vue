@@ -43,6 +43,7 @@
           <div class="button-container ml-auto">
             <v-btn
               v-if="isHeaderCollapsed"
+              id="expand-header-btn"
               aria-label="More Options"
               :icon="mdiDotsVertical"
               size="small"
@@ -192,7 +193,11 @@
                   :id="`evaluation-${rowIndex}-department`"
                   class="align-middle py-1 pl-2 td-department"
                 >
-                  <router-link :to="`/department/${get(evaluation.department, 'id')}`" class="font-weight-bold">
+                  <router-link
+                    :id="`evaluation-${rowIndex}-department-link`"
+                    :to="`/department/${get(evaluation.department, 'id')}`"
+                    class="font-weight-bold"
+                  >
                     {{ get(evaluation.department, 'name') }}
                   </router-link>
                 </td>
@@ -358,6 +363,7 @@
                   </div>
                 </td>
                 <td
+                  :id="`evaluation-${rowIndex}-courseName`"
                   class="px-1 td-courseName"
                   :class="{
                     'font-weight-bold pt-7': isEditing(evaluation),
@@ -366,7 +372,7 @@
                 >
                   <div class="evaluation-label px-3 w-25">Course Name</div>
                   <div class="evaluation-value">
-                    <label :id="`evaluation-${rowIndex}-courseName`" :for="isEditing(evaluation) ? undefined : `evaluation-${rowIndex}-checkbox`">
+                    <label :for="isEditing(evaluation) ? undefined : `evaluation-${rowIndex}-checkbox`">
                       {{ evaluation.subjectArea }}
                       {{ evaluation.catalogId }}
                       {{ evaluation.instructionFormat }}
@@ -590,10 +596,15 @@
               </tr>
               <tr
                 v-if="isEditing(evaluation)"
+                id="evaluation-edit-row"
                 :key="`${evaluation.id}-edit`"
                 class="evaluation-second-row bg-tertiary text-white border-top-none"
               >
-                <td :colspan="size(evaluationHeaders)" class="pb-1 px-3">
+                <td
+                  id="evaluation-edit"
+                  :colspan="size(evaluationHeaders)"
+                  class="pb-1 px-3"
+                >
                   <div class="d-flex justify-end evaluation-buttons">
                     <ConfirmDialog
                       confirm-button-label="Confirm anyway"
