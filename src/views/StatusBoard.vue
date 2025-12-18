@@ -25,23 +25,24 @@
             <v-checkbox
               id="checkbox-select-dept-all"
               aria-controls="open-notification-form-btn"
-              aria-describedby="checkbox-select-dept-all-desc"
+              aria-describedby="open-notification-form-btn"
+              aria-label="Select All Departments"
+              class="r-mr-3"
               color="primary"
               :disabled="contextStore.loading"
               hide-details
               :indeterminate="someDepartmentsSelected"
+              label="Select All"
               :model-value="allDepartmentsSelected"
-              title="Select All Departments"
               @update:model-value="toggleSelectAll"
             />
-            <div id="checkbox-select-dept-all-desc" class="px-1">Send notification</div>
             <v-btn
               id="open-notification-form-btn"
-              class="r-mx-2 text-capitalize"
+              class="r-mr-3 text-capitalize"
               color="secondary"
               density="comfortable"
               :disabled="isCreatingNotification || isEmpty(selectedDepartmentIds) || contextStore.loading"
-              text="Apply"
+              text="Send Notification"
               @click="() => isCreatingNotification = true"
             />
           </div>
@@ -135,14 +136,14 @@
       id-prefix="send-notification"
       :is-open="isCreatingNotification"
       max-width="1200"
-      min-width="300"
+      min-width="800"
       persistent
       role="dialog"
       width="90%"
     >
       <NotificationForm
         :after-send="afterSendNotification"
-        min-width="300"
+        min-width="800"
         :on-cancel="cancelSendNotification"
         :recipients="notificationRecipients"
       />
