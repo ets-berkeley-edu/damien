@@ -18,7 +18,7 @@
       <div>
         <v-btn
           id="btn-close-alert"
-          aria-label="Close this dialog box."
+          aria-label="Close this notification."
           :color="snackbar.color"
           text="Close"
           @click="contextStore.snackbarClose"

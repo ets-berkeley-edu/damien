@@ -217,7 +217,11 @@ onMounted(() => {
 const afterSendNotification = () => {
   selectedDepartmentIds.value = []
   isCreatingNotification.value = false
-  alertScreenReader('Notification sent.')
+  const deptCount = notificationRecipients.value.length
+  const recipientCount = notificationRecipients.value.reduce((sum, d) => sum + d.recipients.length, 0)
+  const msg = `Success: Notification sent to ${recipientCount} ${pluralize('recipient', recipientCount)} across ${deptCount} ${pluralize('department', deptCount)}.`
+  alertScreenReader(msg)
+  contextStore.snackbarOpen(msg, 'success')
   putFocusNextTick('open-notification-form-btn')
 }
 
