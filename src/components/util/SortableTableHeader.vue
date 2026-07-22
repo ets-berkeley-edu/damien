@@ -37,16 +37,17 @@
         autocomplete="off"
         class="mb-2 w-100 w-sm-50"
         :disabled="disableControls"
+        @change="onSelectSortColumn"
       >
-        <option selected :value="selectedSortColumn">Sort by...</option>
-        <option v-for="col in sortableColumns" :key="col.key" :value="col.title">{{ col.title }}</option>
+        <option disabled :value="null">Sort by...</option>
+        <option v-for="col in sortableColumns" :key="col.key" :value="col.key">{{ col.title }}</option>
       </select>
     </th>
   </tr>
 </template>
 
 <script setup>
-import {filter} from 'lodash'
+import {filter, find} from 'lodash'
 import {computed, ref} from 'vue'
 import {storeToRefs} from 'pinia'
 import {useDepartmentStore} from '@/stores/department/department-edit-session'
@@ -82,10 +83,19 @@ const props = defineProps({
 })
 
 const {disableControls} = storeToRefs(useDepartmentStore())
-const selectedSortColumn = ref(undefined)
+const selectedSortColumn = ref(null)
 const sortableColumns = computed(() => {
   return filter(props.columns, 'sortable')
 })
+
+const onSelectSortColumn = () => {
+  const column = find(props.columns, {key: selectedSortColumn.value})
+  if (column) {
+    props.onSort(column)
+    // Reset so selecting the same column again can toggle sort direction
+    selectedSortColumn.value = null
+  }
+}
 </script>
 
 <style scoped>
