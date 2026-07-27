@@ -12,47 +12,71 @@
         :class="{'collapsed': isHeaderCollapsed}"
         role="search"
       >
-        <div class="align-start d-flex pl-4 pr-2" :class="{'pt-2': !isHeaderCollapsed, 'pb-2': readonly}">
-          <div class="d-flex flex-grow-1 flex-wrap">
-            <div class="flex-grow-1">
-              <v-text-field
-                id="evaluation-search-input"
-                v-model="searchFilter"
-                :aria-describedby="undefined"
-                aria-label="Filter evaluations table by search terms."
-                class="bg-surface mr-4"
-                clearable
-                color="primary"
-                density="compact"
-                hide-details
-                label="Filter courses"
-                max-width="37.5rem"
-                min-width="8rem"
-                type="search"
-                autocomplete="on"
-              />
-            </div>
-            <AddCourseSection
-              v-if="!readonly"
-              id="add-course-section"
-              :allow-edits="allowEdits"
-              class="align-self-center"
-              :on-click-add="onClickExpandHeader"
+        <div
+          class="d-flex align-center pl-4 pr-2"
+          :class="{'pt-2': !isHeaderCollapsed, 'pb-2': readonly}"
+        >
+          <div class="flex-grow-1 mr-2" style="min-width: 0">
+            <v-text-field
+              id="evaluation-search-input"
+              v-model="searchFilter"
+              :aria-describedby="undefined"
+              aria-label="Filter evaluations table by search terms."
+              class="bg-surface"
+              clearable
+              color="primary"
+              density="compact"
+              hide-details
+              label="Filter courses"
+              max-width="37.5rem"
+              min-width="8rem"
+              type="search"
+              autocomplete="on"
             />
           </div>
-          <div class="button-container ml-auto">
-            <v-btn
-              v-if="isHeaderCollapsed"
-              id="expand-header-btn"
-              aria-label="More Options"
-              :icon="mdiDotsVertical"
-              size="small"
-              variant="text"
-              @click.stop="onClickExpandHeader"
-            />
+          <AddCourseSection
+            v-if="!readonly"
+            id="add-course-section"
+            :allow-edits="allowEdits"
+            class="align-self-center flex-shrink-0"
+            :on-click-add="onClickExpandHeader"
+          />
+          <div
+            v-if="isHeaderPinned"
+            class="d-flex align-center flex-shrink-0 ml-1"
+          >
+            <span v-if="isHeaderCollapsed" class="text-caption text-medium-emphasis mr-2 text-no-wrap">
+              {{ enabledStatusCount }} of {{ totalStatusCount }} statuses
+              <span class="sr-only">currently shown in the course status filters</span>
+            </span>
+            <v-tooltip
+              location="bottom"
+              :text="`${isHeaderCollapsed ? 'Show' : 'Hide'} select-all, status filters, and actions`"
+            >
+              <template #activator="{props: tooltipProps}">
+                <v-btn
+                  id="expand-header-btn"
+                  v-bind="tooltipProps"
+                  aria-controls="evaluations-filters-row"
+                  :aria-expanded="!isHeaderCollapsed"
+                  :aria-label="`${isHeaderCollapsed ? 'Show' : 'Hide'} filters`"
+                  class="flex-shrink-0"
+                  color="primary"
+                  :prepend-icon="isHeaderCollapsed ? mdiChevronDown : mdiChevronUp"
+                  size="small"
+                  variant="tonal"
+                  @click.stop="isHeaderCollapsed ? onClickExpandHeader() : onClickCollapseHeader()"
+                >
+                  {{ isHeaderCollapsed ? 'Show' : 'Hide' }} filters
+                </v-btn>
+              </template>
+            </v-tooltip>
           </div>
         </div>
-        <div class="align-center d-flex flex-wrap justify-space-between px-4">
+        <div
+          id="evaluations-filters-row"
+          class="align-center d-flex flex-wrap justify-space-between px-4"
+        >
           <div v-if="!readonly && allowEdits" class="d-flex pt-2">
             <v-checkbox
               id="select-all-evals-checkbox"
@@ -708,7 +732,7 @@
 <script setup>
 import {clone, each, filter, find, get, includes, isEmpty, keys, map, noop, pickBy, pull, size, some} from 'lodash'
 import {computed, nextTick, onMounted, provide, ref, watch} from 'vue'
-import {mdiAlertCircle, mdiCheckBold, mdiChevronDown, mdiDotsVertical, mdiPlusCircle} from '@mdi/js'
+import {mdiAlertCircle, mdiCheckBold, mdiChevronDown, mdiChevronUp, mdiPlusCircle} from '@mdi/js'
 import {storeToRefs} from 'pinia'
 import AccessibleDateInput from '@/components/util/AccessibleDateInput'
 import AddCourseSection from '@/components/evaluation/AddCourseSection'
@@ -753,6 +777,7 @@ const hoverId = ref(undefined)
 const isConfirmingCancelEdit = ref(false)
 const isConfirmingNonSisInstructor = ref(false)
 const isHeaderCollapsed = ref(false)
+const isHeaderPinned = ref(false)
 const isSaving = ref(false)
 const markAsDoneWarning = ref(undefined)
 const openMenuEvaluationIds = ref([])
@@ -800,6 +825,8 @@ const visibleEvaluations = computed(() => {
 
 const totalCount = computed(() => size(evaluations.value))
 const displayedCount = computed(() => size(searchFilterResults.value))
+const totalStatusCount = computed(() => size(keys(filterTypes)))
+const enabledStatusCount = computed(() => size(selectedFilterTypes.value))
 
 provide('duplicatingEvaluationId', duplicatingEvaluationId)
 
@@ -997,6 +1024,11 @@ const onChangeSearchFilter = filterResults => {
   }
 }
 
+const onClickCollapseHeader = () => {
+  isHeaderCollapsed.value = true
+  forceExpandHeader.value = false
+}
+
 const onClickExpandHeader = () => {
   isHeaderCollapsed.value = false
   forceExpandHeader.value = true
@@ -1054,7 +1086,8 @@ const onMouseleaveRow = evaluation => {
 const onScroll = () => {
   const tableHeader = document.getElementById('evaluations-table-header')
   const tableHeaderTop = tableHeader.getBoundingClientRect().top
-  if (Math.floor(tableHeaderTop) <= (stickySearchPosition.value)) {
+  isHeaderPinned.value = Math.floor(tableHeaderTop) <= stickySearchPosition.value
+  if (isHeaderPinned.value) {
     if (!forceExpandHeader.value && !isHeaderCollapsed.value) {
       isHeaderCollapsed.value = true
     }
@@ -1389,9 +1422,6 @@ tr.border-top-none td {
 .align-middle {
   vertical-align: middle;
 }
-.button-container {
-  min-width: 2.5rem;
-}
 .evaluation-actions {
   position: relative;
   top: 2px;
@@ -1483,12 +1513,12 @@ tr.border-top-none td {
   transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   z-index: 11;
   &.collapsed {
-    max-height: 3.25rem;
-    padding-bottom: 0.25rem;
+    overflow: visible;
+    padding-bottom: 0.5rem;
     padding-top: 0.5rem;
-    transition-property: max-height;
-    transition-duration: 0.2s;
-    transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    #evaluations-filters-row {
+      display: none !important;
+    }
   }
 }
 .td-courseNumber {

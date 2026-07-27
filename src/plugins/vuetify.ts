@@ -37,6 +37,7 @@ import {VSlideXReverseTransition, VSlideYTransition, VSnackbar, VSwitch, VToolba
 import {VTable} from 'vuetify/components/VTable'
 import {VTextarea} from 'vuetify/components/VTextarea'
 import {VTextField} from 'vuetify/components/VTextField'
+import {VTooltip} from 'vuetify/components/VTooltip'
 
 export default createVuetify({
   components: {
@@ -90,7 +91,8 @@ export default createVuetify({
     VTable,
     VTextarea,
     VTextField,
-    VToolbar
+    VToolbar,
+    VTooltip
   },
   defaults: {
     VBtn: {
