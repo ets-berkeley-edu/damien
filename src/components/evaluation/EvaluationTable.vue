@@ -42,7 +42,7 @@
             :on-click-add="onClickExpandHeader"
           />
           <div
-            v-if="isHeaderPinned"
+            v-if="isHeaderPinned || isHeaderCollapsed"
             class="d-flex align-center flex-shrink-0 ml-1"
           >
             <span v-if="isHeaderCollapsed" class="text-caption text-medium-emphasis mr-2 text-no-wrap">
@@ -773,6 +773,7 @@ const filterTypes = {
 }
 const focusedEditButtonEvaluationId = ref(undefined)
 const forceExpandHeader = ref(false)
+const headerCollapseDelta = ref(0)
 const hoverId = ref(undefined)
 const isConfirmingCancelEdit = ref(false)
 const isConfirmingNonSisInstructor = ref(false)
@@ -966,6 +967,11 @@ const filterTypeCounts = type => {
   return filter(evaluations.value, e => e.status === type).length
 }
 
+const hasRoomToCollapse = () => {
+  const maxScrollY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+  return maxScrollY - window.scrollY > headerCollapseDelta.value
+}
+
 const instructorConfirmationText = instructor => {
   if (instructor) {
     return `
@@ -1085,15 +1091,21 @@ const onMouseleaveRow = evaluation => {
 
 const onScroll = () => {
   const tableHeader = document.getElementById('evaluations-table-header')
-  const tableHeaderTop = tableHeader.getBoundingClientRect().top
-  isHeaderPinned.value = Math.floor(tableHeaderTop) <= stickySearchPosition.value
+  if (!tableHeader) {
+    return
+  }
+  const tableHeaderTop = Math.floor(tableHeader.getBoundingClientRect().top)
+  if (!isHeaderCollapsed.value) {
+    setHeaderCollapseDelta()
+  }
+  isHeaderPinned.value = tableHeaderTop <= stickySearchPosition.value
   if (isHeaderPinned.value) {
-    if (!forceExpandHeader.value && !isHeaderCollapsed.value) {
+    if (!forceExpandHeader.value && !isHeaderCollapsed.value && hasRoomToCollapse()) {
       isHeaderCollapsed.value = true
     }
   } else {
     forceExpandHeader.value = false
-    if (isHeaderCollapsed.value) {
+    if (isHeaderCollapsed.value && tableHeaderTop > stickySearchPosition.value + headerCollapseDelta.value) {
       isHeaderCollapsed.value = false
     }
   }
@@ -1138,6 +1150,11 @@ const selectInstructor = instructor => {
     }
   }
   pendingInstructor.value = instructor
+}
+
+const setHeaderCollapseDelta = () => {
+  const filtersRow = document.getElementById('evaluations-filters-row')
+  headerCollapseDelta.value = filtersRow ? filtersRow.offsetHeight + 8 : 0
 }
 
 const toggleSelectAll = () => {
