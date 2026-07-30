@@ -33,7 +33,7 @@
       hide-details
       inset
       :loading="isTogglingLock"
-      :title="`${termLocked ? 'Lock' : 'Unlocked'} ${contextStore.selectedTermName} for editing.`"
+      :title="`${termLocked ? 'Locked' : 'Unlocked'} ${contextStore.selectedTermName} for editing.`"
       :true-icon="mdiLock"
       @update:model-value="toggleTermLocked"
     />
