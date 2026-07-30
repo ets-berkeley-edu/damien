@@ -234,8 +234,7 @@
                     v-if="!isEditing(evaluation)"
                     :id="`evaluation-${rowIndex}-checkbox`"
                     :key="`checkbox-${rowIndex}`"
-                    :aria-describedby="undefined"
-                    :aria-description="`${describeRow(evaluation)}`"
+                    :aria-describedby="`evaluation-${rowIndex}-checkbox-description`"
                     :aria-label="`Evaluation ${rowIndex + 1} of ${size(items)}`"
                     class="d-flex justify-center"
                     :color="`${isRowActive(evaluation) ? 'tertiary' : 'primary'}`"
@@ -245,6 +244,13 @@
                     :ripple="false"
                     @update:model-value="() => departmentStore.toggleSelectEvaluation(evaluation)"
                   />
+                  <span
+                    v-if="!isEditing(evaluation)"
+                    :id="`evaluation-${rowIndex}-checkbox-description`"
+                    class="sr-only"
+                  >
+                    {{ describeRow(evaluation) }}
+                  </span>
                 </td>
                 <td
                   :id="`evaluation-${rowIndex}-status`"
