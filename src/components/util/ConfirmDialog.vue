@@ -44,12 +44,12 @@
 </template>
 
 <script setup>
-import {onMounted} from 'vue'
+import {watch} from 'vue'
 import ModalDialog from '@/components/util/ModalDialog'
 import ProgressButton from '@/components/util/ProgressButton'
 import {putFocusNextTick} from '@/lib/utils'
 
-defineProps({
+const props = defineProps({
   buttonContext: {
     default: '',
     required: false,
@@ -105,5 +105,9 @@ defineProps({
   }
 })
 
-onMounted(() => putFocusNextTick('confirm-dialog-btn'))
+watch(() => props.isOpen, isOpen => {
+  if (isOpen) {
+    putFocusNextTick(props.hideConfirm ? 'cancel-dialog-btn' : 'confirm-dialog-btn')
+  }
+})
 </script>
