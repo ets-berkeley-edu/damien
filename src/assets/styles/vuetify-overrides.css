@@ -27,7 +27,7 @@
   .v-list-item:focus::after,
   .v-selection-control--focus .v-selection-control__input::before,
   a:focus,
-  *[tabindex="-1"]:focus {
+  *:not(.v-overlay__content)[tabindex="-1"]:focus {
     --v-theme-overlay-multiplier: 3;
     border-width: 0;
     box-shadow: 0 0 0 0.125rem var(--v-theme-surface);
@@ -91,7 +91,7 @@
   .v-list-item:focus-visible::after,
   .v-selection-control--focus-visible .v-selection-control__input::before,
   a:focus-visible,
-  *[tabindex="-1"]:focus-visible {
+  *:not(.v-overlay__content)[tabindex="-1"]:focus-visible {
     --v-theme-overlay-multiplier: 3;
     border-width: 0;
     box-shadow: 0 0 0 0.125rem var(--v-theme-surface);
