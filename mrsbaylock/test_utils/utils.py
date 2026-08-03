@@ -608,6 +608,7 @@ def expected_instructors(evaluations):
         if row.instructor.uid:
             data = {
                 'LDAP_UID': row.instructor.uid,
+                'LDAP_UID_2': row.instructor.uid,
                 'SIS_ID': row.instructor.csid or f'UID:{row.instructor.uid}',
                 'FIRST_NAME': row.instructor.first_name,
                 'LAST_NAME': row.instructor.last_name,

@@ -81,6 +81,8 @@ def generate_exports(term_id, timestamp):
     instructors = []
     for legacy_instructor in csv.DictReader(stream_object_text(f'{past_term_export_path}/instructors.csv') or []):
         if legacy_instructor['LDAP_UID'] not in current_term_instructors:
+            if 'LDAP_UID_2' not in legacy_instructor:
+                legacy_instructor['LDAP_UID_2'] = legacy_instructor['LDAP_UID']
             legacy_instructor['EMAIL_ADDRESS'] = legacy_instructor['EMAIL_ADDRESS'] or 'NULL'
             instructors.append(legacy_instructor)
     for instructor_uid in sorted(current_term_instructors.keys()):
@@ -334,6 +336,7 @@ department_hierarchy_headers = [
 
 instructor_headers = [
     'LDAP_UID',
+    'LDAP_UID_2',
     'SIS_ID',
     'FIRST_NAME',
     'LAST_NAME',
@@ -435,6 +438,7 @@ def _cross_listed_name(section):
 def _export_instructor_row(instructor):
     return {
         'LDAP_UID': instructor['uid'],
+        'LDAP_UID_2': instructor['uid'],
         'SIS_ID': instructor['sisId'] or f"UID:{instructor['uid']}",
         'FIRST_NAME': instructor['firstName'],
         'LAST_NAME': instructor['lastName'],
