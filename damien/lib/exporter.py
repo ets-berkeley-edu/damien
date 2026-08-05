@@ -60,8 +60,9 @@ def generate_exports(term_id, timestamp):
     all_catalog_listings = DepartmentCatalogListing.query.all()
     dept_forms_to_uids = {df.name: [u.uid for u in df.users if not u.deleted_at] for df in DepartmentForm.query.all()}
 
-    # We fetch past-term exports for 1) course-instructor mappings; 2) course-supervisor mappings for cross-listed courses; 3) instructor data.
+    # Fetch past term exports
     past_term_export_path = 'exports/legacy'
+    previous_term_id = None
     if term_id != app.config['EARLIEST_TERM_ID']:
         previous_term_id = term_ids_range(app.config['EARLIEST_TERM_ID'], term_id)[-2]
         last_export = Export.get_latest(term_id=previous_term_id)
@@ -72,6 +73,7 @@ def generate_exports(term_id, timestamp):
     courses, current_term_course_instructors, course_students, course_supervisors, students, current_term_xlisted_course_supervisors =\
         _generate_course_rows(term_id, sections, evaluation_keys_to_instructor_uids, dept_forms_to_uids, all_catalog_listings)
 
+    # course_instructors.csv, xlisted_course_supervisors.csv, and instructors.csv include all past exports.
     course_instructors = list(csv.DictReader(stream_object_text(f'{past_term_export_path}/course_instructors.csv') or []))
     course_instructors.extend(current_term_course_instructors)
 
@@ -87,6 +89,21 @@ def generate_exports(term_id, timestamp):
             instructors.append(legacy_instructor)
     for instructor_uid in sorted(current_term_instructors.keys()):
         instructors.append(_export_instructor_row(current_term_instructors[instructor_uid]))
+
+    # courses.csv, course_students.csv and course_supervisors.csv only carry forward rows from the immediate past term.
+    previous_term_courses = _carry_forward_course_rows(past_term_export_path, 'courses.csv', previous_term_id)
+    courses = previous_term_courses + courses
+
+    previous_term_course_students = _carry_forward_course_rows(past_term_export_path, 'course_students.csv', previous_term_id)
+    previous_term_course_student_uids = {r['LDAP_UID'] for r in previous_term_course_students}
+    course_students = previous_term_course_students + course_students
+
+    previous_term_course_supervisors = _carry_forward_course_rows(past_term_export_path, 'course_supervisors.csv', previous_term_id)
+    course_supervisors = previous_term_course_supervisors + course_supervisors
+
+    # students.csv rows must be unique by LDAP_UID. Carry forward only past-term students who also appear in the carried-forward
+    # course_students.csv rows, then let current-term rows overwrite any past-term rows with a matching LDAP_UID.
+    students = _carry_forward_students(past_term_export_path, previous_term_course_student_uids, students)
 
     supervisors = [_export_supervisor_row(u) for u in User.get_dept_contacts_with_blue_permissions()]
     department_hierarchy, report_viewer_hierarchy = _generate_hierarchy_rows(dept_forms_to_uids)
@@ -140,6 +157,28 @@ def upload(sftp, term_id, timestamp, filename, headers, rows):
 
     if not success:
         raise RuntimeError(f'Could not upload {filename}.csv')
+
+
+def _carry_forward_course_rows(past_term_export_path, filename, previous_term_id):
+    """Return past-term export rows whose COURSE_ID belongs to the immediate past term."""
+    if not previous_term_id:
+        return []
+    course_id_prefix = f'{term_code_for_sis_id(previous_term_id)}-'
+    rows = csv.DictReader(stream_object_text(f'{past_term_export_path}/{filename}') or [])
+    return [r for r in rows if r.get('COURSE_ID', '').startswith(course_id_prefix)]
+
+
+def _carry_forward_students(past_term_export_path, previous_term_course_student_uids, current_term_students):
+    """Carry forward past-term students, filtered to and overlaid with current-term data.
+
+    Only past-term students.csv rows whose LDAP_UID is among those carried forward in course_students.csv are
+    carried forward; current-term rows then take precedence on a matching LDAP_UID.
+    """
+    previous_term_students = csv.DictReader(stream_object_text(f'{past_term_export_path}/students.csv') or [])
+    students_by_uid = {r['LDAP_UID']: r for r in previous_term_students if r['LDAP_UID'] in previous_term_course_student_uids}
+    for student in current_term_students:
+        students_by_uid[student['LDAP_UID']] = student
+    return list(students_by_uid.values())
 
 
 def _generate_course_rows(term_id, sections, keys_to_instructor_uids, dept_forms_to_uids, all_catalog_listings):
