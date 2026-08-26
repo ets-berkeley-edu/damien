@@ -26,13 +26,14 @@ ENHANCEMENTS, OR MODIFICATIONS.
 from contextlib import contextmanager
 
 from flask import current_app as app
+from sqlalchemy import text
 
 from damien import db
 
 
 def select_column(sql):
     connection = db.engine.connect()
-    result_proxy = connection.execute(sql)
+    result_proxy = connection.execute(text(sql))
     result = [row[0] for row in result_proxy]
     connection.close()
     return result
@@ -63,7 +64,7 @@ def advisory_lock(lock_id):
 
 
 def try_advisory_lock(connection, lock_id):
-    result = connection.execute(f'SELECT pg_try_advisory_lock({lock_id}) as locked, pg_backend_pid() as pid')
+    result = connection.execute(text(f'SELECT pg_try_advisory_lock({lock_id}) as locked, pg_backend_pid() as pid'))
     (locked, pid) = next(result)
     if locked:
         app.logger.info(f'Granted advisory lock {lock_id} for PID {pid}')
@@ -73,7 +74,7 @@ def try_advisory_lock(connection, lock_id):
 
 
 def advisory_unlock(connection, lock_id):
-    result = connection.execute(f'SELECT pg_advisory_unlock({lock_id}) as unlocked, pg_backend_pid() as pid')
+    result = connection.execute(text(f'SELECT pg_advisory_unlock({lock_id}) as unlocked, pg_backend_pid() as pid'))
     (unlocked, pid) = next(result)
     if unlocked:
         app.logger.info(f'Released advisory lock {lock_id} for PID {pid}')
@@ -81,7 +82,7 @@ def advisory_unlock(connection, lock_id):
         app.logger.error(f'Failed to release advisory lock {lock_id} for PID {pid}')
     # Guard against the possibility of duplicate successful lock requests from this connection.
     while unlocked:
-        result = connection.execute(f'SELECT pg_advisory_unlock({lock_id}) as unlocked')
+        result = connection.execute(text(f'SELECT pg_advisory_unlock({lock_id}) as unlocked'))
         unlocked = next(result).unlocked
 
 

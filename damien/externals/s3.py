@@ -68,7 +68,7 @@ def put_binary_data_to_s3(key, binary_data, content_type):
 def stream_object_text(object_key):
     s3_url = f"s3://{app.config['AWS_S3_BUCKET']}/{object_key}"
     try:
-        return smart_open.open(s3_url, 'r', transport_params={'session': _get_session()})
+        return smart_open.open(s3_url, 'r', transport_params={'client': _get_s3_client()})
     except Exception as e:
         app.logger.error(f'S3 stream operation failed (s3_url={s3_url})')
         app.logger.exception(e)
@@ -89,7 +89,7 @@ def stream_folder_zipped(folder_key):
                 for o in page['Contents']:
                     object_key = o.get('Key')
                     s3_url = f's3://{bucket}/{object_key}'
-                    s3_stream = smart_open.open(s3_url, 'rb', transport_params={'session': session})
+                    s3_stream = smart_open.open(s3_url, 'rb', transport_params={'client': s3})
                     filename = object_key.replace(f'{folder_key}/', '')
                     z.write_iter(filename, s3_stream)
         return z

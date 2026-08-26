@@ -25,7 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 import re
 
-from moto import mock_s3
+from moto import mock_aws
 
 from damien import std_commit
 from damien.models.export import Export
@@ -231,7 +231,7 @@ class TestExportEvaluations:
         _api_export_evaluations(client, expected_status_code=400)
         assert _api_get_exports(client) == []
 
-    @mock_s3
+    @mock_aws
     def test_nothing_confirmed_headers_only(self, client, app, fake_auth):
         fake_auth.login(admin_uid)
         assert _api_get_exports(client) == []
@@ -277,7 +277,7 @@ class TestExportEvaluations:
             assert len(export_response) == 1
             assert export_response[0] == eval_response
 
-    @mock_s3
+    @mock_aws
     def test_confirmed_course(self, client, app, fake_auth, history_id, form_history_id, type_f_id):
         fake_auth.login(admin_uid)
         _api_update_history_evaluation(client, history_id, form_history_id, type_f_id)
@@ -340,7 +340,7 @@ class TestExportEvaluations:
             assert xlisted_course_supervisors[2] == '2022-B-30643,5013530'
             assert xlisted_course_supervisors[3] == '2022-B-30643,6982398'
 
-    @mock_s3
+    @mock_aws
     def test_confirmed_course_gsi(self, client, app, fake_auth, history_id, form_history_id, type_g_id):
         fake_auth.login(admin_uid)
         evaluation = _api_get_evaluation(client, history_id, '30643', '326054')
@@ -382,7 +382,7 @@ class TestExportEvaluations:
             for row in xlisted_course_supervisors[1:]:
                 assert row.startswith('2022-B-30643_GSI')
 
-    @mock_s3
+    @mock_aws
     def test_supervisors_export(self, client, app, fake_auth, history_id, form_history_id, type_f_id):
         fake_auth.login(admin_uid)
 

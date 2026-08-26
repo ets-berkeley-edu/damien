@@ -56,5 +56,6 @@ def handle_internal_server_error(error):
 
 @app.errorhandler(Exception)
 def handle_unexpected_error(error):
-    app.logger.exception(error)
+    # Flask invokes error handlers while the original exception is still active, so exc_info is available here.
+    app.logger.exception(error)  # noqa: LOG004
     return tolerant_jsonify({'message': 'An unexpected server error occurred.'}), 500

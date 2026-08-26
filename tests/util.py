@@ -31,7 +31,7 @@ import moto
 
 @contextmanager
 def mock_s3_bucket(app):
-    with moto.mock_s3():
+    with moto.mock_aws():
         bucket = app.config['AWS_S3_BUCKET']
         s3 = boto3.resource('s3', app.config['AWS_S3_REGION'])
         bucket = s3.create_bucket(Bucket=bucket, CreateBucketConfiguration={'LocationConstraint': app.config['AWS_S3_REGION']})

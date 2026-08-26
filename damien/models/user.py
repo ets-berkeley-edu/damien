@@ -25,6 +25,7 @@ ENHANCEMENTS, OR MODIFICATIONS.
 
 from datetime import datetime
 
+from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import ENUM
 
 from damien import db, std_commit
@@ -163,7 +164,7 @@ class User(Base):
                     FROM users
                     {query_filter}
                     LIMIT 20"""
-        results = db.session.execute(query, params)
+        results = db.session.execute(text(query), params)
         keys = results.keys()
         return [dict(zip(keys, row)) for row in results.fetchall()]
 

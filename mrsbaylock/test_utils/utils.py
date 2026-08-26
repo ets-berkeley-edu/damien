@@ -138,7 +138,7 @@ def get_all_users():
                     department_members.can_receive_communications
     """
     app.logger.debug(sql)
-    results = db.session.execute(text(sql))
+    results = db.session.execute(text(sql)).mappings()
     users_data = []
     for row in results:
         form_names = row['forms'].split(',')
@@ -193,7 +193,7 @@ def get_user(uid):
 def get_user_id(user):
     sql = f"SELECT id FROM users WHERE users.uid = '{user.uid}'"
     app.logger.debug(sql)
-    result = db.session.execute(text(sql)).first()
+    result = db.session.execute(text(sql)).mappings().first()
     return result['id'] if result else None
 
 
@@ -295,7 +295,7 @@ def get_participating_depts():
             """
     app.logger.info(sql)
     depts = []
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     all_data = []
     for row in result:
         data = {
@@ -330,7 +330,7 @@ def get_dept(name, all_users=None):
          WHERE departments.dept_name = '{name.replace("'", "''")}';
     """
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     dept_terms_data = []
     for row in result:
         term_data = {
@@ -389,7 +389,7 @@ def get_dept_sans_contacts():
               LIMIT 1
     """
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings().first()
     return get_dept(result['name'])
 
 
@@ -423,7 +423,7 @@ def get_dept_subject_areas(dept):
          WHERE department_id = {dept.dept_id};
     """
     app.logger.debug(sql)
-    results = db.session.execute(text(sql))
+    results = db.session.execute(text(sql)).mappings()
     subjects = []
     for row in results:
         subjects.append(row['subject_area'])
@@ -589,7 +589,7 @@ def expected_course_students(evaluations, calc_course_ids=False):
            AND unholy_loch.sis_enrollments.course_number IN('{ccns}')
     """
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     enrollments = []
     for row in result:
         for c in course_ids:
@@ -657,7 +657,7 @@ def expected_supervisors():
       ORDER BY users.uid
     """
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     supervisors = []
     for row in result:
         data = {
@@ -750,7 +750,7 @@ def get_foreign_supervisors(term, evaluations, foreign_ccns_str):
                                                                   AND department_catalog_listings.department_id != departments.id);
         """
         app.logger.debug(sql)
-        result = db.session.execute(text(sql))
+        result = db.session.execute(text(sql)).mappings()
         for row in result:
             for ev in evaluations:
                 if row['course_number'] == ev.ccn or row['course_number'] in ev.x_listing_ccns_all or row['course_number'] in ev.room_share_ccns_all:
@@ -802,7 +802,7 @@ def expected_report_viewers():
                    ORDER BY uid, form
     """
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     viewers = []
     for row in result:
         viewers.append({
