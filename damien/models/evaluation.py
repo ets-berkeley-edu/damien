@@ -314,7 +314,7 @@ class Evaluation(Base):
                     AND (
                         edf.name <> c.department_form_name || '_MID' AND c.department_form_name <> edf.name || '_MID'
                     )"""
-        results = db.session.execute(query, params).fetchall()
+        results = db.session.execute(text(query), params).fetchall()
         app.logger.info(f'check_conflicts_on_existing_evaluations query returned {len(results)} results: {query}\n{params}')
         return results
 
@@ -354,7 +354,7 @@ class Evaluation(Base):
             AND (
               edf.name <> cdf.name || '_MID' AND cdf.name <> edf.name || '_MID'
             );"""
-        results = db.session.execute(query, params).fetchall()
+        results = db.session.execute(text(query), params).fetchall()
         app.logger.info(f'check_conflicts_on_new_evaluations query returned {len(results)} results: {query}\n{params}')
         return results
 

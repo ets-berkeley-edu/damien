@@ -219,7 +219,7 @@ def get_all_subjects(term):
                WHERE unholy_loch.sis_sections.term_id = '{term.term_id}'
     """
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     return [row['subject_area'] for row in result]
 
 
@@ -232,7 +232,7 @@ def get_dept_subjects(term, dept):
            AND {date_cond}
     """
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     return [row['subject_area'] for row in result], date_cond
 
 
@@ -293,7 +293,7 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
                department_catalog_listings.custom_evaluation_types;
     """
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     std_commit(allow_test_environment=True)
     evaluations = []
     result_to_evals(result, evaluations, term, dept)
@@ -340,7 +340,7 @@ def get_sis_sections_to_evaluate(evals_total, term, dept):
 
 def get_subj_catalog_ids(sql):
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     std_commit(allow_test_environment=True)
     catalog_ids = []
     for row in result:
@@ -422,7 +422,7 @@ def get_x_listings_and_shares(evals, term, dept):
                    department_catalog_listings.custom_evaluation_types;
         """
         app.logger.debug(sql)
-        result = db.session.execute(text(sql))
+        result = db.session.execute(text(sql)).mappings()
         std_commit(allow_test_environment=True)
         result_to_evals(result, evals, term, dept, foreign_listings=True)
 
@@ -455,7 +455,7 @@ def get_manual_sections(evals, term, dept):
            AND unholy_loch.sis_sections.term_id = '{term.term_id}'
     """
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     std_commit(allow_test_environment=True)
     result_to_evals(result, evals, term, dept)
 
@@ -525,7 +525,7 @@ def get_edited_sections(term, dept):
       ORDER BY evaluations.id ASC
     """
     app.logger.debug(sql)
-    results = db.session.execute(text(sql))
+    results = db.session.execute(text(sql)).mappings()
     std_commit(allow_test_environment=True)
     evals = []
     result_to_evals(results, evals, term, dept)
@@ -580,7 +580,7 @@ def get_all_dept_forms(include_deleted=False):
     deleted = ' WHERE deleted_at IS NULL' if not include_deleted else ''
     sql = f'SELECT name FROM department_forms{deleted}'
     app.logger.debug(sql)
-    results = db.session.execute(text(sql))
+    results = db.session.execute(text(sql)).mappings()
     std_commit(allow_test_environment=True)
     forms = []
     for row in results:
@@ -591,7 +591,7 @@ def get_all_dept_forms(include_deleted=False):
 def get_all_eval_types():
     sql = 'SELECT name FROM evaluation_types WHERE deleted_at IS NULL'
     app.logger.debug(sql)
-    results = db.session.execute(text(sql))
+    results = db.session.execute(text(sql)).mappings()
     std_commit(allow_test_environment=True)
     types = []
     for row in results:
@@ -639,7 +639,7 @@ def get_instructors(evals):
              WHERE ldap_uid IN({uids_string})
         """
         app.logger.debug(sql)
-        results = db.session.execute(text(sql))
+        results = db.session.execute(text(sql)).mappings()
         std_commit(allow_test_environment=True)
         for row in results:
             app.logger.info(f"Checking UID {row['ldap_uid']}")
@@ -667,7 +667,7 @@ def get_instructors(evals):
              WHERE ldap_uid IN({uids_string})
         """
         app.logger.debug(sql)
-        results = db.session.execute(text(sql))
+        results = db.session.execute(text(sql)).mappings()
         std_commit(allow_test_environment=True)
         for row in results:
             instructors.append(Instructor({
@@ -709,7 +709,7 @@ def get_section_dept(term, ccn, all_users=None):
            AND unholy_loch.sis_sections.term_id = '{term.term_id}'
     """
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     std_commit(allow_test_environment=True)
     for row in result:
         dept = None
@@ -755,7 +755,7 @@ def get_eval_types(evals):
 def get_dept_catalog_subjects():
     sql = 'SELECT DISTINCT subject_area FROM department_catalog_listings'
     app.logger.debug(sql)
-    result = db.session.execute(text(sql))
+    result = db.session.execute(text(sql)).mappings()
     std_commit(allow_test_environment=True)
     return [r['subject_area'] for r in result]
 

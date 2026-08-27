@@ -27,6 +27,7 @@ import json
 
 import psycopg2
 from flask import current_app as app
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from damien import __version__ as version
@@ -85,7 +86,7 @@ def load_json(relative_path):
 def _db_status():
     sql = 'SELECT 1'
     try:
-        db.session.execute(sql)
+        db.session.execute(text(sql))
         return True
     except psycopg2.Error as e:
         error_str = str(e)

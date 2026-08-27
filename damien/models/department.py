@@ -110,7 +110,8 @@ class Department(Base):
     def all_enrolled(cls, load_contacts=False):
         query = cls.query.filter_by(is_enrolled=True).order_by(cls.dept_name)
         if load_contacts:
-            query = query.options(joinedload(cls.members).joinedload('user'))
+            from damien.models.department_member import DepartmentMember
+            query = query.options(joinedload(cls.members).joinedload(DepartmentMember.user))
         return query.all()
 
     def catalog_listings_map(self, term_id):

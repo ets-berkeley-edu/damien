@@ -51,7 +51,7 @@ def refresh_additional_instructors(uids=None):
         WHERE instructor_uid NOT IN
         (SELECT ldap_uid FROM unholy_loch.sis_instructors)"""
 
-    uids_to_refresh = [r['instructor_uid'] for r in db.session().execute(text(uid_query), uid_params).all()]
+    uids_to_refresh = [r['instructor_uid'] for r in db.session().execute(text(uid_query), uid_params).mappings().all()]
 
     refresh_query = f"""INSERT INTO unholy_loch.sis_instructors
         (ldap_uid, sis_id, first_name, last_name, email_address, affiliations, created_at)
@@ -92,7 +92,7 @@ def get_confirmed_enrollments(term_id):
     results = db.session().execute(
         text(query),
         {'term_id': term_id},
-    ).all()
+    ).mappings().all()
     app.logger.info(f'Unholy loch confirmed enrollments query returned {len(results)} results')
     return results
 
@@ -104,7 +104,7 @@ def get_default_meeting_dates(term_ids):
         mode() WITHIN GROUP (ORDER BY meeting_end_date) AS end_date
         FROM unholy_loch.sis_sections WHERE term_id = ANY(:term_ids)
         GROUP BY term_id"""
-    return db.session().execute(text(query), {'term_ids': term_ids}).all()
+    return db.session().execute(text(query), {'term_ids': term_ids}).mappings().all()
 
 
 def get_valid_meeting_dates(term_ids):
@@ -114,7 +114,7 @@ def get_valid_meeting_dates(term_ids):
         MAX(meeting_end_date) AS end_date
         FROM unholy_loch.sis_sections WHERE term_id = ANY(:term_ids)
         GROUP BY term_id"""
-    return db.session().execute(text(query), {'term_ids': term_ids}).all()
+    return db.session().execute(text(query), {'term_ids': term_ids}).mappings().all()
 
 
 def get_loch_basic_attributes(uids):
@@ -138,7 +138,7 @@ def get_loch_basic_attributes(uids):
         results = db.session().execute(
             text(query),
             {'uids': uids},
-        ).all()
+        ).mappings().all()
         app.logger.info(f'Loch Ness basic attributes query returned {len(results)} results for {len(uids)} uids.')
         return results
     except Exception as e:
@@ -172,7 +172,7 @@ def get_loch_basic_attributes_by_uid_or_name(snippet, limit=20, exclude_uids=Non
             LIMIT 20
             """
     try:
-        results = db.session().execute(text(query), params).all()
+        results = db.session().execute(text(query), params).mappings().all()
         app.logger.info(f'Loch Ness basic attributes query returned {len(results)} results (snippet={snippet}).')
         return results
     except Exception as e:
@@ -199,7 +199,7 @@ def get_cross_listings(term_id, course_numbers):
     results = db.session().execute(
         text(query),
         params,
-    ).all()
+    ).mappings().all()
     app.logger.info(f'Unholy loch cross-listing query returned {len(results)} results')
     return results
 
@@ -224,7 +224,7 @@ def get_room_shares(term_id, course_numbers):
     results = db.session().execute(
         text(query),
         params,
-    ).all()
+    ).mappings().all()
     app.logger.info(f'Unholy loch room share query returned {len(results)} results')
     return results
 
@@ -239,7 +239,7 @@ def get_loch_instructors(uids):
     results = db.session().execute(
         text(query),
         {'uids': uids},
-    ).all()
+    ).mappings().all()
     app.logger.info(f'Unholy loch instructor query returned {len(results)} results for {len(uids)} uids')
     return results
 
@@ -255,7 +255,7 @@ def get_loch_instructors_for_snippet(snippet, limit, exclude_uids):
     query = f"""SELECT ldap_uid AS uid, sis_id AS csid, first_name, last_name, email_address AS email
             FROM unholy_loch.sis_instructors
             {query_filter} LIMIT :limit"""
-    return db.session().execute(text(query), params).all()
+    return db.session().execute(text(query), params).mappings().all()
 
 
 def get_loch_sections(term_id, conditions):
@@ -276,7 +276,7 @@ def get_loch_sections(term_id, conditions):
     results = db.session().execute(
         text(query),
         {'term_id': term_id},
-    ).all()
+    ).mappings().all()
     app.logger.info(f'Unholy loch course query returned {len(results)} results')
     return results
 
@@ -302,7 +302,7 @@ def get_loch_sections_by_ids(term_id, course_numbers):
     results = db.session().execute(
         text(query),
         params,
-    ).all()
+    ).mappings().all()
     app.logger.info(f'Unholy loch course by id query returned {len(results)} results')
     return results
 
