@@ -171,7 +171,7 @@ class DamienPages(Page):
 
     @staticmethod
     def notif_dept_recipient_remove_btn(dept, user):
-        xpath = f'/following-sibling::div//div[@id="notification-recipient-{dept.dept_id}-{user.uid}"]/button'
+        xpath = f'/following-sibling::div//button[@id="notification-recipient-remove-{dept.dept_id}-{user.uid}-btn"]'
         return By.XPATH, f'{DamienPages.notif_expand_dept_xpath(dept)}{xpath}'
 
     def notif_remove_recipient(self, dept, user):

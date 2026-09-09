@@ -50,6 +50,9 @@ INDEX_HTML = f'{BASE_DIR}/tests/static/test-index.html'
 LOGGING_LEVEL = logging.INFO
 LOGGING_LOCATION = 'baylock.log'
 
+SCREENSHOT_ON_FAILURE = False
+SCREENSHOTS_DIR = 'path/for/screenshots'
+
 TEST_DEPT_1 = 'Astronomy'
 TEST_DEPT_2 = 'Theology'
 TEST_DEPT_CONTACT_UID = '123456'

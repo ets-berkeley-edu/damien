@@ -265,11 +265,10 @@ class TestDeptMgmt:
     def test_notif_remove_all(self):
         count = len(test_email.recipients)
         for u in test_email.recipients:
+            self.dept_details_admin_page.notif_remove_recipient(dept_1, u)
             if test_email.recipients.index(u) == count - 1:
                 assert not self.dept_details_admin_page.is_present(
                     self.dept_details_admin_page.notif_dept_recipient_remove_btn(dept_1, u))
-            else:
-                self.dept_details_admin_page.notif_remove_recipient(dept_1, u)
 
     def test_notif_send_to_all(self):
         test_email.subject = f'Test subject to all contacts {self.test_id}'
