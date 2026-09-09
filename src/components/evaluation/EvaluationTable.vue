@@ -1263,7 +1263,7 @@ tr.border-bottom-none td {
 tr.border-top-none td {
   border-top: none !important;
 }
-@media (max-width: 64rem) {
+@media (max-width: 73.75rem) {
   .evaluation-head-row th {
     display: none;
     &.compact-table-header {
