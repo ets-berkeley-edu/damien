@@ -450,7 +450,11 @@ class CourseDashboardEditsPage(CourseDashboards):
         self.mouseover(self.eval_row_el(evaluation, form=form))
         time.sleep(1)
         self.open_edit_menu(evaluation, form=form)
-        self.wait_for_element_and_click(CourseDashboardEditsPage.EVAL_EDIT_MENU_EDIT_OPTION)
+        # EVAL_EDIT_MENU_EDIT_OPTION matches one "Edit" option per row, since Vuetify eagerly renders every row's
+        # menu contents; only the row just opened above is actually visible, so we must click that specific match
+        # rather than whichever one happens to be first in the DOM (typically the row that's first in the table's
+        # current sort order, e.g. by course name).
+        self.wait_for_visible_element_and_click(CourseDashboardEditsPage.EVAL_EDIT_MENU_EDIT_OPTION)
 
     def select_eval_status(self, evaluation, status):
         app.logger.info(f"Setting CCN {evaluation.ccn} to {status.value['option']}")

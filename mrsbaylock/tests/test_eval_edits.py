@@ -44,6 +44,14 @@ class TestEvaluationManagement:
 
     dept_1 = utils.get_test_dept_1(all_contacts)
     dept_1.evaluations = evaluation_utils.get_evaluations(term, dept_1, log=True)
+    # Tests below edit "the first" evaluation via dept_1.evaluations[0], expecting it to be the row that's visually
+    # first in the UI's list of individually-editable evaluations. A cross-listed or room-shared section, however,
+    # is grouped into a different section's row rather than appearing on its own, so the lowest-numbered section
+    # that stands alone (unaffected by that grouping) is put in the index-0 slot instead of whatever section
+    # happens to sort there numerically.
+    eval_0 = next(e for e in dept_1.evaluations if not e.x_listing_ccns and not e.room_share_ccns)
+    dept_1.evaluations.remove(eval_0)
+    dept_1.evaluations.insert(0, eval_0)
     dept_2 = utils.get_test_dept_2(all_contacts)
     dept_2.evaluations = evaluation_utils.get_evaluations(term, dept_2, log=True)
 
@@ -288,7 +296,10 @@ class TestEvaluationManagement:
     def test_courses(self):
         expected = utils.expected_courses(self.confirmed)
         actual = self.publish_page.parse_csv('courses')
-        utils.verify_actual_matches_expected(actual, expected)
+        # Like course_instructors.csv, courses.csv carries forward rows from a past term's export, so scope the
+        # comparison to current-term rows only.
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), actual))
+        utils.verify_actual_matches_expected(current_term_rows, expected)
 
     def test_course_instructors(self):
         expected = utils.expected_course_instructors(self.confirmed)
@@ -304,7 +315,10 @@ class TestEvaluationManagement:
     def test_course_supervisors(self):
         expected = utils.expected_course_supervisors(self.confirmed, self.all_contacts)
         actual = self.publish_page.parse_csv('course_supervisors')
-        utils.verify_actual_matches_expected(actual, expected)
+        # Like course_instructors.csv, course_supervisors.csv carries forward rows from a past term's export, so
+        # scope the comparison to current-term rows only.
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), actual))
+        utils.verify_actual_matches_expected(current_term_rows, expected)
 
     # BULK EDITS
 
