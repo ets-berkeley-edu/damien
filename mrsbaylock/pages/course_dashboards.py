@@ -71,7 +71,9 @@ class CourseDashboards(DamienPages):
         return [el.text for el in self.elements(CourseDashboards.EVALUATION_ROW)]
 
     def visible_evaluation_statuses(self):
-        return [el.text.strip() for el in self.elements(CourseDashboards.EVALUATION_STATUS_LABEL)]
+        # Read textContent instead of text to skirt CSS visibility glitches.
+        labels = self.elements(CourseDashboards.EVALUATION_STATUS_LABEL)
+        return [(el.get_property('textContent') or '').strip().upper() for el in labels]
 
     def visible_evaluation_column_selections(self, locator):
         a = []
