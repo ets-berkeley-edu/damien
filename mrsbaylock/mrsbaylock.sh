@@ -71,6 +71,6 @@ read -s password
 echo
 echo "Running tests matching ${test_suite}"
 
-USERNAME="${username}" PASSWORD="${password}" pytest tests/test_${test_suite}.py --browser ${browser} --headless ${headless}
+USERNAME="${username}" PASSWORD="${password}" pytest tests/test_${test_suite}.py --browser ${browser} --headless ${headless} "$@"
 
 exit 0

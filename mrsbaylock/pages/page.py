@@ -167,6 +167,43 @@ class Page(object):  # noqa: UP004
         time.sleep(addl_pause or sleep_default)
         self.driver.execute_script('arguments[0].click();', self.element(locator))
 
+    def visible_element(self, locator):
+        """Return the first currently-displayed match for a locator.
+
+        Some locators (e.g., an eagerly-rendered Vuetify menu's contents, one per table row) match one element per
+        row even though only one row's menu is actually open/visible at a time.
+        """
+        for el in self.elements(locator):
+            if el.is_displayed():
+                return el
+        return None
+
+    def click_element_obj(self, el, addl_pause=None):
+        sleep_default = app.config['CLICK_SLEEP']
+        time.sleep(addl_pause or sleep_default)
+        self.hide_damien_footer()
+        try:
+            self.scroll_to_top()
+            el.click()
+        except (exceptions.ElementClickInterceptedException, exceptions.ElementNotInteractableException) as error:
+            app.logger.error(f'Failed to click element, using JS instead - {error}')
+            self.driver.execute_script('arguments[0].click();', el)
+        finally:
+            WebDriverManager.get_browser_logs(self.driver)
+
+    def wait_for_visible_element_and_click(self, locator, timeout=None, addl_pause=None):
+        """Like wait_for_element_and_click, but for a locator matching several elements, only one of which is visible.
+
+        Clicking the plain first DOM match regardless of visibility risks a silent wrong-row click: if that first
+        match isn't interactable, click_element's ElementNotInteractableException fallback forces a JS click on it
+        anyway, since a JS click ignores visibility.
+        """
+        Wait(self.driver, timeout or utils.get_short_timeout()).until(
+            lambda _: self.visible_element(locator) is not None,
+            message=f'Failed waiting for a visible element matching: {locator}',
+        )
+        self.click_element_obj(self.visible_element(locator), addl_pause)
+
     def wait_for_page_and_click(self, locator, addl_pause=None):
         self.wait_for_element(locator, utils.get_medium_timeout())
         self.click_element(locator, addl_pause)

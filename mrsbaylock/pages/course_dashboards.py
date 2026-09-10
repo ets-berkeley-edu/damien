@@ -37,9 +37,14 @@ from mrsbaylock.test_utils import utils
 class CourseDashboards(DamienPages):
     EVALUATION_ROW = (By.XPATH, '//tr[contains(@class, "evaluation-row")]')
     EVALUATION_STATUS = (By.XPATH, '//td[contains(@id, "-status")]')
-    EVALUATION_FORM = (By.XPATH, '//td[contains(@id, "-departmentForm")]')
-    EVALUATION_TYPE = (By.XPATH, '//td[contains(@id, "-evaluationType")]')
-    EVALUATION_PERIOD = (By.XPATH, '//td[contains(@id, "-period")]')
+    # The status cell also contains an (edit-mode-only, but always DOM-present) "Edit" button, so the status text
+    # itself must be read from the status chip specifically, not from the cell as a whole.
+    EVALUATION_STATUS_LABEL = (By.XPATH, '//td[contains(@id, "-status")]//*[contains(@class, "status-label")]')
+    # Each of these cells also contains a "evaluation-label" div (a mobile/narrow-viewport column label) alongside
+    # the "evaluation-value" div that holds the actual displayed value, so we scope to the latter specifically.
+    EVALUATION_FORM = (By.XPATH, '//td[contains(@id, "-departmentForm")]/div[@class="evaluation-value"]')
+    EVALUATION_TYPE = (By.XPATH, '//td[contains(@id, "-evaluationType")]/div[@class="evaluation-value"]')
+    EVALUATION_PERIOD = (By.XPATH, '//td[contains(@id, "-period")]/div[@class="evaluation-value"]')
     NO_SECTIONS_MGS = (By.XPATH, '//span[text()="No eligible sections to load."]')
 
     @staticmethod
@@ -66,10 +71,7 @@ class CourseDashboards(DamienPages):
         return [el.text for el in self.elements(CourseDashboards.EVALUATION_ROW)]
 
     def visible_evaluation_statuses(self):
-        statuses = [el.text.strip() for el in self.elements(CourseDashboards.EVALUATION_STATUS)]
-        if 'EDIT' in statuses:
-            statuses.remove('EDIT')
-        return statuses
+        return [el.text.strip() for el in self.elements(CourseDashboards.EVALUATION_STATUS_LABEL)]
 
     def visible_evaluation_column_selections(self, locator):
         a = []
@@ -194,19 +196,21 @@ class CourseDashboards(DamienPages):
         return self.element((By.XPATH, xpath)).text
 
     def eval_instructor(self, evaluation, dept=None, form=None):
-        xpath = f'{self.eval_row_xpath(evaluation, dept, form)}/td[contains(@id, "instructor")]'
+        # Scoped to evaluation-value: the cell also contains an evaluation-label div (a mobile/narrow-viewport
+        # column label) whose text would otherwise be prepended to the value.
+        xpath = f'{self.eval_row_xpath(evaluation, dept, form)}/td[contains(@id, "instructor")]/div[@class="evaluation-value"]'
         return self.element((By.XPATH, xpath)).text
 
     def eval_dept_form(self, evaluation, dept=None, form=None):
-        xpath = f'{self.eval_row_xpath(evaluation, dept, form)}/td[contains(@id, "departmentForm")]'
+        xpath = f'{self.eval_row_xpath(evaluation, dept, form)}/td[contains(@id, "departmentForm")]/div[@class="evaluation-value"]'
         return self.element((By.XPATH, xpath)).text.strip()
 
     def eval_type(self, evaluation, dept=None, form=None):
-        xpath = f'{self.eval_row_xpath(evaluation, dept, form)}/td[contains(@id, "evaluationType")]'
+        xpath = f'{self.eval_row_xpath(evaluation, dept, form)}/td[contains(@id, "evaluationType")]/div[@class="evaluation-value"]'
         return self.element((By.XPATH, xpath)).text.strip()
 
     def eval_period_dates(self, evaluation, dept=None, form=None):
-        xpath = f'{self.eval_row_xpath(evaluation, dept, form)}/td[contains(@id, "period")]'
+        xpath = f'{self.eval_row_xpath(evaluation, dept, form)}/td[contains(@id, "period")]/div[@class="evaluation-value"]'
         return self.element((By.XPATH, xpath)).text.strip()
 
     def eval_period_duration(self, evaluation, dept=None, form=None):
