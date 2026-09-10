@@ -66,6 +66,10 @@ def pytest_runtest_makereport(item, call):
     if _app.config['SCREENSHOT_ON_FAILURE'] and result.when == "call" and result.failed:
         driver = item.funcargs.get('page_objects')
         if driver:
+            app.logger.error(driver.__dict__)
+            app.logger.error(item.funcargs)
+            app.logger.error(result)
+            app.logger.error(call)
             timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
             screenshot_path = f"{_app.config['SCREENSHOTS_DIR']}/{timestamp}_{item.name}.png"
             app.logger.info(f'Saving screenshot: {screenshot_path}')

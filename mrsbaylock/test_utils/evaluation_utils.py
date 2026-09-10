@@ -806,7 +806,8 @@ def get_dept_with_listings_or_shares(term, depts):
         if 10 < dept.row_count < 100:
             dept.evaluations = get_evaluations(term, dept)
             evals_with_instr = list(filter(lambda e: e.instructor.uid, dept.evaluations))
-            if len(evals_with_instr) > 5:
+            evals_without_listing_or_share = list(filter(lambda e: not (e.room_share_ccns or e.x_listing_ccns), dept.evaluations))
+            if len(evals_with_instr) > 5 and len(evals_without_listing_or_share) > 1:
                 for ev in dept.evaluations:
                     if ev.room_share_ccns or ev.x_listing_ccns:
                         return dept
