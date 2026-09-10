@@ -50,8 +50,11 @@ class TestEvalExports:
     expected_course_supervisors = []
     expected_supervisors = []
     expected_x_listed_supervisors = []
+    csv_courses = []
     csv_instructors = []
+    csv_course_students = []
     csv_course_instructors = []
+    csv_course_supervisors = []
     csv_x_listed_supervisors = []
 
     def test_refresh_loch(self):
@@ -127,20 +130,32 @@ class TestEvalExports:
     def test_calculate_course_ids(self):
         utils.calculate_course_ids(self.confirmed)
 
+    def test_courses_past_term(self):
+        self.csv_courses.extend(self.publish_page.parse_csv('courses'))
+        past_term_rows = list(filter(lambda r: (self.term.prefix not in r['COURSE_ID']), self.csv_courses))
+        assert past_term_rows
+
     def test_courses(self):
         self.expected_courses.extend(utils.expected_courses(self.confirmed))
-        csv_courses = self.publish_page.parse_csv('courses')
-        utils.verify_actual_matches_expected(csv_courses, self.expected_courses)
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), self.csv_courses))
+        utils.verify_actual_matches_expected(current_term_rows, self.expected_courses)
+
+    def test_course_students_past_term(self):
+        self.csv_course_students.extend(self.publish_page.parse_csv('course_students'))
+        past_term_rows = list(filter(lambda r: (self.term.prefix not in r['COURSE_ID']), self.csv_course_students))
+        assert past_term_rows
 
     def test_course_students(self):
         self.expected_course_students.extend(utils.expected_course_students(self.confirmed))
-        csv_course_students = self.publish_page.parse_csv('course_students')
-        utils.verify_actual_matches_expected(csv_course_students, self.expected_course_students)
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), self.csv_course_students))
+        utils.verify_actual_matches_expected(current_term_rows, self.expected_course_students)
 
     def test_students(self):
         csv_students = self.publish_page.parse_csv('students')
         csv_uids = list(map(lambda d: d['LDAP_UID'], csv_students))
-        expected_uids = [u for u in set(list(map(lambda d: d['LDAP_UID'], self.expected_course_students)))]
+        # students.csv carries forward past-term students (those enrolled in the carried-forward course_students.csv
+        # rows) alongside the current term's, so expect the unique UID set from the whole course_students.csv.
+        expected_uids = list({d['LDAP_UID'] for d in self.csv_course_students})
         utils.verify_actual_matches_expected(csv_uids, expected_uids)
 
         csv_sids = list(map(lambda d: d['SIS_ID'], csv_students))
@@ -181,10 +196,15 @@ class TestEvalExports:
             app.logger.info(f'Verifying {x} in instructors.csv')
             assert x in csv_instructors
 
+    def test_course_supervisors_past_term(self):
+        self.csv_course_supervisors.extend(self.publish_page.parse_csv('course_supervisors'))
+        past_term_rows = list(filter(lambda r: (self.term.prefix not in r['COURSE_ID']), self.csv_course_supervisors))
+        assert past_term_rows
+
     def test_course_supervisors(self):
         self.expected_course_supervisors.extend(utils.expected_course_supervisors(self.confirmed, self.all_contacts))
-        csv_course_supervisors = self.publish_page.parse_csv('course_supervisors')
-        utils.verify_actual_matches_expected(csv_course_supervisors, self.expected_course_supervisors)
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), self.csv_course_supervisors))
+        utils.verify_actual_matches_expected(current_term_rows, self.expected_course_supervisors)
 
     def test_supervisors(self):
         self.expected_supervisors.extend(utils.expected_supervisors())
@@ -235,7 +255,8 @@ class TestEvalExports:
     def test_courses_updates(self):
         expected = utils.expected_courses(self.confirmed)
         csv_courses = self.publish_page.parse_csv('courses')
-        utils.verify_actual_matches_expected(csv_courses, expected)
+        current_term_rows = list(filter(lambda r: (self.term.prefix in r['COURSE_ID']), csv_courses))
+        utils.verify_actual_matches_expected(current_term_rows, expected)
 
     def test_course_instructors_updates(self):
         expected = utils.expected_course_instructors(self.confirmed)
