@@ -10,11 +10,12 @@
         id="evaluations-table-header"
         class="bg-surface-variant elevation-2 sticky"
         :class="{'collapsed': isHeaderCollapsed}"
-        role="search"
       >
         <div
+          id="evaluations-search-row"
           class="d-flex align-center pl-4 pr-2"
           :class="{'pt-2': !isHeaderCollapsed, 'pb-2': readonly}"
+          role="search"
         >
           <div class="flex-grow-1 mr-2" style="min-width: 0">
             <v-text-field
@@ -41,43 +42,12 @@
             class="align-self-center flex-shrink-0"
             :on-click-add="onClickExpandHeader"
           />
-          <div
-            v-if="isHeaderPinned || isHeaderCollapsed"
-            class="d-flex align-center flex-shrink-0 ml-1"
-          >
-            <span v-if="isHeaderCollapsed" class="text-caption text-medium-emphasis mr-2 text-no-wrap">
-              {{ enabledStatusCount }} of {{ totalStatusCount }} statuses
-              <span class="sr-only">currently shown in the course status filters</span>
-            </span>
-            <v-tooltip
-              location="bottom"
-              :text="`${isHeaderCollapsed ? 'Show' : 'Hide'} select-all, status filters, and actions`"
-            >
-              <template #activator="{props: tooltipProps}">
-                <v-btn
-                  id="expand-header-btn"
-                  v-bind="tooltipProps"
-                  aria-controls="evaluations-filters-row"
-                  :aria-expanded="!isHeaderCollapsed"
-                  :aria-label="`${isHeaderCollapsed ? 'Show' : 'Hide'} filters`"
-                  class="flex-shrink-0"
-                  color="primary"
-                  :prepend-icon="isHeaderCollapsed ? mdiChevronDown : mdiChevronUp"
-                  size="small"
-                  variant="tonal"
-                  @click.stop="isHeaderCollapsed ? onClickExpandHeader() : onClickCollapseHeader()"
-                >
-                  {{ isHeaderCollapsed ? 'Show' : 'Hide' }} filters
-                </v-btn>
-              </template>
-            </v-tooltip>
-          </div>
         </div>
         <div
           id="evaluations-filters-row"
           class="align-center d-flex flex-wrap justify-space-between px-4"
         >
-          <div v-if="!readonly && allowEdits" class="d-flex pt-2">
+          <div v-if="!readonly && allowEdits" class="d-flex">
             <v-checkbox
               id="select-all-evals-checkbox"
               :aria-describedby="undefined"
@@ -91,7 +61,6 @@
               :input-value="someEvaluationsSelected || allEvaluationsSelected"
               :model-value="allEvaluationsSelected"
               :ripple="false"
-              @focus="onClickExpandHeader"
               @update:model-value="toggleSelectAll"
             >
               <template #label>
@@ -105,62 +74,94 @@
             </div>
           </div>
           <div class="align-center d-flex flex-wrap pt-2">
-            <div class="mr-2">Show statuses:</div>
-            <v-btn-toggle
-              v-model="selectedFilterTypes"
-              aria-controls="evaluation-table"
-              borderless
-              class="status-filter d-flex flex-wrap"
-              color="tertiary"
-              density="compact"
-              flat
-              multiple
-              rounded
-            >
-              <v-btn
-                v-for="status in keys(filterTypes)"
-                :id="`evaluations-filter-${status}`"
-                :key="status"
-                :active="filterTypes[status].enabled"
-                :aria-pressed="filterTypes[status].enabled"
-                class="btn-status-filter r-ma-1 rounded-pill text-uppercase"
-                color="tertiary"
-                :disabled="disableControls"
-                height="1.875rem !important"
-                :value="status"
-                width="8rem"
-              >
-                <template #prepend>
-                  <v-icon
-                    class="bg-white rounded-circle"
-                    :color="filterTypes[status].enabled ? 'success' : 'muted'"
-                    :icon="filterTypes[status].enabled ? mdiCheckBold : mdiPlusCircle"
-                    aria-hidden="true"
-                  />
-                </template>
-                <div :class="{'font-weight-bold': filterTypes[status].enabled, 'text-medium-emphasis': !filterTypes[status].enabled}">
-                  <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations marked with</span>
-                  {{ filterTypes[status].label }}
-                </div>
-                <template #append>
-                  <v-chip
-                    class="evaluation-status-filter-count px-1"
-                    :class="{'font-weight-bold text-white': filterTypes[status].enabled, 'text-medium-emphasis': !filterTypes[status].enabled}"
-                    size="small"
-                  >
-                    {{ filterTypeCounts(status) }}<span class="sr-only"> evaluations</span>
-                  </v-chip>
-                </template>
-              </v-btn>
-            </v-btn-toggle>
             <div
-              id="evaluation-row-count"
-              class="ml-3 text-caption text-large-emphasis text-no-wrap"
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
+              id="evaluations-status-filters"
+              class="align-center d-flex flex-wrap"
             >
-              Showing {{ displayedCount }} of {{ totalCount }} rows
+              <div class="mr-2">Show statuses:</div>
+              <v-btn-toggle
+                v-model="selectedFilterTypes"
+                aria-controls="evaluation-table"
+                borderless
+                class="status-filter d-flex flex-wrap"
+                color="tertiary"
+                density="compact"
+                flat
+                multiple
+                rounded
+              >
+                <v-btn
+                  v-for="status in keys(filterTypes)"
+                  :id="`evaluations-filter-${status}`"
+                  :key="status"
+                  :active="filterTypes[status].enabled"
+                  :aria-pressed="filterTypes[status].enabled"
+                  class="btn-status-filter r-ma-1 rounded-pill text-uppercase"
+                  color="tertiary"
+                  :disabled="disableControls"
+                  height="1.875rem !important"
+                  :value="status"
+                  width="8rem"
+                >
+                  <template #prepend>
+                    <v-icon
+                      class="bg-white rounded-circle"
+                      :color="filterTypes[status].enabled ? 'success' : 'muted'"
+                      :icon="filterTypes[status].enabled ? mdiCheckBold : mdiPlusCircle"
+                      aria-hidden="true"
+                    />
+                  </template>
+                  <div :class="{'font-weight-bold': filterTypes[status].enabled, 'text-medium-emphasis': !filterTypes[status].enabled}">
+                    <span class="sr-only">{{ filterTypes[status].enabled ? 'Hide' : 'Show' }} evaluations marked with</span>
+                    {{ filterTypes[status].label }}
+                  </div>
+                  <template #append>
+                    <v-chip
+                      class="evaluation-status-filter-count px-1"
+                      :class="{'font-weight-bold text-white': filterTypes[status].enabled, 'text-medium-emphasis': !filterTypes[status].enabled}"
+                      size="small"
+                    >
+                      {{ filterTypeCounts(status) }}<span class="sr-only"> evaluations</span>
+                    </v-chip>
+                  </template>
+                </v-btn>
+              </v-btn-toggle>
+              <div
+                id="evaluation-row-count"
+                class="ml-3 text-caption text-large-emphasis text-no-wrap"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                Showing {{ displayedCount }} of {{ totalCount }} rows
+              </div>
+            </div>
+            <div
+              v-if="isHeaderPinned || isHeaderCollapsed"
+              class="d-flex align-center flex-shrink-0 ml-3"
+            >
+              <v-tooltip
+                location="bottom"
+                :text="`${isHeaderCollapsed ? 'Show' : 'Hide'} course search, add course section, and status filters`"
+              >
+                <template #activator="{props: tooltipProps}">
+                  <v-btn
+                    id="expand-header-btn"
+                    v-bind="tooltipProps"
+                    aria-controls="evaluations-search-row evaluations-status-filters"
+                    :aria-expanded="!isHeaderCollapsed"
+                    :aria-label="isHeaderCollapsed ? 'Expand' : 'Collapse'"
+                    class="flex-shrink-0"
+                    color="primary"
+                    :prepend-icon="isHeaderCollapsed ? mdiChevronDown : mdiChevronUp"
+                    size="small"
+                    variant="tonal"
+                    @click.stop="isHeaderCollapsed ? onClickExpandHeader() : onClickCollapseHeader()"
+                  >
+                    {{ isHeaderCollapsed ? 'Expand' : 'Collapse' }}
+                  </v-btn>
+                </template>
+              </v-tooltip>
             </div>
           </div>
         </div>
@@ -832,8 +833,6 @@ const visibleEvaluations = computed(() => {
 
 const totalCount = computed(() => size(evaluations.value))
 const displayedCount = computed(() => size(searchFilterResults.value))
-const totalStatusCount = computed(() => size(keys(filterTypes)))
-const enabledStatusCount = computed(() => size(selectedFilterTypes.value))
 
 provide('duplicatingEvaluationId', duplicatingEvaluationId)
 
@@ -1159,8 +1158,11 @@ const selectInstructor = instructor => {
 }
 
 const setHeaderCollapseDelta = () => {
-  const filtersRow = document.getElementById('evaluations-filters-row')
-  headerCollapseDelta.value = filtersRow ? filtersRow.offsetHeight + 8 : 0
+  const searchRow = document.getElementById('evaluations-search-row')
+  const statusFilters = document.getElementById('evaluations-status-filters')
+  const searchHeight = searchRow ? searchRow.offsetHeight : 0
+  const statusHeight = statusFilters ? statusFilters.offsetHeight : 0
+  headerCollapseDelta.value = searchHeight + statusHeight + 8
 }
 
 const toggleSelectAll = () => {
@@ -1538,8 +1540,9 @@ tr.border-top-none td {
   &.collapsed {
     overflow: visible;
     padding-bottom: 0.5rem;
-    padding-top: 0.5rem;
-    #evaluations-filters-row {
+    padding-top: 0.2rem;
+    #evaluations-search-row,
+    #evaluations-status-filters {
       display: none !important;
     }
   }
